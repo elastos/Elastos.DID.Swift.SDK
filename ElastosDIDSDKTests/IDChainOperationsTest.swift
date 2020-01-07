@@ -312,7 +312,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertNotNil(vc)
             _ = resolved.addCredential(vc)
-            _ = try resolved.seal(store, storePass)
+            doc = try resolved.seal(store, storePass)
             XCTAssertNotNil(doc)
             XCTAssertEqual(2, doc.getCredentialCount())
             try store.storeDid(doc)
@@ -367,7 +367,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertNotNil(vc)
             _ = resolved.addCredential(vc)
-            _ = try resolved.seal(store, storePass)
+            doc = try resolved.seal(store, storePass)
             XCTAssertNotNil(doc)
             XCTAssertEqual(3, doc.getCredentialCount())
             try store.storeDid(doc)
@@ -409,7 +409,6 @@ class IDChainOperationsTest: XCTestCase {
         } catch {
             XCTFail()
         }
-    
     }
     
     public func testRestore() throws {
