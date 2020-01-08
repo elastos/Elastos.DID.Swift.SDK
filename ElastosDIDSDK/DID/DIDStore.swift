@@ -341,7 +341,7 @@ public class DIDStore: NSObject {
         if (targetSignKey == nil) {
             throw DIDError.failue("No matched authorization key.")
         }
-        return try DIDBackend.shareInstance().deactivate(target, targetSignKey!, doc!, sigk!, storepass)!
+        return try DIDBackend.shareInstance().deactivate(target, targetSignKey!, doc!, sigk!, storepass)
     }
     
     public func deactivateDid(_ target: String, _ did: String, _ signKey: String?, _ storepass: String) throws -> String? {
