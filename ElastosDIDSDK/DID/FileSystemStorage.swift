@@ -189,7 +189,7 @@ public class FileSystemStorage: DIDStorage {
         let path = storeRootPath + "/" + FileSystemStorage.DID_DIR + "/" + doc.subject!.methodSpecificId + "/" + FileSystemStorage.DOCUMENT_FILE
         _ = try getFile(true, path)
         _ = try exists(path)
-        _ = try doc.toJson(path, true, false)
+        _ = try doc.toJson(path: path, true, false)
     }
     
     public func loadDid(_ did: DID) throws -> DIDDocument {

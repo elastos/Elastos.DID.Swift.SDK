@@ -119,9 +119,9 @@ public class DIDBackend: NSObject {
         }
     }
     
-    func update(_ doc: DIDDocument, _ previousTxid: String?, _ signKey: DIDURL, _ storepass: String) throws -> String {
+    func update(_ doc: DIDDocument, previousTxid: String? = nil, _ signKey: DIDURL, _ storepass: String) throws -> String {
         do {
-            let request: IDChainRequest = try IDChainRequest.update(doc, previousTxid, signKey, storepass)
+            let request: IDChainRequest = try IDChainRequest.update(doc, previousTxid: previousTxid, signKey, storepass)
             let jsonStr: String = request.toJson(true)
             return try adapter.createIdTransaction(jsonStr, nil)
         } catch {
@@ -129,9 +129,9 @@ public class DIDBackend: NSObject {
         }
     }
     
-    func deactivate(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String?) throws -> String {
+    func deactivate(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> String {
         do {
-            let request = try IDChainRequest.deactivate(doc, signKey, storepass!)
+            let request = try IDChainRequest.deactivate(doc, signKey, storepass)
         let json = request.toJson(true)
             return try adapter.createIdTransaction(json, nil)
         }

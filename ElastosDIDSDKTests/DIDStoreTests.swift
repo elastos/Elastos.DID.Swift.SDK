@@ -254,7 +254,7 @@ class DIDStoreTests: XCTestCase {
             
             resolved = try doc.subject!.resolve(true)
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try newDoc.toJson(nil, true, true),try resolved?.toJson(nil, true, true))
+            XCTAssertEqual(try newDoc.toJson(true, true),try resolved?.toJson(true, true))
             try store.storeDid(resolved!)
             
             _ = try store.deactivateDid(newDoc.subject!, storePass)
@@ -287,7 +287,7 @@ class DIDStoreTests: XCTestCase {
             
             var resolved: DIDDocument! = try doc.subject!.resolve(true)
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try doc.toJson(nil, true, true),try resolved?.toJson(nil, true, true))
+            XCTAssertEqual(try doc.toJson(true, true),try resolved?.toJson(true, true))
             
             var target = try store.newDid(storePass)
             _ = try target.authorizationDid("recovery", doc.subject!.description)
@@ -301,7 +301,7 @@ class DIDStoreTests: XCTestCase {
             
             resolved = try target.subject!.resolve(true)!
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try target.toJson(nil, true, true),try resolved.toJson(nil, true, true))
+            XCTAssertEqual(try target.toJson(true, true),try resolved.toJson(true, true))
             
             _ = try store.deactivateDid(target.subject!, doc.subject!, storePass)
             
@@ -338,7 +338,7 @@ class DIDStoreTests: XCTestCase {
             
             var resolved: DIDDocument = try doc.subject!.resolve(true)!
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try doc.toJson(nil, true, true),try resolved.toJson(nil, true, true))
+            XCTAssertEqual(try doc.toJson(true, true),try resolved.toJson(true, true))
             
             var target: DIDDocument = try store.newDid(storePass)
             _ = try target.addAuthorizationKey("recovery", doc.subject!.description, key.getPublicKeyBase58())
@@ -353,7 +353,7 @@ class DIDStoreTests: XCTestCase {
             
             resolved = try target.subject!.resolve()!
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try target.toJson(nil, true, true),try resolved.toJson(nil, true, true))
+            XCTAssertEqual(try target.toJson(true, true),try resolved.toJson(true, true))
             
             _ = try store.deactivateDid(target.subject!, doc.subject!, id, storePass)
             
@@ -391,7 +391,7 @@ class DIDStoreTests: XCTestCase {
             
             var resolved: DIDDocument = try doc.subject!.resolve(true)!
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try doc.toJson(nil, true, true),try resolved.toJson(nil, true, true))
+            XCTAssertEqual(try doc.toJson(true, true),try resolved.toJson(true, true))
             
             var target = try store.newDid(storePass)
             _ = try target.addAuthorizationKey("recovery", doc.subject!.description, try key.getPublicKeyBase58())
@@ -406,7 +406,7 @@ class DIDStoreTests: XCTestCase {
             
             resolved = try target.subject!.resolve()!
             XCTAssertNotNil(resolved)
-            XCTAssertEqual(try target.toJson(nil, true, true),try resolved.toJson(nil, true, true))
+            XCTAssertEqual(try target.toJson(true, true),try resolved.toJson(true, true))
             
             _ = try store.deactivateDid(target.subject!, doc.subject!, storePass)
             
@@ -868,7 +868,7 @@ class DIDStoreTests: XCTestCase {
             for i in 0..<10 {
                 let doc = try stores[i].loadDid(docs[i].subject!)
                 XCTAssertNotNil(doc)
-                XCTAssertEqual(try docs[i].toJson(nil, true, true),try doc!.toJson(nil, true, true))
+                XCTAssertEqual(try docs[i].toJson(true, true),try doc!.toJson(true, true))
             }
             
         } catch {

@@ -212,7 +212,7 @@ public class DIDStore: NSObject {
             lastTxid = try DIDBackend.shareInstance().create(doc!, sigk!, storepass)
         }
         else {
-            lastTxid = try DIDBackend.shareInstance().update(doc!, lastTxid, sigk!, storepass)
+            lastTxid = try DIDBackend.shareInstance().update(doc!, previousTxid: lastTxid, sigk!, storepass)
         }
         if lastTxid != nil {
             doc?.meta.transactionId = lastTxid!
