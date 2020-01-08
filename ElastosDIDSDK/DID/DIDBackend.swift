@@ -54,7 +54,7 @@ public class DIDBackend: NSObject {
         
         let json = try adapter.resolve(requestId, did.description, false)
         // TODO: unsafe
-        var jsonString = json!.replacingOccurrences(of: " ", with: "")
+        var jsonString = json.replacingOccurrences(of: " ", with: "")
         jsonString = jsonString.replacingOccurrences(of: "\n", with: "")
         let resultJson = JsonHelper.handleString(jsonString) as! OrderedDictionary<String, Any>
         let result: OrderedDictionary<String, Any> = resultJson[RESULT] as! OrderedDictionary<String, Any>
@@ -133,7 +133,7 @@ public class DIDBackend: NSObject {
         do {
             let request = try IDChainRequest.deactivate(doc!, signKey!, storepass!)
         let json = request.toJson(true)
-            return try adapter.createIdTransaction(json, nil)!
+            return try adapter.createIdTransaction(json, nil)
         }
         catch {
             throw DIDStoreError.failue("Create ID transaction error.")
