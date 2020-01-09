@@ -7,10 +7,10 @@ class VerifiablePresentationTest: XCTestCase {
     func testReadPresentation() {
         do {
             let testData: TestData = TestData()
-            try testData.setupStore(true)
+            _ = try testData.setupStore(true)
             
             // For integrity check
-            try testData.loadTestIssuer()
+            _ = try testData.loadTestIssuer()
             let testDoc: DIDDocument = try testData.loadTestDocument()
             
             let vp: VerifiablePresentation = try testData.loadPresentation()
@@ -51,12 +51,12 @@ class VerifiablePresentationTest: XCTestCase {
     
     func testParseAndSerialize() {
         do {
-            var testData: TestData = TestData()
-            try testData.setupStore(true)
+            let testData: TestData = TestData()
+            _ = try testData.setupStore(true)
             
             // For integrity check
-            try testData.loadTestIssuer()
-            try testData.loadTestDocument()
+            _ = try testData.loadTestIssuer()
+            _ = try testData.loadTestDocument()
             let vp: VerifiablePresentation = try testData.loadPresentation()
             XCTAssertNotNil(vp)
             XCTAssertTrue(try vp.isGenuine())

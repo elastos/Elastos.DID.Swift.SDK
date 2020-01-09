@@ -547,10 +547,10 @@ class DIDStoreTests: XCTestCase {
         do {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setupStore(true)
-            try testData.initIdentity()
+            _ = try testData.initIdentity()
             
             // Store test data into current store
-            try testData.loadTestIssuer()
+            _ = try testData.loadTestIssuer()
             let test: DIDDocument = try testData.loadTestDocument()
             var vc = try testData.loadProfileCredential()
             try vc!.setAlias("MyProfile")
@@ -564,7 +564,7 @@ class DIDStoreTests: XCTestCase {
             var id: DIDURL = try DIDURL(test.subject!, "profile")
             vc = try store.loadCredential(test.subject!, id)
             XCTAssertNotNil(vc)
-            XCTAssertEqual("MyProfile", try vc!.getAlias())
+            XCTAssertEqual("MyProfile", vc!.getAlias())
             XCTAssertEqual(test.subject, vc!.subject.id)
             XCTAssertEqual(id, vc!.id)
             XCTAssertTrue(try vc!.isValid())
@@ -572,7 +572,7 @@ class DIDStoreTests: XCTestCase {
             // try with full id string
             vc = try store.loadCredential(test.subject!.description, id.description)
             XCTAssertNotNil(vc)
-            XCTAssertEqual("MyProfile", try vc!.getAlias())
+            XCTAssertEqual("MyProfile", vc!.getAlias())
             XCTAssertEqual(test.subject, vc!.subject.id)
             XCTAssertEqual(id, vc!.id)
             XCTAssertTrue(try vc!.isValid())
@@ -580,7 +580,7 @@ class DIDStoreTests: XCTestCase {
             id = try DIDURL(test.subject!, "twitter")
             vc = try store.loadCredential(test.subject!.description, "twitter")
             XCTAssertNotNil(vc)
-            XCTAssertEqual("Twitter", try vc!.getAlias())
+            XCTAssertEqual("Twitter", vc!.getAlias())
             XCTAssertEqual(test.subject, vc!.subject.id)
             XCTAssertEqual(id, vc!.id)
             XCTAssertTrue(try vc!.isValid())
@@ -602,10 +602,10 @@ class DIDStoreTests: XCTestCase {
         do {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setupStore(true)
-            try testData.initIdentity()
+            _ = try testData.initIdentity()
             
             // Store test data into current store
-            try testData.loadTestIssuer()
+            _ = try testData.loadTestIssuer()
             let test: DIDDocument = try testData.loadTestDocument()
             var vc = try testData.loadProfileCredential()
             try vc!.setAlias("MyProfile")
@@ -616,7 +616,7 @@ class DIDStoreTests: XCTestCase {
             vc = try testData.loadPassportCredential()
             try vc!.setAlias("Passport")
             
-            var vcs: Array<DIDURL> = try store.listCredentials(test.subject!)
+            let vcs: Array<DIDURL> = try store.listCredentials(test.subject!)
             XCTAssertEqual(4, vcs.count)
             for id in vcs {
                 var re = id.fragment == "profile" || id.fragment == "email" || id.fragment == "twitter" || id.fragment == "passport"
@@ -635,10 +635,10 @@ class DIDStoreTests: XCTestCase {
         do {
             let testData: TestData = TestData()
             let store = try testData.setupStore(true)
-            try testData.initIdentity()
+            _ = try testData.initIdentity()
             
             // Store test data into current store
-            try testData.loadTestIssuer()
+            _ = try testData.loadTestIssuer()
             let test: DIDDocument = try testData.loadTestDocument()
             var vc = try testData.loadProfileCredential()
             try vc!.setAlias("MyProfile")
