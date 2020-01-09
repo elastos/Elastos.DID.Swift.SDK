@@ -250,7 +250,6 @@ public class FileSystemStorage: DIDStorage {
     }
     
     public func storeCredentialMeta(_ did: DID, _ id: DIDURL, _ meta: CredentialMeta?) throws {
-        
         do {
             let path = storeRootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR + "/" + id.fragment + "/" + FileSystemStorage.META_FILE
             let metadata: String = meta != nil ? meta!.toJson() : ""

@@ -28,7 +28,7 @@ class DIDStoreTests: XCTestCase {
             let testData: TestData = TestData()
             
             let store = try testData.setupStore(true)
-            try store.newDid(storePass, "this will be fail")
+            _ = try store.newDid(storepass: storePass, alias: "this will be fail")
         } catch {
             print(error)
             XCTAssertTrue(true)
@@ -67,7 +67,7 @@ class DIDStoreTests: XCTestCase {
             
             let alias: String = "my first did"
             
-            let doc: DIDDocument = try store.newDid(storePass, alias)
+            let doc: DIDDocument = try store.newDid(storepass: storePass, alias: alias)
             XCTAssertTrue(try doc.isValid())
             
             var resolved = try doc.subject?.resolve()
@@ -355,7 +355,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertNotNil(resolved)
             XCTAssertEqual(try target.toJson(true, true),try resolved.toJson(true, true))
             
-            _ = try store.deactivateDid(target.subject!, doc.subject!, id, storePass)
+            _ = try store.deactivateDid(target.subject!, doc.subject!, signKey: id, storePass)
             
             let resolvedNil: DIDDocument? = try target.subject!.resolve(true)
             
@@ -431,7 +431,7 @@ class DIDStoreTests: XCTestCase {
             
             for i in 0..<100 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try store.newDid(storePass, alias)
+                let doc: DIDDocument = try store.newDid(storepass: storePass, alias: alias)
                 XCTAssertTrue(try doc.isValid())
                 
                 var resolved = try store.resolveDid(doc.subject!, true)
@@ -470,13 +470,13 @@ class DIDStoreTests: XCTestCase {
         do {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setupStore(true)
-            try testData.initIdentity()
+            _ = try testData.initIdentity()
             // Create test DIDs
             var dids: Array<DID> = []
             for i in 0..<100 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try store.newDid(storePass, alias)
-                try store.publishDid(doc.subject!, storePass)
+                let doc: DIDDocument = try store.newDid(storepass: storePass, alias: alias)
+               _ =  try store.publishDid(doc.subject!, storePass)
                 dids.append(doc.subject!)
             }
             
@@ -777,7 +777,7 @@ class DIDStoreTests: XCTestCase {
             
             for i in 0..<10 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try store.newDid(storePass, alias)
+                let doc: DIDDocument = try store.newDid(storepass: storePass, alias: alias)
                 
                 let issuer: Issuer = try Issuer(doc)
                 let vc: VerifiableCredential = try issuer.seal(for: doc.subject!, "cred-1", ["BasicProfileCredential", "SelfProclaimedCredential"], props, storePass)

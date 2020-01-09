@@ -440,7 +440,7 @@ public class DIDDocument: NSObject {
         if (!meta.attachedStore()) {
             throw DIDStoreError.failue("Not attached with DID store.")
         }
-        return try meta.store!.sign(subject!, id, storepass, count, inputs)
+        return try meta.store!.sign(subject!, id: id, storepass, count, inputs)
     }
     
     public func sign(_ id: String, _ storepass: String, _ count: Int, _ inputs: [CVarArg]) throws -> String {
