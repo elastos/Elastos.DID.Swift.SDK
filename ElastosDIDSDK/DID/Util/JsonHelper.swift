@@ -162,6 +162,28 @@ public class JsonHelper {
         return (key, value)
     }
     
+    class public func preHandleString(_ jsongString: String) -> String {
+        let str = jsongString.replacingOccurrences(of: "\n", with: "")
+        var token: Bool = false
+        var string: String = ""
+
+        for (_, c) in str.enumerated() {
+            
+            if token {
+                string.append(c)
+            } else {
+                if c != " " && c != "\n"{
+                    string.append(c)
+                }
+            }
+            
+            if c == "\"" {
+                token = !token
+            }
+        }
+        return string
+    }
+    
     class public func handleString(_ jsonString: String) -> Any? {
 
         if isDictionaryJsonString(jsonString) {

@@ -485,48 +485,13 @@ public class DIDDocument: NSObject {
     
     private func parse(url: URL) throws {
         let json = try! String(contentsOf: url)
-        var string: String = ""
-        var token: Bool = false
-        
-        let str = json.replacingOccurrences(of: "\n", with: "")
-
-        for (_, c) in str.enumerated() {
-            
-            if token {
-                string.append(c)
-            } else {
-                if c != " " && c != "\n"{
-                    string.append(c)
-                }
-            }
-            
-            if c == "\"" {
-                token = !token
-            }
-        }
+        let string = JsonHelper.preHandleString(json)
         let ordDic = JsonHelper.handleString(string) as! OrderedDictionary<String, Any>
         return try parse(ordDic)
     }
     
     private func parse(json: String) throws {
-        var string: String = ""
-        var token: Bool = false
-        
-        let str = json.replacingOccurrences(of: "\n", with: "")
-        for (_, c) in str.enumerated() {
-            
-            if token {
-                string.append(c)
-            } else {
-                if c != " " && c != "\n"{
-                    string.append(c)
-                }
-            }
-            
-            if c == "\"" {
-                token = !token
-            }
-        }
+        let string = JsonHelper.preHandleString(json)
         let ordDic = JsonHelper.handleString(string) as! OrderedDictionary<String, Any>
         
         return try parse(ordDic)
