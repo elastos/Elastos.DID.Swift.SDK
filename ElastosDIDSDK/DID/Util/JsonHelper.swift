@@ -69,7 +69,7 @@ public class JsonHelper {
     }
     
     class func getInteger(_ dic: OrderedDictionary<String, Any>, _ name: String, _ optional: Bool, _ ref: Int, _ hint: String) throws -> Int {
-        let vn: String = dic[name] as! String
+        let vn: String? = dic[name] as? String
         if vn == nil {
             if optional {
                 return ref
@@ -78,7 +78,7 @@ public class JsonHelper {
                 throw DIDError.failue("Invalid " + hint + " value.")
             }
         }
-        return Int(vn)!
+        return Int(vn!)!
     }
     
     class public func creatJsonString(dic: OrderedDictionary<String, Any>) -> String {

@@ -896,10 +896,6 @@ public class DIDDocument: NSObject {
         return try addAuthorizationKey(pk)
     }
     
-    public func authorizationDid(_ id: DIDURL, _ controller: DID) throws -> Bool {
-        return try authorizationDid(id, controller)
-    }
-    
     public func authorizationDid(_ id: String, _ controller: String, _ key: String?) throws -> Bool {
         let controllerId: DID = try DID(controller)
         let keyid = (key == nil ? nil : try DIDURL(controllerId, key!))
