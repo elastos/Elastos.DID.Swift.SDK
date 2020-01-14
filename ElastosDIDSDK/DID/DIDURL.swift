@@ -1,19 +1,18 @@
 import Foundation
 
 public class DIDURL: NSObject {
-    
     public var did: DID!
-    public var parameters: OrderedDictionary<String, String>?
+    public var _parameters: OrderedDictionary<String, String>?
     public var path: String?
     public var query: OrderedDictionary<String, String>?
     public var fragment: String!
-    private var listener: DURLListener?
-    private var url: String!
+    // TODO: private var listener: DURLListener? TODO: removed
+    // private var url: String!
     public var meta: CredentialMeta = CredentialMeta()
 
     public init(_ id: DID, _ fragment: String) throws {
         super.init()
-        if (fragment.count > 4) {
+        if (fragment.count > 4) {  //TODO:  Why don't use fragment.hasPrefix("did:")
             let str = fragment.prefix(4)
             let prestr: String = String(str)
             if prestr == "did:" {            
@@ -57,14 +56,21 @@ public class DIDURL: NSObject {
         
         return result
     }
-    
+
+    /*
     public func getParameters() -> String? {
         guard parameters != nil else {
             return nil
         }
         return mapToString(self.parameters!, sep: ";")
     }
-    
+    */
+    public var parameters: String {
+        // TODO
+        return String("")
+    }
+
+    /*
     public func getParameter(_ name: String) -> String? {
         return parameters![name]
     }
@@ -75,15 +81,34 @@ public class DIDURL: NSObject {
         }
         return parameters!.keys.contains(name)
     }
-    
+    */
+    public func parameter(ofKey: String) -> String? {
+        // TODO:
+        return nil
+    }
+
+    public func hasParameter(forKey: String) -> Bool {
+        // TODO
+        return false
+    }
+
+    /*
     public func addParameter(_ key: String?, _ value: String?) {
         return parameters![key!] = value ?? ""
     }
-    
+    */
+
+    public func append(newParameter: String, forKey: String) {
+        // TODO:
+    }
+
+    /*
     public func addQueryParameter(_ key: String?, _ value: String?) {
         return query![key!] = value ?? ""
     }
-    
+    */
+
+    /*
     public func getQuery() -> String {
         guard query != nil else {
             return ""
@@ -97,25 +122,49 @@ public class DIDURL: NSObject {
         }
         return nil
     }
-    
+    */
+
+    public var queryParameters: String {
+        // TODO;
+        return String("TODO")
+    }
+
+    public func queryParameter(ofKey: String) -> String? {
+        // TODO
+        return nil
+    }
+
+    /*
     public func hasQueryParameter(_ name: String) -> Bool {
         guard query == nil else {
             return query!.keys.contains(name)
         }
         return false
     }
-    
+    */
+    public func hasQueryParameter(forKey: String) -> Bool {
+        // TODO
+        return false
+    }
+
     public func setExtra(_ name: String, _ value: String) throws {
         meta.setExtra(name, value)
         if meta.attachedStore() {
            try meta.store?.storeCredentialMeta(did, self, meta)
         }
     }
-    
+
+    /*
     public func getExtra(_ name: String) throws -> String? {
         return meta.getExtra(name)
     }
-    
+    */
+    public func extraValue(ofKey: String) throws -> String? {
+        // TODO
+        return nil
+    }
+
+    /*
     public func setAlias(_ alias: String) throws {
         meta.alias = alias
         if (meta.attachedStore()) {
@@ -125,6 +174,15 @@ public class DIDURL: NSObject {
     
     public func getAlias() -> String {
         return meta.alias
+    }
+    */
+    public var aliasName: String {
+        get {
+            return "TODO"
+        }
+        set {
+            // TODO
+        }
     }
 
     public func toExternalForm() -> String {
@@ -150,7 +208,6 @@ public class DIDURL: NSObject {
     }
 
     public override func isEqual(_ object: Any?) -> Bool {
-        
         if object is DIDURL {
             let url = object as! DIDURL
             let urlExternalForm = url.toExternalForm()
@@ -274,6 +331,9 @@ class DURLListener: DIDURLBaseListener {
     }
 }
 
+/*
+
+// TODO: put as util.
 extension Dictionary {
     var queryString: String {
         var output: String = ""
@@ -284,4 +344,5 @@ extension Dictionary {
         return output
     }
 }
+*/
 
