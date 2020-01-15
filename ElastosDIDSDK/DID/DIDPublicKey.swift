@@ -41,25 +41,28 @@ public class DIDPublicKey: DIDObject {
     }
 
     public override var description: String {
-        // TODO
-        return String("");
+        let dic = toJson(_controller, false)
+        let json = JsonHelper.creatJsonString(dic: dic)
+        return json
     }
 
-    // TODO: need remove one API of "fromJson_XXX".
-    class public func fromJson_dc(_ dic: OrderedDictionary<String, Any>, _ ref: DID) throws -> DIDPublicKey {
-        let id = try JsonHelper.getDidUrl(dic, "id",
-        ref, "publicKey' id")
-        let type = try JsonHelper.getString(dic, TYPE, true,
-        DEFAULT_PUBLICKEY_TYPE, "publicKey' type")
-        let controller = try JsonHelper.getDid(dic, CONTROLLER,
-        true, ref, "publicKey' controller")
-        let keyBase58 = try JsonHelper.getString(dic, PUBLICKEY_BASE58,
-        false, nil, "publicKeyBase58")
+    class public func fromJson(_ dic: OrderedDictionary<String, Any>, _ ref: DID) throws -> DIDPublicKey {
+        // id
+        let id = try JsonHelper.getDidUrl(dic, "id", ref, "publicKey' id")
+        
+        // type
+        let type = try JsonHelper.getString(dic, TYPE, true, DEFAULT_PUBLICKEY_TYPE, "publicKey' type")
+        
+        // controller
+        let controller = try JsonHelper.getDid(dic, CONTROLLER, true, ref, "publicKey' controller")
+        
+        // publicKeyBase58
+        let keyBase58 = try JsonHelper.getString(dic, PUBLICKEY_BASE58, false, nil, "publicKeyBase58")
             
         return DIDPublicKey(id!, type, controller!, keyBase58)
     }
 
-    public func toJson_dc(_ ref: DID, _ normalized: Bool) -> OrderedDictionary<String, Any> {
+    public func toJson(_ ref: DID, _ normalized: Bool) -> OrderedDictionary<String, Any> {
         var dict: OrderedDictionary<String, Any> = OrderedDictionary()
         var value: String
         
@@ -86,39 +89,4 @@ public class DIDPublicKey: DIDObject {
         
         return dict
     }
-
-    class public func fromJson(_ dict: OrderedDictionary<String, Any>, _ ref: DID) throws -> DIDPublicKey {
-        var value = dict[CONTROLLER]
-        var controller: DID
-        
-        if let _ = value {
-            controller = try DID(value as! String)
-        } else {
-            controller = ref
-        }
-        
-        var frag = dict[ID] as! String
-        var id: DIDURL
-        let hashStr = frag.prefix(1)
-
-        if hashStr == "#" {
-            frag = String(frag.suffix(frag.count - 1))
-            id = try DIDURL(ref, frag)
-        } else {
-            id = try DIDURL(frag)
-        }
-        
-        value = dict[TYPE]
-        var type: String
-
-        if let _ = value {
-            type = value as! String
-        } else {
-            type = DEFAULT_PUBLICKEY_TYPE
-        }
-
-        let publicKeyBase58 = dict[PUBLICKEY_BASE58] as! String
-        return DIDPublicKey(id, type, controller, publicKeyBase58)
-    }
-
 }
