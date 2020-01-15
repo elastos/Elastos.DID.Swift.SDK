@@ -1,25 +1,33 @@
 import Foundation
 
 public class DIDPublicKey: DIDObject {
-    public var controller: DID!
-    public var keyBase58: String!
+    private var _controller: DID
+    private var _keyBase58: String
 
     init(_ id: DIDURL, _ type: String, _ controller: DID, _ keyBase58: String) {
+        self._controller = controller
+        self._keyBase58 = keyBase58
         super.init(id, type)
-        self.controller = controller
-        self.keyBase58 = keyBase58
     }
 
     init(_ id: DIDURL, _ controller: DID, _ keyBase58: String) {
+        self._controller = controller
+        self._keyBase58 = keyBase58
         super.init(id, DEFAULT_PUBLICKEY_TYPE)
-        self.controller = controller
-        self.keyBase58 = keyBase58
     }
-    
-    public func getPublicKeyBytes() -> [UInt8]{
-        return Base58.bytesFromBase58(keyBase58)
+
+    public var controller: DID {
+        return _controller
     }
-    
+
+    public var publicKeyBase58: String {
+        return _keyBase58
+    }
+
+    public var publicKeyBytes: [UInt8] {
+        return Base58.bytesFromBase58(_keyBase58)
+    }
+
     public override func isEqual(_ object: Any?) -> Bool {
         guard object is DIDPublicKey else {
             return false
@@ -29,9 +37,15 @@ public class DIDPublicKey: DIDObject {
         return self.id == ref.id
             && self.type == ref.type
             && self.controller == ref.controller
-            && self.keyBase58 == ref.keyBase58
+            && self.publicKeyBase58 == ref.publicKeyBase58
     }
-    
+
+    public override var description: String {
+        // TODO
+        return String("");
+    }
+
+    // TODO: need remove one API of "fromJson_XXX".
     class public func fromJson_dc(_ dic: OrderedDictionary<String, Any>, _ ref: DID) throws -> DIDPublicKey {
         let id = try JsonHelper.getDidUrl(dic, "id",
         ref, "publicKey' id")
@@ -68,7 +82,7 @@ public class DIDPublicKey: DIDObject {
         }
         
         // publicKeyBase58
-        dict[PUBLICKEY_BASE58] = keyBase58
+        dict[PUBLICKEY_BASE58] = _keyBase58
         
         return dict
     }
