@@ -84,7 +84,10 @@ public class DIDStore: NSObject {
     }
     // Initialize & create new private identity and save it to DIDStore.
     public func initPrivateIdentity(_ language: Int,_ mnemonic: String ,_ passphrase: String, _ storepass: String, _ force: Bool ) throws {
-        // TODO: CHECK mnemonic isValid
+        let mpointer: UnsafePointer<Int8> = mnemonic.toUnsafePointerInt8()!
+        if !(HDKey_MnemonicIsValid(mpointer, Int32(language))) {
+            throw DIDError.illegalArgument("Invalid mnemonic.")
+        }
         
         if (try containsPrivateIdentity() && !force) {
             throw DIDError.didStoreError(_desc: "Already has private indentity.")
