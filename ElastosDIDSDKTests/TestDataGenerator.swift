@@ -19,7 +19,7 @@ class TestDataGenerator: XCTestCase {
         TestData.deleteFile(storeRoot)
         store = try DIDStore.open("filesystem", storeRoot)
         
-        let mnemonic: String = HDKey.generateMnemonic(0)
+        let mnemonic: String = try Mnemonic.generate(0)
         try store!.initPrivateIdentity(0, mnemonic, passphrase, storePass, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         

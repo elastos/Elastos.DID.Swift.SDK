@@ -63,6 +63,7 @@
 		11724A2323D5696D00DF5820 /* VerifiablePresentationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11724A2223D5696D00DF5820 /* VerifiablePresentationBuilder.swift */; };
 		11724A2523D569A400DF5820 /* CredentialBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11724A2423D569A400DF5820 /* CredentialBuilder.swift */; };
 		11724A2D23D82B0700DF5820 /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11724A2C23D82B0700DF5820 /* SHA256Helper.swift */; };
+		1174D74023F2675D008F51F9 /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1174D73F23F2675D008F51F9 /* Mnemonic.swift */; };
 		119338DD237E4DB800C4998E /* TestConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119338DC237E4DB800C4998E /* TestConfig.swift */; };
 		11CA2F8B23530E40009A2067 /* Antlr4.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 110AD2F8234E431D006578D6 /* Antlr4.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		11CBBBD423AFB39300730D7E /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A6B159238FD77E00D3C1F1 /* libcrypto.a */; };
@@ -260,6 +261,7 @@
 		11724A2223D5696D00DF5820 /* VerifiablePresentationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiablePresentationBuilder.swift; sourceTree = "<group>"; };
 		11724A2423D569A400DF5820 /* CredentialBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBuilder.swift; sourceTree = "<group>"; };
 		11724A2C23D82B0700DF5820 /* SHA256Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Helper.swift; sourceTree = "<group>"; };
+		1174D73F23F2675D008F51F9 /* Mnemonic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mnemonic.swift; sourceTree = "<group>"; };
 		119338DC237E4DB800C4998E /* TestConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestConfig.swift; path = TestUtils/TestConfig.swift; sourceTree = "<group>"; };
 		119338E2237E622300C4998E /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.1.tbd"; sourceTree = DEVELOPER_DIR; };
 		119338E4237E623100C4998E /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -602,6 +604,7 @@
 				11E89FA923A4C36000C81B3C /* DIDStore.swift */,
 				11E89FCD23A4C36000C81B3C /* DIDURL.swift */,
 				11E89FD023A4C36000C81B3C /* FileSystemStorage.swift */,
+				1174D73F23F2675D008F51F9 /* Mnemonic.swift */,
 				11E89FAE23A4C36000C81B3C /* Issuer.swift */,
 				11724A2423D569A400DF5820 /* CredentialBuilder.swift */,
 				11E89FAB23A4C36000C81B3C /* VerifiableCredential.swift */,
@@ -933,6 +936,7 @@
 				115DBD8E23B492DB00501983 /* IDTransactionInfo.swift in Sources */,
 				11E89FF723A4C36000C81B3C /* DIDURLParser.swift in Sources */,
 				11724A2323D5696D00DF5820 /* VerifiablePresentationBuilder.swift in Sources */,
+				1174D74023F2675D008F51F9 /* Mnemonic.swift in Sources */,
 				11E89FDA23A4C36000C81B3C /* DIDStore.swift in Sources */,
 				11E89FE923A4C36000C81B3C /* PathExtracter.swift in Sources */,
 				11E89FFA23A4C36000C81B3C /* DIDURL.swift in Sources */,

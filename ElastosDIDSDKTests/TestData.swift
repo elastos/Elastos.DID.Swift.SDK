@@ -70,7 +70,7 @@ class TestData: XCTestCase {
     }
     
     public func initIdentity() throws -> String {
-        let mnemonic: String = HDKey.generateMnemonic(0)
+        let mnemonic: String = try Mnemonic.generate(0)
         try store.initPrivateIdentity(0, mnemonic, passphrase, storePass, true)
         return mnemonic
     }
@@ -313,7 +313,7 @@ class TestData: XCTestCase {
     
     public class func generateKeypair() throws -> DerivedKey {
         if TestData.rootKey == nil {
-            let mnemonic: String = HDKey.generateMnemonic(0)
+            let mnemonic: String = try Mnemonic.generate(0)
             TestData.rootKey = try HDKey.fromMnemonic(mnemonic, "")
             TestData.index = 0
         }
