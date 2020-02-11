@@ -808,7 +808,7 @@ class DIDStoreTests: XCTestCase {
                store = try DIDStore.open("filesystem", storeRoot, 0, 0)
             }
                         
-            let mnemonic: String = HDKey.generateMnemonic(0)
+            let mnemonic: String = try Mnemonic.generate(0)
             try store.initPrivateIdentity(0, mnemonic, passphrase, storePass, true)
             
             createDataForPerformanceTest(store)
@@ -861,7 +861,7 @@ class DIDStoreTests: XCTestCase {
                 TestData.deleteFile(path)
                 let store: DIDStore = try DIDStore.open("filesystem", storeRoot + String(i))
                 stores.append(store)
-                let mnemonic: String = HDKey.generateMnemonic(0)
+                let mnemonic: String = try Mnemonic.generate(0)
                 try store.initPrivateIdentity(0, mnemonic, passphrase, storePass, true)
             }
             

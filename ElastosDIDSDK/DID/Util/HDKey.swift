@@ -8,12 +8,7 @@ public class HDKey: NSObject {
     init(_ seed: Data) {
         self.seed = seed
     }
-    
-    public class func generateMnemonic(_ language: Int) -> String {
-        let newmnemonic: UnsafePointer<Int8> = HDKey_GenerateMnemonic(Int32(language))
-        return (String(cString: newmnemonic))
-    }
-    
+
     public class func fromMnemonic(_ mnemonic: String, _ passphrase: String) throws -> HDKey {
         let mnem: String = mnemonic
         let passph: String = passphrase
