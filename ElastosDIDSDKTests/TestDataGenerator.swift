@@ -15,7 +15,7 @@ class TestDataGenerator: XCTestCase {
         adapter = SPVAdaptor(walletDir, walletId, networkConfig, resolver, cblock)
         //        TestUtils.deleteFile(storeRoot)
         store = try DIDStore.open("filesystem", storeRoot)
-        try DIDBackend.creatInstance(adapter, TestData.getResolverCacheDir())
+        try DIDBackend.createInstance(adapter, TestData.getResolverCacheDir())
         TestData.deleteFile(storeRoot)
         store = try DIDStore.open("filesystem", storeRoot)
         

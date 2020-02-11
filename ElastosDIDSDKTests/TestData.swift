@@ -62,7 +62,7 @@ class TestData: XCTestCase {
             }
             adapter = TestData.spvAdapter!
         }
-        try DIDBackend.creatInstance(adapter, TestData.getResolverCacheDir())
+        try DIDBackend.createInstance(adapter, TestData.getResolverCacheDir())
         try ResolverCache.reset()
         TestData.deleteFile(storeRoot)
         store = try DIDStore.open("filesystem", storeRoot)

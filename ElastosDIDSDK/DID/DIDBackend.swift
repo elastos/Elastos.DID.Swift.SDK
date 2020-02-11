@@ -19,10 +19,8 @@ public class DIDBackend: NSObject {
         super.init()
     }
 
-    public static func creatInstance(_ adapter: DIDAdapter, _ cacheDir: String) throws {
-        if instance == nil {
-            instance = try DIDBackend(adapter, cacheDir)
-        }
+    public static func createInstance(_ adapter: DIDAdapter, _ cacheDir: String) throws {
+        instance = try DIDBackend(adapter, cacheDir)
     }
     
     public static func shareInstance() -> DIDBackend? {
