@@ -30,7 +30,6 @@ public class ResolverCache {
     
     public class func reset() throws {
         cache.clear()
-        
         deleteFile(try getCacheDir())
     }
     

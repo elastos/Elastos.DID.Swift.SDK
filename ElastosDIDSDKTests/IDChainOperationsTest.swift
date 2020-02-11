@@ -4,12 +4,12 @@ import ElastosDIDSDK
 
 class IDChainOperationsTest: XCTestCase {
 
-    public static let DUMMY_TEST = false
+    public let DUMMY_TEST = false
 
     public func testPublishAndResolve() throws {
         do {
             let testData: TestData = TestData()
-            let store: DIDStore = try testData.setupStore(false)
+            let store: DIDStore = try testData.setupStore(DUMMY_TEST)
             _ = try testData.initIdentity()
             var adapter: SPVAdaptor? = nil
             adapter = (DIDBackend.shareInstance()!.didAdapter as? SPVAdaptor)
@@ -63,7 +63,7 @@ class IDChainOperationsTest: XCTestCase {
     func testUpdateAndResolve() {
         do {
             let testData = TestData()
-            let store = try testData.setupStore(IDChainOperationsTest.DUMMY_TEST)
+            let store = try testData.setupStore(DUMMY_TEST)
             _ = try testData.initIdentity()
             var adapter: SPVAdaptor? = nil
             //             need synchronize?
@@ -218,7 +218,7 @@ class IDChainOperationsTest: XCTestCase {
     public func testUpdateAndResolveWithCredentials() throws {
         do {
             let testData: TestData = TestData()
-            let store: DIDStore = try testData.setupStore(IDChainOperationsTest.DUMMY_TEST)
+            let store: DIDStore = try testData.setupStore(DUMMY_TEST)
             let mnemonic: String = try testData.initIdentity()
             print("Mnemonic: " + mnemonic)
             var adapter: SPVAdaptor? = nil
@@ -426,6 +426,9 @@ class IDChainOperationsTest: XCTestCase {
     }
     
     public func testRestore() throws {
+        if (DUMMY_TEST) {
+            return
+        }
         let testData: TestData = TestData()
         let store: DIDStore = try testData.setupStore(false)
         let mnemonic: String = try testData.loadRestoreMnemonic()

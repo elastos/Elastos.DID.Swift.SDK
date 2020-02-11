@@ -702,7 +702,7 @@ class DIDStoreTests: XCTestCase {
         let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
         print(jsonPath)
         
-        try DIDBackend.creatInstance(DummyAdapter(), TestData.getResolverCacheDir())
+        try DIDBackend.createInstance(DummyAdapter(), TestData.getResolverCacheDir())
         let store = try! DIDStore.open("filesystem", jsonPath)
         
         let dids = try! store.listDids(DIDStore.DID_ALL)
@@ -735,7 +735,7 @@ class DIDStoreTests: XCTestCase {
     
     func testCompatibilityNewDIDWithWrongPass() {
         do {
-            try DIDBackend.creatInstance(DummyAdapter(), TestData.getResolverCacheDir())
+            try DIDBackend.createInstance(DummyAdapter(), TestData.getResolverCacheDir())
             let bundle = Bundle(for: type(of: self))
             let jsonPath = bundle.path(forResource: "teststore", ofType: "")
             let store = try! DIDStore.open("filesystem", jsonPath!)
@@ -756,7 +756,7 @@ class DIDStoreTests: XCTestCase {
     
     func testCompatibilityNewDID() throws {
         
-        try DIDBackend.creatInstance(DummyAdapter(), TestData.getResolverCacheDir())
+        try DIDBackend.createInstance(DummyAdapter(), TestData.getResolverCacheDir())
         let bundle = Bundle(for: type(of: self))
         let jsonPath = bundle.path(forResource: "teststore", ofType: "")
         let store = try! DIDStore.open("filesystem", jsonPath!)

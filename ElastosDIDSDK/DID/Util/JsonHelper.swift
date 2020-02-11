@@ -178,7 +178,8 @@ public class JsonHelper {
     }
     
     class func getInteger(_ dic: OrderedDictionary<String, Any>, _ name: String, _ optional: Bool, _ ref: Int, _ hint: String) throws -> Int {
-        let vn: String? = dic[name] as? String
+        let vn = dic[name]
+        var v: Int = 0
         if vn == nil {
             if optional {
                 return ref
@@ -187,11 +188,19 @@ public class JsonHelper {
                 throw DIDError.failue("Invalid " + hint + " value.")
             }
         }
-        return Int(vn!)!
+        if vn is String {
+            let velue: String = vn as! String
+            v = Int(velue)!
+        }
+        else {
+            v = vn as! Int
+        }
+        return v
     }
     
     class func getInteger(_ dic: Dictionary<String, Any>, _ name: String, _ optional: Bool, _ ref: Int, _ hint: String) throws -> Int {
-        let vn: String? = dic[name] as? String
+        let vn = dic[name]
+        var v: Int = 0
         if vn == nil {
             if optional {
                 return ref
@@ -200,7 +209,14 @@ public class JsonHelper {
                 throw DIDError.failue("Invalid " + hint + " value.")
             }
         }
-        return Int(vn!)!
+        if vn is String {
+            let velue: String = vn as! String
+            v = Int(velue)!
+        }
+        else {
+            v = vn as! Int
+        }
+        return v
     }
     
     class public func creatJsonString(dic: OrderedDictionary<String, Any>) -> String {
