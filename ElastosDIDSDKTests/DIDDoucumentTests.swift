@@ -950,27 +950,20 @@ class DIDDoucumentTests: XCTestCase {
             
             for _ in 0..<10 {
                 var json = doc.description(false)
-                var inputs: [CVarArg] = [json, json.count]
-                var count: Int = inputs.count / 2
-                var sig: String = try doc.sign(pkid, storePass, count, inputs)
+                var sig: String = try doc.sign(storepass: storePass, inputs: json)
                 
-                var result: Bool = try doc.verify(pkid, sig, count, inputs)
+                var result: Bool = try doc.verify(signature: sig, inputs: json)
                 XCTAssertTrue(result)
                 
                 json = String(json.suffix(json.count - 1))
-                inputs = [json, json.count]
-                count = inputs.count / 2
-                result = try doc.verify(pkid, sig, count, inputs)
+                result = try doc.verify(pkid, sig, json)
                 XCTAssertFalse(result)
-                
-                sig = try doc.sign(storePass, count, inputs)
-                result = try doc.verify(sig, count, inputs)
+                sig = try doc.sign(storepass: storePass, inputs: json)
+                result = try doc.verify(signature: sig, inputs: json)
                 XCTAssertTrue(result)
                 
                 json = String(json.suffix(json.count - 1))
-                inputs = [json, json.count]
-                count = inputs.count / 2
-                result = try doc.verify(sig, count, inputs)
+                result = try doc.verify(signature: sig, inputs: json)
                 XCTAssertFalse(result)
             }
         } catch {
@@ -996,27 +989,22 @@ class DIDDoucumentTests: XCTestCase {
                 var data: [String]  = Array(repeating: String(i), count: 1024)
                 var inputString = data.joined(separator: "")
                 
-                var inputs: [CVarArg] = [inputString, inputString.count]
-                let count = inputs.count / 2
-                
-                var sig: String = try doc.sign(pkid, storePass, 1, inputs)
-                var result: Bool = try doc.verify(sig, count, inputs)
+                var sig: String = try doc.sign(pkid, storePass, inputString)
+                var result = try doc.verify(signature: sig, inputs: inputString)
                 XCTAssertTrue(result)
                 
                 data[0] = String(i + 1)
                 inputString = data.joined(separator: "")
-                inputs = [inputString, inputString.count]
-                result = try doc.verify(sig, count, inputs)
+                result = try doc.verify(signature: sig, inputs: inputString)
                 XCTAssertFalse(result)
 
-                sig = try doc.sign(storePass, count, inputs)
-                result = try doc.verify(sig, count, inputs)
+                sig = try doc.sign(storepass: storePass, inputs: inputString)
+                result = try doc.verify(signature: sig, inputs: inputString)
                 XCTAssertTrue(result)
                 
                 data[0] = String(i + 2)
                 inputString = data.joined(separator: "")
-                inputs = [inputString, inputString.count]
-                result = try doc.verify(sig, count, inputs)
+                result = try doc.verify(signature: sig, inputs: inputString)
                 XCTAssertFalse(result)
             }
             

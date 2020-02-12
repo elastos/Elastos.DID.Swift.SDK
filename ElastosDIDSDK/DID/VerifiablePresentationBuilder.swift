@@ -39,22 +39,7 @@ public class VerifiablePresentationBuilder {
 
         let dic = presentation!.toJson(true)
         let json = JsonHelper.creatJsonString(dic: dic)
-        var inputs: [CVarArg] = []
-        if json.count > 0 {
-            inputs.append(json)
-            inputs.append(json.count)
-        }
-        if realm != nil && !realm!.isEmpty {
-            inputs.append(realm!)
-            inputs.append(realm!.count)
-        }
-        if nonce != nil && !nonce!.isEmpty {
-            inputs.append(nonce!)
-            inputs.append(nonce!.count)
-        }
-        
-        let count = inputs.count / 2
-        let sig = try signer.sign(signKey, storepass, count, inputs)
+        let sig = try signer.sign(signKey, storepass, json, (realm != nil) ? realm! : "", (nonce != nil) ? nonce! : "")
         let proof = PresentationProof(signKey, realm!, nonce!, sig)
         presentation!.proof = proof
         let vp: VerifiablePresentation = presentation!

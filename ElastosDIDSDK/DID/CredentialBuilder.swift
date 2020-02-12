@@ -110,9 +110,7 @@ public class CredentialBuilder {
         
         let dic = self.credential.toJson(true, true)
         let json = JsonHelper.creatJsonString(dic: dic)
-        let inputs: [CVarArg] = [json, json.count]
-        let count: Int = inputs.count / 2
-        let sig: String = try (self.document.sign(signKey, storepass, count, inputs))
+        let sig: String = try (self.document.sign(signKey, storepass, json))
         
         let proof = CredentialProof(DEFAULT_PUBLICKEY_TYPE, signKey, sig)
         self.credential.proof = proof

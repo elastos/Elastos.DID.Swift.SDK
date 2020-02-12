@@ -148,50 +148,14 @@ public class IDChainRequest: NSObject {
     }
     
     func seal(_ signKey: DIDURL, _ storepass: String) throws {
-        var inputs: [CVarArg] = []
-        if specification.count > 0 {
-            inputs.append(specification)
-            inputs.append(specification.count)
-        }
-        if operation.description.count > 0 {
-            inputs.append(operation.description)
-            inputs.append(operation.description.count)
-        }
-        if previousTxid.count > 0 {
-            inputs.append(previousTxid)
-            inputs.append(previousTxid.count)
-        }
-        if payload.count > 0 {
-            inputs.append(payload)
-            inputs.append(payload.count)
-        }
-        let count = inputs.count / 2
-        self.signature = (try doc?.sign(signKey, storepass, count, inputs))!
+        self.signature = (try doc?.sign(signKey, storepass, specification, operation.description, previousTxid, payload))!
         self.signKey = signKey
         self.keyType = DEFAULT_PUBLICKEY_TYPE
     }
     
     func seal(_ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws {
-        var inputs: [CVarArg] = []
         let prevtxid = operation == Operation.UPDATE ? previousTxid : ""
-        if specification.count > 0 {
-            inputs.append(specification)
-            inputs.append(specification.count)
-        }
-        if operation.description.count > 0 {
-            inputs.append(operation.description)
-            inputs.append(operation.description.count)
-        }
-        if prevtxid.count > 0 {
-            inputs.append(prevtxid)
-            inputs.append(prevtxid.count)
-        }
-        if payload.count > 0 {
-            inputs.append(payload)
-            inputs.append(payload.count)
-        }
-        let count = inputs.count / 2
-        self.signature = (try doc.sign(signKey, storepass, count, inputs))
+        self.signature = (try doc.sign(signKey, storepass, specification, operation.description, prevtxid, payload))
         self.signKey = targetSignKey
         self.keyType = DEFAULT_PUBLICKEY_TYPE
     }
@@ -209,26 +173,8 @@ public class IDChainRequest: NSObject {
                 return false
             }
         }
-        var inputs: [CVarArg] = []
-        if specification.count > 0 {
-            inputs.append(specification)
-            inputs.append(specification.count)
-        }
-        if operation.description.count > 0 {
-            inputs.append(operation.description)
-            inputs.append(operation.description.count)
-        }
-        if previousTxid.count > 0 {
-            inputs.append(previousTxid)
-            inputs.append(previousTxid.count)
-        }
-        if payload.count > 0 {
-            inputs.append(payload)
-            inputs.append(payload.count)
-        }
-        let count = inputs.count / 2
         
-        return try doc.verify(signKey!, signature, count, inputs)
+        return try doc.verify(signKey!, signature, specification, operation.description, previousTxid, payload)
     }
     
     public func toJson(_ normalized: Bool) -> String {
