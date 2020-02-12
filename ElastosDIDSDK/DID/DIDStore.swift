@@ -651,13 +651,18 @@ public class DIDStore: NSObject {
         return try deletePrivateKey(_did, DIDURL(_did, id))
     }
     
-    public func sign(_ did: DID, id: DIDURL? = nil, _ storepass: String, _ count: Int, _ inputs: [CVarArg]) throws -> String {
+    public func sign(_ did: DID, id: DIDURL? = nil, _ storepass: String, _ count: Int, _ inputs: String...) throws -> String {
+        return try sign(did, id: id, storepass, inputs)
+    }
+    
+    func sign(_ did: DID, id: DIDURL? = nil, _ storepass: String, _ inputs: [String]) throws -> String {
+        
         let sig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
         var privatekeys: Data
         if id == nil {
             let doc = try loadDid(did)
             if doc == nil {
-                throw DIDError.didStoreError(_desc: "Can not resolve DID document.") 
+                throw DIDError.didStoreError(_desc: "Can not resolve DID document.")
             }
             let id_1 = doc!.getDefaultPublicKey()
             privatekeys = try DIDStore.decryptFromBase64(storepass,try loadPrivateKey(did, id: id_1))
@@ -668,21 +673,18 @@ public class DIDStore: NSObject {
         
         var cinputs: [CVarArg] = []
         for i in 0..<inputs.count {
-            
-            if (i % 2 == 0) {
-                let json: String = inputs[i] as! String
+            let json: String = inputs[i]
+            if json != "" {
                 let cjson = json.toUnsafePointerInt8()!
                 cinputs.append(cjson)
-            }
-            else {
-                let count = inputs[i]
-                cinputs.append(count)
+                cinputs.append(json.count)
             }
         }
         
         let toPPointer = privatekeys.toPointer()
         
         let c_inputs = getVaList(cinputs)
+        let count = cinputs.count / 2
         // UnsafeMutablePointer(mutating: toPPointer)
         let re = ecdsa_sign_base64v(sig, UnsafeMutablePointer(mutating: toPPointer), Int32(count), c_inputs)
         guard re >= 0 else {

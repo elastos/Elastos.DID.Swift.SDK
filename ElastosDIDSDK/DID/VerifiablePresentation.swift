@@ -68,21 +68,8 @@ public class VerifiablePresentation: NSObject{
         }
         let dic = toJson(true)
         let json = JsonHelper.creatJsonString(dic: dic)
-        var inputs: [CVarArg] = []
-        if json.count > 0 {
-            inputs.append(json)
-            inputs.append(json.count)
-        }
-        if proof?.realm != nil && proof!.realm!.count > 0 {
-            inputs.append(proof!.realm!)
-            inputs.append(proof!.realm!.count)
-        }
-        if proof?.nonce != nil && proof!.nonce!.count > 0 {
-            inputs.append(proof!.nonce!)
-            inputs.append(proof!.nonce!.count)
-        }
-        let count = inputs.count / 2
-        return try signerDoc!.verify(proof!.verificationMethod, proof!.signature, count, inputs)
+        
+        return try signerDoc!.verify(proof!.verificationMethod, proof!.signature, json, (proof?.realm != nil) ? proof!.realm! : "", (proof?.nonce != nil) ? proof!.nonce! : "")
     }
     
     public func isValid() throws -> Bool {
@@ -109,7 +96,6 @@ public class VerifiablePresentation: NSObject{
         }
 
         // All credentials should owned by signer
-        
         for vc in credentials.values {
             if (vc.subject.id != signer) {
                 return false
@@ -120,23 +106,8 @@ public class VerifiablePresentation: NSObject{
         }
         let dic = toJson(true)
         let json = JsonHelper.creatJsonString(dic: dic)
-        var inputs: [CVarArg] = []
-        if json.count > 0 {
-            inputs.append(json)
-            inputs.append(json.count)
-        }
         
-        if proof?.realm != nil && proof!.realm!.count > 0 {
-            inputs.append(proof!.realm!)
-            inputs.append(proof!.realm!.count)
-        }
-        if proof?.nonce != nil && proof!.nonce!.count > 0 {
-            inputs.append(proof!.nonce!)
-            inputs.append(proof!.nonce!.count)
-        }
-        let count = inputs.count / 2
-        
-        return try signerDoc!.verify(proof!.verificationMethod, proof!.signature, count, inputs)
+        return try signerDoc!.verify(proof!.verificationMethod, proof!.signature, json, (proof?.realm != nil) ? proof!.realm! : "", (proof?.nonce != nil) ? proof!.nonce! : "")
     }
     
     public func getCredentialCount() -> Int {

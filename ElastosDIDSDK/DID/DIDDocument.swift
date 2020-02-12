@@ -402,10 +402,7 @@ public class DIDDocument: NSObject {
         
         let json = toJson(true, forSign: true)
         
-        let inputs: [CVarArg] = [json, json.count]
-        let count = inputs.count / 2
-        
-        return try verify(proof.creator!, proof.signature, count, inputs)
+        return try verify(proof.creator!, proof.signature, json)
     }
     
     public func isValid() throws -> Bool {
@@ -416,43 +413,48 @@ public class DIDDocument: NSObject {
         return DIDDocumentBuilder(doc: self)
     }
     
-    public func sign(_ storepass: String, _ count: Int, _ inputs: [CVarArg]) throws -> String {
+    public func sign(storepass: String, inputs: String...) throws -> String {
         let key: DIDURL = getDefaultPublicKey()
-        return try sign(key, storepass, count, inputs)
+        return try sign(key, storepass, inputs)
     }
     
-    public func sign(_ id: DIDURL, _ storepass: String, _ count: Int, _ inputs: [CVarArg]) throws -> String {
+    public func sign(_ id: DIDURL, _ storepass: String, _ inputs: String...) throws -> String {
+        return try sign(id, storepass, inputs)
+    }
+    
+    public func sign(_ id: String, _ storepass: String, _ inputs: String...) throws -> String {
+        
+        return try sign(DIDURL(subject!, id), storepass, inputs)
+    }
+    
+    private func sign(_ id: DIDURL, _ storepass: String, _ inputs: [String]) throws -> String {
         if (!meta.attachedStore()) {
             throw DIDError.didStoreError(_desc: "Not attached with DID store.")
         }
-        return try meta.store!.sign(subject!, id: id, storepass, count, inputs)
+        return try meta.store!.sign(subject!, id: id, storepass, inputs)
     }
     
-    public func sign(_ id: String, _ storepass: String, _ count: Int, _ inputs: [CVarArg]) throws -> String {
-        
-        return try sign(DIDURL(subject!, id), storepass, count, inputs)
-    }
-    
-    public func verify(_ signature: String, _ count: Int, _ inputs: [CVarArg]) throws -> Bool {
+    public func verify(signature: String, inputs: String...) throws -> Bool {
         let key: DIDURL = getDefaultPublicKey()
-        return try verify(key, signature, count, inputs)
+        return try verify(key, signature, inputs)
     }
     
-    public func verify(_ id: String, _ signature: String, _ count: Int, _ inputs: [CVarArg]) throws -> Bool {
-        return try verify(DIDURL(subject!, id), signature, count, inputs)
+    public func verify(_ id: String, _ signature: String, _ inputs: String...) throws -> Bool {
+        return try verify(DIDURL(subject!, id), signature, inputs)
     }
     
-    public func verify(_ id: DIDURL, _ signature: String, _ count: Int, _ inputs: [CVarArg]) throws -> Bool {
+    public func verify(_ id: DIDURL, _ signature: String, _ inputs: String...) throws -> Bool{
+        return try verify(id, signature, inputs)
+    }
+    
+    private func verify(_ id: DIDURL, _ signature: String, _ inputs: [String]) throws -> Bool {
         var cinputs: [CVarArg] = []
         for i in 0..<inputs.count {
-            if (i % 2) == 0 {
-                let json: String = inputs[i] as! String
+            let json: String = inputs[i]
+            if json != "" {
                 let cjson  = json.toUnsafePointerInt8()
                 cinputs.append(cjson!)
-            }
-            else {
-                let count: Int = inputs[i] as! Int
-                cinputs.append(count)
+                cinputs.append(json.count)
             }
         }
         let pk: DIDPublicKey = try getPublicKey(id)!
@@ -463,7 +465,7 @@ public class DIDDocument: NSObject {
         }
         let csignature = signature.toUnsafeMutablePointerInt8()
         let c_inputs = getVaList(cinputs)
-        
+        let count = cinputs.count / 2
         let re = ecdsa_verify_base64v(csignature, cpk, Int32(count), c_inputs)
         return re == 0 ? true : false
     }

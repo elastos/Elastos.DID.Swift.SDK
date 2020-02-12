@@ -115,10 +115,8 @@ public class VerifiableCredential: DIDObject {
         }
         let dic = toJson(true, true)
         let json: String = JsonHelper.creatJsonString(dic: dic)
-        let inputs: [CVarArg] = [json, json.count]
-        let count = inputs.count / 2
         
-        return try issuerDoc!.verify(proof.verificationMethod, proof.signature, count, inputs)
+        return try issuerDoc!.verify(proof.verificationMethod, proof.signature, json)
     }
     
     public func isValid() throws -> Bool {
@@ -132,10 +130,9 @@ public class VerifiableCredential: DIDObject {
     public func verify() throws -> Bool {
         let issuerDoc: DIDDocument = try issuer.resolve()!
         let json: String = toJsonForSign(false)
-        let inputs: [CVarArg] = [json, json.count]
-        let count = inputs.count / 2
+        let inputs: [String] = [json]
         
-        return try issuerDoc.verify(proof!.verificationMethod, proof!.signature, count, inputs)
+        return try issuerDoc.verify(proof!.verificationMethod, proof!.signature, json)
     }
     
     public func isGenuine() throws -> Bool {
