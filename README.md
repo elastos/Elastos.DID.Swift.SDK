@@ -1,4 +1,4 @@
-Elasots.DID.Swift.SDK
+Elastos.DID.Swift.SDK
 ===================
 
 ## Introduction
