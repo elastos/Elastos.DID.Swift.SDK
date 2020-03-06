@@ -19,7 +19,7 @@ public class DIDDocumentBuilder {
     }
     
     public func addPublicKey(_ id: DIDURL, _ controller: DID, _ pk: String) throws -> Bool {
-        guard Base58.bytesFromBase58(pk).count == HDKey.PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(pk).count == PUBLICKEY_BYTES else {
             throw DIDError.failue("Invalid public key.")
         }
         let key: DIDPublicKey = DIDPublicKey(id, controller, pk)
@@ -59,7 +59,7 @@ public class DIDDocumentBuilder {
     }
     
     public func addAuthenticationKey(_ id: DIDURL, _ pk: String) throws -> Bool {
-        guard Base58.bytesFromBase58(pk).count == HDKey.PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(pk).count == PUBLICKEY_BYTES else {
             throw DIDError.failue("Invalid public key.")
         }
         let key: DIDPublicKey = DIDPublicKey(id, subject!, pk)
@@ -91,7 +91,7 @@ public class DIDDocumentBuilder {
     }
     
     public func addAuthorizationKey(_ id: DIDURL, _ controller: DID, _ pk: String) throws -> Bool {
-        guard Base58.bytesFromBase58(pk).count == HDKey.PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(pk).count == PUBLICKEY_BYTES else {
             throw DIDError.malFormedDocumentError(_desc: "Invalid public key.")
         }
         let key: DIDPublicKey = DIDPublicKey(id, controller, pk)

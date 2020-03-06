@@ -267,6 +267,10 @@ public class JsonHelper {
     
     class public func checkAndRemoveFirstAndLastDoubleQuotes(_ string: String) -> Any {
         
+        if string == "\"\"" {
+            return ""
+        }
+        
         if !string.contains("\"") {
             if string == "true"  {
                 return true

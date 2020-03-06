@@ -176,7 +176,7 @@ class IDChainOperationsTest: XCTestCase {
             txid = try store.publishDid(did!, storePass)
             XCTAssertNotNil(txid)
             print("Updated DID: \(did!)")
-            
+            key.derivedKeyWipe()
             if adapter != nil {
                 print("Waiting for update transaction confirm")
                 while true {
@@ -426,6 +426,8 @@ class IDChainOperationsTest: XCTestCase {
     }
     
     public func testRestore() throws {
+        let i = JsonHelper.checkAndRemoveFirstAndLastDoubleQuotes("\"\"")
+        print(i)
         if (DUMMY_TEST) {
             return
         }

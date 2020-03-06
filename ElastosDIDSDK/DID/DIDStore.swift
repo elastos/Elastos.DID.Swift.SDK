@@ -91,13 +91,40 @@ public class DIDStore: NSObject {
         if (try containsPrivateIdentity() && !force) {
             throw DIDError.didStoreError(_desc: "Already has private indentity.")
         }
-        let privateIdentity: HDKey = try HDKey.fromMnemonic(mnemonic, passphrase)
+        
+//        let privateIdentity: HDKey = try HDKey.fromMnemonic(mnemonic, passphrase)
+//
+//        // Save seed instead of root private key,
+//        // keep compatible with Native SDK
+//        let seedData = privateIdentity.getSeed()
+//        let encryptedIdentity = try DIDStore.encryptToBase64(storepass, seedData)
+//        try storage!.storePrivateIdentity(encryptedIdentity)
+        
+        /*
+         try {
+         HDKey privateIdentity = HDKey.fromMnemonic(mnemonic, passphrase);
 
-        // Save seed instead of root private key,
-        // keep compatible with Native SDK
-        let seedData = privateIdentity.getSeed()
-        let encryptedIdentity = try DIDStore.encryptToBase64(storepass, seedData)
-        try storage!.storePrivateIdentity(encryptedIdentity)
+         initPrivateIdentity(privateIdentity, storepass);
+
+         // Save mnemonic
+         String encryptedMnemonic = encryptToBase64(
+                 mnemonic.getBytes(), storepass);
+         storage.storeMnemonic(encryptedMnemonic);
+         */
+        let cmnemonic = mnemonic.toUnsafePointerInt8()!
+        let cpassphrase = passphrase.toUnsafePointerInt8()!
+        let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
+        let privateIdentity = HDKey_FromMnemonic(cmnemonic, cpassphrase, Int32(language), chdKey)
+        
+        let extendedkeyPinter = UnsafeMutablePointer<UInt8>.allocate(capacity: 82)
+        let size = HDKey_Serialize(privateIdentity, extendedkeyPinter, 82)
+        if size == -1 {
+            throw DIDError.didStoreError(_desc: "HDKey_Serialize error.")
+        }
+        let extendedkeyPinterToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: extendedkeyPinter, count: 82)
+        let extendedkeyData: Data = Data(buffer: extendedkeyPinterToArry)
+        let extendedkey = try DIDStore.encryptToBase64(storepass, extendedkeyData)
+        try storage!.storePrivateIdentity(extendedkey)
         
         // Save mnemonic
         let mnemData = mnemonic.data(using: .utf8)
@@ -107,7 +134,7 @@ public class DIDStore: NSObject {
         try storage.storePrivateIdentityIndex(0)
     }
     
-    func initPrivateIdentity(_ language: Int, _ mnemonic: String, _ passphrase: String, _ storepass: String) throws -> Void {
+    public func initPrivateIdentity(_ language: Int, _ mnemonic: String, _ passphrase: String, _ storepass: String) throws -> Void {
         try initPrivateIdentity(language, mnemonic, passphrase, storepass, false)
     }
     
@@ -117,27 +144,78 @@ public class DIDStore: NSObject {
         return String(data: re, encoding: .utf8)!
     }
     
+    /*
+     public void initPrivateIdentity(String extentedPrivateKey, String storepass,
+             boolean force) throws DIDStoreException {
+         if (extentedPrivateKey == null || extentedPrivateKey.isEmpty())
+             throw new IllegalArgumentException("Invalid extended private key.");
+
+         if (storepass == null || storepass.isEmpty())
+             throw new IllegalArgumentException("Invalid password.");
+
+         if (containsPrivateIdentity() && !force)
+             throw new DIDStoreException("Already has private indentity.");
+
+         HDKey privateIdentity = HDKey.deserialize(Base58.decode(extentedPrivateKey));
+         initPrivateIdentity(privateIdentity, storepass);
+     }
+     */
+    
+    public func initPrivateIdentity(_ extentedPrivateKey: String, _ storepass: String, _ force: Bool) throws {
+        guard !extentedPrivateKey.isEmpty else{
+            throw DIDError.illegalArgument("Invalid extended private key.")
+        }
+        guard !storepass.isEmpty else{
+            throw DIDError.illegalArgument("Invalid password.")
+        }
+        if (try containsPrivateIdentity() && !force) {
+            throw DIDError.didStoreError(_desc: "Already has private indentity.")
+        }
+        let keyPinter = UnsafeMutablePointer<UInt8>.allocate(capacity: 82)
+        var size = base58_decode(keyPinter, extentedPrivateKey.toUnsafePointerInt8())
+        guard size != -1 else {
+            throw DIDError.didStoreError(_desc: "base58_decode error.")
+        }
+        let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
+        let privateIdentity = HDKey_FromExtendedKey(keyPinter, Int32(size), chdKey)
+        size = Int(HDKey_Serialize(privateIdentity, keyPinter, 82))
+        guard size != -1 else {
+            throw DIDError.didStoreError(_desc: "HDKey_Serialize error.")
+        }
+        let extendedkeyPinterToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: keyPinter, count: 82)
+        let extendedkeyData: Data = Data(buffer: extendedkeyPinterToArry)
+        let extendedkey = try DIDStore.encryptToBase64(storepass, extendedkeyData)
+        try storage!.storePrivateIdentity(extendedkey)
+    }
+    
     // initialized from saved private identity from DIDStore.
     func loadPrivateIdentity(_ storepass: String) throws -> HDKey {
         guard try containsPrivateIdentity() else {
             throw DIDError.didStoreError(_desc: "DID Store not contains private identity.")
         }
-        let seed: Data = try DIDStore.decryptFromBase64(storepass, storage.loadPrivateIdentity())
-        let privateIdentity: HDKey = HDKey.fromSeed(seed)
-        
-        return privateIdentity
+        let keyData: Data = try DIDStore.decryptFromBase64(storepass, storage.loadPrivateIdentity())
+        if keyData.count == SEED_BYTES {
+           return HDKey(seed: keyData, size: keyData.count)
+        }
+        else if (keyData.count == EXTENDEDKEY_BYTES) {
+            return HDKey(extendedkey: keyData, size: keyData.count)
+        }
+        else {
+            throw DIDError.didStoreError(_desc: "Invalid private identity.")
+        }
     }
 
     public func synchronize(_ storepass: String) throws {
         let nextIndex = try storage.loadPrivateIdentityIndex()
-        let privateIdentity: HDKey = try loadPrivateIdentity(storepass)
         var blanks: Int = 0
         var i: Int = 0
+
         
         while i < nextIndex || blanks < 10 {
-            let key: DerivedKey = try privateIdentity.derive(i++)
-            let pks: [UInt8] = try key.getPublicKeyBytes()
-            let methodIdString: String = DerivedKey.getIdString(pks)
+            let privateIdentity =  try loadPrivateIdentity(storepass)
+            let key = privateIdentity.derivedKey(index: i++)
+            let methodIdString = key.getIdString()
+            key.derivedKeyWipe()
             let did: DID = DID(DID.METHOD, methodIdString)
             var doc: DIDDocument?
             do {
@@ -160,7 +238,7 @@ public class DIDStore: NSObject {
                 try storeDid(doc!)
                 
                 // Save private key
-                let privatekeyData: Data = try key.getPrivateKeyData()
+                let privatekeyData: Data = key.getPrivateKeyData()
                 let encryptedKey: String = try DIDStore.encryptToBase64(storepass, privatekeyData)
                 let data = encryptedKey.data(using: .utf8)
                 try storePrivateKey(did, doc!.getDefaultPublicKey(), data!, storepass)
@@ -171,35 +249,48 @@ public class DIDStore: NSObject {
             } else {
                 blanks = blanks + 1
             }
+            key.derivedKeyWipe()
+            privateIdentity.hdKeyWipe()
         }
     }
     
-    public func newDid(storepass: String, alias: String? = nil) throws -> DIDDocument {
+    public func newDid(_ index: Int, _ alias: String?, _ storepass: String) throws -> DIDDocument {
         let privateIdentity =  try loadPrivateIdentity(storepass)
-        var nextIndex: Int = try storage.loadPrivateIdentityIndex()
-
-        let key: DerivedKey = try! privateIdentity.derive(nextIndex++)
-        let pks: [UInt8] = try key.getPublicKeyBytes()
-        let methodIdString: String = DerivedKey.getIdString(pks)
+        let key = privateIdentity.derivedKey(index: index)
+        let methodIdString = key.getIdString()
+        key.derivedKeyWipe()
         let did: DID = DID(DID.METHOD, methodIdString)
         let id: DIDURL = try DIDURL(did, "primary")
         
-        let privatekeyData: Data = try key.getPrivateKeyData()
+        let privatekeyData: Data = key.getPrivateKeyData()
         // TODO: get real private key bytes
         try storePrivateKey(did, id, privatekeyData, storepass)
         
         let db: DIDDocumentBuilder = DIDDocumentBuilder(did: did, store: self)
-        _ = try db.addAuthenticationKey(id, try key.getPublicKeyBase58())
+        // try key.getPublicKeyBase58()
+        _ = try db.addAuthenticationKey(id, key.getPublicKeyBase58())
+        key.derivedKeyWipe()
         let doc: DIDDocument = try db.seal(storepass: storepass)
         doc.meta.alias = alias ?? ""
         try storeDid(doc)
+        try storage.storePrivateIdentityIndex(index)
+        privateIdentity.hdKeyWipe()
+        return doc
+    }
+    
+    public func newDid(_ index: Int, _ storepass: String) throws -> DIDDocument {
+        return try newDid(index, nil, storepass)
+    }
+    
+    public func newDid(_ alias: String?, _ storepass: String) throws -> DIDDocument {
+        var nextIndex = try storage.loadPrivateIdentityIndex()
+        let doc = try newDid(nextIndex++, alias, storepass)
         try storage.storePrivateIdentityIndex(nextIndex)
-
         return doc
     }
     
     public func newDid(_ storepass: String) throws -> DIDDocument {
-        return try newDid(storepass: storepass)
+        return try newDid(nil, storepass)
     }
     
     public func publishDid(_ did: DID, signKey: DIDURL? = nil, _ storepass: String) throws -> String? {

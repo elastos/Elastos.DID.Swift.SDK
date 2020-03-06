@@ -88,7 +88,7 @@ public class DIDDocument: NSObject {
             if (pk.controller.isEqual(self.subject)) {
                 
                 let pks = pk.publicKeyBytes
-                let idstring = DerivedKey.getIdString(pks)
+                let idstring = DerivedKey.getIdString(pks: pks)
                 if idstring == subject?.methodSpecificId {
                     didurl = pk.id
                 }

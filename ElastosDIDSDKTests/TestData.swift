@@ -314,11 +314,11 @@ class TestData: XCTestCase {
     public class func generateKeypair() throws -> DerivedKey {
         if TestData.rootKey == nil {
             let mnemonic: String = try Mnemonic.generate(0)
-            TestData.rootKey = try HDKey.fromMnemonic(mnemonic, "")
+            TestData.rootKey = HDKey(mnemonic: mnemonic, passphrase: "", language: 0)
             TestData.index = 0
         }
         TestData.index = TestData.index! + 1
-        return try TestData.rootKey!.derive(TestData.index!)
+        return TestData.rootKey!.derivedKey(index: TestData.index!)
     }
 
    class func deleteFile(_ path: String) {
