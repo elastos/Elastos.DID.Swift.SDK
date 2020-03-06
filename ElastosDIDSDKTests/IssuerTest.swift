@@ -42,8 +42,8 @@ class IssuerTest: XCTestCase {
             let key: DerivedKey = try TestData.generateKeypair()
             let signKey: DIDURL = try DIDURL(issuerDoc.subject!, "testKey")
             let db: DIDDocumentBuilder = issuerDoc.edit()
-            _ = try db.addAuthenticationKey(signKey, try key.getPublicKeyBase58())
-            
+            _ = try db.addAuthenticationKey(signKey, key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             issuerDoc = try db.seal(storepass: storePass)
             XCTAssertTrue(try issuerDoc.isValid())
             

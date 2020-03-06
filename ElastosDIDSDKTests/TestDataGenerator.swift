@@ -79,9 +79,10 @@ class TestDataGenerator: XCTestCase {
         //            writeTo("document.key3.sk", Base58.encode(temp.serialize()))
         
         temp = try TestData.generateKeypair()
-        let controller = DerivedKey.getIdString(try temp.getPublicKeyBytes())
+        let controller = DerivedKey.getIdString(pks: temp.getPublicKeyBytes())
+        temp.derivedKeyWipe()
         _ = try db.addAuthorizationKey("recovery", controller, temp.getPublicKeyBase58())
-        
+        temp.derivedKeyWipe()
         _ = try db.addService("openid", "OpenIdConnectVersion1.0Service", "https://openid.example.com/");
         _ = try db.addService("vcr", "CredentialRepositoryService", "https://did.example.com/credentials");
         _ = try db.addService("carrier", "CarrierAddress", "carrier://X2tDd1ZTErwnHNot8pTdhp7C7Y9FxMPGD8ppiasUT4UsHH2BpF1d");

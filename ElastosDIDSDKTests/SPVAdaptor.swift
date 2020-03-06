@@ -87,3 +87,4 @@ public class SPVAdaptor: DIDAdapter {
         return resuleString!
     }
 }
+

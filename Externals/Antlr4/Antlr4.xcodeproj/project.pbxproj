@@ -195,6 +195,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1134D09E2408028600C5DC02 /* Info-OSX.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Info-OSX.plist"; path = "Sources/Info-OSX.plist"; sourceTree = "<group>"; };
+		1134D09F2408029300C5DC02 /* Info-IOS.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Info-IOS.plist"; path = "Sources/Info-IOS.plist"; sourceTree = "<group>"; };
 		"Antlr4::Antlr4::Product" /* Antlr4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Antlr4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"Antlr4::Antlr4Tests::Product" /* Antlr4Tests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = Antlr4Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		OBJ_10 /* ANTLRErrorStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANTLRErrorStrategy.swift; sourceTree = "<group>"; };
@@ -566,6 +568,8 @@
 		OBJ_7 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				1134D09F2408029300C5DC02 /* Info-IOS.plist */,
+				1134D09E2408028600C5DC02 /* Info-OSX.plist */,
 				OBJ_8 /* Antlr4 */,
 			);
 			name = Sources;
@@ -897,52 +901,56 @@
 		OBJ_209 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CURRENT_PROJECT_VERSION = 20200227;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 				);
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				INFOPLIST_FILE = Antlr4.xcodeproj/Antlr4_Info.plist;
+				INFOPLIST_FILE = "Sources/Info-IOS.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) $(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = Antlr4;
+				PRODUCT_BUNDLE_IDENTIFIER = org.antlr4;
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_VERSION = 4.2;
 				TARGET_NAME = Antlr4;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
 		};
 		OBJ_210 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CURRENT_PROJECT_VERSION = 20200227;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 				);
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				INFOPLIST_FILE = Antlr4.xcodeproj/Antlr4_Info.plist;
+				INFOPLIST_FILE = "Sources/Info-IOS.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) $(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = Antlr4;
+				PRODUCT_BUNDLE_IDENTIFIER = org.antlr4;
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				SWIFT_VERSION = 4.2;
 				TARGET_NAME = Antlr4;
+				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;
 		};
@@ -970,6 +978,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SWIFT_PACKAGE DEBUG";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Debug;
 		};
@@ -1066,6 +1075,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SWIFT_PACKAGE";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				USE_HEADERMAP = NO;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Release;
 		};

@@ -102,7 +102,8 @@ class DIDDoucumentTests: XCTestCase {
             
             key = try TestData.generateKeypair()
             success = try db.addPublicKey("test2", doc.subject!.description,
-                                           try key.getPublicKeyBase58())
+                                         key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             XCTAssertTrue(success)
             
             doc = try db.seal(storepass: storePass)
@@ -264,11 +265,11 @@ class DIDDoucumentTests: XCTestCase {
             let id: DIDURL = try DIDURL(doc.subject!, "test1")
             var key: DerivedKey  = try TestData.generateKeypair()
             var success: Bool = try db.addPublicKey(id, doc.subject!,
-                                                     try key.getPublicKeyBase58())
+                                                    key.getPublicKeyBase58())
             XCTAssertTrue(success)
             key = try TestData.generateKeypair()
             success = try db.addPublicKey("test2", doc.subject!.description,
-                                           try key.getPublicKeyBase58())
+                                         key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             // Add by reference
@@ -281,11 +282,12 @@ class DIDDoucumentTests: XCTestCase {
             // Add new keys
             key = try TestData.generateKeypair()
             success = try db.addAuthenticationKey(DIDURL(doc.subject!, "test3"),
-                                                   try key.getPublicKeyBase58())
+                                                key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             key = try TestData.generateKeypair()
             success = try db.addAuthenticationKey("test4", key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             XCTAssertTrue(success)
             
             // Try to add a non existing key, should fail.
@@ -348,6 +350,7 @@ class DIDDoucumentTests: XCTestCase {
             
             key = try TestData.generateKeypair()
             success = try db.addAuthenticationKey("test2", key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             XCTAssertTrue(success)
             
             // Remote keys
@@ -466,13 +469,14 @@ class DIDDoucumentTests: XCTestCase {
             // Add 2 public keys for test.
             let id: DIDURL = try DIDURL(doc.subject!, "test1")
             var key: DerivedKey = try TestData.generateKeypair()
-            let did = DID(DID.METHOD, DerivedKey.getIdString(try key.getPublicKeyBytes()))
-            var success: Bool = try db.addPublicKey(id, did, try key.getPublicKeyBase58())
+            let did = DID(DID.METHOD, DerivedKey.getIdString(pks: key.getPublicKeyBytes()))
+            key.derivedKeyWipe()
+            var success: Bool = try db.addPublicKey(id, did, key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             key = try TestData.generateKeypair();
             success = try db.addPublicKey("test2", did.description,
-                                           try key.getPublicKeyBase58())
+                                          key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             // Add by reference
@@ -485,12 +489,13 @@ class DIDDoucumentTests: XCTestCase {
             // Add new keys
             key = try TestData.generateKeypair()
             success = try db.addAuthorizationKey(try DIDURL(doc.subject!, "test3"),
-                                                  did, try key.getPublicKeyBase58())
+                                                  did, key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             key = try TestData.generateKeypair()
             success = try db.addAuthorizationKey("test4", did.description,
-                                                  try key.getPublicKeyBase58())
+                                                 key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             XCTAssertTrue(success)
             
             // Try to add a non existing key, should fail.
@@ -545,15 +550,17 @@ class DIDDoucumentTests: XCTestCase {
             // Add 2 keys for test.
             let id: DIDURL = try DIDURL(doc.subject!, "test1")
             var key: DerivedKey  = try TestData.generateKeypair()
-            let did = DID(DID.METHOD, DerivedKey.getIdString(try key.getPublicKeyBytes()))
+            let did = DID(DID.METHOD, DerivedKey.getIdString(pks: key.getPublicKeyBytes()))
+            key.derivedKeyWipe()
             var success: Bool = try db.addAuthorizationKey(id,
-                                                            did, try key.getPublicKeyBase58())
+                                                            did, key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
             key = try TestData.generateKeypair()
             success = try db.addAuthorizationKey("test2",
                                              did.description,
-                                             try key.getPublicKeyBase58())
+                                             key.getPublicKeyBase58())
+            key.derivedKeyWipe()
             XCTAssertTrue(success)
             
             // Remove keys.
