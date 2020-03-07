@@ -65,7 +65,6 @@ void HDKey_FreeMnemonic(void *mnemonic);
 
 bool HDKey_MnemonicIsValid(const char *mnemonic, int language);
 
-// uint8_t *HDKey_GetSeedFromMnemonic(const char *mnemonic, const char *mnemonicPassword, int language, uint8_t *seed);
 HDKey *HDKey_FromMnemonic(const char *mnemonic, const char *passphrase,
         int language, HDKey *hdkey);
 

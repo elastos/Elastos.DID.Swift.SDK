@@ -470,7 +470,6 @@ class DIDDoucumentTests: XCTestCase {
             let id: DIDURL = try DIDURL(doc.subject!, "test1")
             var key: DerivedKey = try TestData.generateKeypair()
             let did = DID(DID.METHOD, DerivedKey.getIdString(pks: key.getPublicKeyBytes()))
-            key.derivedKeyWipe()
             var success: Bool = try db.addPublicKey(id, did, key.getPublicKeyBase58())
             XCTAssertTrue(success)
             
@@ -551,7 +550,6 @@ class DIDDoucumentTests: XCTestCase {
             let id: DIDURL = try DIDURL(doc.subject!, "test1")
             var key: DerivedKey  = try TestData.generateKeypair()
             let did = DID(DID.METHOD, DerivedKey.getIdString(pks: key.getPublicKeyBytes()))
-            key.derivedKeyWipe()
             var success: Bool = try db.addAuthorizationKey(id,
                                                             did, key.getPublicKeyBase58())
             XCTAssertTrue(success)

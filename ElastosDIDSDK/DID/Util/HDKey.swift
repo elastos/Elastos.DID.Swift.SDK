@@ -5,6 +5,7 @@ public let PRIVATEKEY_BYTES: Int = 32
 public let CHAINCODE_BYTES: Int = 32
 public let EXTENDEDKEY_BYTES: Int = 82
 public let SEED_BYTES: Int = 64
+public let PUBLICKEY_BASE58_COUNT: Int = 64
 public class HDKey: NSObject {
     private var chdkey: UnsafeMutablePointer<CHDKey>
     

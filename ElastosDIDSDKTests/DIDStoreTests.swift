@@ -26,8 +26,8 @@ class DIDStoreTests: XCTestCase {
     func testCreateDidInEmptyStore()  {
         do {
             let testData: TestData = TestData()
-            
             let store = try testData.setupStore(true)
+            _ = try testData.initIdentity()
             _  = try store.newDid("this will be fail", storePass)
         } catch {
             print(error)

@@ -52,6 +52,8 @@
 		115DBD8A23B492A600501983 /* ResolverCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115DBD8923B492A600501983 /* ResolverCache.swift */; };
 		115DBD8C23B492B400501983 /* ResolveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115DBD8B23B492B400501983 /* ResolveResult.swift */; };
 		115DBD8E23B492DB00501983 /* IDTransactionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115DBD8D23B492DB00501983 /* IDTransactionInfo.swift */; };
+		1163C4962413FA8A0080F15D /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 1163C4942413FA8A0080F15D /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1163C4972413FA8A0080F15D /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 1163C4952413FA8A0080F15D /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11641BB523B702FC0037016B /* AbstractAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BB423B702FC0037016B /* AbstractAdapter.swift */; };
 		11641BBB23B715CF0037016B /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BBA23B715CF0037016B /* TestError.swift */; };
 		116AC38A23A5FA410076BDC7 /* LRUCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116AC38523A5FA410076BDC7 /* LRUCache.swift */; };
@@ -119,8 +121,6 @@
 		11E8A00123A4C36000C81B3C /* DIDError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E89FD523A4C36000C81B3C /* DIDError.swift */; };
 		11E8A00723A4DAF200C81B3C /* DIDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E8A00623A4DAF100C81B3C /* DIDStorage.swift */; };
 		11F262AF23260CF40009C103 /* ElastosDIDSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F262AD23260CF40009C103 /* ElastosDIDSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		11F299A9240A4FC100FE704A /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F299A7240A4FC100FE704A /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		11F299AA240A4FC100FE704A /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F299A8240A4FC100FE704A /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11FB0A6123F0FF1D001941CF /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11FB0A6023F0FF0B001941CF /* libcrypto.a */; };
 		11FB0A6223F0FF1D001941CF /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11FB0A5F23F0FF0B001941CF /* libhdkey.a */; };
 /* End PBXBuildFile section */
@@ -232,6 +232,8 @@
 		115DBD8923B492A600501983 /* ResolverCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolverCache.swift; sourceTree = "<group>"; };
 		115DBD8B23B492B400501983 /* ResolveResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolveResult.swift; sourceTree = "<group>"; };
 		115DBD8D23B492DB00501983 /* IDTransactionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDTransactionInfo.swift; sourceTree = "<group>"; };
+		1163C4942413FA8A0080F15D /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
+		1163C4952413FA8A0080F15D /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
 		11641BB423B702FC0037016B /* AbstractAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractAdapter.swift; sourceTree = "<group>"; };
 		11641BBA23B715CF0037016B /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
 		116AC38523A5FA410076BDC7 /* LRUCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LRUCache.swift; sourceTree = "<group>"; };
@@ -335,8 +337,6 @@
 		11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		11F262AD23260CF40009C103 /* ElastosDIDSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK.h; sourceTree = "<group>"; };
 		11F262AE23260CF40009C103 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		11F299A7240A4FC100FE704A /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
-		11F299A8240A4FC100FE704A /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
 		11FB0A5F23F0FF0B001941CF /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = "Externals/HDKey/lib/-iphoneos/libhdkey.a"; sourceTree = "<group>"; };
 		11FB0A6023F0FF0B001941CF /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Externals/HDKey/lib/-iphoneos/libcrypto.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -489,8 +489,8 @@
 		116C94E8234D825B00BA9777 /* HDKey */ = {
 			isa = PBXGroup;
 			children = (
-				11F299A7240A4FC100FE704A /* crypto.h */,
-				11F299A8240A4FC100FE704A /* HDkey.h */,
+				1163C4942413FA8A0080F15D /* crypto.h */,
+				1163C4952413FA8A0080F15D /* HDkey.h */,
 				1125B57D238234FB00D396B6 /* CHDKey.swift */,
 			);
 			path = HDKey;
@@ -698,9 +698,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11F299AA240A4FC100FE704A /* HDkey.h in Headers */,
+				1163C4972413FA8A0080F15D /* HDkey.h in Headers */,
+				1163C4962413FA8A0080F15D /* crypto.h in Headers */,
 				11F262AF23260CF40009C103 /* ElastosDIDSDK.h in Headers */,
-				11F299A9240A4FC100FE704A /* crypto.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
