@@ -80,7 +80,6 @@ class TestDataGenerator: XCTestCase {
         
         temp = try TestData.generateKeypair()
         let controller = DerivedKey.getIdString(pks: temp.getPublicKeyBytes())
-        temp.derivedKeyWipe()
         _ = try db.addAuthorizationKey("recovery", controller, temp.getPublicKeyBase58())
         temp.derivedKeyWipe()
         _ = try db.addService("openid", "OpenIdConnectVersion1.0Service", "https://openid.example.com/");
@@ -237,7 +236,7 @@ class TestDataGenerator: XCTestCase {
         
         json = try formatJson(json)
         writeTo("vp.json", json)
-        
+        temp.derivedKeyWipe()
         print(try vcPassport.isValid())
     }
     

@@ -91,26 +91,6 @@ public class DIDStore: NSObject {
         if (try containsPrivateIdentity() && !force) {
             throw DIDError.didStoreError(_desc: "Already has private indentity.")
         }
-        
-//        let privateIdentity: HDKey = try HDKey.fromMnemonic(mnemonic, passphrase)
-//
-//        // Save seed instead of root private key,
-//        // keep compatible with Native SDK
-//        let seedData = privateIdentity.getSeed()
-//        let encryptedIdentity = try DIDStore.encryptToBase64(storepass, seedData)
-//        try storage!.storePrivateIdentity(encryptedIdentity)
-        
-        /*
-         try {
-         HDKey privateIdentity = HDKey.fromMnemonic(mnemonic, passphrase);
-
-         initPrivateIdentity(privateIdentity, storepass);
-
-         // Save mnemonic
-         String encryptedMnemonic = encryptToBase64(
-                 mnemonic.getBytes(), storepass);
-         storage.storeMnemonic(encryptedMnemonic);
-         */
         let cmnemonic = mnemonic.toUnsafePointerInt8()!
         let cpassphrase = passphrase.toUnsafePointerInt8()!
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
@@ -145,6 +125,7 @@ public class DIDStore: NSObject {
     }
     
     /*
+     // 放在新sdk版本中实现，这里只替换native sdk
      public void initPrivateIdentity(String extentedPrivateKey, String storepass,
              boolean force) throws DIDStoreException {
          if (extentedPrivateKey == null || extentedPrivateKey.isEmpty())
@@ -258,7 +239,6 @@ public class DIDStore: NSObject {
         let privateIdentity =  try loadPrivateIdentity(storepass)
         let key = privateIdentity.derivedKey(index: index)
         let methodIdString = key.getIdString()
-        key.derivedKeyWipe()
         let did: DID = DID(DID.METHOD, methodIdString)
         let id: DIDURL = try DIDURL(did, "primary")
         
@@ -269,12 +249,12 @@ public class DIDStore: NSObject {
         let db: DIDDocumentBuilder = DIDDocumentBuilder(did: did, store: self)
         // try key.getPublicKeyBase58()
         _ = try db.addAuthenticationKey(id, key.getPublicKeyBase58())
-        key.derivedKeyWipe()
         let doc: DIDDocument = try db.seal(storepass: storepass)
         doc.meta.alias = alias ?? ""
         try storeDid(doc)
         try storage.storePrivateIdentityIndex(index)
         privateIdentity.hdKeyWipe()
+        key.derivedKeyWipe()
         return doc
     }
     
