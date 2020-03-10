@@ -75,7 +75,7 @@ public class VerifiablePresentationBuilder {
             throw DIDError.invalidState("Missing realm and nonce")
         }
 
-        let data: Data = presentation!.toJson(true)
+        let data: String = presentation!.toJson(true)
         let signature = try _signer.sign(_signKey, storePassword, [data])
 
         let proof = VerifiablePresentationProof(_signKey, _realm!, _nonce!, signature)

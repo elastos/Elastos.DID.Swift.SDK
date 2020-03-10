@@ -1330,7 +1330,7 @@ public class DIDStore: NSObject {
         return deletePrivateKey(for: _did, id: _key)
     }
 
-    func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
+    func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [String]) throws -> String {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -1345,27 +1345,45 @@ public class DIDStore: NSObject {
             }
         }
 
-        let binKey = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)
-//        let key = HDKey.DerivedKey.deserialize(binKey)
+        let privatekeys = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)
 
-        // TODO:
-        let signature: Data? = nil
-//        key.wipe()
-
-        return signature?.base64EncodedString() ?? ""
+        var cinputs: [CVarArg] = []
+        for i in 0..<data.count {
+            let json: String = data[i]
+            if json != "" {
+                let cjson = json.toUnsafePointerInt8()!
+                cinputs.append(cjson)
+                cinputs.append(json.count)
+            }
+        }
+        
+        let toPPointer = privatekeys.toPointer()
+        
+        let c_inputs = getVaList(cinputs)
+        let count = cinputs.count / 2
+        // UnsafeMutablePointer(mutating: toPPointer)
+        let csig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
+        let re = ecdsa_sign_base64v(csig, UnsafeMutablePointer(mutating: toPPointer), Int32(count), c_inputs)
+        guard re >= 0 else {
+            throw DIDError.didStoreError("sign error.")
+        }
+        let jsonStr: String = String(cString: csig)
+        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
+        let sig = String(jsonStr[jsonStr.startIndex..<endIndex])
+        return sig
     }
 
     public func sign(WithDid did: DID,
                               id: DIDURL,
              using storePassword: String,
-                        for data: Data...) throws -> String {
+                        for data: String...) throws -> String {
 
         return try sign(did, id, storePassword, data)
     }
 
     public func sign(WithDid did: DID,
              using storePassword: String,
-                        for data: Data...) throws -> String {
+                        for data: String...) throws -> String {
 
         return try sign(did, nil, storePassword, data)
     }

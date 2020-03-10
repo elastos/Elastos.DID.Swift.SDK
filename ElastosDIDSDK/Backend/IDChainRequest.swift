@@ -140,12 +140,12 @@ class IDChainRequest: NSObject {
                         _ storePassword: String) throws -> IDChainRequest {
 
         let prevTxid = _operation == .UPDATE ? self._previousTransactionId! : ""
-        var inputs: [Data] = []
+        var inputs: [String] = []
 
-        inputs.append(_specification.data(using: .utf8)!)
-        inputs.append(_operation.description.data(using: .utf8)!)
-        inputs.append(_payload!.data(using: .utf8)!)
-        inputs.append(prevTxid.description.data(using: .utf8)!)
+        inputs.append(_specification)
+        inputs.append(_operation.description)
+        inputs.append(_payload!)
+        inputs.append(prevTxid.description)
 
         self._signature = try _doc!.sign(signKey, storePassword, inputs)
         self._signKey = signKey
@@ -160,12 +160,12 @@ class IDChainRequest: NSObject {
                         _ storePassword: String) throws -> IDChainRequest {
 
         let prevTxid = operation == .UPDATE ? self._previousTransactionId! : ""
-        var inputs: [Data] = []
+        var inputs: [String] = []
 
-        inputs.append(_specification.data(using: .utf8)!)
-        inputs.append(_operation.description.data(using: .utf8)!)
-        inputs.append(_payload!.data(using: .utf8)!)
-        inputs.append(prevTxid.data(using: .utf8)!)
+        inputs.append(_specification)
+        inputs.append(_operation.description)
+        inputs.append(_payload!)
+        inputs.append(prevTxid)
 
         self._signature = try _doc!.sign(signKey, storePassword, inputs)
         self._signKey = targetSignKey
@@ -197,12 +197,12 @@ class IDChainRequest: NSObject {
         }
 
         let prevTxid = operation == .UPDATE ? self._previousTransactionId!: ""
-        var inputs: [Data] = [];
+        var inputs: [String] = []
 
-        inputs.append(_specification.data(using: .utf8)!)
-        inputs.append(_operation.description.data(using: .utf8)!)
-        inputs.append(_payload!.data(using: .utf8)!)
-        inputs.append(prevTxid.data(using: .utf8)!)
+        inputs.append(_specification)
+        inputs.append(_operation.description)
+        inputs.append(_payload!)
+        inputs.append(prevTxid)
 
         return try doc.verify(_signKey!, _signature!, inputs)
     }

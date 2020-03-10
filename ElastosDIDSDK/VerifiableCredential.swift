@@ -245,7 +245,7 @@ public class VerifiableCredential: DIDObject {
             return false
         }
 
-        let data: Data = toJson(true, true).data(using: .utf8)!
+        let data = toJson(true, true)
         return try doc.verify(proof.verificationMethod, proof.signature, [data])
     }
 
