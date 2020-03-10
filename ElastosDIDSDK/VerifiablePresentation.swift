@@ -92,10 +92,14 @@ public class VerifiablePresentation {
             }
         }
 
-        var data: [String] = []
+        var data: [Data] = []
         data.append(toJson(true))
-        data.append(proof.realm)
-        data.append(proof.nonce)
+        if let d = proof.realm.data(using: .utf8) {
+            data.append(d)
+        }
+        if let d = proof.nonce.data(using: .utf8) {
+            data.append(d)
+        }
 
         return (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
     }
@@ -135,10 +139,14 @@ public class VerifiablePresentation {
             }
         }
 
-        var data: [String] = []
+        var data: [Data] = []
         data.append(toJson(true))
-        data.append(proof.realm)
-        data.append(proof.nonce)
+        if let d = proof.realm.data(using: .utf8)  {
+            data.append(d)
+        }
+        if let d = proof.nonce.data(using: .utf8)  {
+            data.append(d)
+        }
 
         return (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
     }

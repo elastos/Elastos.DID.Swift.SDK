@@ -549,7 +549,7 @@ public class DIDDocumentBuilder {
         }
 
         let signKey = document!.defaultPublicKey
-        let data: String = try document!.toJson(true, true)
+        let data: Data = try document!.toJson(true, true)
         let signature = try document!.sign(signKey, storePassword, [data])
 
         document!.setProof(DIDDocumentProof(signKey, signature))

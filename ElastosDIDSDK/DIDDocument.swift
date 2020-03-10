@@ -559,7 +559,7 @@ public class DIDDocument {
         }
 
         do {
-            let data: String = try toJson(true, true)
+            let data: Data = try toJson(true, true)
             return try verify(proof.creator, proof.signature, [data])
         } catch {
             return false
@@ -574,19 +574,19 @@ public class DIDDocument {
         return DIDDocumentBuilder(self)
     }
 
-    public func sign(using storePassword: String, for data: String...) throws -> String {
+    public func sign(using storePassword: String, for data: Data...) throws -> String {
         return try sign(self.defaultPublicKey, storePassword, data)
     }
 
-    public func sign(withId: DIDURL, using storePassword: String, for data: String...) throws -> String {
+    public func sign(withId: DIDURL, using storePassword: String, for data: Data...) throws -> String {
         return try sign(withId, storePassword, data)
     }
 
-    public func sign(withId: String, using storePassword: String, for data: String...) throws -> String {
+    public func sign(withId: String, using storePassword: String, for data: Data...) throws -> String {
         return try sign(try DIDURL(self.subject, withId), storePassword, data)
     }
 
-    func sign(_ id: DIDURL, _ storePassword: String, _ data: [String]) throws -> String {
+    func sign(_ id: DIDURL, _ storePassword: String, _ data: [Data]) throws -> String {
         guard data.count > 0 else {
             throw DIDError.illegalArgument()
         }
@@ -600,19 +600,19 @@ public class DIDDocument {
         return try getMeta().store!.sign(subject, id, storePassword, data)
     }
 
-    public func verify(signature: String, onto data: String...) throws -> Bool {
+    public func verify(signature: String, onto data: Data...) throws -> Bool {
         return try verify(self.defaultPublicKey, signature, data)
     }
 
-    public func verify(withId: DIDURL, using signature: String, onto data: String...) throws -> Bool {
+    public func verify(withId: DIDURL, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(withId, signature, data)
     }
 
-    public func verify(withId: String, using signature: String, onto data: String...) throws -> Bool {
+    public func verify(withId: String, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(DIDURL(self.subject, withId), signature, data)
     }
 
-    func verify(_ id: DIDURL, _ sigature: String, _ data: [String]) throws -> Bool {
+    func verify(_ id: DIDURL, _ sigature: String, _ data: [Data]) throws -> Bool {
         guard data.count > 0 else {
             throw DIDError.illegalArgument()
         }
@@ -626,13 +626,12 @@ public class DIDDocument {
         }
 
         var cinputs: [CVarArg] = []
-        for i in 0..<data.count {
-            let json: String = data[i]
-            if json != "" {
-                let cjson  = json.toUnsafePointerInt8()
-                cinputs.append(cjson!)
-                cinputs.append(json.count)
+        data.forEach { data in
+            let cdata = data.withUnsafeBytes { cdata -> UnsafePointer<Int8> in
+                return cdata
             }
+            cinputs.append(cdata)
+            cinputs.append(data.count)
         }
         let pks: [UInt8] = pubKey!.publicKeyBytes
         var pkData: Data = Data(bytes: pks, count: pks.count)

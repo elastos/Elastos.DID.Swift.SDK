@@ -8,17 +8,23 @@ public class JsonNode {
     }
 
     init(_ node: Any) {
-        if node is Array<Any> {
-            let temp: Array = node as! [Any]
+        if node is [Any] {
+            var temp = node as? [Any]
+            if temp == nil {
+                temp = []
+            }
             var result: Array<JsonNode> = []
-            for subNode in temp {
+            for subNode in temp! {
                 result.append(JsonNode(subNode))
             }
             self.node = result
         } else if node is [String: Any] {
-            let temp: [String: Any] = node as! [String: Any]
+            var temp = node as? [String: Any]
+            if temp == nil {
+                temp = [: ]
+            }
             var result: [String: JsonNode] = [: ]
-            for (key, value) in temp {
+            for (key, value) in temp! {
                 result[key] = JsonNode(value)
             }
             self.node = result
@@ -27,7 +33,7 @@ public class JsonNode {
         }
     }
 
-    init(_ node: Dictionary<String, Any>) {
+    init(_ node: [String: Any]) {
         var result: [String: JsonNode] = [: ]
         for (key, value) in node {
             result[key] = JsonNode(value)
@@ -42,11 +48,17 @@ public class JsonNode {
 
     var count: Int {
         if self.node is [String: Any] {
-            let temp: [String: Any] = self.node as! [String: Any]
-            return temp.count
+            var temp = self.node as? [String: Any]
+            if temp == nil {
+                temp = [: ]
+            }
+            return temp!.count
         } else if self.node is [Any] {
-            let temp: [Any] = self.node as! [Any]
-            return temp.count
+            var temp = self.node as? [Any]
+            if  temp == nil {
+                temp = []
+            }
+            return temp!.count
         }
         return 0
     }
@@ -59,18 +71,25 @@ public class JsonNode {
     func deepCopy() -> JsonNode? {
         
         if self.node is [JsonNode] {
-            let temp: Array = node as! [JsonNode]
+            var temp = node as? [JsonNode]
+            if temp == nil {
+                // TODO: check error
+                temp = []
+            }
             var resultArray: Array<JsonNode> = []
-            for subNode in temp {
+            for subNode in temp! {
                 resultArray.append(subNode.deepCopy()!)
             }
             let result = JsonNode()
             result.node = resultArray
             return result
         } else if node is [String: JsonNode] {
-            let temp: [String: JsonNode] = node as! [String: JsonNode]
+            var temp = node as? [String: JsonNode]
+            if temp == nil {
+                temp = [: ]
+            }
             var resultDictionary: [String: JsonNode] = [: ]
-            for (key, value) in temp {
+            for (key, value) in temp! {
                 resultDictionary[key] = value.deepCopy()
             }
             let result = JsonNode()
@@ -85,8 +104,11 @@ public class JsonNode {
         guard self.node is [String: JsonNode] else {
             return nil
         }
-        let temp: [String: JsonNode] = self.node as! [String: JsonNode]
-        return temp[key]
+        var temp = self.node as? [String: JsonNode]
+        if temp == nil {
+            temp = [: ]
+        }
+        return temp![key]
     }
     
     func put(forKey key: String, value: [Any]) {
@@ -96,9 +118,12 @@ public class JsonNode {
         }
         
         let node: JsonNode = JsonNode(value)
-        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
-        temp[key] = node
-        self.node = temp
+        var temp = self.node as? [String: JsonNode]
+        if temp == nil {
+            temp = [: ]
+        }
+        temp![key] = node
+        self.node = temp!
     }
     
     func put(forKey key: String, value: [String: Any]) {
@@ -108,8 +133,11 @@ public class JsonNode {
         }
         
         let node: JsonNode = JsonNode(value)
-        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
-        temp[key] = node
+        var temp = self.node as? [String: JsonNode]
+        if temp == nil {
+            temp = [: ]
+        }
+        temp![key] = node
     }
     
     func put(forKey key: String, value: String) {
@@ -119,12 +147,15 @@ public class JsonNode {
         }
         
         let node: JsonNode = JsonNode(value)
-        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
-        temp[key] = node
+        var temp = self.node as? [String: JsonNode]
+        if temp == nil {
+            temp = [: ]
+        }
+        temp![key] = node
     }
 
     func put(forKey key: String, value: Bool) {
-        // TOD:
+        // TODO:
     }
 
     public func asString() -> String? {

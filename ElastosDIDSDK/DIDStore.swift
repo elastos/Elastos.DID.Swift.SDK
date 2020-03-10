@@ -1330,7 +1330,7 @@ public class DIDStore: NSObject {
         return deletePrivateKey(for: _did, id: _key)
     }
 
-    func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [String]) throws -> String {
+    func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -1348,13 +1348,12 @@ public class DIDStore: NSObject {
         let privatekeys = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)
 
         var cinputs: [CVarArg] = []
-        for i in 0..<data.count {
-            let json: String = data[i]
-            if json != "" {
-                let cjson = json.toUnsafePointerInt8()!
-                cinputs.append(cjson)
-                cinputs.append(json.count)
+        data.forEach { data in
+            let cdata = data.withUnsafeBytes { cdata -> UnsafePointer<Int8> in
+                return cdata
             }
+            cinputs.append(cdata)
+            cinputs.append(data.count)
         }
         
         let toPPointer = privatekeys.toPointer()
@@ -1376,14 +1375,14 @@ public class DIDStore: NSObject {
     public func sign(WithDid did: DID,
                               id: DIDURL,
              using storePassword: String,
-                        for data: String...) throws -> String {
+                        for data: Data...) throws -> String {
 
         return try sign(did, id, storePassword, data)
     }
 
     public func sign(WithDid did: DID,
              using storePassword: String,
-                        for data: String...) throws -> String {
+                        for data: Data...) throws -> String {
 
         return try sign(did, nil, storePassword, data)
     }
