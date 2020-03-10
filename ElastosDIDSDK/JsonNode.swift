@@ -4,20 +4,20 @@ public class JsonNode {
     private var node: Any
 
     init() {
-        self.node = Dictionary<String, Any>()
+        self.node = [String: Any]()
     }
 
     init(_ node: Any) {
         if node is Array<Any> {
-            let temp: Array = node as! Array<Any>
+            let temp: Array = node as! [Any]
             var result: Array<JsonNode> = []
             for subNode in temp {
                 result.append(JsonNode(subNode))
             }
             self.node = result
-        } else if node is Dictionary<String, Any> {
-            let temp: Dictionary<String, Any> = node as! Dictionary<String, Any>
-            var result: Dictionary<String, JsonNode> = [:]
+        } else if node is [String: Any] {
+            let temp: [String: Any] = node as! [String: Any]
+            var result: [String: JsonNode] = [: ]
             for (key, value) in temp {
                 result[key] = JsonNode(value)
             }
@@ -28,7 +28,7 @@ public class JsonNode {
     }
 
     init(_ node: Dictionary<String, Any>) {
-        var result: Dictionary<String, JsonNode> = [:]
+        var result: [String: JsonNode] = [: ]
         for (key, value) in node {
             result[key] = JsonNode(value)
         }
@@ -41,11 +41,11 @@ public class JsonNode {
     }
 
     var count: Int {
-        if self.node is Dictionary<String, Any> {
-            let temp: Dictionary<String, Any> = self.node as! Dictionary<String, Any>
+        if self.node is [String: Any] {
+            let temp: [String: Any] = self.node as! [String: Any]
             return temp.count
-        } else if self.node is Array<Any> {
-            let temp: Array<Any> = self.node as! Array<Any>
+        } else if self.node is [Any] {
+            let temp: [Any] = self.node as! [Any]
             return temp.count
         }
         return 0
@@ -58,8 +58,8 @@ public class JsonNode {
 
     func deepCopy() -> JsonNode? {
         
-        if self.node is Array<JsonNode> {
-            let temp: Array = node as! Array<JsonNode>
+        if self.node is [JsonNode] {
+            let temp: Array = node as! [JsonNode]
             var resultArray: Array<JsonNode> = []
             for subNode in temp {
                 resultArray.append(subNode.deepCopy()!)
@@ -67,9 +67,9 @@ public class JsonNode {
             let result = JsonNode()
             result.node = resultArray
             return result
-        } else if node is Dictionary<String, JsonNode> {
-            let temp: Dictionary<String, JsonNode> = node as! Dictionary<String, JsonNode>
-            var resultDictionary: Dictionary<String, JsonNode> = [:]
+        } else if node is [String: JsonNode] {
+            let temp: [String: JsonNode] = node as! [String: JsonNode]
+            var resultDictionary: [String: JsonNode] = [: ]
             for (key, value) in temp {
                 resultDictionary[key] = value.deepCopy()
             }
@@ -82,45 +82,44 @@ public class JsonNode {
     }
 
     func get(forKey key: String) -> JsonNode? {
-        guard self.node is Dictionary<String, JsonNode> else {
+        guard self.node is [String: JsonNode] else {
             return nil
         }
-        let temp: Dictionary<String, JsonNode> = self.node as! Dictionary<String, JsonNode>
+        let temp: [String: JsonNode] = self.node as! [String: JsonNode]
         return temp[key]
     }
     
-    func put(forKey key: String, value: Array<Any>) {
+    func put(forKey key: String, value: [Any]) {
 
-        guard self.node is Dictionary<String, JsonNode> else {
-            return
-        }
-        
-        var node: JsonNode = JsonNode(value)
-        var temp: Dictionary<String, JsonNode> = self.node as! Dictionary<String, JsonNode>
-        temp[key] = node
-        self.node = temp
-        
-    }
-    
-    func put(forKey key: String, value: Dictionary<String, Any>) {
-
-        guard self.node is Dictionary<String, JsonNode> else {
+        guard self.node is [String: JsonNode] else {
             return
         }
         
         let node: JsonNode = JsonNode(value)
-        var temp: Dictionary<String, JsonNode> = self.node as! Dictionary<String, JsonNode>
+        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
+        temp[key] = node
+        self.node = temp
+    }
+    
+    func put(forKey key: String, value: [String: Any]) {
+
+        guard self.node is [String: JsonNode] else {
+            return
+        }
+        
+        let node: JsonNode = JsonNode(value)
+        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
         temp[key] = node
     }
     
     func put(forKey key: String, value: String) {
         
-        guard self.node is Dictionary<String, JsonNode> else {
+        guard self.node is [String: JsonNode] else {
             return
         }
         
         let node: JsonNode = JsonNode(value)
-        var temp: Dictionary<String, JsonNode> = self.node as! Dictionary<String, JsonNode>
+        var temp: [String: JsonNode] = self.node as! [String: JsonNode]
         temp[key] = node
     }
 
@@ -136,11 +135,11 @@ public class JsonNode {
         return self.node as? Int
     }
 
-    public func asArray() -> Array<JsonNode>? {
+    public func asArray() -> [JsonNode]? {
         return self.node as? Array
     }
 
-    public func asDictionary() -> Dictionary<String, JsonNode>? {
-        return self.node as? Dictionary<String, JsonNode>
+    public func asDictionary() -> [String: JsonNode]? {
+        return self.node as? [String: JsonNode]
     }
 }
