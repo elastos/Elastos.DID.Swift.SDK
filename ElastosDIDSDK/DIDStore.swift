@@ -1218,7 +1218,7 @@ public class DIDStore: NSObject {
     }
     
     public func containsCredentials(_ did:DID) throws -> Bool {
-        return storage.containsCredentials(did)
+        return try storage.containsCredentials(did)
     }
     
     public func containsCredentials(_ did: String) throws -> Bool {
@@ -1301,34 +1301,34 @@ public class DIDStore: NSObject {
         return try storage.loadPrivateKey(did, byId)
     }
     
-    public func containsPrivateKeys(for did: DID) -> Bool {
-        return storage.containsPrivateKeys(did)
+    public func containsPrivateKeys(for did: DID) throws -> Bool {
+        return try storage.containsPrivateKeys(did)
     }
     
     public func containsPrivateKeys(for did: String) throws -> Bool {
         return try containsPrivateKeys(for: DID(did))
     }
     
-    public func containsPrivateKey(for did: DID, id: DIDURL) -> Bool {
-        return storage.containsPrivateKey(did, id)
+    public func containsPrivateKey(for did: DID, id: DIDURL) throws -> Bool {
+        return try storage.containsPrivateKey(did, id)
     }
     
     public func containsPrivateKey(for did: String, id: String) throws -> Bool {
         let _did = try DID(did)
         let _key = try DIDURL(_did, id)
 
-        return containsPrivateKey(for: _did, id: _key)
+        return try containsPrivateKey(for: _did, id: _key)
     }
     
-    public func deletePrivateKey(for did: DID, id: DIDURL) -> Bool {
-        return storage.deletePrivateKey(did, id)
+    public func deletePrivateKey(for did: DID, id: DIDURL) throws -> Bool {
+        return try storage.deletePrivateKey(did, id)
     }
     
     public func deletePrivateKey(for did: String, id: String) throws -> Bool {
         let _did = try DID(did)
         let _key = try DIDURL(_did, id)
 
-        return deletePrivateKey(for: _did, id: _key)
+        return try deletePrivateKey(for: _did, id: _key)
     }
 
     func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
@@ -1441,7 +1441,7 @@ public class DIDStore: NSObject {
         
         // Credential
         var vcMetas: OrderedDictionary<DIDURL, CredentialMeta> = OrderedDictionary()
-        if storage.containsCredentials(did) {
+        if try storage.containsCredentials(did) {
             generator.writeFieldName("credential")
             generator.writeStartArray()
             let ids = try listCredentials(for: did)
@@ -1468,14 +1468,14 @@ public class DIDStore: NSObject {
         }
 
         // Private key
-        if storage.containsPrivateKeys(did) {
+        if try storage.containsPrivateKeys(did) {
             generator.writeFieldName("privatekey")
             generator.writeStartArray()
             
             let pks: Array<PublicKey> = doc!.publicKeys()
             for pk in pks {
                 let id = pk.getId()
-                if storage.containsPrivateKey(did, id) {
+                if try storage.containsPrivateKey(did, id) {
                     print("Exporting private key {}...\(id.toString())")
                     var csk: String = try storage.loadPrivateKey(did, id)
                     let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)
@@ -1991,50 +1991,94 @@ public class DIDStore: NSObject {
     public func exportStore(to output: OutputStream,
                            _ password: String,
                       _ storePassword: String) throws {
-        // TODO:
+        var exportStr = ""
+        if try containsPrivateIdentity() {
+            let generator = JsonGenerator()
+            try exportPrivateIdentity(generator, password, storePassword)
+            exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
+        }
+        let dids = try listDids(using: DIDStore.DID_ALL)
+        for did in dids {
+            let didstr = did.methodSpecificId
+            let generator = JsonGenerator()
+            try exportDid(did, generator, password, storePassword)
+            exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
+        }
+        output.open()
+        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
+        output.close()
     }
-/*
-     public void exportStore(ZipOutputStream out, String password,
-             String storepass) throws DIDStoreException, IOException {
-         if (out == null || password == null || password.isEmpty()
-                 || storepass == null || storepass.isEmpty())
-             throw new IllegalArgumentException();
 
-         ZipEntry ze;
-
-         if (containsPrivateIdentity()) {
-             ze = new ZipEntry("privateIdentity");
-             out.putNextEntry(ze);
-             exportPrivateIdentity(out, password, storepass);
-             out.closeEntry();
-         }
-
-         List<DID> dids = listDids(DID_ALL);
-         for (DID did : dids) {
-             ze = new ZipEntry(did.getMethodSpecificId());
-             out.putNextEntry(ze);
-             exportDid(did, out, password, storepass);
-             out.closeEntry();
-         }
-     }
-     
-     */
     public func exportStore(to handle: FileHandle,
                            _ password: String,
                       _ storePassword: String) throws {
-        // TODO:
+        var exportStr = ""
+        if try containsPrivateIdentity() {
+            let generator = JsonGenerator()
+            try exportPrivateIdentity(generator, password, storePassword)
+            exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
+        }
+        let dids = try listDids(using: DIDStore.DID_ALL)
+        for did in dids {
+            let didstr = did.methodSpecificId
+            let generator = JsonGenerator()
+            try exportDid(did, generator, password, storePassword)
+            exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
+        }
+        handle.write(exportStr.data(using: .utf8)!)
     }
 
     public func importStore(from input: InputStream,
                             _ password: String,
                        _ storePassword: String) throws {
-        // TODO:
+        let data = try readData(input: input)
+        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
+        guard dic != nil else {
+            throw DIDError.notFound("data is not nil")
+        }
+        
+        let privateIdentity = dic!["privateIdentity"] as? [String: Any]
+        if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
+            let node = JsonNode(privateIdentity!)
+            try importPrivateIdentity(node, password, storePassword)
+        }
+        try dic!.forEach{ key, value in
+            if key == "privateIdentity" {
+                let node = JsonNode(value)
+                try importPrivateIdentity(node, password, storePassword)
+            }
+            else {
+               let node = JsonNode(value)
+                try importDid(node, password, storePassword)
+            }
+        }
     }
 
     public func importStore(from handle: FileHandle,
                              _ password: String,
                         _ storePassword: String) throws {
-        // TODO:
+        handle.seekToEndOfFile()
+        let data = handle.readDataToEndOfFile()
+        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
+        guard dic != nil else {
+            throw DIDError.notFound("data is not nil")
+        }
+        
+        let privateIdentity = dic!["privateIdentity"] as? [String: Any]
+        if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
+            let node = JsonNode(privateIdentity!)
+            try importPrivateIdentity(node, password, storePassword)
+        }
+        try dic!.forEach{ key, value in
+            if key == "privateIdentity" {
+                let node = JsonNode(value)
+                try importPrivateIdentity(node, password, storePassword)
+            }
+            else {
+               let node = JsonNode(value)
+                try importDid(node, password, storePassword)
+            }
+        }
     }
     
     private func writeData(data: Data, outputStream: OutputStream, maxLengthPerWrite: Int) {

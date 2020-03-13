@@ -5,7 +5,8 @@ public class DID {
     private var _method: String?
     private var _methodSpecificId: String?
     private var _meta: DIDMeta?
-
+    static let METHOD: String = "elastos"
+    
     init() {}
 
     init(_ method: String, _ methodSpecificId: String) {

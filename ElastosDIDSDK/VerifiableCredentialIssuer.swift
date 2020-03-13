@@ -18,7 +18,7 @@ public class VerifiableCredentialIssuer {
         guard doc.containsAuthenticationKey(forId: key!) else {
             throw DIDError.illegalArgument()
         }
-        guard doc.containsPrivateKey(forId: key!) else {
+        guard try doc.containsPrivateKey(forId: key!) else {
             throw DIDError.illegalArgument(Errors.NO_PRIVATE_KEY_EXIST)
         }
 

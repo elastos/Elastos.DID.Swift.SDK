@@ -22,7 +22,7 @@ protocol DIDStorage {
     func loadCredentialMeta(_ did: DID, _ id: DIDURL) throws -> CredentialMeta
     func storeCredential(_ credential: VerifiableCredential) throws
     func loadCredential(_ did: DID, _ id: DIDURL) throws -> VerifiableCredential
-    func containsCredentials(_ did: DID) -> Bool
+    func containsCredentials(_ did: DID) throws -> Bool
     func containsCredential(_ did: DID, _ id: DIDURL) -> Bool
     func deleteCredential(_ did: DID, _ id: DIDURL) throws -> Bool
     func listCredentials(_ did: DID) throws -> Array<DIDURL>
@@ -32,9 +32,9 @@ protocol DIDStorage {
     // Private keys
     func storePrivateKey(_ did: DID, _ id: DIDURL, _ privateKey: String) throws
     func loadPrivateKey(_ did: DID, _ id: DIDURL) throws -> String
-    func containsPrivateKeys(_ did: DID) -> Bool
-    func containsPrivateKey(_ did: DID, _ id: DIDURL) -> Bool
-    func deletePrivateKey(_ did: DID, _ id: DIDURL) -> Bool
+    func containsPrivateKeys(_ did: DID) throws -> Bool
+    func containsPrivateKey(_ did: DID, _ id: DIDURL) throws -> Bool
+    func deletePrivateKey(_ did: DID, _ id: DIDURL) throws -> Bool
 
     func changePassword(_  callback: (String) throws -> String) throws
 }
