@@ -1786,7 +1786,7 @@ public class DIDStore: NSObject {
         
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard dic != nil else {
-            throw DIDError.notFound("data is not nil")
+            throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
         try importDid(jsonNode, password, storePassword)
@@ -1967,7 +1967,7 @@ public class DIDStore: NSObject {
                                   storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard dic != nil else {
-            throw DIDError.notFound("data is not nil")
+            throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
         try importPrivateIdentity(jsonNode, password, storePassword)
@@ -2034,7 +2034,7 @@ public class DIDStore: NSObject {
         let data = try readData(input: input)
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard dic != nil else {
-            throw DIDError.notFound("data is not nil")
+            throw DIDError.notFoundError("data is not nil")
         }
         
         let privateIdentity = dic!["privateIdentity"] as? [String: Any]
@@ -2061,7 +2061,7 @@ public class DIDStore: NSObject {
         let data = handle.readDataToEndOfFile()
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard dic != nil else {
-            throw DIDError.notFound("data is not nil")
+            throw DIDError.notFoundError("data is not nil")
         }
         
         let privateIdentity = dic!["privateIdentity"] as? [String: Any]

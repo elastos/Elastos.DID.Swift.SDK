@@ -614,7 +614,7 @@ public class FileSystemStorage: DIDStorage {
             }
         }
         if create {
-            let dirPath: String = PathExtracter(relPath).dirNamePart()
+            let dirPath: String = PathExtracter(relPath).dirname()
             if try !dirExists(dirPath) {
                 try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
             }
