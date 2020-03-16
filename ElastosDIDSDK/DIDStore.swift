@@ -1217,12 +1217,16 @@ public class DIDStore: NSObject {
         return try loadCredential(for: _did, byId: _key)
     }
     
-    public func containsCredentials(_ did:DID) throws -> Bool {
-        return try storage.containsCredentials(did)
+    public func containsCredentials(_ did:DID) -> Bool {
+        return storage.containsCredentials(did)
     }
     
-    public func containsCredentials(_ did: String) throws -> Bool {
-        return try containsCredentials(DID(did))
+    public func containsCredentials(_ did: String) -> Bool {
+        do {
+            return containsCredentials(try DID(did))
+        } catch {
+            return false
+        }
     }
     
     public func containsCredential(_ did: DID, _ id: DIDURL) throws -> Bool {
@@ -1234,14 +1238,18 @@ public class DIDStore: NSObject {
         return try containsCredential(_did, DIDURL(_did, id))
     }
     
-    public func deleteCredential(for did: DID, id: DIDURL) throws -> Bool{
-        return try storage.deleteCredential(did, id)
+    public func deleteCredential(for did: DID, id: DIDURL) -> Bool{
+        return storage.deleteCredential(did, id)
     }
     
-    public func deleteCredential(for did: String, id: String) throws -> Bool{
-        let _did = try DID(did)
-        let _key = try DIDURL(_did, id)
-        return try deleteCredential(for: _did, id: _key)
+    public func deleteCredential(for did: String, id: String) -> Bool{
+        do {
+            let _did = try DID(did)
+            let _key = try DIDURL(_did, id)
+            return deleteCredential(for: _did, id: _key)
+        } catch {
+            return false
+        }
     }
     
     public func listCredentials(for did: DID) throws -> Array<DIDURL> {
@@ -1301,34 +1309,45 @@ public class DIDStore: NSObject {
         return try storage.loadPrivateKey(did, byId)
     }
     
-    public func containsPrivateKeys(for did: DID) throws -> Bool {
-        return try storage.containsPrivateKeys(did)
+    public func containsPrivateKeys(for did: DID) -> Bool {
+        return storage.containsPrivateKeys(did)
     }
     
-    public func containsPrivateKeys(for did: String) throws -> Bool {
-        return try containsPrivateKeys(for: DID(did))
+    public func containsPrivateKeys(for did: String) -> Bool {
+        do {
+            return containsPrivateKeys(for: try DID(did))
+        } catch {
+            return false
+        }
     }
     
-    public func containsPrivateKey(for did: DID, id: DIDURL) throws -> Bool {
-        return try storage.containsPrivateKey(did, id)
+    public func containsPrivateKey(for did: DID, id: DIDURL) -> Bool {
+        return storage.containsPrivateKey(did, id)
     }
     
-    public func containsPrivateKey(for did: String, id: String) throws -> Bool {
-        let _did = try DID(did)
-        let _key = try DIDURL(_did, id)
-
-        return try containsPrivateKey(for: _did, id: _key)
+    public func containsPrivateKey(for did: String, id: String) -> Bool {
+        do {
+            let _did = try DID(did)
+            let _key = try DIDURL(_did, id)
+            return containsPrivateKey(for: _did, id: _key)
+        } catch {
+            return false
+        }
     }
     
-    public func deletePrivateKey(for did: DID, id: DIDURL) throws -> Bool {
-        return try storage.deletePrivateKey(did, id)
+    public func deletePrivateKey(for did: DID, id: DIDURL) -> Bool {
+        return storage.deletePrivateKey(did, id)
     }
     
-    public func deletePrivateKey(for did: String, id: String) throws -> Bool {
-        let _did = try DID(did)
-        let _key = try DIDURL(_did, id)
-
-        return try deletePrivateKey(for: _did, id: _key)
+    public func deletePrivateKey(for did: String, id: String) -> Bool {
+        do {
+            let _did = try DID(did)
+            let _key = try DIDURL(_did, id)
+            
+            return deletePrivateKey(for: _did, id: _key)
+        } catch {
+            return false
+        }
     }
 
     func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
@@ -1441,7 +1460,7 @@ public class DIDStore: NSObject {
         
         // Credential
         var vcMetas: OrderedDictionary<DIDURL, CredentialMeta> = OrderedDictionary()
-        if try storage.containsCredentials(did) {
+        if storage.containsCredentials(did) {
             generator.writeFieldName("credential")
             generator.writeStartArray()
             let ids = try listCredentials(for: did)
@@ -1468,14 +1487,14 @@ public class DIDStore: NSObject {
         }
 
         // Private key
-        if try storage.containsPrivateKeys(did) {
+        if storage.containsPrivateKeys(did) {
             generator.writeFieldName("privatekey")
             generator.writeStartArray()
             
             let pks: Array<PublicKey> = doc!.publicKeys()
             for pk in pks {
                 let id = pk.getId()
-                if try storage.containsPrivateKey(did, id) {
+                if storage.containsPrivateKey(did, id) {
                     print("Exporting private key {}...\(id.toString())")
                     var csk: String = try storage.loadPrivateKey(did, id)
                     let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)

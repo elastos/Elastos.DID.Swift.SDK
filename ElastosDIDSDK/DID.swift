@@ -172,7 +172,7 @@ extension DID: Equatable {
 
 extension DID: Hashable {
     public func hash(into hasher: inout Hasher) {
-        //TODO:
+        hasher.combine(self.toString())
     }
 }
 

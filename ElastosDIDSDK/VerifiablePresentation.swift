@@ -296,7 +296,7 @@ public class VerifiablePresentation {
             useKey = signKey!
         }
 
-        guard try signer.containsPrivateKey(forId: useKey) else {
+        guard signer.containsPrivateKey(forId: useKey) else {
             throw DIDError.unknownFailure(Errors.NO_PRIVATE_KEY_EXIST)
         }
 

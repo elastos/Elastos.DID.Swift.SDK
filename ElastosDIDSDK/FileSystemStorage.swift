@@ -31,6 +31,7 @@ import Foundation
  *
  */
 public class FileSystemStorage: DIDStorage {
+
     typealias ReEncryptor = (String) throws -> String
 
     private static let STORE_MAGIC:   [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
@@ -456,7 +457,7 @@ public class FileSystemStorage: DIDStorage {
         for element: String in enumerator {
             var hasPrivateKey: Bool = false
             let did = DID(DID.METHOD, element)
-            hasPrivateKey = try containsPrivateKeys(did)
+            hasPrivateKey = containsPrivateKeys(did)
             
             if filter == DIDStore.DID_HAS_PRIVATEKEY {
                 
@@ -561,17 +562,21 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func containsCredentials(_ did: DID) throws -> Bool {
-        let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
-        let exit = try fileExists(targetPath)
-        guard exit else {
+    func containsCredentials(_ did: DID) -> Bool {
+        do {
+            let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
+            let exit = try fileExists(targetPath)
+            guard exit else {
+                return false
+            }
+            let arr = try listCredentials(did)
+            guard arr.count > 0 else {
+                return false
+            }
+            return true
+        } catch  {
             return false
         }
-        let arr = try listCredentials(did)
-        guard arr.count > 0 else {
-            return false
-        }
-        return true
     }
 
     func containsCredential(_ did: DID, _ id: DIDURL) -> Bool {
@@ -586,21 +591,25 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func deleteCredential(_ did: DID, _ id: DIDURL) throws -> Bool {
-        let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR + "/" + id.fragment!
-        let path = try getFile(targetPath)
-        if try dirExists(path!) {
-            _ = try deleteFile(path!)
-            let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
-            
-            let fileManager = FileManager.default
-            let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
-            if enumerator.count == 0 {
-                try fileManager.removeItem(atPath: dir)
+    func deleteCredential(_ did: DID, _ id: DIDURL) -> Bool {
+        do {
+            let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR + "/" + id.fragment!
+            let path = try getFile(targetPath)
+            if try dirExists(path!) {
+                _ = try deleteFile(path!)
+                let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
+                
+                let fileManager = FileManager.default
+                let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+                if enumerator.count == 0 {
+                    try fileManager.removeItem(atPath: dir)
+                }
+                return true
             }
-            return true
+            return false
+        } catch {
+            return false
         }
-        return false
     }
     
     private func getFile(_ create: Bool, _ path: String) throws -> String {
@@ -685,9 +694,14 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func containsPrivateKeys(_ did: DID)throws -> Bool {
+    func containsPrivateKeys(_ did: DID) -> Bool {
         let dir: String = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR
-        let path: String = try getFile(dir)!
+        var path = ""
+        do {
+            path = try getFile(dir)!
+        } catch {
+            return false
+        }
         let fileManager: FileManager = FileManager.default
         var isDir = ObjCBool.init(false)
         _ = fileManager.fileExists(atPath: path, isDirectory: &isDir)
@@ -707,29 +721,35 @@ public class FileSystemStorage: DIDStorage {
         }
         return keys.count > 0
     }
-
-    func containsPrivateKey(_ did: DID, _ id: DIDURL) throws -> Bool {
+    
+    func containsPrivateKey(_ did: DID, _ id: DIDURL) -> Bool {
         let dir: String = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "/" + id.fragment!
-        let path: String = try getFile(dir)!
-        return try fileExists(path)
+        do {
+            let path: String = try getFile(dir)!
+            return try fileExists(path)
+        } catch {
+            return false
+        }
     }
 
-    func deletePrivateKey(_ did: DID, _ id: DIDURL) throws -> Bool {
-        let path: String = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "/" + id.fragment!
-        let privateKeyPath = try getFile(path)
-        if try fileExists(path) {
-            _ = try deleteFile(path)
-            
-            // Remove the privatekeys directory is no privatekey exists.
-            let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId
-            let fileManager = FileManager.default
-            let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
-            if enumerator.count == 0 {
-                try fileManager.removeItem(atPath: dir)
+    func deletePrivateKey(_ did: DID, _ id: DIDURL) -> Bool {
+        do {
+            let path: String = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "/" + id.fragment!
+            if try fileExists(path) {
+                _ = try deleteFile(path)
+                
+                // Remove the privatekeys directory is no privatekey exists.
+                let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId
+                let fileManager = FileManager.default
+                let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+                if enumerator.count == 0 {
+                    try fileManager.removeItem(atPath: dir)
+                }
             }
+            return false
+        } catch {
+            return false
         }
-
-        return false
     }
 
     func changePassword(_ callback: (String) throws -> String) throws {
