@@ -1,6 +1,6 @@
 import Foundation
 
-enum IDChainRequestOperation: Int, CustomStringConvertible {
+public enum IDChainRequestOperation: Int, CustomStringConvertible {
     case CREATE = 0
     case UPDATE = 1
     case DEACTIVATE
@@ -37,7 +37,7 @@ enum IDChainRequestOperation: Int, CustomStringConvertible {
         return operation
     }
 
-    var description: String {
+    public var description: String {
         return toString()
     }
 }

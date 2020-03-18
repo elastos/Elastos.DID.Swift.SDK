@@ -3,7 +3,6 @@ import Foundation
 public class DIDBackend {
     private static let TAG = "DIDBackend"
     private static var resolver: DIDResolver?
-
     private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     
@@ -13,38 +12,36 @@ public class DIDBackend {
         private var _message: String?
         private var _filled: Bool
         private let _semaphore: DispatchSemaphore
-
         override init() {
             self._status = 0
             self._filled = false
             self._semaphore = DispatchSemaphore(value: 0)
         }
-
+        
         func update(_ transactionId: String, _ status: Int, _ message: String?) {
             self._transactionId = transactionId
             self._status = status
             self._message = message
             self._filled = true
-
             self._semaphore.signal()
         }
-
+        
         func update(_ transactionId: String) {
             update(transactionId, 0, nil)
         }
-
+        
         var transactionId: String {
             return _transactionId!
         }
-
+        
         var status: Int {
             return _status
         }
-
+        
         var message: String? {
             return _message
         }
-
+        
         var isEmpty: Bool {
             return !_filled
         }
@@ -65,17 +62,17 @@ public class DIDBackend {
             return str
         }
     }
-
+    
     class DefaultResolver: DIDResolver {
         private var url: URL
-
+        
         init(_ resolver: String) throws {
-            guard resolver.isEmpty else {
+            guard !resolver.isEmpty else {
                 throw DIDError.illegalArgument()
             }
             url = URL(string: resolver)!
         }
-
+        
         func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
             Log.i(TAG, "Resolving {}...\(did.description)")
 
@@ -126,11 +123,10 @@ public class DIDBackend {
             guard let _ = result else {
                 throw DIDError.didResolveError(errDes ?? "Unknown error")
             }
-            
             return result!
         }
     }
-
+    
     init(_ adapter: DIDAdapter) {
         self._adapter = adapter
     }
@@ -176,8 +172,8 @@ public class DIDBackend {
             throw DIDError.illegalArgument()
         }
     }
-
-    class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+    
+    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
 
