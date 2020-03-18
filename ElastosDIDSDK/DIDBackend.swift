@@ -2,7 +2,7 @@ import Foundation
 
 public class DIDBackend {
     private static var resolver: DIDResolver?
-
+    
     private var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     
@@ -12,38 +12,38 @@ public class DIDBackend {
         private var _message: String?
         private var _filled: Bool
         private let _condition: NSCondition
-
+        
         override init() {
             self._status = 0
             self._filled = false
             self._condition = NSCondition()
         }
-
+        
         func update(_ transactionId: String, _ status: Int, _ message: String?) {
             self._transactionId = transactionId
             self._status = status
             self._message = message
             self._filled = true
-
+            
             self._condition.signal()
         }
-
+        
         func update(_ transactionId: String) {
             update(transactionId, 0, nil)
         }
-
+        
         var transactionId: String {
             return _transactionId!
         }
-
+        
         var status: Int {
             return _status
         }
-
+        
         var message: String? {
             return _message
         }
-
+        
         var isEmpty: Bool {
             return !_filled
         }
@@ -61,21 +61,21 @@ public class DIDBackend {
             return str
         }
     }
-
+    
     class DefaultResolver: DIDResolver {
         private var url: URL
-
+        
         init(_ resolver: String) throws {
-            guard resolver.isEmpty else {
+            guard !resolver.isEmpty else {
                 throw DIDError.illegalArgument()
             }
             url = URL(string: resolver)!
         }
-
+        
         func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
             print("Resolving {}...\(did.description)")
             var resuleString: String?
-//            let url:URL! = URL(string: "http://api.elastos.io:21606")
+            //            let url:URL! = URL(string: "http://api.elastos.io:21606")
             var request:URLRequest! = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -111,50 +111,49 @@ public class DIDBackend {
                 throw DIDError.didResolveError("Unkonw error.")
             }
             
-            return Data()
+            return resuleString!.data(using: .utf8)!
         }
     }
-
+    
     init(_ adapter: DIDAdapter) {
         self._adapter = adapter
     }
-
-    class func initializeInstance(_ resolverURL: String, _ file: FileHandle) throws {
+    
+    public class func initializeInstance(_ resolverURL: String, _ file: FileHandle) throws {
         guard !resolverURL.isEmpty else {
             throw DIDError.didResolveError()
         }
         try initializeInstance(DefaultResolver(resolverURL), file)
     }
-
-    class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
+    
+    public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
         guard !resolverURL.isEmpty else {
             throw DIDError.didResolveError()
         }
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
     }
-
-    class func initializeInstance(_ resolver: DIDResolver, _ file: FileHandle) throws {
+    
+    public class func initializeInstance(_ resolver: DIDResolver, _ file: FileHandle) throws {
         file.seekToEndOfFile()
         let data = file.readDataToEndOfFile()
         try initializeInstance(resolver, String(data: data, encoding: .utf8)!)
     }
-
-    class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
+    
+    public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
         
         DIDBackend.resolver = resolver
-        //        ResolverCache.setCacheDir(cacheDir);
         try ResolverCache.setCacheDir(cacheDir)
     }
-
-    class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+    
+    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
-
-    func getTtl() -> Int {
+    
+    public func getTtl() -> Int {
         return self._ttl != 0 ? (self._ttl / 60 / 1000) : 0
     }
-
-    func setTtl(_ newValue: Int) {
+    
+    public func setTtl(_ newValue: Int) {
         self._ttl = newValue > 0 ? (newValue * 60 * 1000) : 0
     }
     
@@ -232,6 +231,7 @@ public class DIDBackend {
             let meta = DIDMeta()
 
             meta.setTransactionId(transactionInfo!.transactionId)
+            meta.setSignature(doc!.proof.signature)
             meta.setUpdatedDate(transactionInfo!.timestamp)
             doc!.setMeta(meta)
             return doc

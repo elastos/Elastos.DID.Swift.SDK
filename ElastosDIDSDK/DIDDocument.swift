@@ -713,7 +713,7 @@ public class DIDDocument {
     private func parsePublicKeys(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
 
-        guard array?.count ?? 0 < 0 else {
+        guard array?.count ?? 0 > 0 else {
             throw DIDError.malformedDocument("invalid publicKeys, should not be empty.")
         }
 
@@ -941,8 +941,16 @@ public class DIDDocument {
 }
 
 extension DIDDocument: CustomStringConvertible {
-    func toString() -> String {
+    public func toString() -> String {
         return (try? toJson(false, false)) ?? ""
+    }
+    
+    public func toString(_ force: Bool) -> String {
+        return (try? toJson(force, false)) ?? ""
+    }
+
+    public func toString(_ force: Bool, forSign: Bool) -> String {
+        return (try? toJson(force, forSign)) ?? ""
     }
 
     public var description: String {

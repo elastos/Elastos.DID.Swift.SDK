@@ -1,6 +1,6 @@
 import Foundation
 
-class HDKey: NSObject {
+public class HDKey: NSObject {
     static let PUBLICKEY_BYTES : Int = CHDKey.PUBLICKEY_BYTES
     static let PRIVATEKEY_BYTES: Int = CHDKey.PRIVATEKEY_BYTES
     static let EXTENDED_PRIVATE_BYTES: Int = CHDKey.EXTENDEDKEY_BYTES
@@ -9,7 +9,7 @@ class HDKey: NSObject {
     
     private var chdKey: UnsafeMutablePointer<CHDKey>
 
-    class DerivedKey {
+    public class DerivedKey {
         private var cderivedKey: UnsafeMutablePointer<CDerivedKey>
 
         init(_ chdkey: UnsafeMutablePointer<CHDKey>, _ index: Int) {
@@ -28,7 +28,7 @@ class HDKey: NSObject {
             return (String(cString: cid!))
         }
 
-        func getAddress() -> String {
+        public func getAddress() -> String {
             let cid = DerivedKey_GetAddress(self.cderivedKey)
             return (String(cString: cid!))
         }
@@ -47,7 +47,7 @@ class HDKey: NSObject {
             return [UInt8](publicKeyData)
         }
 
-        func getPublicKeyBase58() -> String {
+        public func getPublicKeyBase58() -> String {
             let publickeyPointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: PUBLICKEY_BYTES)
             let cpublickeybase58 = DerivedKey_GetPublicKeyBase58(self.cderivedKey, publickeyPointer, Int32(PUBLICKEY_BASE58_BYTES))
             return String(cString: cpublickeybase58)
@@ -84,7 +84,7 @@ class HDKey: NSObject {
         self.chdKey = chdKey
     }
 
-    class func fromMnemonic(_ mnemonic: String, _ passPhrase: String, _ language: Int) -> HDKey {
+    public class func fromMnemonic(_ mnemonic: String, _ passPhrase: String, _ language: Int) -> HDKey {
         let cmnemonic = mnemonic.toUnsafePointerInt8()!
         let cpassphrase = passPhrase.toUnsafePointerInt8()!
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
@@ -92,7 +92,7 @@ class HDKey: NSObject {
         return HDKey(chdkey)
     }
 
-    class func fromSeed(_ seed: Data) -> HDKey {
+    public class func fromSeed(_ seed: Data) -> HDKey {
         let cseed: UnsafePointer<UInt8> = seed.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
             return bytes
         }
@@ -102,7 +102,7 @@ class HDKey: NSObject {
         return HDKey(chdkey)
     }
 
-    class func fromExtendedKey(_ extendedKey: Data) -> HDKey {
+    public class func fromExtendedKey(_ extendedKey: Data) -> HDKey {
         var extendedkeyData = extendedKey
         let cextendedkey = extendedkeyData.withUnsafeMutableBytes { re -> UnsafeMutablePointer<UInt8> in
             return re
@@ -112,11 +112,11 @@ class HDKey: NSObject {
         return HDKey(chdkey)
     }
     
-    func derivedKey(_ index: Int) -> HDKey.DerivedKey {
+    public func derivedKey(_ index: Int) -> HDKey.DerivedKey {
         return DerivedKey(self.chdKey, index)
     }
 
-    func serialize() throws -> Data {
+    public func serialize() throws -> Data {
         let cextendedkey = UnsafeMutablePointer<UInt8>.allocate(capacity: HDKey.EXTENDED_PRIVATE_BYTES)
         let csize = HDKey_Serialize(self.chdKey, cextendedkey, Int32(HDKey.EXTENDED_PRIVATE_BYTES))
         if csize <= -1 {
@@ -126,12 +126,12 @@ class HDKey: NSObject {
         return Data(buffer: extendedkeyPointerToArry)
     }
 
-    func serialize() -> String {
+    public func serialize() -> String {
         // TODO:
         return "TODO"
     }
     
-    class func deserialize(_ keyData: Data) throws -> HDKey {
+    public class func deserialize(_ keyData: Data) throws -> HDKey {
         if keyData.count == SEED_BYTES {
             return HDKey.fromSeed(keyData)
         }
@@ -144,12 +144,12 @@ class HDKey: NSObject {
         }
     }
     
-    class func deserialize(_ keyData: [UInt8]) throws -> HDKey {
+    public class func deserialize(_ keyData: [UInt8]) throws -> HDKey {
         let keyData = Data(bytes: keyData, count: keyData.count)
         return try deserialize(keyData)
     }
 
-    func wipe() {
+    public func wipe() {
         HDKey_Wipe(UnsafeMutablePointer<CHDKey>(mutating: chdKey))
     }
 }

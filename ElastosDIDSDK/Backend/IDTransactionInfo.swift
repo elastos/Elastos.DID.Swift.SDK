@@ -1,6 +1,6 @@
 import Foundation
 
-class IDTransactionInfo {
+public class IDTransactionInfo {
     private var _transactionId: String
     private var _timestamp: Date
     private var _request: IDChainRequest

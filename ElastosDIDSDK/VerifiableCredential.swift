@@ -380,7 +380,7 @@ public class VerifiableCredential: DIDObject {
         return try fromJson(JsonNode(data), nil)
     }
 
-    class func fromJson(_ json: String) throws -> VerifiableCredential {
+    public class func fromJson(_ json: String) throws -> VerifiableCredential {
         return try fromJson(json.data(using: .utf8)!)
     }
 
@@ -459,14 +459,14 @@ public class VerifiableCredential: DIDObject {
 }
 
 extension VerifiableCredential: CustomStringConvertible {
-    func toString(_ normalized: Bool) -> String {
+    public func toString(_ normalized: Bool) -> String {
         return toJson(normalized, false)
     }
-
-    func toString() -> String {
+    
+    public func toString() -> String {
         return toString(false)
     }
-
+    
     public var description: String {
         return toString()
     }

@@ -2,14 +2,14 @@ import Foundation
 import PromiseKit
 
 public class DID {
-    private var _method: String?
-    private var _methodSpecificId: String?
-    private var _meta: DIDMeta?
-    static let METHOD: String = "elastos"
-    
-    init() {}
+    private var _method: String = ""
+    private var _methodSpecificId: String = ""
+    private var _meta: DIDMeta!
+    public static let METHOD: String = "elastos"
 
-    init(_ method: String, _ methodSpecificId: String) {
+    init() {}
+    
+    public init(_ method: String, _ methodSpecificId: String) {
         self._method = method
         self._methodSpecificId = methodSpecificId
     }
@@ -27,7 +27,7 @@ public class DID {
     }
 
     public var method: String {
-        return _method!
+        return _method
     }
 
     func setMethod(_ method: String) {
@@ -35,7 +35,7 @@ public class DID {
     }
 
     public var methodSpecificId: String {
-        return _methodSpecificId!
+        return _methodSpecificId
     }
 
     func setMethodSpecificId(_ methodSpecificId: String) {
@@ -152,9 +152,8 @@ extension DID: CustomStringConvertible {
 
 extension DID: Equatable {
     func equalsTo(_ other: DID) -> Bool {
-        return self == other ||
-              (aliasName == other.aliasName &&
-               methodSpecificId == other.methodSpecificId)
+        return aliasName == other.aliasName &&
+               methodSpecificId == other.methodSpecificId
     }
 
     func equalsTo(_ other: String) -> Bool {
