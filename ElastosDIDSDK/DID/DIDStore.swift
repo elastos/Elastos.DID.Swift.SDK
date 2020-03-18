@@ -42,19 +42,17 @@ public class DIDStore: NSObject {
         let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return by
         }
-        let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: 4096)
+        let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: input.count * 3)
           let re = encrypt_to_base64(base64url, passwd, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError(_desc: "encryptToBase64 error.")
         }
-        var json: String = String(cString: base64url)
-        let endIndex = json.index(json.startIndex, offsetBy: re)
-        json = String(json[json.startIndex..<endIndex])
-        return json
+        base64url[re] = 0
+        return String(cString: base64url)
     }
     
    public class func decryptFromBase64(_ passwd: String ,_ input: String) throws -> [Int8] {
-        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: input.count * 3)
         let re = decrypt_from_base64(plain, passwd, input)
         guard re >= 0 else {
             throw DIDError.didStoreError(_desc: "decryptFromBase64 error.")
@@ -64,12 +62,11 @@ public class DIDStore: NSObject {
         
         let data = Data(bytes: temp, count: re)
         let intArray = [UInt8](data).map { Int8(bitPattern: $0) }
-        print(intArray)
         return intArray
     }
     
    public class func decryptFromBase64(_ passwd: String ,_ input: String) throws -> Data {
-        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: input.count * 3)
         let re = decrypt_from_base64(plain, passwd, input)
         guard re >= 0 else {
             throw DIDError.didStoreError(_desc: "decryptFromBase64 error.")
@@ -79,7 +76,6 @@ public class DIDStore: NSObject {
         
         let data = Data(bytes: temp, count: re)
         let intArray = [UInt8](data).map { Int8(bitPattern: $0) }
-        print(intArray)
         return data
     }
     // Initialize & create new private identity and save it to DIDStore.
@@ -196,7 +192,6 @@ public class DIDStore: NSObject {
             let privateIdentity =  try loadPrivateIdentity(storepass)
             let key = privateIdentity.derivedKey(index: i++)
             let methodIdString = key.getIdString()
-            key.derivedKeyWipe()
             let did: DID = DID(DID.METHOD, methodIdString)
             var doc: DIDDocument?
             do {
@@ -727,8 +722,6 @@ public class DIDStore: NSObject {
     }
     
     func sign(_ did: DID, id: DIDURL? = nil, _ storepass: String, _ inputs: [String]) throws -> String {
-        
-        let sig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
         var privatekeys: Data
         if id == nil {
             let doc = try loadDid(did)
@@ -741,7 +734,7 @@ public class DIDStore: NSObject {
         else {
             privatekeys = try DIDStore.decryptFromBase64(storepass,try loadPrivateKey(did, id: id!))
         }
-        
+        var len = 0
         var cinputs: [CVarArg] = []
         for i in 0..<inputs.count {
             let json: String = inputs[i]
@@ -749,9 +742,11 @@ public class DIDStore: NSObject {
                 let cjson = json.toUnsafePointerInt8()!
                 cinputs.append(cjson)
                 cinputs.append(json.count)
+                len += json.count
+                len += String(json.count).count
             }
         }
-        
+        let sig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: len * 3)
         let toPPointer = privatekeys.toPointer()
         
         let c_inputs = getVaList(cinputs)
@@ -919,11 +914,8 @@ public class DIDStore: NSObject {
             return fing
         }
         let re = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
-        dic["fingerprint"] = fingerprint
+        c_fing[re] = 0
+        dic["fingerprint"] = String(cString: c_fing)
         let str = JsonHelper.creatJsonString(dic: dic)
         return str
     }
@@ -1082,9 +1074,8 @@ public class DIDStore: NSObject {
             return fing
         }
         let re_finger = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re_finger)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
+        c_fing[re_finger] = 0
+        let fingerprint = String(cString: c_fing)
         
         guard fingerprint == refFingerprint else {
             throw DIDError.didStoreError(_desc: "Invalid export data, the fingerprint mismatch.")
@@ -1158,10 +1149,9 @@ public class DIDStore: NSObject {
             return fing
         }
         let re = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
+        c_fing[re] = 0
+        let fingerprint = String(cString: c_fing)
+
         dic["fingerprint"] = fingerprint
         let str = JsonHelper.creatJsonString(dic: dic)
         
@@ -1223,9 +1213,8 @@ public class DIDStore: NSObject {
             return fing
         }
         let re_finger = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re_finger)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
+        c_fing[re_finger] = 0
+        let fingerprint = String(cString: c_fing)
         
         guard fingerprint == refFingerprint else {
             throw DIDError.didStoreError(_desc: "Invalid export data, the fingerprint mismatch.")

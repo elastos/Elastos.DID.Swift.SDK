@@ -111,12 +111,11 @@ public class IDChainRequest: NSObject {
             let c_input = (json.toUnsafePointerUInt8())!
             payload = json + "\0"
             payload = String(cString: payload.toUnsafePointerUInt8()!)
-            let c_payload = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
+            let c_payload = UnsafeMutablePointer<Int8>.allocate(capacity: payload.count * 3)
             print(payload)
             let re = base64_url_encode(c_payload, c_input, payload.count)
-            let jsonStr: String = String(cString: c_payload)
-            let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
-            payload = String(jsonStr[jsonStr.startIndex..<endIndex])
+            c_payload[re] = 0
+            payload = String(cString: c_payload)
         }
         else {
             payload = doc.subject!.description
@@ -128,10 +127,8 @@ public class IDChainRequest: NSObject {
             let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
             let cp = payload.toUnsafePointerInt8()
             let c = base64_url_decode(buffer, cp)
-            var json: String = String(cString: buffer)
-            let endIndex = json.index(json.startIndex, offsetBy: c)
-            json = String(json[json.startIndex..<endIndex])
-            
+            buffer[c] = 0
+            let json: String = String(cString: buffer)
             doc = try? DIDDocument.fromJson(json)
             did = doc?.subject
         } else {
