@@ -63,6 +63,7 @@
 		11724A2523D569A400DF5820 /* CredentialBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11724A2423D569A400DF5820 /* CredentialBuilder.swift */; };
 		11724A2D23D82B0700DF5820 /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11724A2C23D82B0700DF5820 /* SHA256Helper.swift */; };
 		1174D74023F2675D008F51F9 /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1174D73F23F2675D008F51F9 /* Mnemonic.swift */; };
+		1179520B241A0DD100A1C55B /* DIDURL.g4 in Resources */ = {isa = PBXBuildFile; fileRef = 1179520A241A0DD100A1C55B /* DIDURL.g4 */; };
 		119338DD237E4DB800C4998E /* TestConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119338DC237E4DB800C4998E /* TestConfig.swift */; };
 		11CA2F8B23530E40009A2067 /* Antlr4.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 110AD2F8234E431D006578D6 /* Antlr4.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		11CBBBD423AFB39300730D7E /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A6B159238FD77E00D3C1F1 /* libcrypto.a */; };
@@ -106,7 +107,6 @@
 		11E89FEF23A4C36000C81B3C /* DIDURLLexerATN.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E89FC223A4C36000C81B3C /* DIDURLLexerATN.swift */; };
 		11E89FF023A4C36000C81B3C /* DIDURLBaseListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E89FC323A4C36000C81B3C /* DIDURLBaseListener.swift */; };
 		11E89FF123A4C36000C81B3C /* DIDURL.tokens in Resources */ = {isa = PBXBuildFile; fileRef = 11E89FC423A4C36000C81B3C /* DIDURL.tokens */; };
-		11E89FF223A4C36000C81B3C /* DIDURL.g4 in Resources */ = {isa = PBXBuildFile; fileRef = 11E89FC523A4C36000C81B3C /* DIDURL.g4 */; };
 		11E89FF323A4C36000C81B3C /* DIDURLParserATN.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E89FC623A4C36000C81B3C /* DIDURLParserATN.swift */; };
 		11E89FF423A4C36000C81B3C /* ParserHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E89FC723A4C36000C81B3C /* ParserHelper.swift */; };
 		11E89FF523A4C36000C81B3C /* DIDURLLexer.interp in Resources */ = {isa = PBXBuildFile; fileRef = 11E89FC823A4C36000C81B3C /* DIDURLLexer.interp */; };
@@ -243,6 +243,7 @@
 		11724A2423D569A400DF5820 /* CredentialBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBuilder.swift; sourceTree = "<group>"; };
 		11724A2C23D82B0700DF5820 /* SHA256Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Helper.swift; sourceTree = "<group>"; };
 		1174D73F23F2675D008F51F9 /* Mnemonic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mnemonic.swift; sourceTree = "<group>"; };
+		1179520A241A0DD100A1C55B /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DIDURL.g4; sourceTree = "<group>"; };
 		119338DC237E4DB800C4998E /* TestConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestConfig.swift; path = TestUtils/TestConfig.swift; sourceTree = "<group>"; };
 		119338E2237E622300C4998E /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.1.tbd"; sourceTree = DEVELOPER_DIR; };
 		119338E4237E623100C4998E /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -320,7 +321,6 @@
 		11E89FC223A4C36000C81B3C /* DIDURLLexerATN.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDURLLexerATN.swift; sourceTree = "<group>"; };
 		11E89FC323A4C36000C81B3C /* DIDURLBaseListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDURLBaseListener.swift; sourceTree = "<group>"; };
 		11E89FC423A4C36000C81B3C /* DIDURL.tokens */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DIDURL.tokens; sourceTree = "<group>"; };
-		11E89FC523A4C36000C81B3C /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DIDURL.g4; sourceTree = "<group>"; };
 		11E89FC623A4C36000C81B3C /* DIDURLParserATN.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDURLParserATN.swift; sourceTree = "<group>"; };
 		11E89FC723A4C36000C81B3C /* ParserHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserHelper.swift; sourceTree = "<group>"; };
 		11E89FC823A4C36000C81B3C /* DIDURLLexer.interp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DIDURLLexer.interp; sourceTree = "<group>"; };
@@ -630,11 +630,11 @@
 		11E89FC023A4C36000C81B3C /* Parser */ = {
 			isa = PBXGroup;
 			children = (
+				1179520A241A0DD100A1C55B /* DIDURL.g4 */,
 				11E89FC123A4C36000C81B3C /* DIDURLLexer.tokens */,
 				11E89FC223A4C36000C81B3C /* DIDURLLexerATN.swift */,
 				11E89FC323A4C36000C81B3C /* DIDURLBaseListener.swift */,
 				11E89FC423A4C36000C81B3C /* DIDURL.tokens */,
-				11E89FC523A4C36000C81B3C /* DIDURL.g4 */,
 				11E89FC623A4C36000C81B3C /* DIDURLParserATN.swift */,
 				11E89FC723A4C36000C81B3C /* ParserHelper.swift */,
 				11E89FC823A4C36000C81B3C /* DIDURLLexer.interp */,
@@ -861,10 +861,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				11E89FF823A4C36000C81B3C /* DIDURL.interp in Resources */,
-				11E89FF223A4C36000C81B3C /* DIDURL.g4 in Resources */,
 				11E89FEE23A4C36000C81B3C /* DIDURLLexer.tokens in Resources */,
 				11E89FF523A4C36000C81B3C /* DIDURLLexer.interp in Resources */,
 				11E89FF123A4C36000C81B3C /* DIDURL.tokens in Resources */,
+				1179520B241A0DD100A1C55B /* DIDURL.g4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

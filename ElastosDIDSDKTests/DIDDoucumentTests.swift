@@ -13,8 +13,8 @@ class DIDDoucumentTests: XCTestCase {
     func testGetPublicKey() {
         do {
             let met: Metadata = Metadata()
-            print(met)
-            print(met)
+//            print(met)
+//            print(met)
             let testData: TestData = TestData()
             _ = try testData.setupStore(true)
             
