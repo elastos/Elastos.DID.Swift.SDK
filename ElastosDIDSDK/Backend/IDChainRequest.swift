@@ -1,6 +1,6 @@
 import Foundation
 
-class IDChainRequest: NSObject {
+public class IDChainRequest: NSObject {
     static let CURRENT_SPECIFICATION = "elastos/did/1.0"
     
     // header
@@ -63,7 +63,7 @@ class IDChainRequest: NSObject {
                 .sealed(targetSignKey, doc, signKey, storePassword)
     }
 
-    var operation: IDChainRequestOperation {
+    public var operation: IDChainRequestOperation {
         return self._operation
     }
 
@@ -75,7 +75,7 @@ class IDChainRequest: NSObject {
         return self._payload
     }
 
-    var did: DID? {
+    public var did: DID? {
         return self._did
     }
 
@@ -112,7 +112,13 @@ class IDChainRequest: NSObject {
     private func setPayload(_ payload: String) throws  -> IDChainRequest {
         do {
             if self._operation != .DEACTIVATE {
-                self._doc = try DIDDocument.convertToDIDDocument(fromJson: payload.base64DecodedString!)
+                let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+                let cp = payload.toUnsafePointerInt8()
+                let c = base64_url_decode(buffer, cp)
+                var json: String = String(cString: buffer)
+                let endIndex = json.index(json.startIndex, offsetBy: c)
+                json = String(json[json.startIndex..<endIndex])
+                self._doc = try DIDDocument.convertToDIDDocument(fromJson: json)
                 self._did = _doc!.subject
             } else {
                 self._doc = nil
@@ -363,7 +369,7 @@ class IDChainRequest: NSObject {
         generator.writeEndObject()
     }
 
-    func toJson(_ normalized: Bool) -> String {
+    public func toJson(_ normalized: Bool) -> String {
         let generator = JsonGenerator()
         toJson(generator, normalized)
         return generator.toString()
