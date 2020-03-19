@@ -69,11 +69,12 @@ public class DIDStore: NSObject {
     }
 
     public class func encryptToBase64(_ input: Data, _ storePass: String) throws -> String {
-               let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
+        // TODO:
+        let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return by
         }
         let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: 4096)
-          let re = encrypt_to_base64(base64url, storePass, cinput, input.count)
+        let re = encrypt_to_base64(base64url, storePass, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError("encryptToBase64 error.")
         }
@@ -84,6 +85,7 @@ public class DIDStore: NSObject {
     }
 
     public class func decryptFromBase64(_ input: String, _ storePass: String) throws -> Data {
+        // TODO:
         let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
         let re = decrypt_from_base64(plain, storePass, input)
         guard re >= 0 else {
@@ -484,11 +486,7 @@ public class DIDStore: NSObject {
         guard !resolvedDoc.isDeactivated else {
             throw  DIDError.didStoreError("DID already deactivated")
         }
-//        if (resolvedDoc != null) {
-//        if (resolvedDoc.isDeactivated()) {
-//         log.error("{} already deactivated.", did.toString());
-//         throw new DIDStoreException("DID already deactivated.");
-//        }
+        // TOOD:
 
         if !force {
             let localTxId = doc.getMeta().transactionId

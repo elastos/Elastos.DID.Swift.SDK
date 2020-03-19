@@ -1,6 +1,6 @@
 import Foundation
 
-public class DIDMeta: Metadata {
+class DIDMeta: Metadata {
     private var _deactivated: Bool = false
     private var _updatedDate: Date?
     private var _transactionId: String?

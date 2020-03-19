@@ -4,11 +4,11 @@ private func getFullName(_ name: String) -> String {
     return Constants.EXTRA_PREFIX + name
 }
 
-public class Metadata {
+ class Metadata {
     private var _store: DIDStore?
     private var _extra = Dictionary<String, String>()
 
-    public required init() {}
+    required init() {}
 
     var store: DIDStore? {
         return self._store
@@ -101,7 +101,7 @@ extension Metadata: CustomStringConvertible {
         return toJson()
     }
 
-    public var description: String {
+    var description: String {
         return toString()
     }
 }

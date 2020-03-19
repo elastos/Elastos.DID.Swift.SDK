@@ -213,6 +213,7 @@ extension DIDURL: CustomStringConvertible {
 
 extension DIDURL: Equatable {
     func equalsTo(_ other: DIDURL) -> Bool {
+        // TODO:
         return toString() == other.toString()
     }
 

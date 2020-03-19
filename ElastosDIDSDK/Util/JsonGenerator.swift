@@ -51,6 +51,7 @@ class JsonGenerator {
     }
 
     private func pushState(_ state: State) {
+        // TODO: CHECK
         if self.deep > self.state.count - 1 {
             self.state.append(state.rawValue)
         } else {

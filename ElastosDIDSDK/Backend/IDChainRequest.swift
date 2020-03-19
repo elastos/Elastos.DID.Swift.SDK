@@ -63,7 +63,7 @@ public class IDChainRequest: NSObject {
                 .sealed(targetSignKey, doc, signKey, storePassword)
     }
 
-    public var operation: IDChainRequestOperation {
+    var operation: IDChainRequestOperation {
         return self._operation
     }
 
@@ -75,7 +75,7 @@ public class IDChainRequest: NSObject {
         return self._payload
     }
 
-    public var did: DID? {
+    var did: DID? {
         return self._did
     }
 
@@ -369,7 +369,7 @@ public class IDChainRequest: NSObject {
         generator.writeEndObject()
     }
 
-    public func toJson(_ normalized: Bool) -> String {
+    func toJson(_ normalized: Bool) -> String {
         let generator = JsonGenerator()
         toJson(generator, normalized)
         return generator.toString()
