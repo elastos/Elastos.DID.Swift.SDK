@@ -462,11 +462,11 @@ extension VerifiableCredential: CustomStringConvertible {
     func toString(_ normalized: Bool) -> String {
         return toJson(normalized, false)
     }
-    
+
     func toString() -> String {
         return toString(false)
     }
-    
+
     public var description: String {
         return toString()
     }

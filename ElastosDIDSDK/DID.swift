@@ -2,8 +2,8 @@ import Foundation
 import PromiseKit
 
 public class DID {
-    private var _method: String = "" // TODO:
-    private var _methodSpecificId: String = "" // TODO:
+    private var _method: String? // TODO:
+    private var _methodSpecificId: String? // TODO:
     private var _meta: DIDMeta!
     public static let METHOD: String = "elastos"
 
@@ -27,7 +27,7 @@ public class DID {
     }
 
     public var method: String {
-        return _method
+        return _method!
     }
 
     func setMethod(_ method: String) {
@@ -35,7 +35,7 @@ public class DID {
     }
 
     public var methodSpecificId: String {
-        return _methodSpecificId
+        return _methodSpecificId!
     }
 
     func setMethodSpecificId(_ methodSpecificId: String) {

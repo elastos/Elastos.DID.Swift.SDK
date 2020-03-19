@@ -401,18 +401,13 @@ public class FileSystemStorage: DIDStorage {
     }
 
     func loadDidMeta(_ did: DID) throws -> DIDMeta {
-        do {
-            let handle = try openDidMetaFile(did)
-            defer {
-                handle.closeFile()
-            }
-
-            let data = handle.readDataToEndOfFile()
-            return try DIDMeta.fromJson(String(data: data, encoding: .utf8)!)
-        } catch {
-            // TODO: waring
-          return DIDMeta()
+        let handle = try openDidMetaFile(did)
+        defer {
+            handle.closeFile()
         }
+
+        let data = handle.readDataToEndOfFile()
+        return try DIDMeta.fromJson(String(data: data, encoding: .utf8)!)
     }
 
     private func openDocumentFile(_ did: DID, _ forWrite: Bool) throws -> FileHandle {
