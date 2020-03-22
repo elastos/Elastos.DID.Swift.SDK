@@ -703,11 +703,10 @@ class DIDDoucumentTests: XCTestCase {
             // Credential already exist, should fail.
             XCTAssertThrowsError(try db.appendCredential(with: vc!)) { (error) in
                 switch error {
-                case DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED): break
+                case DIDError.illegalArgument: break
                     //everything is fine
-                default: break
-                    //TODO:
-//                    XCTFail("Unexpected error thrown")
+                default:
+                    XCTFail("Unexpected error thrown")
                 }
             }
             
@@ -760,11 +759,10 @@ class DIDDoucumentTests: XCTestCase {
             // Credential not exist, should fail.
             XCTAssertThrowsError(try db.removeCredential(with: "notExistCredential")) { (error) in
                 switch error {
-                case DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED): break
+                case DIDError.illegalArgument: break
                 //everything is fine
-                default: break
-                    //TODO:
-//                    XCTFail("Unexpected error thrown")
+                default:
+                    XCTFail("Unexpected error thrown")
                 }
             }
             XCTAssertThrowsError(
@@ -772,11 +770,10 @@ class DIDDoucumentTests: XCTestCase {
                     try DIDURL(doc.subject,
                                "notExistCredential"))) { (error) in
                                 switch error {
-                                case DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED): break
+                                case DIDError.illegalArgument: break
                                 //everything is fine
-                                default: break
-                                    //TODO:
-//                                    XCTFail("Unexpected error thrown")
+                                default:
+                                    XCTFail("Unexpected error thrown")
                                 }
             }
 
@@ -924,9 +921,8 @@ class DIDDoucumentTests: XCTestCase {
                 switch error {
                 case DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED): break
                 //everything is fine
-                default: break
-                    //TODO:
-                    //                    XCTFail("Unexpected error thrown")
+                default:
+                XCTFail("Unexpected error thrown")
                 }
             }
             
