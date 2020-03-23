@@ -161,12 +161,12 @@ class JsonGenerator {
         }
     }
 
-    func writeNumber(_ value: Int) {
+    func writeNumber(_ value: Any) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
 
-        buffer.append(String(value))
+        buffer.append("\(value)")
 
         if getState() == .Field {
             _ = popState()

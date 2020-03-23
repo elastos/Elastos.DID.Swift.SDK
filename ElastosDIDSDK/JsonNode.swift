@@ -214,6 +214,10 @@ public class JsonNode {
         return self.node as? Int
     }
 
+    public func asNumber() -> Any? {
+        return self.node
+    }
+
     public func asArray() -> [JsonNode]? {
         return self.node as? Array
     }

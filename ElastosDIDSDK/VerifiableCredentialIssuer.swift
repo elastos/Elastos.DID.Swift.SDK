@@ -4,7 +4,7 @@ public class VerifiableCredentialIssuer {
     private var _issuerDoc: DIDDocument
     private var _signKey: DIDURL
 
-    private init(_ doc: DIDDocument, _ signKey: DIDURL? = nil) throws {
+    private init(_ doc: DIDDocument, _ signKey: DIDURL?) throws {
         // use the default public key if no signKey provided.
         var key = signKey
         if  key == nil {
@@ -26,7 +26,7 @@ public class VerifiableCredentialIssuer {
         self._signKey = key!
     }
 
-    private convenience init(_ did: DID, signKey: DIDURL?=nil, _ store: DIDStore) throws {
+    private convenience init(_ did: DID, signKey: DIDURL? = nil, _ store: DIDStore) throws {
         let doc: DIDDocument
         do {
             doc = try store.loadDid(did)
@@ -41,7 +41,7 @@ public class VerifiableCredentialIssuer {
     }
 
     public convenience init(_ doc: DIDDocument) throws {
-        try self.init(doc)
+        try self.init(doc, nil)
     }
 
     public convenience init(_ did: DID, _ signKey: DIDURL, _ store: DIDStore) throws {

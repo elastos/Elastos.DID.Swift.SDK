@@ -88,7 +88,7 @@ public class VerifiableCredentialSubject {
             break
 
         case .NUMBER:
-            generator.writeNumber(node.asInteger()!)
+            generator.writeNumber(node.asNumber()!)
             break
 
         case .DICTIONARY:
