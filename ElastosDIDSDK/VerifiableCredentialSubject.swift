@@ -91,6 +91,10 @@ public class VerifiableCredentialSubject {
             generator.writeNumber(node.asNumber()!)
             break
 
+        case .BOOLEAN:
+            generator.writeBool(node.asBool()!)
+            break
+
         case .DICTIONARY:
             if !objectContext {
                 generator.writeStartObject()
@@ -98,6 +102,8 @@ public class VerifiableCredentialSubject {
             let dictionary: [String: JsonNode] = node.asDictionary()!
             let sortedKeys = dictionary.keys.sorted()
             for key in sortedKeys {
+                if key == "booleanValue" {    
+                }
                 generator.writeFieldName(key)
                 toJson(generator, node.get(forKey: key)!)
             }

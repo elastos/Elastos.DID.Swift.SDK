@@ -253,7 +253,10 @@ public class VerifiableCredential: DIDObject {
 
     public var isGenuine: Bool {
         do {
-            return try !traceCheck(RULE_GENUINE) ? checkGenuine(): false
+            if try !traceCheck(RULE_GENUINE) {
+                return false
+            }
+            return try checkGenuine()
         } catch {
             return false
         }
@@ -323,20 +326,6 @@ public class VerifiableCredential: DIDObject {
         }
 
         options = JsonSerializer.Options()
-            .withOptional()
-            .withHint("credential issuer")
-            .withError(error)
-        if ref != nil {
-            options.withRef(ref)
-        }
-        let issuer = try serializer.getDID(Constants.ISSUER, options)
-
-        options = JsonSerializer.Options()
-            .withHint("credential issuanceDate")
-            .withError(error)
-        let issuanceDate = try serializer.getDate(Constants.ISSUANCE_DATE, options)
-
-        options = JsonSerializer.Options()
             .withHint("credential expirationDate")
             .withError(error)
         let expirationDate = try serializer.getDate(Constants.EXPIRATION_DATE, options)
@@ -357,9 +346,26 @@ public class VerifiableCredential: DIDObject {
         guard let _ = subNode else {
             throw DIDError.malformedCredential("missing credential proof")
         }
+
+        options = JsonSerializer.Options()
+            .withOptional()
+            .withHint("credential issuer")
+            .withError(error)
+        if ref != nil {
+            options.withRef(ref)
+        }
+        var issuer = try? serializer.getDID(Constants.ISSUER, options)
+        options = JsonSerializer.Options()
+            .withHint("credential issuanceDate")
+            .withError(error)
+        let issuanceDate = try serializer.getDate(Constants.ISSUANCE_DATE, options)
+
+        if issuer == nil {
+            issuer = subject.did
+        }
         let proof = try VerifiableCredentialProof.fromJson(subNode!, issuer)
 
-        setIssuer(issuer)
+        setIssuer(issuer!)
         setIssuanceDate(issuanceDate)
         setExpirationDate(expirationDate)
         setSubject(subject)
