@@ -26,7 +26,7 @@ public class SPV {
 
     public typealias CSpvTransactionCallbackHandler = (String, Int, String?) -> Void
 
-    public class func createIdTransactionEx(_ handle: OpaquePointer, _ payload: String, _ memo: String?, _ confirms: Int, _ passwd: String, callback: @escaping CSpvTransactionCallbackHandler) throws {
+    public class func createIdTransactionEx(_ handle: OpaquePointer, _ payload: String, _ memo: String?, _ confirms: Int, _ passwd: String, callback: @escaping CSpvTransactionCallbackHandler) {
 
         let cCallback: CSpvTransactionCallback = { (ctxid, cstatus, cmsg, ccontext) in
 
@@ -35,7 +35,10 @@ public class SPV {
             let handler = ectxt[1] as! CSpvTransactionCallbackHandler
             let txid = String(cString: ctxid!)
             let status: Int = Int(cstatus)
-            let msg = String(cString: cmsg!)
+            var msg: String? = nil
+            if cmsg != nil {
+                msg = String(cString: cmsg!)
+            }
             handler(txid, status, msg)
         }
 
@@ -43,6 +46,6 @@ public class SPV {
         let unmanaged = Unmanaged.passRetained(econtext as AnyObject)
         let cctxt = unmanaged.toOpaque()
 
-        SpvDidAdapter_CreateIdTransactionEx(handle, payload, memo!, confirms, cCallback, cctxt, passwd)
+        SpvDidAdapter_CreateIdTransactionEx(handle, payload, memo, confirms, cCallback, cctxt, passwd)
     }
 }

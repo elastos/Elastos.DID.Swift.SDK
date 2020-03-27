@@ -52,15 +52,15 @@ class TestData: XCTestCase {
                 TestData.dummyAdapter!.reset()
             }
             adapter = TestData.dummyAdapter!
-            try DIDBackend.initializeInstance((adapter as! DIDResolver), TestData.getResolverCacheDir())
+            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
         }
         else {
             if TestData.spvAdapter == nil {
                 let cblock: PasswordCallback = ({(walletDir, walletId) -> String in return walletPassword})
                 TestData.spvAdapter = SPVAdaptor(walletDir, walletId, networkConfig, resolver, cblock)
             }
-            adapter = TestData.spvAdapter!
-            try DIDBackend.initializeInstance((adapter as! DIDResolver), TestData.getResolverCacheDir())
+                adapter = TestData.spvAdapter!
+            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
         }
         try ResolverCache.reset()
         TestData.deleteFile(storeRoot)

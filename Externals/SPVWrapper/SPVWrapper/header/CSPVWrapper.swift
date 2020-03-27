@@ -17,7 +17,7 @@ internal func SpvDidAdapter_CreateIdTransaction(_ adapter: OpaquePointer, _ payl
     ) -> UnsafePointer<Int8>?
 
 @_silgen_name("SpvDidAdapter_CreateIdTransactionEx")
-internal func SpvDidAdapter_CreateIdTransactionEx(_ adapter: OpaquePointer, _ payload: UnsafePointer<Int8>, _ memo: UnsafePointer<Int8>, _ confirms: Int, _ txCallback: CSpvTransactionCallback, _ context: UnsafeMutableRawPointer?, _ password: UnsafePointer<Int8>)
+internal func SpvDidAdapter_CreateIdTransactionEx(_ adapter: OpaquePointer, _ payload: UnsafePointer<Int8>, _ memo: UnsafePointer<Int8>?, _ confirms: Int, _ txCallback: CSpvTransactionCallback, _ context: UnsafeMutableRawPointer?, _ password: UnsafePointer<Int8>)
 
 @_silgen_name("SpvDidAdapter_FreeMemory")
 internal func SpvDidAdapter_FreeMemory(_ adapter: OpaquePointer, _ mem: UnsafeMutableRawPointer?)
