@@ -84,6 +84,35 @@ class TestData: XCTestCase {
         }
         return doc
     }
+
+    func waitForWalletAvaliable() throws {
+        var spvAdapter: SPVAdaptor? = nil
+        if adapter is SPVAdaptor {
+            spvAdapter = adapter as? SPVAdaptor
+        }
+        if spvAdapter != nil {
+            while true {
+                if try spvAdapter!.isAvailable() {
+                    print("OK")
+                    break
+                }
+                else {
+                    print("...")
+                }
+                wait(interval: 30)
+            }
+        }
+    }
+
+    func wait(interval: Double) {
+
+        let lock = XCTestExpectation(description: "")
+
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + interval) {
+            lock.fulfill()
+        }
+        wait(for: [lock], timeout: interval + 10)
+    }
     
     func importPrivateKey(_ id: DIDURL, _ fileName: String, _ type: String) throws {
         let skBase58: String = try loadText(fileName, type)
