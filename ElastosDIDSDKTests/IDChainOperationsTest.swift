@@ -42,7 +42,7 @@ class IDChainOperationsTest: XCTestCase {
             let doc = try store.newDid(using: storePass)
             let did = doc.subject
             //TODO:
-            let lock = XCTestExpectation(description: "publishDidAsync")
+            var lock = XCTestExpectation(description: "publishDidAsync")
             var txid: String?
             _ = store.publishDidAsync(for: did, waitForConfirms: 1, using: storePass).done { str in
                 txid = str
@@ -59,6 +59,7 @@ class IDChainOperationsTest: XCTestCase {
             // Resolve new DID document
             try testData.waitForWalletAvaliable()
             var resolved: DIDDocument?
+            lock = XCTestExpectation(description: "resolveAsync")
             _ = did.resolveAsync(true).done{ doc in
                 resolved = doc
                 XCTAssertTrue(true)
@@ -67,6 +68,7 @@ class IDChainOperationsTest: XCTestCase {
                 XCTFail()
                 lock.fulfill()
             }
+            self.wait(for: [lock], timeout: 100.0)
             XCTAssertEqual(did, resolved!.subject)
             XCTAssertTrue(resolved!.isValid)
             XCTAssertEqual(doc.toString(true), resolved?.toString(true))
@@ -99,7 +101,7 @@ class IDChainOperationsTest: XCTestCase {
                 lock.fulfill()
             }
             self.wait(for: [lock], timeout: 100.0)
-            XCTAssertEqual(did, resolved!.subject)
+            XCTAssertEqual(did, resolved?.subject)
             XCTAssertTrue(resolved!.isValid)
             XCTAssertEqual(doc.toString(true), resolved?.toString(true))
         } catch {
