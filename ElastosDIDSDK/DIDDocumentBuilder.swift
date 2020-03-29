@@ -212,6 +212,13 @@ public class DIDDocumentBuilder {
         return try appendAuthorizationKey(DIDURL(getSubject(), id), DID(controller), keyBase58)
     }
 
+    public func appendAuthorizationKey(with id: String,
+                                    controller: DID,
+                                     keyBase58: String) throws -> DIDDocumentBuilder {
+
+        return try appendAuthorizationKey(DIDURL(getSubject(), id), controller, keyBase58)
+    }
+
     private func authorizationDid(_ id: DIDURL,
                                   _ controller: DID,
                                   _ key: DIDURL?) throws -> DIDDocumentBuilder {
@@ -586,7 +593,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        document!.setExpirationDate(DateHelper.maxExpirationDate())
+        document!.setExpirationDate(DateHelper.maxExpirationDate(Date()))
         return self
     }
 
@@ -595,7 +602,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        let maxExpirationDate = DateHelper.maxExpirationDate()
+        let maxExpirationDate = DateHelper.maxExpirationDate(Date())
         guard !DateHelper.isExpired(expiresDate, maxExpirationDate) else {
             throw DIDError.illegalArgument()
         }
@@ -612,7 +619,7 @@ public class DIDDocumentBuilder {
             throw DIDError.illegalArgument()
         }
         if  document!.expirationDate == nil {
-            document!.setExpirationDate(DateHelper.maxExpirationDate())
+            document!.setExpirationDate(DateHelper.maxExpirationDate(Date()))
         }
 
         let signKey = document!.defaultPublicKey
