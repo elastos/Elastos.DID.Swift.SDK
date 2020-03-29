@@ -161,10 +161,10 @@ class IDChainRequest: NSObject {
         if let data = _operation.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = _payload!.data(using: .utf8)  {
+        if let data = prevTxid.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = prevTxid.description.data(using: .utf8)  {
+        if let data = _payload!.data(using: .utf8)  {
             inputs.append(data)
         }
 
@@ -188,10 +188,10 @@ class IDChainRequest: NSObject {
         if let data = _operation.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = _payload!.data(using: .utf8)  {
+        if let data = prevTxid.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = prevTxid.description.data(using: .utf8)  {
+        if let data = _payload!.data(using: .utf8)  {
             inputs.append(data)
         }
 
@@ -232,10 +232,10 @@ class IDChainRequest: NSObject {
         if let data = _operation.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = _payload!.data(using: .utf8)  {
+        if let data = prevTxid.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = prevTxid.description.data(using: .utf8)  {
+        if let data = _payload!.data(using: .utf8)  {
             inputs.append(data)
         }
 

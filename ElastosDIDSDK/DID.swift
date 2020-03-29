@@ -142,7 +142,7 @@ public class DID {
 
 extension DID: CustomStringConvertible {
     func toString() -> String {
-        return String("did:\(_method):\(_methodSpecificId)")
+        return String("did:\(_method!):\(_methodSpecificId!)")
     }
 
     public var description: String {

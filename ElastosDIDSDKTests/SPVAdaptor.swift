@@ -48,22 +48,6 @@ public class SPVAdaptor: DIDAdapter {
        return SPV.isAvailable(handle)
     }
 
-//    public func createIdTransaction(_ payload: String, _ memo: String?) throws -> String {
-//        let password = passwordCallback!(walletDir, walletId)
-//        guard password != nil else {
-//            throw DIDError.transactionError("password is not nil.")
-//        }
-//
-//        guard handle != nil else {
-//            throw DIDError.transactionError("Unkonw error.")
-//        }
-//        let re = SPV.createIdTransaction(handle, password!, payload, memo)
-//        guard re != nil else {
-//            throw DIDError.transactionError("Unkonw error.")
-//        }
-//        return re!
-//    }
-
     public func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> String {
         var resuleString: String?
         let url:URL! = URL(string: "http://api.elastos.io:21606")

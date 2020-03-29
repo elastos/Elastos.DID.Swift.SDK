@@ -52,7 +52,7 @@ class TestData: XCTestCase {
                 TestData.dummyAdapter!.reset()
             }
             adapter = TestData.dummyAdapter!
-            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
+            try DIDBackend.initializeInstance((adapter as! DIDResolver), TestData.getResolverCacheDir())
         }
         else {
             if TestData.spvAdapter == nil {
@@ -97,7 +97,7 @@ class TestData: XCTestCase {
                     break
                 }
                 else {
-                    print("...")
+                    print(".")
                 }
                 wait(interval: 30)
             }

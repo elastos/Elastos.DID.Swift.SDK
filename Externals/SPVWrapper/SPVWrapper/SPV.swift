@@ -33,8 +33,11 @@ public class SPV {
             let ectxt = Unmanaged<AnyObject>.fromOpaque(ccontext!)
                 .takeRetainedValue() as! [AnyObject?]
             let handler = ectxt[1] as! CSpvTransactionCallbackHandler
-            let txid = String(cString: ctxid!)
             let status: Int = Int(cstatus)
+            var txid: String = ""
+            if ctxid != nil {
+                txid = String(cString: ctxid!)
+            }
             var msg: String? = nil
             if cmsg != nil {
                 msg = String(cString: cmsg!)
