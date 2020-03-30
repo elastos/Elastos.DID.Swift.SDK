@@ -593,7 +593,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        document!.setExpirationDate(DateHelper.maxExpirationDate(Date()))
+        document!.setExpirationDate(DateHelper.maxExpirationDate())
         return self
     }
 
@@ -602,7 +602,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        let maxExpirationDate = DateHelper.maxExpirationDate(Date())
+        let maxExpirationDate = DateHelper.maxExpirationDate()
         guard !DateHelper.isExpired(expiresDate, maxExpirationDate) else {
             throw DIDError.illegalArgument()
         }
@@ -619,7 +619,7 @@ public class DIDDocumentBuilder {
             throw DIDError.illegalArgument()
         }
         if  document!.expirationDate == nil {
-            document!.setExpirationDate(DateHelper.maxExpirationDate(Date()))
+            document!.setExpirationDate(DateHelper.maxExpirationDate())
         }
 
         let signKey = document!.defaultPublicKey

@@ -58,4 +58,8 @@ class DateHelper {
 
         return useDate
     }
+
+    class func maxExpirationDate() -> Date {
+        return maxExpirationDate(Date())
+    }
 }
