@@ -104,18 +104,10 @@ class IDChainRequest: NSObject {
             let json = doc.toString()
             let capacity = json.count * 3
 
+            let cInput = json.toUnsafePointerUInt8()
             let cPayload = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-            memset(cPayload, 0, capacity)
-
-            var ref = json
-            let ssz = ref.withUTF8 { ptr in
-                return base64_url_encode(cPayload, ptr.baseAddress!, json.count)
-            }
-
-            guard ssz > 0 else {
-                throw DIDError.unknownFailure("base58 encoding error")
-            }
-
+            let re = base64_url_encode(cPayload, cInput, json.count)
+            cPayload[re] = 0
             self._payload = String(cString: cPayload)
         } else {
             self._payload = doc.subject.toString()
@@ -128,22 +120,11 @@ class IDChainRequest: NSObject {
         do {
             if self._operation != .DEACTIVATE {
                 let capacity = payload.count * 3
-                let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-                memset(buffer, 0, capacity)
-
-                var ref = payload
-                let ssz = ref.withUTF8 { (ptr) in
-                    return base64_url_encode(buffer, ptr.baseAddress!, payload.count)
-                }
-
-                guard ssz > 0 else {
-                    throw DIDError.unknownFailure("base58 encoding error")
-                }
-
-                var json = String(cString: buffer)
-                let endIndex = json.index(json.startIndex, offsetBy: ssz)
-                json = String(json[json.startIndex..<endIndex])
-
+                let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+                let cp = payload.toUnsafePointerInt8()
+                let c = base64_url_decode(buffer, cp)
+                buffer[c] = 0
+                let json: String = String(cString: buffer)
                 self._doc = try DIDDocument.convertToDIDDocument(fromJson: json)
                 self._did = _doc!.subject
             } else {
