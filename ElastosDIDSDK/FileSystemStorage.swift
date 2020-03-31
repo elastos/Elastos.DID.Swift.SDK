@@ -302,7 +302,7 @@ public class FileSystemStorage: DIDStorage {
 
     func storePublicIdentity(_ key: String) throws {
         do {
-            let handle = try openPrivateIdentityFile(true)
+            let handle = try openPublicIdentityFile(true)
             defer {
                 handle.closeFile()
             }
@@ -314,7 +314,7 @@ public class FileSystemStorage: DIDStorage {
 
     func loadPublicIdentity() throws -> String {
         do {
-            let handle = try openPrivateIdentityFile()
+            let handle = try openPublicIdentityFile()
             defer {
                 handle.closeFile()
             }

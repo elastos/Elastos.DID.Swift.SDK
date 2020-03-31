@@ -232,6 +232,8 @@ public class DIDStore: NSObject {
         }
 
         if  keyData.count == HDKey.SEED_BYTES {
+            // For backward compatible, convert to extended root private key
+            // TODO: Should be remove in the future
             privateIdentity = HDKey.fromSeed(keyData)
 
             // convert to extended root private key.
@@ -241,6 +243,14 @@ public class DIDStore: NSObject {
             privateIdentity = try HDKey.deserialize(keyData)
         } else {
             throw DIDError.didStoreError("invalid private identity")
+        }
+
+        // For backward compatible, create pre-derived public key if not exist.
+        // TODO: Should be remove in the future
+        if (!storage.containsPublicIdentity()) {
+            let pubData = try privateIdentity.serializePub()
+            let pubBytes = [UInt8](pubData)
+            try storage.storePublicIdentity(Base58.base58FromBytes(pubBytes))
         }
         return privateIdentity
     }
@@ -1971,6 +1981,8 @@ public class DIDStore: NSObject {
         plain = try DIDStore.decryptFromBase64(encryptedSeed, storePassword)
         encryptedSeed = try DIDStore.encryptToBase64(plain, password)
         
+        let pubKey = storage.containsPublicIdentity() ? try storage.loadPublicIdentity() : nil
+
         let index = try storage.loadPrivateIdentityIndex()
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
@@ -1993,6 +2005,13 @@ public class DIDStore: NSObject {
         bytes = [UInt8](encryptedSeed.data(using: .utf8)!)
         sha256.update(&bytes)
         
+        // Key.pub
+        if (pubKey != nil) {
+            generator.writeStringField("key.pub", pubKey!)
+            bytes = [UInt8](pubKey!.data(using: .utf8)!)
+            sha256.update(&bytes)
+        }
+
         // Index
         generator.writeNumberField("index", index)
         let indexStr = String(index)
@@ -2069,6 +2088,7 @@ public class DIDStore: NSObject {
         var plain: Data = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePassword)
         
+        // Key
         options = JsonSerializer.Options().withHint("key")
         var encryptedSeed = try serializer.getString("key", options)
         
@@ -2078,6 +2098,16 @@ public class DIDStore: NSObject {
         plain = try DIDStore.decryptFromBase64(password, encryptedSeed)
         encryptedSeed = try DIDStore.encryptToBase64(plain, storePassword)
         
+        // Key.pub
+        options = JsonSerializer.Options().withHint("key.pub")
+        var pubKey: String?
+        do {
+            pubKey = try serializer.getString("key.pub", options)
+            bytes = [UInt8](pubKey!.data(using: .utf8)!)
+            sha256.update(&bytes)
+        } catch {}
+
+        // Index
         var node = root.get(forKey: "index")
         guard node != nil && node!.asInteger() != nil else {
             throw DIDError.didStoreError("Invalid export data, unknow index.")
@@ -2109,6 +2139,9 @@ public class DIDStore: NSObject {
         // Save
         try storage.storeMnemonic(encryptedMnemonic)
         try storage.storePrivateIdentity(encryptedSeed)
+        if pubKey != nil {
+            try storage.storePublicIdentity(pubKey!)
+        }
         try storage.storePrivateIdentityIndex(index)
     }
 
@@ -2142,7 +2175,7 @@ public class DIDStore: NSObject {
                            _ password: String,
                       _ storePassword: String) throws {
         var exportStr = ""
-        if try containsPrivateIdentity() {
+        if containsPrivateIdentity() {
             let generator = JsonGenerator()
             try exportPrivateIdentity(generator, password, storePassword)
             exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
@@ -2163,7 +2196,7 @@ public class DIDStore: NSObject {
                            _ password: String,
                       _ storePassword: String) throws {
         var exportStr = ""
-        if try containsPrivateIdentity() {
+        if containsPrivateIdentity() {
             let generator = JsonGenerator()
             try exportPrivateIdentity(generator, password, storePassword)
             exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
