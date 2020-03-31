@@ -68,25 +68,23 @@ public class DIDStore: NSObject {
         return storage.containsPrivateIdentity()
     }
 
-    public class func encryptToBase64(_ input: Data, _ storePass: String) throws -> String {
-        // TODO:
+    class func encryptToBase64(_ input: Data, _ storePass: String) throws -> String {
         let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return by
         }
-        let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: 4096)
+        let capacity = input.count * 3
+        let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: capacity)
         let re = encrypt_to_base64(base64url, storePass, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError("encryptToBase64 error.")
         }
-        var json: String = String(cString: base64url)
-        let endIndex = json.index(json.startIndex, offsetBy: re)
-        json = String(json[json.startIndex..<endIndex])
-        return json
+        base64url[re] = 0
+        return String(cString: base64url)
     }
 
-    public class func decryptFromBase64(_ input: String, _ storePass: String) throws -> Data {
-        // TODO:
-        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+    class func decryptFromBase64(_ input: String, _ storePass: String) throws -> Data {
+        let capacity = input.count * 3
+        let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
         let re = decrypt_from_base64(plain, storePass, input)
         guard re >= 0 else {
             throw DIDError.didStoreError("decryptFromBase64 error.")
@@ -96,7 +94,6 @@ public class DIDStore: NSObject {
         
         let data = Data(bytes: temp, count: re)
         let intArray = [UInt8](data).map { Int8(bitPattern: $0) }
-        print(intArray)
         return data
     }
 
@@ -114,7 +111,7 @@ public class DIDStore: NSObject {
             throw DIDError.illegalArgument()
         }
 
-        guard try !containsPrivateIdentity() || force else {
+        guard !containsPrivateIdentity() || force else {
             throw DIDError.didStoreError("Already has private indentity.")
         }
 
@@ -167,9 +164,16 @@ public class DIDStore: NSObject {
     private func initializePrivateIdentity(_ privateIdentity: HDKey,
                                            _ storePassword: String) throws {
 
+        // Save extended root private key
         let encryptedIdentity = try DIDStore.encryptToBase64(privateIdentity.serializePrv(), storePassword)
         try storage.storePrivateIdentity(encryptedIdentity)
 
+        // Save pre-derived public key
+        let pubData = try privateIdentity.serializePub()
+        let pubBytes = [UInt8](pubData)
+        try storage.storePublicIdentity(Base58.base58FromBytes(pubBytes))
+
+        // Save index
         try storage.storePrivateIdentityIndex(0)
         privateIdentity.wipe()
     }
@@ -185,7 +189,7 @@ public class DIDStore: NSObject {
             throw DIDError.illegalArgument()
         }
 
-        guard try !containsPrivateIdentity() || force else {
+        guard !containsPrivateIdentity() || force else {
             throw DIDError.didStoreError("Already has private indentity.")
         }
         let privateIdentity = try HDKey.deserialize(Base58.bytesFromBase58(extendedPrivateKey))
@@ -217,7 +221,7 @@ public class DIDStore: NSObject {
 
     // initialized from saved private identity in DIDStore.
     func loadPrivateIdentity(_ storePassword: String) throws -> HDKey {
-        guard try containsPrivateIdentity() else {
+        guard containsPrivateIdentity() else {
             throw DIDError.didStoreError("no private identity contained.")
         }
 
@@ -242,7 +246,7 @@ public class DIDStore: NSObject {
     }
 
     func loadPublicIdentity() throws -> HDKey {
-        guard try containsPrivateIdentity() else {
+        guard containsPrivateIdentity() else {
             throw DIDError.didStoreError("no private identity contained")
         }
 
@@ -453,6 +457,21 @@ public class DIDStore: NSObject {
         let did = DID(Constants.METHOD, key.getAddress())
 
         privateIdentity.wipe()
+        key.wipe()
+
+        return did
+    }
+
+    public func getDid(byPrivateIdentityIndex: Int) throws -> DID {
+        guard byPrivateIdentityIndex >= 0 else {
+            throw DIDError.illegalArgument()
+        }
+        let publicIdentity = try loadPublicIdentity()
+
+        let key = publicIdentity.derivedKey(byPrivateIdentityIndex)
+        let did = DID(Constants.METHOD, key.getAddress())
+
+        publicIdentity.wipe()
         key.wipe()
 
         return did
@@ -1474,12 +1493,14 @@ public class DIDStore: NSObject {
 
         let privatekeys = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)
         var cinputs: [CVarArg] = []
+        var capacity: Int = 0
         data.forEach { data in
             let json = String(data: data, encoding: .utf8)
              if json != "" {
                  let cjson = json!.toUnsafePointerInt8()!
                  cinputs.append(cjson)
                  cinputs.append(json!.count)
+                capacity += json!.count * 3
              }
         }
         
@@ -1488,7 +1509,8 @@ public class DIDStore: NSObject {
         let c_inputs = getVaList(cinputs)
         let count = cinputs.count / 2
         // UnsafeMutablePointer(mutating: toPPointer)
-        let csig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
+
+        let csig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
         let re = ecdsa_sign_base64v(csig, UnsafeMutablePointer(mutating: toPPointer), Int32(count), c_inputs)
         guard re >= 0 else {
             throw DIDError.didStoreError("sign error.")
@@ -1511,6 +1533,15 @@ public class DIDStore: NSObject {
                         for data: Data...) throws -> String {
 
         return try sign(did, nil, storePassword, data)
+    }
+
+    public func changePassword(_ oldPassword: String, _ newPassword: String) throws {
+        let re: (String) throws -> String = { (data: String) -> String in
+            let udata: Data = try DIDStore.decryptFromBase64(data, oldPassword)
+            let result: String = try DIDStore.encryptToBase64(udata, newPassword)
+            return result
+        }
+        try storage.changePassword(re)
     }
 
     private func exportDid(_ did: DID,
@@ -1658,16 +1689,15 @@ public class DIDStore: NSObject {
         
         // Fingerprint
         let result = sha256.finalize()
-        let c_fing = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
-        var re_fing: Data = Data(bytes: result, count: result.count)
-        let c_fingerprint: UnsafeMutablePointer<UInt8> = re_fing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dataFing: Data = Data(bytes: result, count: result.count)
+        let cFingerprint: UnsafeMutablePointer<UInt8> = dataFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
-        let re = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
+        let re = base64_url_encode(cFing, cFingerprint, dataFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
         generator.writeStringField("fingerprint", fingerprint)
         generator.writeEndObject()
     }
@@ -1817,7 +1847,7 @@ public class DIDStore: NSObject {
                 value = csk.description
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
-                let sk: Data = try DIDStore.decryptFromBase64(password, csk)
+                let sk: Data = try DIDStore.decryptFromBase64(csk, password)
                 csk = try DIDStore.encryptToBase64(sk, storePassword)
                 sks[id!] = csk
             }
@@ -1871,17 +1901,15 @@ public class DIDStore: NSObject {
         }
         let refFingerprint = node?.asString()
         let result = sha256.finalize()
-        
-        let c_fing = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
-        var re_fing: Data = Data(bytes: result, count: result.count)
-        let c_fingerprint: UnsafeMutablePointer<UInt8> = re_fing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dateFing: Data = Data(bytes: result, count: result.count)
+        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
-        let re_finger = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re_finger)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
+        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
         guard fingerprint == refFingerprint else {
             throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
         }
@@ -1973,16 +2001,15 @@ public class DIDStore: NSObject {
         
         // Fingerprint
         let result = sha256.finalize()
-        let c_fing = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
-        var re_fing: Data = Data(bytes: result, count: result.count)
-        let c_fingerprint: UnsafeMutablePointer<UInt8> = re_fing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dateFing: Data = Data(bytes: result, count: result.count)
+        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
-        let re = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
+        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
         generator.writeStringField("fingerprint", fingerprint)
         generator.writeEndObject()
     }
@@ -2039,7 +2066,7 @@ public class DIDStore: NSObject {
         bytes = [UInt8](encryptedMnemonic.data(using: .utf8)!)
         sha256.update(&bytes)
         
-        var plain: Data = try DIDStore.decryptFromBase64(password, encryptedMnemonic)
+        var plain: Data = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePassword)
         
         options = JsonSerializer.Options().withHint("key")
@@ -2066,17 +2093,15 @@ public class DIDStore: NSObject {
             throw DIDError.didStoreError("Missing fingerprint in the export data")
         }
         let result = sha256.finalize()
-        
-        let c_fing = UnsafeMutablePointer<Int8>.allocate(capacity: 4096)
-        var re_fing: Data = Data(bytes: result, count: result.count)
-        let c_fingerprint: UnsafeMutablePointer<UInt8> = re_fing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dateFing: Data = Data(bytes: result, count: result.count)
+        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
-        let re_finger = base64_url_encode(c_fing, c_fingerprint, re_fing.count)
-        let jsonStr: String = String(cString: c_fing)
-        let endIndex = jsonStr.index(jsonStr.startIndex, offsetBy: re_finger)
-        let fingerprint = String(jsonStr[jsonStr.startIndex..<endIndex])
-        
+        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
         guard fingerprint == node!.asString()! else {
             throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
         }
@@ -2217,7 +2242,6 @@ public class DIDStore: NSObject {
                 }
                 let n = outputStream.write(bytes.advanced(by: bytesWritten), maxLength: maxLength)
                 bytesWritten += n
-                print(n)
             }
         })
     }
