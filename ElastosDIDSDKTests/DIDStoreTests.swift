@@ -1444,6 +1444,7 @@ class DIDStoreTests: XCTestCase {
 
     func testExportAndImportDid() {
         do {
+            let testData: TestData = TestData()
             let bundle = Bundle(for: type(of: self))
             let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
 
@@ -1453,9 +1454,27 @@ class DIDStoreTests: XCTestCase {
 
             let did = try store.listDids(using: DIDStore.DID_ALL)[0]
 
-            let path = tempDir + "/" + "didexport.json"
-            try create(path, forWrite: true)
-            // TODO: keep writing
+            let exportPath = tempDir + "/" + "didexport.json"
+            try create(exportPath, forWrite: true)
+            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
+
+            try store.exportDid(did, to: fileHndle, using: "password", storePassword: storePass)
+            let restorePath = tempDir + "/" + "restore"
+            TestData.deleteFile(restorePath)
+
+            let store2 = try DIDStore.open(atPath: restorePath, withType: "filesystem", adapter: adapter)
+
+            let readerHndle = FileHandle(forReadingAtPath: exportPath)
+            readerHndle?.seek(toFileOffset: 0)
+//            try store2.importStore(from: readerHndle!, "password", storePass)
+//
+//            let didDirPath = storeRoot + "/ids/" + did.methodSpecificId
+//            let reDidDirPath = restorePath + "/ids/" + did.methodSpecificId
+//
+//            XCTAssertTrue(testData.existsFile(didDirPath))
+//            XCTAssertTrue(testData.existsFile(didDirPath))
+//            XCTAssertTrue(Utils.equals(reDidDir, didDir))
+
         } catch {
             XCTFail()
         }
