@@ -68,10 +68,9 @@ class DIDDoucumentTests: XCTestCase {
             pks = doc.selectPublicKeys(byId: id, andType: nil)
             XCTAssertEqual(1, pks.count)
             XCTAssertEqual(try DIDURL(doc.subject, "primary"), pks[0].getId())
-            
-            // TODO:
-//            pks = doc.selectPublicKeys(byId: nil, andType: "ECDSAsecp256r1")
-//            XCTAssertEqual(4, pks.count)
+
+            pks = try doc.selectPublicKeys(withType: "ECDSAsecp256r1")
+            XCTAssertEqual(4, pks.count)
             
             pks = try doc.selectPublicKeys(byId: "key2", andType: "ECDSAsecp256r1")
             XCTAssertEqual(1, pks.count)
@@ -246,10 +245,9 @@ class DIDDoucumentTests: XCTestCase {
             pks = doc.selectAuthenticationKeys(byId: id, andType: nil)
             XCTAssertEqual(1, pks.count)
             XCTAssertEqual(id, pks[0].getId())
-            
-            // TODO:
-//            pks = doc.selectAuthenticationKeys(byId: nil, andType: "ECDSAsecp256r1")
-//            XCTAssertEqual(3, pks.count)
+
+            pks = try doc.selectAuthenticationKeys(withType: "ECDSAsecp256r1")
+            XCTAssertEqual(3, pks.count)
             
             pks = try doc.selectAuthenticationKeys(byId: "key2", andType: "ECDSAsecp256r1")
             XCTAssertEqual(1, pks.count)
@@ -470,10 +468,9 @@ class DIDDoucumentTests: XCTestCase {
             pks = doc.selectAuthorizationKeys(byId: id, andType: nil)
             XCTAssertEqual(1, pks.count)
             XCTAssertEqual(id, pks[0].getId())
-            
-            // TODO:
-//            pks = doc.selectAuthorizationKeys(byId: nil, andType: "ECDSAsecp256r1")
-//            XCTAssertEqual(1, pks.count)
+
+            pks = try doc.selectAuthorizationKeys(withType: "ECDSAsecp256r1")
+            XCTAssertEqual(1, pks.count)
         } catch {
             print(error)
             XCTFail()
@@ -665,14 +662,13 @@ class DIDDoucumentTests: XCTestCase {
             vcs = try doc.selectCredentials(byId: DIDURL(doc.subject, "profile"), andType: nil)
             XCTAssertEqual(1, vcs.count)
             XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
-            
-            // TODO:
-//            vcs = doc.selectCredentials(byId: nil, andType: "SelfProclaimedCredential")
-//            XCTAssertEqual(1, vcs.count)
-//            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
-//
-//            vcs = doc.selectCredentials(byId: nil, andType: "TestingCredential")
-//            XCTAssertEqual(0, vcs.count)
+
+            vcs = try doc.selectCredentials(withType: "SelfProclaimedCredential")
+            XCTAssertEqual(1, vcs.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
+
+            vcs = try doc.selectCredentials(withType: "TestingCredential")
+            XCTAssertEqual(0, vcs.count)
         } catch {
             print(error)
             XCTFail()
@@ -889,19 +885,17 @@ class DIDDoucumentTests: XCTestCase {
             svcs = try doc.selectServices(byId: DIDURL(doc.subject, "openid"), andType: nil)
             XCTAssertEqual(1, svcs.count)
             XCTAssertEqual(try DIDURL(doc.subject, "openid"), svcs[0].getId())
-            
-            // TODO:
-//            svcs = doc.selectServices(byId: nil, andType: "CarrierAddress")
-//            XCTAssertEqual(1, svcs.count)
-//            XCTAssertEqual(try DIDURL(doc.subject, "carrier"), svcs[0].getId())
+
+            svcs = try doc.selectServices(withType: "CarrierAddress")
+            XCTAssertEqual(1, svcs.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "carrier"), svcs[0].getId())
             
             // Service not exist, should return a empty list.
             svcs = try doc.selectServices(byId: "notExistService", andType: "CredentialRepositoryService")
             XCTAssertEqual(0, svcs.count)
-            
-            // TODO:
-//            svcs = doc.selectServices(byId: nil, andType: "notExistType")
-//            XCTAssertEqual(0, svcs.count)
+
+            svcs = try doc.selectServices(withType: "notExistType")
+            XCTAssertEqual(0, svcs.count)
         } catch {
             print(error)
             XCTFail()
@@ -938,11 +932,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(5, doc.serviceCount)
             
             // Try to select new added 2 services
-            // TODO:
-//            let svcs: Array<Service> = doc.selectServices(byId: nil, andType: "Service.Testing")
-//            XCTAssertEqual(2, svcs.count)
-//            XCTAssertEqual("Service.Testing", svcs[0].getType())
-//            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            let svcs: Array<Service> = try doc.selectServices(withType: "Service.Testing")
+            XCTAssertEqual(2, svcs.count)
+            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            XCTAssertEqual("Service.Testing", svcs[0].getType())
         } catch {
             print(error)
             XCTFail()
