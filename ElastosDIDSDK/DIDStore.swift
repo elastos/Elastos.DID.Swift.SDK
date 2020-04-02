@@ -261,7 +261,8 @@ public class DIDStore: NSObject {
         }
 
         let keyData = try storage.loadPublicIdentity()
-        let publicIdentity = try HDKey.deserialize(keyData.data(using: .utf8)!)
+        let pubKey = Base58.bytesFromBase58(String(data: keyData.data(using: .utf8)!, encoding: .utf8)!)
+        let publicIdentity = try HDKey.deserialize(pubKey)
 
         return publicIdentity
     }
@@ -438,9 +439,8 @@ public class DIDStore: NSObject {
 
     private func newDid(_ alias: String?, _ storePassword: String) throws -> DIDDocument {
         var nextIndex = try storage.loadPrivateIdentityIndex()
-        nextIndex += 1
 
-        let doc = try newDid(nextIndex, alias, storePassword)
+        let doc = try newDid(nextIndex++, alias, storePassword)
         try storage.storePrivateIdentityIndex(nextIndex)
 
         return doc
@@ -522,15 +522,15 @@ public class DIDStore: NSObject {
                 let resolvedTxId = resolvedDoc!.getMeta().transactionId!
                 let resolvedSignature = resolvedDoc!.getMeta().signature!
 
-                guard localTxId != nil || localSignature != nil else {
+                if localTxId == nil && localSignature == nil {
                     throw DIDError.didStoreError("DID document not up-to-date")
                 }
 
-                guard localTxId == nil || localTxId == resolvedTxId else {
+                if localTxId != nil && localTxId != resolvedTxId {
                     throw DIDError.didStoreError("DID document not up-to-date")
                 }
 
-                guard localSignature == nil || localSignature == resolvedSignature else {
+                if localSignature != nil, localSignature != resolvedSignature {
                     throw DIDError.didStoreError("DID document not up-to-date")
                 }
             }
@@ -1252,6 +1252,7 @@ public class DIDStore: NSObject {
     }
 
     public func deleteDid(_ did: DID) -> Bool {
+        documentCache!.removeValue(for: did)
         return storage.deleteDid(did)
     }
 
