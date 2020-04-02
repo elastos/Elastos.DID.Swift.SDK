@@ -290,7 +290,8 @@ public class DIDStore: NSObject {
         var index = 0
 
         while index < nextIndex || blanks < 10 {
-            let key: HDKey.DerivedKey = privateIdentity.derivedKey(index++)
+            let key: HDKey.DerivedKey = privateIdentity.derivedKey(index)
+            index += 1
             let did = DID(Constants.METHOD, key.getAddress())
             let chainCopy: DIDDocument?
 
@@ -440,7 +441,8 @@ public class DIDStore: NSObject {
     private func newDid(_ alias: String?, _ storePassword: String) throws -> DIDDocument {
         var nextIndex = try storage.loadPrivateIdentityIndex()
 
-        let doc = try newDid(nextIndex++, alias, storePassword)
+        let doc = try newDid(nextIndex, alias, storePassword)
+        nextIndex += 1
         try storage.storePrivateIdentityIndex(nextIndex)
 
         return doc
@@ -1252,7 +1254,7 @@ public class DIDStore: NSObject {
     }
 
     public func deleteDid(_ did: DID) -> Bool {
-        documentCache!.removeValue(for: did)
+        documentCache?.removeValue(for: did)
         return storage.deleteDid(did)
     }
 
@@ -1288,9 +1290,7 @@ public class DIDStore: NSObject {
         credential.setMeta(meta)
         credential.getMeta().setStore(self)
         try storage.storeCredentialMeta(credential.subject.did, credential.getId(), meta)
-        if (credentialCache != nil) {
-            credentialCache!.setValue(credential, for: credential.getId())
-        }
+        credentialCache?.setValue(credential, for: credential.getId())
     }
 
     func storeCredentialMeta(for did: DID, key id: DIDURL, meta: CredentialMeta) throws {
@@ -1305,14 +1305,11 @@ public class DIDStore: NSObject {
     
     func loadCredentialMeta(for did: DID, byId: DIDURL) throws -> CredentialMeta {
         var meta: CredentialMeta?
-        var vc: VerifiableCredential?
-        if credentialCache != nil {
-            vc = credentialCache!.getValue(for: byId)
-            if vc != nil {
-                meta = vc!.getMeta()
-                if !meta!.isEmpty() {
-                    return meta!
-                }
+        let vc = credentialCache?.getValue(for: byId)
+        if vc != nil {
+            meta = vc!.getMeta()
+            if !meta!.isEmpty() {
+                return meta!
             }
         }
         meta = try? storage.loadCredentialMeta(did, byId)
@@ -1332,12 +1329,9 @@ public class DIDStore: NSObject {
     }
 
     public func loadCredential(for did: DID, byId: DIDURL) throws -> VerifiableCredential? {
-        var vc: VerifiableCredential?
-        if credentialCache != nil {
-            vc = credentialCache?.getValue(for: byId)
-            if vc != nil {
-                return vc
-            }
+        var vc = credentialCache?.getValue(for: byId)
+        if vc != nil {
+            return vc
         }
 
         vc = try? storage.loadCredential(did, byId)

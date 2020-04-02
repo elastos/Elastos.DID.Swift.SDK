@@ -160,7 +160,7 @@ public class VerifiableCredentialBuilder {
     }
 
     private func maxExpirationDate() -> Date {
-        if credential?.getIssuanceDate() != nil {
+        guard credential?.getIssuanceDate() == nil else {
             return DateFormatter.convertToWantDate(credential!.issuanceDate, Constants.MAX_VALID_YEARS)
         }
         return DateFormatter.convertToWantDate(Date(), Constants.MAX_VALID_YEARS)

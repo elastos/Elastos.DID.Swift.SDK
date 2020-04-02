@@ -27,7 +27,7 @@ class DIDMeta: Metadata {
         return self._signature
     }
 
-    func setSignature(_ newValue: String?) {
+    func setSignature(_ newValue: String) {
         self._signature = newValue
     }
 

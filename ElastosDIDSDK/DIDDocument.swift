@@ -177,8 +177,8 @@ public class DIDDocument {
         return selectPublicKeys(byId: id, andType: andType)
     }
 
-    public func selectPublicKeys(withType: String) throws -> Array<PublicKey> {
-        return self.publicKeyMap.select(nil, withType) { value -> Bool in return true }
+    public func selectPublicKeys(byType: String) throws -> Array<PublicKey> {
+        return self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
     }
 
     public func publicKey(ofId: DIDURL) -> PublicKey? {
@@ -306,8 +306,8 @@ public class DIDDocument {
         return selectAuthenticationKeys(byId: id, andType: andType)
     }
 
-    public func selectAuthenticationKeys(withType: String) throws -> Array<PublicKey> {
-        return publicKeyMap.select(nil, withType) { value -> Bool in
+    public func selectAuthenticationKeys(byType: String) throws -> Array<PublicKey> {
+        return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
     }
@@ -383,8 +383,8 @@ public class DIDDocument {
         return selectAuthorizationKeys(byId: id, andType: andType)
     }
 
-    public func selectAuthorizationKeys(withType: String) throws -> Array<PublicKey> {
-        return publicKeyMap.select(nil, withType) { value -> Bool in
+    public func selectAuthorizationKeys(byType: String) throws -> Array<PublicKey> {
+        return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
     }
@@ -454,8 +454,8 @@ public class DIDDocument {
         return selectCredentials(byId: id, andType: andType)
     }
 
-    public func selectCredentials(withType: String) throws -> Array<VerifiableCredential>  {
-        return credentialMap.select(nil, withType) { value -> Bool in return true }
+    public func selectCredentials(byType: String) throws -> Array<VerifiableCredential>  {
+        return credentialMap.select(nil, byType) { value -> Bool in return true }
     }
 
     public func credential(ofId: DIDURL) -> VerifiableCredential? {
@@ -506,8 +506,8 @@ public class DIDDocument {
         return selectServices(byId: id, andType: andType)
     }
 
-    public func selectServices(withType: String) throws -> Array<Service>  {
-        return serviceMap.select(nil, withType) { value -> Bool in return true }
+    public func selectServices(byType: String) throws -> Array<Service>  {
+        return serviceMap.select(nil, byType) { value -> Bool in return true }
     }
 
     public func service(ofId: DIDURL) -> Service? {
