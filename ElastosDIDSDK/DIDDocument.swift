@@ -177,7 +177,7 @@ public class DIDDocument {
         return selectPublicKeys(byId: id, andType: andType)
     }
 
-    public func selectPublicKeys(byType: String) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byType: String) -> Array<PublicKey> {
         return self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
     }
 
@@ -306,7 +306,7 @@ public class DIDDocument {
         return selectAuthenticationKeys(byId: id, andType: andType)
     }
 
-    public func selectAuthenticationKeys(byType: String) throws -> Array<PublicKey> {
+    public func selectAuthenticationKeys(byType: String) -> Array<PublicKey> {
         return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -383,7 +383,7 @@ public class DIDDocument {
         return selectAuthorizationKeys(byId: id, andType: andType)
     }
 
-    public func selectAuthorizationKeys(byType: String) throws -> Array<PublicKey> {
+    public func selectAuthorizationKeys(byType: String) -> Array<PublicKey> {
         return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -454,7 +454,7 @@ public class DIDDocument {
         return selectCredentials(byId: id, andType: andType)
     }
 
-    public func selectCredentials(byType: String) throws -> Array<VerifiableCredential>  {
+    public func selectCredentials(byType: String) -> Array<VerifiableCredential>  {
         return credentialMap.select(nil, byType) { value -> Bool in return true }
     }
 
@@ -506,7 +506,7 @@ public class DIDDocument {
         return selectServices(byId: id, andType: andType)
     }
 
-    public func selectServices(byType: String) throws -> Array<Service>  {
+    public func selectServices(byType: String) -> Array<Service>  {
         return serviceMap.select(nil, byType) { value -> Bool in return true }
     }
 
