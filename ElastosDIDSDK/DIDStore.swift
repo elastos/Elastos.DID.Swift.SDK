@@ -1654,6 +1654,7 @@ public class DIDStore: NSObject {
                     generator.writeEndObject()
                 }
             }
+            generator.writeEndArray()
         }
 
         // Metadata
@@ -1694,15 +1695,10 @@ public class DIDStore: NSObject {
         
         // Fingerprint
         let result = sha256.finalize()
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dataFing: Data = Data(bytes: result, count: result.count)
-        let cFingerprint: UnsafeMutablePointer<UInt8> = dataFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dataFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
+
+        let dataFing: Data = Data(bytes: result, count: result.count)
+        let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
+
         generator.writeStringField("fingerprint", fingerprint)
         generator.writeEndObject()
     }
@@ -1759,11 +1755,11 @@ public class DIDStore: NSObject {
         //bool ref hit
         options = JsonSerializer.Options()
             .withHint("export type")
-        let type = try serializer.getString("type", options)
-        guard type == DID_EXPORT else {
+        value = try serializer.getString("type", options)
+        guard value == DID_EXPORT else {
             throw DIDError.didStoreError("Invalid export data, unknown type.")
         }
-        bytes = [UInt8](type.data(using: .utf8)!)
+        bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
         
         // DID
@@ -1786,13 +1782,13 @@ public class DIDStore: NSObject {
         
         // Document
         var node = root.get(forKey: "document")
-        guard node?.asString() != nil else {
+        guard node?.toString() != nil else {
             throw DIDError.didStoreError("Missing DID document in the export data")
         }
         
         var doc: DIDDocument? = nil
         do {
-            doc = try DIDDocument.convertToDIDDocument(fromJson: node!.asString()!)
+            doc = try DIDDocument.convertToDIDDocument(fromJson: node!)
         } catch  {
             throw DIDError.didStoreError("Invalid export data.\(error)")
         }
@@ -1843,16 +1839,16 @@ public class DIDStore: NSObject {
                     .withRef(did)
                     .withHint("privatekey id")
                 let id = try serializer.getDIDURL("id", options)
-                value = id!.description
+                value = id!.toString()
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
                 options = JsonSerializer.Options()
                     .withHint("privatekey")
                 var csk = try serializer.getString("key", options)
-                value = csk.description
+                value = csk
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
-                let sk: Data = try DIDStore.decryptFromBase64(csk, password)
+                let sk: Data = try DIDStore.decryptFromBase64(csk, storePassword)
                 csk = try DIDStore.encryptToBase64(sk, storePassword)
                 sks[id!] = csk
             }
@@ -1862,8 +1858,8 @@ public class DIDStore: NSObject {
         node = root.get(forKey: "metadata")
         if node != nil {
             var metaNode = node?.get(forKey: "document")
-            if metaNode != nil && metaNode!.asString() != nil {
-                let meta: DIDMeta = try DIDMeta.fromJson(metaNode!.asString()!, DIDMeta.self)
+            if metaNode != nil && metaNode!.toString() != "" {
+                let meta: DIDMeta = try DIDMeta.fromJson(metaNode!, DIDMeta.self)
                 doc!.setMeta(meta)
                 value = meta.description
                 bytes = [UInt8](value.data(using: .utf8)!)
@@ -1906,15 +1902,9 @@ public class DIDStore: NSObject {
         }
         let refFingerprint = node?.asString()
         let result = sha256.finalize()
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing: Data = Data(bytes: result, count: result.count)
-        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
+        let dataFing: Data = Data(bytes: result, count: result.count)
+        let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
+
         guard fingerprint == refFingerprint else {
             throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
         }
@@ -2235,7 +2225,6 @@ public class DIDStore: NSObject {
     public func importStore(from handle: FileHandle,
                              _ password: String,
                         _ storePassword: String) throws {
-        handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard dic != nil else {
@@ -2249,11 +2238,11 @@ public class DIDStore: NSObject {
         }
         try dic!.forEach{ key, value in
             if key == "privateIdentity" {
-                let node = JsonNode(value)
+                let node = JsonNode(dic as Any)
                 try importPrivateIdentity(node, password, storePassword)
             }
             else {
-               let node = JsonNode(value)
+                let node = JsonNode(dic as Any)
                 try importDid(node, password, storePassword)
             }
         }
