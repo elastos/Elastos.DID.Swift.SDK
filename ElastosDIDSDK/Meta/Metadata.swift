@@ -1,7 +1,7 @@
 import Foundation
 
 private func getFullName(_ name: String) -> String {
-    if name.hasPrefix(Constants.EXTRA_PREFIX) {
+    guard !name.hasPrefix(Constants.EXTRA_PREFIX) else {
         return name
     }
     return Constants.EXTRA_PREFIX + name
