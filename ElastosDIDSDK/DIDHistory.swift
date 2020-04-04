@@ -7,7 +7,7 @@ public protocol DIDHistory {
 
     func getsStatus() -> ResolveResultStatus
 
-    func getAllTransactions() -> [IDTransactionInfo]
+    func getAllTransactions() -> [DIDTransaction]
 
     func getTransactionCount() -> Int
 

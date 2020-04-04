@@ -1605,8 +1605,11 @@ public class DIDStore: NSObject {
         if storage.containsCredentials(did) {
             generator.writeFieldName("credential")
             generator.writeStartArray()
-            let ids = try listCredentials(for: did)
-            
+            var ids = try listCredentials(for: did)
+            ids.sort { (a, b) -> Bool in
+                let compareResult = a.toString().compare(b.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             for id in ids {
                 var vc: VerifiableCredential? = nil
                 do {
@@ -1633,7 +1636,11 @@ public class DIDStore: NSObject {
             generator.writeFieldName("privatekey")
             generator.writeStartArray()
             
-            let pks: Array<PublicKey> = doc!.publicKeys()
+            var pks: Array<PublicKey> = doc!.publicKeys()
+            pks.sort { (a, b) -> Bool in
+                let compareResult = a.getId().toString().compare(b.getId().toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             for pk in pks {
                 let id = pk.getId()
                 if storage.containsPrivateKey(did, id) {
@@ -1665,7 +1672,7 @@ public class DIDStore: NSObject {
             if didMeta != nil {
                 generator.writeFieldName("document")
                 value = didMeta!.toString()
-                generator.writeString(value)
+                generator.writeRawValue(value)
                 bytes = [UInt8](value.description.data(using: .utf8)!)
                 sha256.update(&bytes)
             }
@@ -1683,7 +1690,7 @@ public class DIDStore: NSObject {
                     
                     value = v.toString()
                     generator.writeFieldName("metadata");
-                    generator.writeString(value)
+                    generator.writeRawValue(value)
                     bytes = [UInt8](value.description.data(using: .utf8)!)
                     sha256.update(&bytes)
                     generator.writeEndObject()
@@ -1881,7 +1888,7 @@ public class DIDStore: NSObject {
                     value = id!.description
                     bytes = [UInt8](value.data(using: .utf8)!)
                     sha256.update(&bytes)
-                    let meta = try CredentialMeta.fromJson(dic.get(forKey: "metadata")!.asString()!, CredentialMeta.self)
+                    let meta = try CredentialMeta.fromJson(dic.get(forKey: "metadata")!.toString(), CredentialMeta.self)
                     value = meta.description
                     bytes = [UInt8](value.data(using: .utf8)!)
                     sha256.update(&bytes)

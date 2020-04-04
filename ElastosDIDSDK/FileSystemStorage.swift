@@ -635,7 +635,7 @@ public class FileSystemStorage: DIDStorage {
     func containsCredentials(_ did: DID) -> Bool {
         do {
             let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
-            let exit = try fileExists(targetPath)
+            let exit = try dirExists(targetPath)
             guard exit else {
                 return false
             }

@@ -25,6 +25,13 @@ private func getFullName(_ name: String) -> String {
         self._store = store
     }
 
+    func setExtraInternal(_ name: String, _ value: String?) {
+        guard name.hasPrefix(Constants.EXTRA_PREFIX) else {
+            return
+        }
+        self._extra[getFullName(name)] = value
+    }
+
     func setExtra(_ name: String, _ value: String?) {
         self._extra[getFullName(name)] = value
     }
@@ -49,7 +56,7 @@ private func getFullName(_ name: String) -> String {
         }
 
         for (key, value) in dict! {
-            meta.setExtra(key, value.asString() ?? "")
+            meta.setExtraInternal(key, value.asString() ?? "")
         }
         return meta
     }
