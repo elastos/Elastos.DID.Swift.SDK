@@ -74,7 +74,6 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertEqual(doc.toString(true), resolved?.toString(true))
         }
         catch {
-
             XCTFail()
         }
     }
@@ -95,10 +94,12 @@ class IDChainOperationsTest: XCTestCase {
             store.publishDidAsync(for: did, using: storePass).done { tx in
                 XCTAssertNotNil(tx)
                 XCTAssertTrue(true)
+                lock.fulfill()
             }.catch { error in
                 XCTFail()
+                lock.fulfill()
             }
-            self.wait(for: [lock], timeout: 100.0)
+            self.wait(for: [lock], timeout: 150.0)
 
             try testData.waitForWalletAvaliable()
             var resolved: DIDDocument?
@@ -107,7 +108,7 @@ class IDChainOperationsTest: XCTestCase {
                     print(" OK")
                     resolved = doc
                 }.catch{ error in
-                    print("...")
+                    print(".")
                 }
                 wait(interval: 30)
                 if resolved != nil {
@@ -161,7 +162,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(resolved!.isValid)
             XCTAssertEqual(doc.toString(true), resolved?.toString(true))
         } catch {
-
+            XCTFail()
         }
     }
 
@@ -187,8 +188,10 @@ class IDChainOperationsTest: XCTestCase {
                 sigs.append(doc.proof.signature)
                 XCTAssertNotNil(tx)
                 XCTAssertTrue(true)
+                lock.fulfill()
             }.catch { error in
                 XCTFail()
+                lock.fulfill()
             }
             self.wait(for: [lock], timeout: 100.0)
 
@@ -230,8 +233,10 @@ class IDChainOperationsTest: XCTestCase {
                 sigs.append(doc.proof.signature)
                 XCTAssertNotNil(tx)
                 XCTAssertTrue(true)
+                lock.fulfill()
             }.catch { error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -273,8 +278,10 @@ class IDChainOperationsTest: XCTestCase {
                 sigs.append(doc.proof.signature)
                 XCTAssertNotNil(tx)
                 XCTAssertTrue(true)
+                lock.fulfill()
             }.catch{ error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -304,18 +311,22 @@ class IDChainOperationsTest: XCTestCase {
                 XCTAssertEqual(did, his.getDid())
                 XCTAssertEqual(ResolveResultStatus.STATUS_VALID, his.getsStatus())
                 XCTAssertEqual(3, his.getTransactionCount())
-                let txs = his.getAllTransactions()
+                var txs = his.getAllTransactions()
                 XCTAssertNotNil(txs)
                 XCTAssertEqual(3, txs.count)
 
+                txs.reverse()
+//                sigs.reverse()
                 for i in 0..<txs.count {
                     let tx = txs[i]
                     XCTAssertEqual(did, tx.getDid())
                     XCTAssertEqual(txids[i], tx.getTransactionId());
                     XCTAssertEqual(sigs[i], tx.getDocument().proof.signature)
                 }
+                lock.fulfill()
             }.catch{ error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
         } catch {
@@ -488,9 +499,10 @@ class IDChainOperationsTest: XCTestCase {
             _ =  try store.publishDidAsync(for: did, waitForConfirms: 1, using: storePass).done{ tx in
                 print("OK")
                 XCTAssertNotNil(tx)
-
+                lock.fulfill()
             }.catch{ error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -541,9 +553,10 @@ class IDChainOperationsTest: XCTestCase {
             store.publishDidAsync(for: did, waitForConfirms: 1, using: storePass).done { tx in
                 print("OK")
                 XCTAssertNotNil(tx)
-                
+                lock.fulfill()
             }.catch { error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -598,9 +611,10 @@ class IDChainOperationsTest: XCTestCase {
             store.publishDidAsync(for: did, waitForConfirms: 1, using: storePass).done { tx in
                 print("OK")
                 XCTAssertNotNil(tx)
-
+                lock.fulfill()
             }.catch { error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -680,8 +694,10 @@ class IDChainOperationsTest: XCTestCase {
             try store.synchronizeAsync(using: storePass).done { _ in
                 print("OK")
                 XCTAssertTrue(true)
+                lock.fulfill()
             }.catch { errro in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -951,8 +967,10 @@ class IDChainOperationsTest: XCTestCase {
             var lock = XCTestExpectation()
             try store.synchronizeAsync(using: storePass).done{ _ in
                 print("OK")
+                lock.fulfill()
             }.catch{ error in
                 XCTFail()
+                lock.fulfill()
             }
             wait(for: [lock], timeout: 100.0)
 
@@ -1002,6 +1020,7 @@ class IDChainOperationsTest: XCTestCase {
             lock = XCTestExpectation()
             _ = store.synchornizeAsync(using: storePass) { (c, l) -> DIDDocument in
                 print("OK")
+                lock.fulfill()
                 return c
             }
             wait(for: [lock], timeout: 100.0)

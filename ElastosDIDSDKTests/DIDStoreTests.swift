@@ -1466,15 +1466,47 @@ class DIDStoreTests: XCTestCase {
 
             let readerHndle = FileHandle(forReadingAtPath: exportPath)
             readerHndle?.seek(toFileOffset: 0)
-//            try store2.importStore(from: readerHndle!, "password", storePass)
-//
-//            let didDirPath = storeRoot + "/ids/" + did.methodSpecificId
-//            let reDidDirPath = restorePath + "/ids/" + did.methodSpecificId
-//
-//            XCTAssertTrue(testData.existsFile(didDirPath))
-//            XCTAssertTrue(testData.existsFile(didDirPath))
-//            XCTAssertTrue(Utils.equals(reDidDir, didDir))
+            try store2.importStore(from: readerHndle!, "password", storePass)
 
+//            let didDirPath = storeRoot + "/ids/" + did.methodSpecificId
+            let reDidDirPath = restorePath + "/ids/" + did.methodSpecificId
+
+//            XCTAssertTrue(testData.existsFile(didDirPath))
+            XCTAssertTrue(testData.exists(reDidDirPath))
+//            XCTAssertTrue(Utils.equals(reDidDir, didDir))
+            
+        } catch {
+            XCTFail()
+        }
+    }
+
+    func testExportAndImportPrivateIdentity() {
+        do {
+            let testData: TestData = TestData()
+            let bundle = Bundle(for: type(of: self))
+            let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
+
+            let adapter = DummyAdapter()
+            try DIDBackend.initializeInstance(adapter, TestData.getResolverCacheDir())
+            let store = try DIDStore.open(atPath: jsonPath, withType: "filesystem", adapter: adapter)
+
+            let exportPath = tempDir + "/" + "didexport2.json"
+            try create(exportPath, forWrite: true)
+            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
+
+            try store.exportPrivateIdentity(to: fileHndle, "password", storePass)
+            let restorePath = tempDir + "/" + "restore"
+            TestData.deleteFile(restorePath)
+
+            let store2 = try DIDStore.open(atPath: restorePath, withType: "filesystem", adapter: adapter)
+
+            let readerHndle = FileHandle(forReadingAtPath: exportPath)
+            readerHndle?.seek(toFileOffset: 0)
+            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePassword: storePass)
+
+            //            let didDirPath = storeRoot + "/private"
+            let reDidDirPath = restorePath + "/private"
+            XCTAssertTrue(testData.exists(reDidDirPath))
         } catch {
             XCTFail()
         }

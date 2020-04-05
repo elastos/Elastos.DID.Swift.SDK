@@ -1647,7 +1647,7 @@ public class DIDStore: NSObject {
                     print("Exporting private key {}...\(id.toString())")
                     var csk: String = try storage.loadPrivateKey(did, id)
                     let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)
-                    csk = try DIDStore.encryptToBase64(cskData, storePassword)
+                    csk = try DIDStore.encryptToBase64(cskData, password)
                     
                     generator.writeStartObject()
                     value = id.toString()
@@ -1825,7 +1825,7 @@ public class DIDStore: NSObject {
                     print("Credential {} not blongs to {} \(node) \(did.description)")
                     throw DIDError.didStoreError("Invalid credential in the export data.")
                 }
-                value = vc!.toString()
+                value = vc!.toString(true)
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
                 vcs[vc!.getId()] = vc
@@ -1855,7 +1855,7 @@ public class DIDStore: NSObject {
                 value = csk
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
-                let sk: Data = try DIDStore.decryptFromBase64(csk, storePassword)
+                let sk: Data = try DIDStore.decryptFromBase64(csk, password)
                 csk = try DIDStore.encryptToBase64(sk, storePassword)
                 sks[id!] = csk
             }
@@ -2087,7 +2087,7 @@ public class DIDStore: NSObject {
         bytes = [UInt8](encryptedSeed.data(using: .utf8)!)
         sha256.update(&bytes)
         
-        plain = try DIDStore.decryptFromBase64(password, encryptedSeed)
+        plain = try DIDStore.decryptFromBase64(encryptedSeed, password)
         encryptedSeed = try DIDStore.encryptToBase64(plain, storePassword)
         
         // Key.pub
@@ -2158,7 +2158,6 @@ public class DIDStore: NSObject {
     public func importPrivateIdentity(from handle: FileHandle,
                                    using password: String,
                                     storePassword: String) throws {
-        handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
         try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
     }
