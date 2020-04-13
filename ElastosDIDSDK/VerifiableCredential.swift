@@ -124,7 +124,7 @@ public class VerifiableCredential: DIDObject {
 
     public func setExtra(value: String, forName: String) throws {
         guard !forName.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         getMeta().setExtra(value, forName)
@@ -386,7 +386,7 @@ public class VerifiableCredential: DIDObject {
 
     class func fromJson(_ json: Data) throws -> VerifiableCredential {
         guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let data: Dictionary<String, Any>

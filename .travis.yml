@@ -1,0 +1,22 @@
+language: swift
+os: osx
+osx_image: xcode10.2
+
+matrix:
+  include:
+  - env: BUILD_ENV=arm64 SCHEME=ElastosDIDSDK BUILD_TYPE=Debug SDK=iphoneos12.2
+
+  - env: BUILD_ENV=x64 SCHEME=ElastosDIDSDK BUILD_TYPE=Debug SDK=iphonesimulator12.2
+
+install:
+  #- brew install appledoc
+  - .script/download_libs.sh ${BUILD_ENV}
+  - sudo gem update --system
+  - sudo gem install -n /usr/local/bin cocoapods
+  - travis_retry pod repo update --verbose
+  - pod install --verbose --no-repo-update
+
+script:
+  - xcodebuild -showsdks
+  - xcodebuild -workspace ElastosDIDSDK.xcworkspace -scheme ${SCHEME} -configuration ${BUILD_TYPE} -sdk ${SDK} CODE_SIGNING_REQUIRED=NO
+  #- ./docs.sh

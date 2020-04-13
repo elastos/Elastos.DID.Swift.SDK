@@ -212,7 +212,7 @@ public class VerifiablePresentation {
 
     public static func fromJson(_ json: String) throws -> VerifiablePresentation {
         guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let data: Dictionary<String, Any>?

@@ -16,7 +16,7 @@ public class VerifiableCredentialIssuer {
         // should make sure the key would be authenticationKey and
         // has corresponding private key to make sign.
         guard doc.containsAuthenticationKey(forId: key!) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard doc.containsPrivateKey(forId: key!) else {
             throw DIDError.illegalArgument(Errors.NO_PRIVATE_KEY_EXIST)

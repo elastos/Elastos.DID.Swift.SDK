@@ -27,12 +27,12 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard Base58.bytesFromBase58(keyBase58).count == HDKey.PUBLICKEY_BYTES else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let publicKey = PublicKey(id, controller, keyBase58)
         guard document!.appendPublicKey(publicKey) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -58,7 +58,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard try document!.removePublicKey(id, force) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -90,10 +90,10 @@ public class DIDDocumentBuilder {
 
         let key = document!.publicKey(ofId: id)
         guard let _ = key else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard document!.appendAuthenticationKey(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -114,13 +114,13 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard Base58.bytesFromBase58(keyBase58).count == HDKey.PUBLICKEY_BYTES else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let key = PublicKey(id, try getSubject(), keyBase58)
         key.setAuthenticationKey(true)
         guard document!.appendPublicKey(key) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -141,7 +141,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.removeAuthenticationKey(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -162,11 +162,11 @@ public class DIDDocumentBuilder {
 
         let key = document!.publicKey(ofId: id)
         guard let _ = key else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         // use the ref "key" rather than parameter "id".
         guard document!.appendAuthorizationKey(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -188,7 +188,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard Base58.bytesFromBase58(keyBase58).count == HDKey.PUBLICKEY_BYTES else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let key = PublicKey(id, controller, keyBase58)
@@ -226,7 +226,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard try controller != getSubject() else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let controllerDoc: DIDDocument
@@ -244,7 +244,7 @@ public class DIDDocumentBuilder {
         // Check the key should be a authentication key
         let targetKey = controllerDoc.authenticationKey(ofId: usedKey!)
         guard let _ = targetKey else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let pk = PublicKey(id, targetKey!.getType(), controller, targetKey!.publicKeyBase58)
@@ -287,7 +287,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.removeAuthorizationKey(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -306,7 +306,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.appendCredential(credential) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -322,7 +322,7 @@ public class DIDDocumentBuilder {
         }
 
         guard !subject.isEmpty && !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let realTypes: Array<String>
@@ -350,7 +350,7 @@ public class DIDDocumentBuilder {
                                     .sealed(using: storePassword)
             _ =  document!.appendCredential(credential)
         } catch {
-            throw DIDError.malformedCredential()
+            throw DIDError.malformedCredential(nil)
         }
         
         return self
@@ -428,7 +428,7 @@ public class DIDDocumentBuilder {
         }
 
         guard !json.isEmpty && !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let realTypes: Array<String>
@@ -456,7 +456,7 @@ public class DIDDocumentBuilder {
                                     .sealed(using: storePassword)
             _ =  document!.appendCredential(credential)
         } catch {
-            throw DIDError.malformedCredential()
+            throw DIDError.malformedCredential(nil)
         }
         
         return self
@@ -530,7 +530,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.removeCredential(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -551,7 +551,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.appendService(Service(id, type, endpoint)) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -574,7 +574,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard document!.removeService(id) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return self
@@ -604,7 +604,7 @@ public class DIDDocumentBuilder {
 
         let maxExpirationDate = DateHelper.maxExpirationDate()
         guard !DateHelper.isExpired(expiresDate, maxExpirationDate) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         document!.setExpirationDate(expiresDate)
@@ -616,7 +616,7 @@ public class DIDDocumentBuilder {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         if  document!.expirationDate == nil {
             document!.setExpirationDate(DateHelper.maxExpirationDate())

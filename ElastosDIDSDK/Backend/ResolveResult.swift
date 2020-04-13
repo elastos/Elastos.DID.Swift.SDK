@@ -48,7 +48,7 @@ public class ResolveResult: DIDHistory{
 
     class func fromJson(_ node: JsonNode) throws -> ResolveResult {
         guard !node.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let error = { (des: String) -> DIDError in
@@ -83,7 +83,7 @@ public class ResolveResult: DIDHistory{
 
     class func fromJson(_ json: Data) throws -> ResolveResult {
         guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let node: Any

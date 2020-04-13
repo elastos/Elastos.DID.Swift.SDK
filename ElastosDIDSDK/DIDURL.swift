@@ -65,7 +65,7 @@ public class DIDURL {
     
     public init(_ url: String) throws {
         guard !url.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         do {
@@ -155,7 +155,7 @@ public class DIDURL {
 
     public func setExtra(value: String?, forName name: String) throws {
         guard !name.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         getMeta().setExtra(name, value)
@@ -177,7 +177,7 @@ public class DIDURL {
 
     public func setAlias(_ newValue: String) throws {
         guard !newValue.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         try setAliasName(newValue)

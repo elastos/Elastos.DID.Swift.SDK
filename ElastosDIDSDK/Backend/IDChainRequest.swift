@@ -353,7 +353,7 @@ class IDChainRequest: NSObject {
 
     class func fromJson(_ json: Data) throws -> IDChainRequest {
         guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let data: Any

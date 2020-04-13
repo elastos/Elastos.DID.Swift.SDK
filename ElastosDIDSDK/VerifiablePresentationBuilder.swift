@@ -42,7 +42,7 @@ public class VerifiablePresentationBuilder {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
         guard !realm.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         self._realm = realm
@@ -54,7 +54,7 @@ public class VerifiablePresentationBuilder {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
         guard !nonce.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         self._nonce = nonce
@@ -66,10 +66,10 @@ public class VerifiablePresentationBuilder {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard presentation!.cedentialCount > 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard _realm != nil && _nonce != nil else {
             throw DIDError.invalidState("Missing realm and nonce")

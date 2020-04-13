@@ -69,7 +69,7 @@ public class DIDBackend {
 
         init(_ resolver: String) throws {
             guard !resolver.isEmpty else {
-                throw DIDError.illegalArgument()
+                throw DIDError.illegalArgument(nil)
             }
             url = URL(string: resolver)!
         }
@@ -92,7 +92,7 @@ public class DIDBackend {
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
             } catch {
-                throw DIDError.illegalArgument()
+                throw DIDError.illegalArgument(nil)
             }
 
             let semaphore = DispatchSemaphore(value: 0)
@@ -135,7 +135,7 @@ public class DIDBackend {
 
     class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
         guard !resolverURL.isEmpty, !cacheDir.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
@@ -143,7 +143,7 @@ public class DIDBackend {
 
     class func initializeInstance(_ resolverURL: String, _ cacheDir: URL) throws {
         guard !resolverURL.isEmpty, !cacheDir.isFileURL else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
@@ -151,27 +151,27 @@ public class DIDBackend {
 
     class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
         guard !cacheDir.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         do {
             DIDBackend.resolver = resolver
             try ResolverCache.setCacheDir(cacheDir)
         } catch {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
     }
 
     class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: URL) throws {
         guard !cacheDir.isFileURL else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         do {
             DIDBackend.resolver = resolver
             try ResolverCache.setCacheDir(cacheDir)
         } catch {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
     }
 
@@ -250,7 +250,7 @@ public class DIDBackend {
         print("Resolving {}...\(did.toString())")
         let rr = try resolveFromBackend(did, true)
         guard rr.status != ResolveResultStatus.STATUS_NOT_FOUND else {
-            throw DIDError.didResolveError()
+            throw DIDError.didResolveError(nil)
         }
         return rr
      }
@@ -274,7 +274,7 @@ public class DIDBackend {
             //     throw DIDError.didExpired()
 
         case .STATUS_DEACTIVATED:
-            throw DIDError.didDeactivated()
+            throw DIDError.didDeactivated(nil)
 
         case .STATUS_NOT_FOUND:
             return nil

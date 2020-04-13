@@ -22,7 +22,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType> {
     
     public subscript(key: KeyType) -> ValueType? {
         get {
-            _dictionary[key]
+            return _dictionary[key]
         }
         set {
             if newValue == nil {
@@ -45,7 +45,8 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType> {
         _keys = _keys.filter {
             $0 != key
         }
-        return (_dictionary.removeValue(forKey: key) != nil)
+        let result: Bool = (_dictionary.removeValue(forKey: key) != nil)
+        return result
     }
     
     public mutating func removeAll(keepCapacity: Int) {
@@ -55,36 +56,36 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType> {
     
     public var count: Int {
         get {
-            _dictionary.count
+            return _dictionary.count
         }
     }
     
     // keys isn't lazy evaluated because it's just an array anyway
     public var keys: [KeyType] {
         get {
-            _keys
+            return _keys
         }
     }
     
     public var values: Array<ValueType> {
         get {
-            _keys.map { _dictionary[$0]! }
+            return _keys.map { _dictionary[$0]! }
         }
     }
     
     public static func ==<Key: Equatable, Value: Equatable>(lhs: OrderedDictionary<Key, Value>, rhs: OrderedDictionary<Key, Value>) -> Bool {
-        lhs._keys == rhs._keys && lhs._dictionary == rhs._dictionary
+        return lhs._keys == rhs._keys && lhs._dictionary == rhs._dictionary
     }
     
     public static func !=<Key: Equatable, Value: Equatable>(lhs: OrderedDictionary<Key, Value>, rhs: OrderedDictionary<Key, Value>) -> Bool {
-        lhs._keys != rhs._keys || lhs._dictionary != rhs._dictionary
+        return lhs._keys != rhs._keys || lhs._dictionary != rhs._dictionary
     }
 }
 
 extension OrderedDictionary: Sequence {
     
     public func makeIterator() -> OrderedDictionaryIterator<KeyType, ValueType> {
-        OrderedDictionaryIterator<KeyType, ValueType>(sequence: _dictionary, keys: _keys, current: 0)
+        return OrderedDictionaryIterator<KeyType, ValueType>(sequence: _dictionary, keys: _keys, current: 0)
     }
 }
 
@@ -103,7 +104,8 @@ public struct OrderedDictionaryIterator<KeyType: Hashable, ValueType>: IteratorP
         guard let value = sequence[key] else {
             return nil
         }
-        return (key, value)
+        let result: (KeyType, ValueType) = (key, value)
+        return result
     }
     
 }

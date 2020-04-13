@@ -34,11 +34,11 @@ public class DIDStore: NSObject {
                                  _ maxCacheCapacity: Int,
                                  _ adapter: DIDAdapter) throws -> DIDStore {
         guard !path.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard maxCacheCapacity >= initialCacheCapacity else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard type == "filesystem" else {
@@ -104,11 +104,11 @@ public class DIDStore: NSObject {
                                            _ storePassword: String,
                                            _ force: Bool ) throws {
         guard try Mnemonic.isValid(language, mnemonic) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard !containsPrivateIdentity() || force else {
@@ -182,11 +182,11 @@ public class DIDStore: NSObject {
                                            _ storePassword: String,
                                            _ force: Bool) throws {
         guard !extendedPrivateKey.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard !containsPrivateIdentity() || force else {
@@ -211,7 +211,7 @@ public class DIDStore: NSObject {
     
     public func exportMnemonic(using storePassword: String) throws -> String {
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let encryptedMnemonic = try storage.loadMnemonic()
@@ -271,7 +271,7 @@ public class DIDStore: NSObject {
                              _ conflictHandler: ConflictHandler) throws {
 
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let nextIndex = try storage.loadPrivateIdentityIndex()
@@ -392,11 +392,11 @@ public class DIDStore: NSObject {
                         _ alias: String?,
                         _ storePassword: String) throws -> DIDDocument {
         guard privateIdentityIndex >= 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let privateIdentity = try loadPrivateIdentity(storePassword)
@@ -458,10 +458,10 @@ public class DIDStore: NSObject {
 
     public func getDid(byPrivateIdentityIndex: Int, using storePassword: String) throws -> DID {
         guard byPrivateIdentityIndex >= 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let privateIdentity = try loadPrivateIdentity(storePassword)
@@ -476,7 +476,7 @@ public class DIDStore: NSObject {
 
     public func getDid(byPrivateIdentityIndex: Int) throws -> DID {
         guard byPrivateIdentityIndex >= 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         let publicIdentity = try loadPublicIdentity()
 
@@ -495,7 +495,7 @@ public class DIDStore: NSObject {
                             _ storePassword: String,
                             _ force: Bool) throws -> String {
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let doc: DIDDocument
@@ -748,7 +748,7 @@ public class DIDStore: NSObject {
                                _ storePassword: String) throws -> String {
 
         guard !storePassword.isEmpty else {
-            throw DIDError.didStoreError()
+            throw DIDError.didStoreError(nil)
         }
 
         // Document should use the IDChain's copy
@@ -933,7 +933,7 @@ public class DIDStore: NSObject {
                                _ signKey: DIDURL?,
                                _ storePassword: String) throws -> String {
         guard !storePassword.isEmpty else {
-            throw DIDError.didStoreError()
+            throw DIDError.didStoreError(nil)
         }
 
         // All document should use the IDChain's copy
@@ -1226,7 +1226,7 @@ public class DIDStore: NSObject {
 
         doc = try? storage.loadDid(did)
         guard doc != nil else {
-            throw DIDError.notFoundError()
+            throw DIDError.notFoundError(nil)
         }
 
         var meta = try? storage.loadDidMeta(did)
@@ -1418,7 +1418,7 @@ public class DIDStore: NSObject {
                     using storePassword: String) throws {
 
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePassword)
@@ -1483,7 +1483,7 @@ public class DIDStore: NSObject {
 
     func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         var usedId: DIDURL? = id

@@ -564,7 +564,7 @@ public class DIDDocument {
 
     public func setExtra(value: String, forName name: String) throws {
         guard !name.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         getMeta().setExtra(value, name)
@@ -582,7 +582,7 @@ public class DIDDocument {
 
     public func setAlias(_ newValue: String) throws {
         guard !newValue.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         try setAliasName(newValue)
@@ -652,10 +652,10 @@ public class DIDDocument {
 
     func sign(_ id: DIDURL, _ storePassword: String, _ data: [Data]) throws -> String {
         guard data.count > 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard getMeta().attachedStore else {
             throw DIDError.didStoreError("Not attached with DID store")
@@ -678,15 +678,15 @@ public class DIDDocument {
 
     func verify(_ id: DIDURL, _ sigature: String, _ data: [Data]) throws -> Bool {
         guard data.count > 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard !sigature.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let pubKey = publicKey(ofId: id)
         guard let _ = pubKey else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         var cinputs: [CVarArg] = []
@@ -782,7 +782,7 @@ public class DIDDocument {
             do {
                 _ = appendPublicKey(try PublicKey.fromJson(node, self.subject))
             } catch {
-                throw DIDError.malformedDocument()
+                throw DIDError.malformedDocument(nil)
             }
         }
     }
@@ -809,7 +809,7 @@ public class DIDDocument {
                 }
                 _ = appendAuthenticationKey(pk.getId())
             } catch {
-                throw DIDError.malformedDocument()
+                throw DIDError.malformedDocument(nil)
             }
         }
     }
@@ -836,7 +836,7 @@ public class DIDDocument {
                 }
                 _ = appendAuthorizationKey(pk.getId())
             } catch {
-                throw DIDError.malformedDocument()
+                throw DIDError.malformedDocument(nil)
             }
         }
     }
@@ -851,7 +851,7 @@ public class DIDDocument {
             do {
                 _ = appendCredential(try VerifiableCredential.fromJson(node, self.subject))
             } catch {
-                throw DIDError.malformedDocument()
+                throw DIDError.malformedDocument(nil)
             }
         }
     }
@@ -866,7 +866,7 @@ public class DIDDocument {
             do {
                 _ = appendService(try Service.fromJson(node, self.subject))
             } catch {
-                throw DIDError.malformedDocument()
+                throw DIDError.malformedDocument(nil)
             }
         }
     }
@@ -880,14 +880,14 @@ public class DIDDocument {
 
     public class func convertToDIDDocument(fromData data: Data) throws -> DIDDocument {
         guard !data.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let node: Dictionary<String, Any>?
         do {
             node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
         } catch {
-            throw DIDError.malformedDocument()
+            throw DIDError.malformedDocument(nil)
         }
 
         let doc = DIDDocument()

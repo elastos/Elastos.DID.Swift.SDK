@@ -59,7 +59,7 @@ public class DID {
 
     public func setExtra(value: String, forName name: String) throws {
         guard !name.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         getMeta().setExtra(value, name)
@@ -82,7 +82,7 @@ public class DID {
 
     public func setAlias(_ newValue: String) throws {
         guard !newValue.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         try setAliasName(newValue)
@@ -107,7 +107,7 @@ public class DID {
     public func resolve(_ force: Bool) throws -> DIDDocument {
         let doc = try DIDBackend.resolve(self, force)
         guard let _ = doc else {
-            throw DIDError.notFoundError()
+            throw DIDError.notFoundError(nil)
         }
 
         setMeta(doc!.getMeta())

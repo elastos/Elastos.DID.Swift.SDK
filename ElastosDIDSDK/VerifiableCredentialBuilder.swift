@@ -27,7 +27,7 @@ public class VerifiableCredentialBuilder {
 
     public func withId(_ id: String) throws -> VerifiableCredentialBuilder {
         guard !id.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return try withId(DIDURL(_target, id))
@@ -38,7 +38,7 @@ public class VerifiableCredentialBuilder {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
         guard types.count > 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         credential!.setType(types)
@@ -50,7 +50,7 @@ public class VerifiableCredentialBuilder {
              throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
          }
          guard types.count > 0 else {
-             throw DIDError.illegalArgument()
+             throw DIDError.illegalArgument(nil)
          }
 
          credential!.setType(types)
@@ -72,7 +72,7 @@ public class VerifiableCredentialBuilder {
         }
 
         guard !DateHelper.isExpired(expirationDate, maxExpirationDate()) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         // TODO: check
@@ -85,7 +85,7 @@ public class VerifiableCredentialBuilder {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
         guard !properites.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         // TODO: CHECK
         let jsonNode = JsonNode(properites)
@@ -101,7 +101,7 @@ public class VerifiableCredentialBuilder {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
         guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         // TODO: CHECK
         let dic: [String: Any] = try (JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [JSONSerialization.ReadingOptions.init(rawValue: 0)]) as! [String: Any])
@@ -118,7 +118,7 @@ public class VerifiableCredentialBuilder {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
         guard properties.count > 0 else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let subject = VerifiableCredentialSubject(_target)
@@ -133,7 +133,7 @@ public class VerifiableCredentialBuilder {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
         guard credential!.checkIntegrity() else {
             throw DIDError.malformedCredential("imcomplete credential")

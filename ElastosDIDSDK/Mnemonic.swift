@@ -13,7 +13,7 @@ public class Mnemonic {
 
     public class func generate(_ language: String) throws -> String {
         guard !language.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         let result = language.withCString { (clanuage) in
@@ -21,7 +21,7 @@ public class Mnemonic {
         }
 
         guard let _ = result else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return String(cString: result!)
@@ -29,7 +29,7 @@ public class Mnemonic {
     
     public class func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
         guard !language.isEmpty, !mnemonic.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument(nil)
         }
 
         return language.withCString { (clang) in
