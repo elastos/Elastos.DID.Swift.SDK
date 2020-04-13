@@ -16,7 +16,7 @@ elif [ $1 = "macOS" ]; then
     LIBDIR="macosx"
 fi
 
-packageUrl=`curl https://github.com/ahl0107/Elastos.DID.Swift.SDK/releases/tag/internal-test | grep -e $LIBPATTERN -o`
+packageUrl=`curl https://github.com/elastos/Elastos.DID.Native.SDK/releases/tag/internal-test | grep -e $LIBPATTERN -o`
 libPackageName=${packageUrl##*/}
 echo $packageUrl
 
