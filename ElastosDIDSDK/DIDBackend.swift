@@ -19,7 +19,7 @@ public class DIDBackend {
             self._semaphore = DispatchSemaphore(value: 0)
         }
 
-        func update(_ transactionId: String, _ status: Int, _ message: String?) {
+        public func update(_ transactionId: String, _ status: Int, _ message: String?) {
             self._transactionId = transactionId
             self._status = status
             self._message = message
@@ -27,27 +27,27 @@ public class DIDBackend {
             self._semaphore.signal()
         }
 
-        func update(_ transactionId: String) {
+        public func update(_ transactionId: String) {
             update(transactionId, 0, nil)
         }
 
-        var transactionId: String {
+        public var transactionId: String {
             return _transactionId!
         }
 
-        var status: Int {
+        public var status: Int {
             return _status
         }
 
-        var message: String? {
+        public var message: String? {
             return _message
         }
 
-        var isEmpty: Bool {
+        public var isEmpty: Bool {
             return !_filled
         }
 
-        override var description: String {
+        public override var description: String {
             var str = ""
 
             str.append("txid: ")
@@ -67,14 +67,14 @@ public class DIDBackend {
     class DefaultResolver: DIDResolver {
         private var url: URL
 
-        init(_ resolver: String) throws {
+        public init(_ resolver: String) throws {
             guard !resolver.isEmpty else {
                 throw DIDError.illegalArgument()
             }
             url = URL(string: resolver)!
         }
 
-        func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
+        public func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
             Log.i(TAG, "Resolving {}...\(did.description)")
 
             var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
@@ -133,7 +133,7 @@ public class DIDBackend {
         self._adapter = adapter
     }
 
-    class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
+    public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
         guard !resolverURL.isEmpty, !cacheDir.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -141,7 +141,7 @@ public class DIDBackend {
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
     }
 
-    class func initializeInstance(_ resolverURL: String, _ cacheDir: URL) throws {
+    public class func initializeInstance(_ resolverURL: String, _ cacheDir: URL) throws {
         guard !resolverURL.isEmpty, !cacheDir.isFileURL else {
             throw DIDError.illegalArgument()
         }
@@ -149,7 +149,7 @@ public class DIDBackend {
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
     }
 
-    class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
+    public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
         guard !cacheDir.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -162,7 +162,7 @@ public class DIDBackend {
         }
     }
 
-    class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: URL) throws {
+    public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: URL) throws {
         guard !cacheDir.isFileURL else {
             throw DIDError.illegalArgument()
         }
@@ -175,15 +175,15 @@ public class DIDBackend {
         }
     }
 
-    class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
 
-    class func getTtl() -> Int {
+    public class func getTtl() -> Int {
         return _ttl != 0 ? (_ttl / 60 / 1000) : 0
     }
 
-    class func setTtl(_ newValue: Int) {
+    public class func setTtl(_ newValue: Int) {
         self._ttl = newValue > 0 ? (newValue * 60 * 1000) : 0
     }
 
@@ -292,7 +292,7 @@ public class DIDBackend {
         }
     }
 
-    public class func resolve(_ did: DID) throws -> DIDDocument? {
+    class func resolve(_ did: DID) throws -> DIDDocument? {
         return try resolve(did, false)
     }
 
