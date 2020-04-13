@@ -19,7 +19,7 @@ public class DIDBackend {
             self._semaphore = DispatchSemaphore(value: 0)
         }
 
-        public func update(_ transactionId: String, _ status: Int, _ message: String?) {
+        func update(_ transactionId: String, _ status: Int, _ message: String?) {
             self._transactionId = transactionId
             self._status = status
             self._message = message
@@ -27,27 +27,27 @@ public class DIDBackend {
             self._semaphore.signal()
         }
 
-        public func update(_ transactionId: String) {
+        func update(_ transactionId: String) {
             update(transactionId, 0, nil)
         }
 
-        public var transactionId: String {
+        var transactionId: String {
             return _transactionId!
         }
 
-        public var status: Int {
+        var status: Int {
             return _status
         }
 
-        public var message: String? {
+        var message: String? {
             return _message
         }
 
-        public var isEmpty: Bool {
+        var isEmpty: Bool {
             return !_filled
         }
 
-        public override var description: String {
+        override var description: String {
             var str = ""
 
             str.append("txid: ")
@@ -67,14 +67,14 @@ public class DIDBackend {
     class DefaultResolver: DIDResolver {
         private var url: URL
 
-        public init(_ resolver: String) throws {
+        init(_ resolver: String) throws {
             guard !resolver.isEmpty else {
                 throw DIDError.illegalArgument()
             }
             url = URL(string: resolver)!
         }
 
-        public func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
+        func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data {
             Log.i(TAG, "Resolving {}...\(did.description)")
 
             var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
@@ -179,11 +179,11 @@ public class DIDBackend {
         return DIDBackend(adapter)
     }
 
-    public class func getTtl() -> Int {
+    class func getTtl() -> Int {
         return _ttl != 0 ? (_ttl / 60 / 1000) : 0
     }
 
-    public class func setTtl(_ newValue: Int) {
+    class func setTtl(_ newValue: Int) {
         self._ttl = newValue > 0 ? (newValue * 60 * 1000) : 0
     }
 
