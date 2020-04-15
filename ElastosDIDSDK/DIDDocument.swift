@@ -698,9 +698,9 @@ public class DIDDocument {
                 cinputs.append(json!.count)
             }
         }
-        let pks: [UInt8] = pubKey!.publicKeyBytes
-        var pkData: Data = Data(bytes: pks, count: pks.count)
-        let cpk: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let pks = pubKey!.publicKeyBytes
+        var pkData = Data(bytes: pks, count: pks.count)
+        let cpk = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return pk
         }
         let csignature = sigature.toUnsafeMutablePointerInt8()

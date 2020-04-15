@@ -1515,13 +1515,13 @@ public class DIDStore: NSObject {
         let count = cinputs.count / 2
         // UnsafeMutablePointer(mutating: toPPointer)
 
-        let csig: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        let csig = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
         let re = ecdsa_sign_base64v(csig, UnsafeMutablePointer(mutating: toPPointer), Int32(count), c_inputs)
         guard re >= 0 else {
             throw DIDError.didStoreError("sign error.")
         }
         csig[re] = 0
-        let sig: String = String(cString: csig)
+        let sig = String(cString: csig)
         return sig
     }
 
@@ -1542,8 +1542,8 @@ public class DIDStore: NSObject {
 
     public func changePassword(_ oldPassword: String, _ newPassword: String) throws {
         let re: (String) throws -> String = { (data: String) -> String in
-            let udata: Data = try DIDStore.decryptFromBase64(data, oldPassword)
-            let result: String = try DIDStore.encryptToBase64(udata, newPassword)
+            let udata = try DIDStore.decryptFromBase64(data, oldPassword)
+            let result = try DIDStore.encryptToBase64(udata, newPassword)
             return result
         }
         try storage.changePassword(re)
@@ -1703,7 +1703,7 @@ public class DIDStore: NSObject {
         // Fingerprint
         let result = sha256.finalize()
 
-        let dataFing: Data = Data(bytes: result, count: result.count)
+        let dataFing = Data(bytes: result, count: result.count)
         let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
 
         generator.writeStringField("fingerprint", fingerprint)
@@ -1807,7 +1807,7 @@ public class DIDStore: NSObject {
         sha256.update(&bytes)
         
         // Credential
-        var vcs: Dictionary<DIDURL, VerifiableCredential> = [: ]
+        var vcs: [DIDURL: VerifiableCredential] = [: ]
         node = root.get(forKey: "credential")
         if node != nil {
             guard node!.asArray() != nil else {
@@ -1833,7 +1833,7 @@ public class DIDStore: NSObject {
         }
         
         // Private key
-        var sks: Dictionary<DIDURL, String> = [: ]
+        var sks: [DIDURL: String] = [: ]
         node = root.get(forKey: "privatekey")
         if node != nil {
             guard node!.asArray() != nil else {
@@ -1855,7 +1855,7 @@ public class DIDStore: NSObject {
                 value = csk
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
-                let sk: Data = try DIDStore.decryptFromBase64(csk, password)
+                let sk = try DIDStore.decryptFromBase64(csk, password)
                 csk = try DIDStore.encryptToBase64(sk, storePassword)
                 sks[id!] = csk
             }
@@ -1909,7 +1909,7 @@ public class DIDStore: NSObject {
         }
         let refFingerprint = node?.asString()
         let result = sha256.finalize()
-        let dataFing: Data = Data(bytes: result, count: result.count)
+        let dataFing = Data(bytes: result, count: result.count)
         let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
 
         guard fingerprint == refFingerprint else {
@@ -1966,7 +1966,7 @@ public class DIDStore: NSObject {
                                         _ password: String,
                                    _ storePassword: String) throws {
         var encryptedMnemonic = try storage.loadMnemonic()
-        var plain: Data = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
+        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, password)
         var encryptedSeed = try storage.loadPrivateIdentity()
         
@@ -2014,8 +2014,8 @@ public class DIDStore: NSObject {
         let result = sha256.finalize()
         let capacity = result.count * 3
         let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing: Data = Data(bytes: result, count: result.count)
-        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        var dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2079,7 +2079,7 @@ public class DIDStore: NSObject {
         bytes = [UInt8](encryptedMnemonic.data(using: .utf8)!)
         sha256.update(&bytes)
         
-        var plain: Data = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
+        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePassword)
         
         // Key
@@ -2119,8 +2119,8 @@ public class DIDStore: NSObject {
         let result = sha256.finalize()
         let capacity = result.count * 3
         let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing: Data = Data(bytes: result, count: result.count)
-        let cFingerprint: UnsafeMutablePointer<UInt8> = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        var dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
