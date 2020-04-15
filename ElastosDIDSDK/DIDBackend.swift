@@ -246,7 +246,7 @@ public class DIDBackend {
     }
 
      class func resolveHistory(_ did: DID) throws -> DIDHistory {
-        print("Resolving {}...\(did.toString())")
+        Log.i(TAG, "Resolving {}...\(did.toString())")
         let rr = try resolveFromBackend(did, true)
         guard rr.status != ResolveResultStatus.STATUS_NOT_FOUND else {
             throw DIDError.didResolveError()

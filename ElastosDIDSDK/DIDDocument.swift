@@ -1,6 +1,7 @@
 import Foundation
 
 public class DIDDocument {
+    private static let TAG = "DIDDocument"
     private var _subject: DID?
     private var _expirationDate: Date?
     private var _proof: DIDDocumentProof?
@@ -473,7 +474,7 @@ public class DIDDocument {
         let _vc = credential(ofId: vc.getId())
         guard _vc == nil else {
             // TODO: Throw ERROR
-            print(DIDError.unknownFailure("Credential \(vc.getId()) already exist."))
+            Log.e(DIDDocument.TAG, "Credential \(vc.getId()) already exist.")
             return false
         }
         credentialMap.append(vc)

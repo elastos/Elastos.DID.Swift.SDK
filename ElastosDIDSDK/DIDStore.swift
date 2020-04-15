@@ -4,6 +4,7 @@ import PromiseKit
 public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDocument) throws -> DIDDocument
 
 public class DIDStore: NSObject {
+    private static let TAG = "DIDStore"
     public static let CACHE_INITIAL_CAPACITY = 16
     public static let CACHE_MAX_CAPACITY = 32
     
@@ -1613,7 +1614,7 @@ public class DIDStore: NSObject {
             for id in ids {
                 var vc: VerifiableCredential? = nil
                 do {
-                    print("Exporting credential {}...\(id.toString())")
+                    Log.i(DIDStore.TAG, "Exporting credential {}...\(id.toString())")
                     vc = try storage.loadCredential(did, id)
                 } catch {
                     throw DIDError.didStoreError("Export DID \(did) failed.\(error)")
@@ -1644,7 +1645,7 @@ public class DIDStore: NSObject {
             for pk in pks {
                 let id = pk.getId()
                 if storage.containsPrivateKey(did, id) {
-                    print("Exporting private key {}...\(id.toString())")
+                    Log.i(DIDStore.TAG, "Exporting private key {}...\(id.toString())")
                     var csk: String = try storage.loadPrivateKey(did, id)
                     let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)
                     csk = try DIDStore.encryptToBase64(cskData, password)
@@ -1776,8 +1777,8 @@ public class DIDStore: NSObject {
         value = did.description
         bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
-        print("Importing {}...\(did.description)")
-        
+        Log.i(DIDStore.TAG, "Importing {}...\(did.description)")
+
         // Created
         options = JsonSerializer.Options()
             .withOptional()
@@ -1818,11 +1819,11 @@ public class DIDStore: NSObject {
                 do {
                     vc = try VerifiableCredential.fromJson(node, did)
                 } catch {
-                    print("Parse credential \(node) error \(error)")
+                    Log.e(DIDStore.TAG, "Parse credential \(node) error \(error)")
                     throw DIDError.didExpired("Invalid export data.\(error)")
                 }
                 guard vc?.subject.did == did else {
-                    print("Credential {} not blongs to {} \(node) \(did.description)")
+                    Log.e(DIDStore.TAG, "Credential {} not blongs to {} \(node) \(did.description)")
                     throw DIDError.didStoreError("Invalid credential in the export data.")
                 }
                 value = vc!.toString(true)
@@ -1837,7 +1838,7 @@ public class DIDStore: NSObject {
         node = root.get(forKey: "privatekey")
         if node != nil {
             guard node!.asArray() != nil else {
-                print("Privatekey should be an array.")
+                Log.e(DIDStore.TAG, "Privatekey should be an array.")
                 throw DIDError.didStoreError("Invalid export data, wrong privatekey data.")
             }
             for dic in node!.asArray()! {
@@ -1877,7 +1878,7 @@ public class DIDStore: NSObject {
             metaNode = node?.get(forKey: "credential")
             if metaNode != nil {
                 guard metaNode!.asArray() != nil else {
-                    print("Credential's metadata should be an array.")
+                    Log.e(DIDStore.TAG, "Credential's metadata should be an array.")
                     throw DIDError.didStoreError("Invalid export data, wrong metadata.")
                 }
                 for dic in metaNode!.asArray()! {
@@ -1904,7 +1905,7 @@ public class DIDStore: NSObject {
         // Fingerprint
         node = root.get(forKey: "fingerprint")
         guard node != nil else {
-            print("Missing fingerprint")
+            Log.e(DIDStore.TAG, "Missing fingerprint")
             throw DIDError.didStoreError("Missing fingerprint in the export data")
         }
         let refFingerprint = node?.asString()
@@ -1919,18 +1920,18 @@ public class DIDStore: NSObject {
         // Save
         // All objects should load directly from storage,
         // avoid affects the cached objects.
-        print("Importing document...")
+        Log.i(DIDStore.TAG, "Importing document...")
         try storage.storeDid(doc!)
         try storage.storeDidMeta(doc!.subject, doc!.getMeta())
         
         for vc in vcs.values {
-            print("Importing credential {}...\(vc.getId().description)")
+            Log.i(DIDStore.TAG, "Importing credential {}...\(vc.getId().description)")
             try storage.storeCredential(vc)
             try storage.storeCredentialMeta(did, vc.getId(), vc.getMeta())
         }
         
         try sks.forEach { (key, value) in
-            print("Importing private key {}...\(key.description)")
+            Log.i(DIDStore.TAG, "Importing private key {}...\(key.description)")
             try storage.storePrivateKey(did, key, value)
         }
     }
