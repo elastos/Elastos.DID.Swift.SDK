@@ -1226,7 +1226,7 @@ public class DIDStore: NSObject {
         }
 
         doc = try? storage.loadDid(did)
-        guard doc != nil else {
+        guard let _ = doc else {
             throw DIDError.notFoundError()
         }
 
@@ -1704,8 +1704,15 @@ public class DIDStore: NSObject {
         // Fingerprint
         let result = sha256.finalize()
 
-        let dataFing = Data(bytes: result, count: result.count)
-        let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
+            return fing
+        }
+        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
 
         generator.writeStringField("fingerprint", fingerprint)
         generator.writeEndObject()
@@ -1904,15 +1911,21 @@ public class DIDStore: NSObject {
         
         // Fingerprint
         node = root.get(forKey: "fingerprint")
-        guard node != nil else {
+        guard let _ = node else {
             Log.e(DIDStore.TAG, "Missing fingerprint")
             throw DIDError.didStoreError("Missing fingerprint in the export data")
         }
         let refFingerprint = node?.asString()
         let result = sha256.finalize()
-        let dataFing = Data(bytes: result, count: result.count)
-        let fingerprint = try DIDStore.encryptToBase64(dataFing, storePassword)
-
+        let capacity = result.count * 3
+        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        var dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8>  in
+            return fing
+        }
+        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        cFing[re] = 0
+        let fingerprint = String(cString: cFing)
         guard fingerprint == refFingerprint else {
             throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
         }
@@ -1941,7 +1954,7 @@ public class DIDStore: NSObject {
                       storePassword: String) throws {
         
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard dic != nil else {
+        guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
@@ -2016,7 +2029,7 @@ public class DIDStore: NSObject {
         let capacity = result.count * 3
         let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
         var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2121,7 +2134,7 @@ public class DIDStore: NSObject {
         let capacity = result.count * 3
         let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
         var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { (fing: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2144,7 +2157,7 @@ public class DIDStore: NSObject {
                                  using password: String,
                                   storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard dic != nil else {
+        guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
@@ -2210,7 +2223,7 @@ public class DIDStore: NSObject {
                        _ storePassword: String) throws {
         let data = try readData(input: input)
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard dic != nil else {
+        guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         
@@ -2236,7 +2249,7 @@ public class DIDStore: NSObject {
                         _ storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard dic != nil else {
+        guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         
