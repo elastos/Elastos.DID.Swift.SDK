@@ -151,7 +151,7 @@ class IDChainRequest: NSObject {
                 let cp = payload.toUnsafePointerInt8()
                 let c = base64_url_decode(buffer, cp)
                 buffer[c] = 0
-                let json: String = String(cString: buffer)
+                let json = String(cString: buffer)
                 self._doc = try DIDDocument.convertToDIDDocument(fromJson: json)
                 self._did = _doc!.subject
             } else {
