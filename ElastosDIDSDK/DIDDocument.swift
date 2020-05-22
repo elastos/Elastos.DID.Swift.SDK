@@ -252,6 +252,108 @@ public class DIDDocument {
         // TODO:
     }*/
 
+    public func keyPair(ofId: DIDURL) throws -> KeyPair {
+        guard containsPublicKey(forId: ofId) else {
+            throw DIDError.illegalArgument("Key no exist")
+        }
+        guard getMeta().attachedStore else {
+            throw DIDError.didStoreError("Not attached with DID store.")
+        }
+        guard getMeta().store!.containsPrivateKey(for: subject, id: ofId) else {
+            throw DIDError.illegalArgument("Don't have private key")
+        }
+        let pubKey = publicKey(ofId: ofId)
+        let pubs = pubKey!.publicKeyBytes
+        let pubData = Data(bytes: pubs, count: pubs.count)
+        let publicKeyData = HDKey.DerivedKey.PEM_ReadPublicKey(pubData)
+        let keyPair = KeyPair(publicKey: publicKeyData, privatekey: nil)
+        return keyPair
+    }
+
+    public func keyPair(ofId: DIDURL, using storePassword: String) throws -> KeyPair {
+        guard containsPublicKey(forId: ofId) else {
+            throw DIDError.illegalArgument("Key no exist")
+        }
+        guard getMeta().attachedStore else {
+            throw DIDError.didStoreError("Not attached with DID store.")
+        }
+        guard getMeta().store!.containsPrivateKey(for: subject, id: ofId) else {
+            throw DIDError.illegalArgument("Don't have private key")
+        }
+
+        let pubKey = publicKey(ofId: ofId)
+        let pubs = pubKey!.publicKeyBytes
+        let pubData = Data(bytes: pubs, count: pubs.count)
+
+        let privKey = try getMeta().store?.loadPrivateKey(for: subject, byId: ofId)
+        print(String(data: pubData, encoding: .utf8) as Any)
+        print(privKey as Any)
+        let privateKeyData = HDKey.DerivedKey.PEM_ReadPrivateKey(pubData, privKey!.data(using: .utf8)!)
+        var keyPair = KeyPair()
+        keyPair.privatekey = privateKeyData
+        return keyPair
+    }
+/*
+    func publick(_ ofId: DIDURL) throws -> Data {
+        guard containsPublicKey(forId: ofId) else {
+            throw DIDError.illegalArgument("Key no exist")
+        }
+        guard getMeta().attachedStore else {
+            throw DIDError.didStoreError("Not attached with DID store.")
+        }
+        guard getMeta().store!.containsPrivateKey(for: subject, id: ofId) else {
+            throw DIDError.illegalArgument("Don't have private key")
+        }
+        let pb = try getMeta().store?.loadPublicIdentity().serializePub()
+
+        return HDKey.DerivedKey.PEM_ReadPublicKey(pb!)
+    }
+
+    func privateKey(_ ofId: DIDURL, _ storePassword: String) throws -> Data {
+        guard containsPublicKey(forId: ofId) else {
+            throw DIDError.illegalArgument("Key no exist")
+        }
+        guard getMeta().attachedStore else {
+            throw DIDError.didStoreError("Not attached with DID store.")
+        }
+        guard getMeta().store!.containsPrivateKey(for: subject, id: ofId) else {
+            throw DIDError.illegalArgument("Don't have private key")
+        }
+
+        let pubKey = publicKey(ofId: ofId)
+        let pubs = pubKey!.publicKeyBytes
+        let pubData = Data(bytes: pubs, count: pubs.count)
+
+        let privKey = try getMeta().store?.loadPrivateKey(for: subject, byId: ofId)
+        print(String(data: pubData, encoding: .utf8) as Any)
+        print(privKey as Any)
+        return HDKey.DerivedKey.PEM_ReadPrivateKey(pubData, privKey!.data(using: .utf8)!)
+    }
+*/
+    public func jwtBuilder() throws -> JwtBuilder {
+
+        return JwtBuilder(publicKey: { (id) -> KeyPair in
+
+            var _id: DIDURL
+            if id == nil {
+                _id = self.getDefaultPublicKey()!
+            } else {
+                _id = try DIDURL(self.subject, id!)
+            }
+            return try self.keyPair(ofId: _id)
+
+        }) { (id, storepass) -> KeyPair in
+            var _id: DIDURL
+
+            if id == nil {
+                _id = self.getDefaultPublicKey()!
+            } else {
+                _id = try DIDURL(self.subject, id!)
+            }
+            return try self.keyPair(ofId: _id, using: storepass)
+        }
+    }
+
     func appendPublicKey(_ publicKey: PublicKey) -> Bool {
         for key in publicKeys() {
             if  key.getId() == publicKey.getId() ||
