@@ -15,7 +15,7 @@ class JwtTest: XCTestCase {
             XCTAssertTrue(doc.isValid)
 
             let h = JwtBuilder.createHeader()
-            _ = h.setType(h.typ)
+            _ = h.setType("JWT")
                  .setContentType("json")
                  .setValue(key: "library", value: "Elastos DID")
                  .setValue(key: "version", value: "1.0")
@@ -24,16 +24,18 @@ class JwtTest: XCTestCase {
             _ = c.setSubject(subject: "JwtTest")
                  .setId(id: "0")
                  .setAudience(audience: "Test cases")
-                 .setExpiration(expiration: Date() + 1000)
-                 .setIssuedAt(issuedAt: Date())
-                 .setNotBefore(notBefore: Date() + 100)
-                 .setValue(key: "foo", value: "bar")
+//                 .setExpiration(expiration: Date() + 1000)
+//                 .setIssuedAt(issuedAt: Date())
+//                 .setNotBefore(notBefore: Date())
+//                 .setValue(key: "foo", value: "bar")
 
             let jwt = try doc.jwtBuilder()
                 .setHeader(h)
                 .setClaims(c)
             let token = try jwt.sign(using: storePass)
             print(token)
+
+
 
         } catch {
             print(error)

@@ -168,7 +168,7 @@ fileprivate class _JWTEncoder: Encoder {
                 encoder.header = try _header.encode()
             } else if fieldName == "claims" {
                 let data = try jsonEncoder.encode(value)
-                encoder.claims = data.base64urlEncodedString()
+                encoder.claims = JWTEncoder.base64urlEncodedString(data: data)
             }
         }
         

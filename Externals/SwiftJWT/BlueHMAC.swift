@@ -19,7 +19,6 @@ import LoggerAPI
 import Foundation
 
 class BlueHMAC: SignerAlgorithm, VerifierAlgorithm {
-    let TAG = "BlueHMAC"
     let name: String = "HMAC"
     
     private let key: Data
@@ -36,26 +35,30 @@ class BlueHMAC: SignerAlgorithm, VerifierAlgorithm {
             throw JWTError.invalidJWTString
         }
         let signature = try sign(unsignedData)
-        let signatureString = signature.base64urlEncodedString()
+        let signatureString = JWTEncoder.base64urlEncodedString(data: signature)
         return header + "." + claims + "." + signatureString
     }
     
     func sign(_ data: Data) throws -> Data {
         guard #available(macOS 10.12, iOS 10.0, *) else {
-            Log.e(TAG, "macOS 10.12.0 (Sierra) or higher or iOS 10.0 or higher is required by Cryptor")
+//            Log.error("macOS 10.12.0 (Sierra) or higher or iOS 10.0 or higher is required by Cryptor")
             throw JWTError.osVersionToLow
         }
         guard let hmac = HMAC(using: algorithm, key: key).update(data: data)?.final() else {
             throw JWTError.invalidPrivateKey
         }
+        #if swift(>=5.0)
+        return Data(hmac)
+        #else 
         return Data(bytes: hmac)
+        #endif
     }
     
     
     func verify(jwt: String) -> Bool {
         let components = jwt.components(separatedBy: ".")
         if components.count == 3 {
-            guard let signature = Data(base64urlEncoded: components[2]),
+            guard let signature = JWTDecoder.data(base64urlEncoded: components[2]),
                 let jwtData = (components[0] + "." + components[1]).data(using: .utf8)
                 else {
                     return false
@@ -75,7 +78,7 @@ class BlueHMAC: SignerAlgorithm, VerifierAlgorithm {
             return expectedHMAC == signature
         }
         catch {
-            Log.e(TAG, "Verification failed: \(error)")
+//            Log.error("Verification failed: \(error)")
             return false
         }
     }

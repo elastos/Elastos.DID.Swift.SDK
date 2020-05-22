@@ -65,8 +65,8 @@ public struct JWT {
     public init(jwtString: String, verifier: JWTVerifier = .none ) throws {
         let components = jwtString.components(separatedBy: ".")
         guard components.count == 2 || components.count == 3,
-            let headerData = Data(base64urlEncoded: components[0]),
-            let claimsData = Data(base64urlEncoded: components[1])
+            let headerData = JWTDecoder.data(base64urlEncoded: components[0]),
+            let claimsData = JWTDecoder.data(base64urlEncoded: components[1])
         else {
             throw JWTError.invalidJWTString
         }
@@ -115,25 +115,25 @@ public struct JWT {
     /// - Parameter leeway: The time in seconds that the JWT can be invalid but still accepted to account for clock differences.
     /// - Returns: A value of `ValidateClaimsResult`.
     public func validateClaims(leeway: TimeInterval = 0) -> ValidateClaimsResult {        
-        if let expirationDate = claims.claims[claims.exp] {
-            if expirationDate as! Date + leeway < Date() {
-                return .expired
+            if let expirationDate = claims.claims[claims.exp] {
+                if expirationDate as! Date + leeway < Date() {
+                    return .expired
+                }
             }
-        }
-        
-        if let notBeforeDate = claims.claims[claims.nbf] {
-            if notBeforeDate as! Date > Date() + leeway {
-                return .notBefore
+
+            if let notBeforeDate = claims.claims[claims.nbf] {
+                if notBeforeDate as! Date > Date() + leeway {
+                    return .notBefore
+                }
             }
-        }
-        
-        if let issuedAtDate = claims.claims[claims.iat] {
-            if issuedAtDate as! Date > Date() + leeway {
-                return .issuedAt
+
+            if let issuedAtDate = claims.claims[claims.iat] {
+                if issuedAtDate as! Date > Date() + leeway {
+                    return .issuedAt
+                }
             }
+
+            return .success
         }
-        
-        return .success
-    }
 }
 

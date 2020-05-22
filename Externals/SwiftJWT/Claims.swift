@@ -125,30 +125,31 @@ public class Claims {
     }
 
     public func setIssuedAt(issuedAt: Date) -> Claims {
-        claims[iat] = issuedAt
+        claims[iat] = DateHelper.formateDate(issuedAt)
         return self
     }
 
     public func getIssuedAt() -> Date? {
-        return claims[iat] as? Date
+
+        return DateFormatter.convertToUTCDateFromString((claims[iat] as? String)!)
     }
 
     public func setExpiration(expiration: Date) -> Claims {
-        claims[exp] = expiration
+        claims[exp] = DateHelper.formateDate(expiration)
         return self
     }
 
     public func getExpiration() -> Date? {
-        return claims[exp] as? Date
+        return DateFormatter.convertToUTCDateFromString((claims[exp] as? String)!)
     }
 
     public func setNotBefore(notBefore: Date) -> Claims {
-        claims[nbf] = notBefore
+        claims[nbf] = DateHelper.formateDate(notBefore)
         return self
     }
 
     public func getNotBefore() -> Date? {
-        return claims[nbf] as? Date
+        return DateFormatter.convertToUTCDateFromString((claims[nbf] as? String)!)
     }
 
     public func setValue(key: String, value: Any) -> Claims {
@@ -166,7 +167,7 @@ public extension Claims {
     func encode() throws -> String {
         let data = try JSONSerialization.data(withJSONObject: claims, options: [])
 //        print(String(data: data, encoding: .utf8))
-        return data.base64urlEncodedString()
+        return JWTEncoder.base64urlEncodedString(data: data)
     }
 
    class func decode(_ data: Data) throws -> Claims {

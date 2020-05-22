@@ -294,8 +294,7 @@ public class DIDDocument {
         print(String(data: pubData, encoding: .utf8) as Any)
         print(privKey as Any)
         let privateKeyData = try HDKey.DerivedKey.PEM_ReadPrivateKey(pubData, privKey!.data(using: .utf8)!)
-        var keyPair = KeyPair()
-        keyPair.privatekey = privateKeyData
+        let keyPair = KeyPair(publicKey: nil, privatekey: privateKeyData)
         return keyPair
     }
 

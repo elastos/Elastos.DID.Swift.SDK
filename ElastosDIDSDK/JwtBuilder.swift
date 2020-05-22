@@ -131,10 +131,23 @@ public class JwtBuilder {
 
     public func sign(using password: String) throws -> String {
         var jwt = JWT(header: self.h!, claims: self.c!)
-        let keyPair = try self.privateKeyClosure!(nil, password)
-        let jwtSigner = JWTSigner.rs256(privateKey: keyPair.privatekey!)
-        let signedJWT = try jwt.sign(using: jwtSigner)
+        let privateKeyPair = try self.privateKeyClosure!(nil, password)
+        let publicKeyPair = try self.publicKeyClosure!(nil)
+//        "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIHBUYVZFc3dtMms4dzBNbTF0TFFCaW9GMlJHWG1zM1EtoAoGCCqGSM49\nAwEHoUQDQgAE/LsFvsQITa/HyMylOl9JVFmYyX9NwXxdrhE60w7mNyXYTwPdWmCf\nXrghXqeUCR8HfxXY7wbp5zqf1JMXwsUyzQ==\n-----END EC PRIVATE KEY-----\n"
+//
+//        let bl = Bundle(for: type(of: self))
+//        let filepath = bl.path(forResource: "es256_private_key", ofType: "")
+//        let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
+//        let d = try Data(contentsOf: URL(fileURLWithPath: filepath!, isDirectory: false))
+//        let jwtSigner = JWTSigner.es256(privateKey: keyPair.privatekey!)
+//        print(String(data: d, encoding: .utf8))
+        let jwtSigner = JWTSigner.es256(privateKey: privateKeyPair.privatekey!.data(using: .utf8)!)
+        let jwtVerify = JWTVerifier.es256(publicKey: publicKeyPair.publicKey!.data(using: .utf8)!)
 
+        let signedJWT = try jwt.sign(using: jwtSigner)
+        // test
+        let ok = JWT.verify(signedJWT, using: jwtVerify)
+        print(ok)
 //        // test
 //        let j = JWT<Claims>(jwtString: signedJWT)
 //        j.header.headers

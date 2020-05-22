@@ -1,8 +1,8 @@
 import Foundation
 
 public struct KeyPair {
-    var publicKey: Data?
-    var privatekey: Data?
+    var publicKey: String?
+    var privatekey: String?
 }
 
 class HDKey: NSObject {
@@ -77,7 +77,7 @@ class HDKey: NSObject {
             return getPrivateKeyData()
         }
         
-        class func PEM_ReadPublicKey(_ publicKey: Data) -> Data {
+        class func PEM_ReadPublicKey(_ publicKey: Data) -> String {
             var pubData = publicKey
             let cpub: UnsafeMutablePointer<UInt8> = pubData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
                 return bytes
@@ -88,13 +88,11 @@ class HDKey: NSObject {
             if re < 0 {
                 //TODO: throws
             }
-            let cprivateKeyPointerToArry: UnsafeBufferPointer<Int8> = UnsafeBufferPointer(start: cprivateKey, count: 512)
-            let data = Data(buffer: cprivateKeyPointerToArry)
-            
-            return data
+            let cstr = String(cString: cprivateKey)
+            return cstr
         }
 
-        class func PEM_ReadPrivateKey(_ publicKey: Data, _ privatekey: Data) throws -> Data {
+        class func PEM_ReadPrivateKey(_ publicKey: Data, _ privatekey: Data) throws -> String {
             let cpub: UnsafePointer<UInt8> = publicKey.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
                 return bytes
             }
@@ -107,9 +105,8 @@ class HDKey: NSObject {
             if re < 0 {
                 //TODO: throws
             }
-            let cPEM_privateKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cPEM_privateKey, count: count)
-
-            return Data(buffer: cPEM_privateKeyPointerToArry)
+            let cstr = String(cString: cPEM_privateKey)
+            return cstr
         }
 
         func wipe() {

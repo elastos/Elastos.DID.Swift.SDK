@@ -87,7 +87,7 @@ public class Header {
     func encode() throws -> String  {
         let data = try JSONSerialization.data(withJSONObject: headers, options: [])
 //        print(String(data: data, encoding: .utf8))
-        return data.base64urlEncodedString()
+        return JWTEncoder.base64urlEncodedString(data: data)
     }
 
     class func decode(_ data: Data) throws -> Header {
