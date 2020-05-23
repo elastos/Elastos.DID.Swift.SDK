@@ -1,8 +1,8 @@
 import Foundation
 
 public struct KeyPair {
-    var publicKey: String?
-    var privatekey: String?
+    var publicKey: Data?
+    var privatekey: Data?
 }
 
 class HDKey: NSObject {
@@ -78,8 +78,7 @@ class HDKey: NSObject {
         }
         
         class func PEM_ReadPublicKey(_ publicKey: Data) -> String {
-            var pubData = publicKey
-            let cpub: UnsafeMutablePointer<UInt8> = pubData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
+            let cpub: UnsafePointer<UInt8> = publicKey.withUnsafeBytes { (bytes) -> UnsafePointer<UInt8> in
                 return bytes
             }
             let cprivateKey: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 512)

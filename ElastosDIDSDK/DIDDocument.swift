@@ -235,18 +235,7 @@ public class DIDDocument {
         return getDefaultPublicKey()!
     }
 
-    public func keyPair(ofid: String?) throws -> KeyPair {
-        var id: DIDURL? = getDefaultPublicKey()
-        if  ofid != nil {
-            id = try DIDURL(subject, ofid!)
-        }
-        if  id == nil {
-            // TODO: throws
-        }
-        return try keyPair(ofId: id!)
-    }
-
-    public func keyPair(ofId: DIDURL) throws -> KeyPair {
+    func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
         guard containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
         }
@@ -260,22 +249,11 @@ public class DIDDocument {
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
         let publicKeyData = HDKey.DerivedKey.PEM_ReadPublicKey(pubData)
-        let keyPair = KeyPair(publicKey: publicKeyData, privatekey: nil)
-        return keyPair
+
+        return publicKeyData.data(using: .utf8)!
     }
 
-    public func keyPair(ofId: String?, using storePassword: String) throws -> KeyPair {
-        var id: DIDURL? = getDefaultPublicKey()
-        if  ofId != nil {
-            id = try DIDURL(subject, ofId!)
-        }
-        if  id == nil {
-            // TODO: throws
-        }
-        return try keyPair(ofId: id!, using: storePassword)
-    }
-
-    public func keyPair(ofId: DIDURL, using storePassword: String) throws -> KeyPair {
+    func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
         guard containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
         }
@@ -291,16 +269,15 @@ public class DIDDocument {
         let pubData = Data(bytes: pubs, count: pubs.count)
 
         let privKey = try getMeta().store?.loadPrivateKey(for: subject, byId: ofId)
-        print(String(data: pubData, encoding: .utf8) as Any)
-        print(privKey as Any)
-        let privateKeyData = try HDKey.DerivedKey.PEM_ReadPrivateKey(pubData, privKey!.data(using: .utf8)!)
-        let keyPair = KeyPair(publicKey: nil, privatekey: privateKeyData)
-        return keyPair
+        let privKeyData = try DIDStore.decryptFromBase64(privKey!, storePassword)
+        let privateKeyData = try HDKey.DerivedKey.PEM_ReadPrivateKey(pubData, privKeyData)
+
+        return privateKeyData.data(using: .utf8)!
     }
 
     public func jwtBuilder() throws -> JwtBuilder {
 
-        return JwtBuilder(publicKey: { (id) -> KeyPair in
+        return JwtBuilder(publicKey: { (id) -> Data in
 
             var _id: DIDURL
             if id == nil {
@@ -308,9 +285,9 @@ public class DIDDocument {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair(ofId: _id)
+            return try self.keyPair_PublicKey(ofId: _id)
 
-        }) { (id, storepass) -> KeyPair in
+        }) { (id, storepass) -> Data in
             var _id: DIDURL
 
             if id == nil {
@@ -318,7 +295,7 @@ public class DIDDocument {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair(ofId: _id, using: storepass)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storepass)
         }
     }
 

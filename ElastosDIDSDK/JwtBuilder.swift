@@ -3,10 +3,10 @@ import Foundation
 public class JwtBuilder {
     var h: Header?
     var c: Claims?
-    var publicKeyClosure: ((_ id: String?) throws -> KeyPair)?
-    var privateKeyClosure: ((_ id: String?, _ storepass: String) throws -> KeyPair)?
+    var publicKeyClosure: ((_ id: String?) throws -> Data)?
+    var privateKeyClosure: ((_ id: String?, _ storepass: String) throws -> Data)?
 
-    init(publicKey: @escaping (_ id: String?) throws -> KeyPair, privateKey: @escaping (_ id: String?, _ storepass: String) throws -> KeyPair) {
+    init(publicKey: @escaping (_ id: String?) throws -> Data, privateKey: @escaping (_ id: String?, _ storepass: String) throws -> Data) {
         publicKeyClosure = publicKey
         privateKeyClosure = privateKey
     }
@@ -131,20 +131,13 @@ public class JwtBuilder {
 
     public func sign(using password: String) throws -> String {
         var jwt = JWT(header: self.h!, claims: self.c!)
-        let privateKeyPair = try self.privateKeyClosure!(nil, password)
-        let publicKeyPair = try self.publicKeyClosure!(nil)
-//        "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIHBUYVZFc3dtMms4dzBNbTF0TFFCaW9GMlJHWG1zM1EtoAoGCCqGSM49\nAwEHoUQDQgAE/LsFvsQITa/HyMylOl9JVFmYyX9NwXxdrhE60w7mNyXYTwPdWmCf\nXrghXqeUCR8HfxXY7wbp5zqf1JMXwsUyzQ==\n-----END EC PRIVATE KEY-----\n"
-//
-//        let bl = Bundle(for: type(of: self))
-//        let filepath = bl.path(forResource: "es256_private_key", ofType: "")
-//        let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
-//        let d = try Data(contentsOf: URL(fileURLWithPath: filepath!, isDirectory: false))
-//        let jwtSigner = JWTSigner.es256(privateKey: keyPair.privatekey!)
-//        print(String(data: d, encoding: .utf8))
-        let jwtSigner = JWTSigner.es256(privateKey: privateKeyPair.privatekey!.data(using: .utf8)!)
-        let jwtVerify = JWTVerifier.es256(publicKey: publicKeyPair.publicKey!.data(using: .utf8)!)
+        let privateKey = try self.privateKeyClosure!(nil, password)
+        let publicKey = try self.publicKeyClosure!(nil)
+        let jwtSigner = JWTSigner.es256(privateKey: privateKey)
+        let jwtVerify = JWTVerifier.es256(publicKey: publicKey)
 
         let signedJWT = try jwt.sign(using: jwtSigner)
+
         // test
         let ok = JWT.verify(signedJWT, using: jwtVerify)
         print(ok)
@@ -152,6 +145,19 @@ public class JwtBuilder {
 //        let j = JWT<Claims>(jwtString: signedJWT)
 //        j.header.headers
         return signedJWT
+    }
+// test
+    func read(fileName: String) -> Data {
+        do {
+            var pathToTests = #file
+            if pathToTests.hasSuffix("JwtBuilder.swift") {
+                pathToTests = pathToTests.replacingOccurrences(of: "JwtBuilder.swift", with: "")
+            }
+            let fileData = try Data(contentsOf: URL(fileURLWithPath: "\(pathToTests)\(fileName)"))
+            return fileData
+        } catch {
+            exit(1)
+        }
     }
 }
 
