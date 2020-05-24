@@ -299,6 +299,36 @@ public class DIDDocument {
         }
     }
 
+    public func jwtParserBuilder() -> JwtParserBuilder {
+
+        var builder: JwtParserBuilder = JwtParserBuilder()
+        builder.getPublicKey = { (id) in
+
+            var _id: DIDURL
+            if id == nil {
+                _id = self.getDefaultPublicKey()!
+            } else {
+                _id = try DIDURL(self.subject, id!)
+            }
+            return try self.keyPair_PublicKey(ofId: _id)
+        }
+        builder.getPrivateKey = {(id, storepass) in
+
+            var _id: DIDURL
+            if id == nil {
+                _id = self.getDefaultPublicKey()!
+            } else {
+                _id = try DIDURL(self.subject, id!)
+            }
+            return try self.keyPair_PrivateKey(ofId: _id, using: storepass!)
+        }
+        return builder
+    }
+
+    public func build() throws -> JwtParser {
+        return JwtParser()
+    }
+
     func appendPublicKey(_ publicKey: PublicKey) -> Bool {
         for key in publicKeys() {
             if  key.getId() == publicKey.getId() ||

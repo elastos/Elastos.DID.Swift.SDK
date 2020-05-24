@@ -1,7 +1,11 @@
 
 import UIKit
 
-class JwtParserBuilder: NSObject {
+public class JwtParserBuilder: NSObject {
+
+    var getPublicKey : ((_ id: String?) throws -> Data)?
+
+    var getPrivateKey : ((_ id: String?, _ storepass: String?) throws -> Data)?
 
     var claimsJwt : String?
 
