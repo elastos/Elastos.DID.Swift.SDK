@@ -116,7 +116,7 @@ public class Claims {
     }
 
     public func getExpiration() -> Date? {
-        return DateHelper.getDateFromTimeStamp(claims[Claims.exp] as? Int)
+        return DateHelper.getDateFromTimeStamp(claims[Claims.exp] as? Date)
     }
 
     public func setExpiration(expiration: Date) -> Claims {
@@ -125,7 +125,7 @@ public class Claims {
     }
 
     public func getNotBefore() -> Date? {
-        return DateHelper.getDateFromTimeStamp(claims[Claims.nbf] as? Int)
+        return DateHelper.getDateFromTimeStamp(claims[Claims.nbf] as? Date)
     }
 
     public func setNotBefore(notBefore: Date) -> Claims {
@@ -135,7 +135,7 @@ public class Claims {
 
     public func getIssuedAt() -> Date? {
         
-        return DateHelper.getDateFromTimeStamp(claims[Claims.iat] as? Int)
+        return DateHelper.getDateFromTimeStamp(claims[Claims.iat] as? Date)
     }
 
     public func setIssuedAt(issuedAt: Date) -> Claims {
