@@ -43,7 +43,7 @@ public class Header {
     /// Critical Header Parameter
     public static let crit: String = "crit"
 
-    var headers: [String: Any] = [: ]
+    private var headers: [String: Any] = [: ]
 
     public init() { }
 

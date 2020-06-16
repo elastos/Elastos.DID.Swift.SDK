@@ -84,7 +84,7 @@ public class Claims {
      */
     public static let jti: String = "jti"
 
-    var claims: [String: Any] = [: ]
+    private var claims: [String: Any] = [: ]
 
     public init() { }
 
