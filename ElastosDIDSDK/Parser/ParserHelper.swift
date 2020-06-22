@@ -11,10 +11,6 @@ class DIDAntlr4ErrorListener: BaseErrorListener {
         let msg = "At position \(charPositionInLine) : \(msg), \(String(describing: e))"
         throw DIDError.illegalArgument(msg)
     }
-
-    func tryThrows(withMsg:String) throws {
-        throw DIDError.illegalArgument(withMsg)
-    }
 }
 
 class ParserHelper: NSObject {
