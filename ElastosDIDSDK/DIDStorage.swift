@@ -20,7 +20,7 @@ protocol DIDStorage {
     func loadDidMeta(_ did: DID) throws -> DIDMeta
 
     func storeDid(_ doc: DIDDocument) throws
-    func loadDid(_ did: DID) throws -> DIDDocument
+    func loadDid(_ did: DID) throws -> DIDDocument?
     func containsDid(_ did: DID) -> Bool
     func deleteDid(_ did: DID) -> Bool
     func listDids(_ filter: Int) throws -> Array<DID>

@@ -409,7 +409,7 @@ public class DIDStore: NSObject {
         }
 
         let did = DID(Constants.METHOD, key.getAddress())
-        var doc = try? loadDid(did)
+        var doc = try loadDid(did)
         if doc != nil {
             throw DIDError.didStoreError("DID already exists.")
         }
@@ -420,7 +420,7 @@ public class DIDStore: NSObject {
         let builder = DIDDocumentBuilder(did, self)
         doc = try builder.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             .sealed(using: storePassword)
-        doc!.getMetadata().setAlias(alias)
+        doc?.getMetadata().setAlias(alias)
         try storeDid(using: doc!)
 
         return doc!
@@ -491,21 +491,20 @@ public class DIDStore: NSObject {
     }
 
     public func publishDid(_ did: DID,
-                            _ signKey: DIDURL?,
-                            _ storePassword: String,
-                            _ force: Bool) throws {
+                           _ signKey: DIDURL?,
+                           _ storePassword: String,
+                           _ force: Bool) throws {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
-
-        let doc: DIDDocument
-        do {
-            doc = try loadDid(did)
-        } catch {
+        Log.i(DIDStore.TAG, "Publishing {}{}...", did.toString(), force ? " in force mode" : "" )
+        let  doc = try loadDid(did)
+        if doc == nil {
+            Log.e(DIDStore.TAG, "No document for {}", did.toString())
             throw DIDError.didStoreError("Can not find the document for \(did)")
         }
 
-        guard !doc.isDeactivated else {
+        guard !doc!.isDeactivated else {
             throw DIDError.didStoreError("DID already deactivated.")
         }
 
@@ -519,8 +518,8 @@ public class DIDStore: NSObject {
             }
             reolvedSignautre = resolvedDoc?.proof.signature
             if !force {
-                let localPrevSignature = doc.getMetadata().previousSignature
-                let localSignature = doc.getMetadata().signature
+                let localPrevSignature = doc!.getMetadata().previousSignature
+                let localSignature = doc!.getMetadata().signature
 
                 if localPrevSignature == nil && localSignature == nil {
                     Log.e(DIDStore.TAG ,"Missing signatures information, DID SDK dosen't know how to handle it, use force mode to ignore checks.")
@@ -538,20 +537,20 @@ public class DIDStore: NSObject {
 
         var usedSignKey = signKey
         if  usedSignKey == nil {
-            usedSignKey = doc.defaultPublicKey
+            usedSignKey = doc?.defaultPublicKey
         }
 
         if  lastTxid == nil {
             Log.i(DIDStore.TAG ,"Try to publish[create] {}...\(did.toString())")
-            try backend.create(doc, usedSignKey!, storePassword)
+            try backend.create(doc!, usedSignKey!, storePassword)
         } else {
             Log.i(DIDStore.TAG ,"Try to publish[update] {}...\(did.toString())")
-            try backend.update(doc, lastTxid!, usedSignKey!, storePassword)
+            try backend.update(doc!, lastTxid!, usedSignKey!, storePassword)
         }
 
-        doc.getMetadata().setPreviousSignature(reolvedSignautre)
-        doc.getMetadata().setSignature(doc.getProof()!.signature)
-        try storage.storeDidMeta(doc.subject, doc.getMetadata())
+        doc!.getMetadata().setPreviousSignature(reolvedSignautre)
+        doc!.getMetadata().setSignature(doc!.getProof()!.signature)
+        try storage.storeDidMeta(doc!.subject, doc!.getMetadata())
     }
 
     public func publishDid(for did: DID,
@@ -991,7 +990,7 @@ public class DIDStore: NSObject {
         return try loadDidMeta(for: DID(did))
     }
 
-    public func loadDid(_ did: DID) throws -> DIDDocument {
+    public func loadDid(_ did: DID) throws -> DIDDocument? {
         var doc: DIDDocument?
         if documentCache != nil {
             doc = documentCache!.getValue(for: did)
@@ -1000,24 +999,22 @@ public class DIDStore: NSObject {
             }
         }
 
-        doc = try? storage.loadDid(did)
-        guard let _ = doc else {
-            throw DIDError.notFoundError()
+        doc = try storage.loadDid(did)
+
+        if doc != nil {
+            let metadata = try storage.loadDidMeta(did)
+            metadata.setStore(self)
+            doc?.setMetadata(metadata)
         }
 
-        var meta = try? storage.loadDidMeta(did)
-        if meta == nil {
-            meta = DIDMeta()
+        if doc != nil && documentCache != nil {
+            documentCache?.setValue(doc!, for: doc!.subject)
         }
-        doc!.setMetadata(meta!)
-        doc!.getMetadata().setStore(self)
-        if documentCache != nil {
-            documentCache!.setValue(doc!, for: doc!.subject)
-        }
-        return doc!
+
+        return doc
     }
 
-    public func loadDid(_ did: String) throws -> DIDDocument {
+    public func loadDid(_ did: String) throws -> DIDDocument? {
         return try loadDid(DID(did))
     }
     
@@ -1262,12 +1259,11 @@ public class DIDStore: NSObject {
 
         var usedId: DIDURL? = id
         if  usedId == nil {
-            do {
-                let doc = try loadDid(did)
-                usedId = doc.defaultPublicKey
-            } catch {
-                throw DIDError.didStoreError("Can not resolve DID document")
+            let doc = try loadDid(did)
+            if doc == nil {
+                throw DIDError.didStoreError("Can not resolve DID document.")
             }
+            usedId = doc!.defaultPublicKey
         }
 
         let privatekeys = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)

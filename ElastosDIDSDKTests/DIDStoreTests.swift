@@ -934,15 +934,15 @@ class DIDStoreTests: XCTestCase {
             let issuer: DIDDocument = try testData.loadTestIssuer()
             let test: DIDDocument = try testData.loadTestDocument()
                         
-            var doc: DIDDocument = try  store.loadDid(issuer.subject)
-            XCTAssertEqual(issuer.subject, doc.subject)
-            XCTAssertEqual(issuer.proof.signature, doc.proof.signature)
-            XCTAssertTrue(doc.isValid)
+            var doc: DIDDocument? = try  store.loadDid(issuer.subject)
+            XCTAssertEqual(issuer.subject, doc!.subject)
+            XCTAssertEqual(issuer.proof.signature, doc!.proof.signature)
+            XCTAssertTrue(doc!.isValid)
             
             doc = try store.loadDid(test.subject.description)
-            XCTAssertEqual(test.subject, doc.subject)
-            XCTAssertEqual(test.proof.signature, doc.proof.signature)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertEqual(test.subject, doc!.subject)
+            XCTAssertEqual(test.proof.signature, doc!.proof.signature)
+            XCTAssertTrue(doc!.isValid)
             
             var dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
             XCTAssertEqual(2, dids.count)
@@ -1314,7 +1314,7 @@ class DIDStoreTests: XCTestCase {
             for i in 0..<10 {
                 let doc = try stores[i].loadDid(docs[i].subject)
                 XCTAssertNotNil(doc)
-                XCTAssertEqual(docs[i].toString(true, forSign: true), doc.toString(true, forSign: true))
+                XCTAssertEqual(docs[i].toString(true, forSign: true), doc!.toString(true, forSign: true))
             }
         } catch {
             print(error)

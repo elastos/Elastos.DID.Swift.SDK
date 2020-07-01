@@ -764,7 +764,7 @@ public class DIDDocument {
         return re == 0 ? true : false
     }
 
-    private func fromJson(_ doc: JsonNode) throws {
+    private func parse(_ doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options
 
@@ -927,7 +927,7 @@ public class DIDDocument {
 
     class func convertToDIDDocument(fromJson: JsonNode) throws -> DIDDocument {
         let doc = DIDDocument()
-        try doc.fromJson(fromJson)
+        try doc.parse(fromJson)
 
         return doc
     }
@@ -945,7 +945,7 @@ public class DIDDocument {
         }
 
         let doc = DIDDocument()
-        try doc.fromJson(JsonNode(node!))
+        try doc.parse(JsonNode(node!))
 
         return doc
     }

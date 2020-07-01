@@ -31,6 +31,7 @@ import Foundation
  *
  */
 public class FileSystemStorage: DIDStorage {
+
     typealias ReEncryptor = (String) throws -> String
 
     private static let STORE_MAGIC:   [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
@@ -479,14 +480,18 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func loadDid(_ did: DID) throws -> DIDDocument {
+    func loadDid(_ did: DID) throws -> DIDDocument? {
         do {
+            var data: Data
+            do {
             let handle = try openDocumentFile(did)
-            defer {
-                handle.closeFile()
+                defer {
+                    handle.closeFile()
+                }
+                data = handle.readDataToEndOfFile()
+            } catch {
+                return nil
             }
-
-            let data = handle.readDataToEndOfFile()
             return try DIDDocument.convertToDIDDocument(fromData: data)
         } catch {
             throw DIDError.didStoreError("load DIDDocument error")
