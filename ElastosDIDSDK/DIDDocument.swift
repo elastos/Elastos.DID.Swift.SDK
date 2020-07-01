@@ -1125,15 +1125,15 @@ public class DIDDocument {
 }
 
 extension DIDDocument: CustomStringConvertible {
-    func toString() -> String {
+    public func toString() -> String {
         return (try? toJson(false, false)) ?? ""
     }
     
-    func toString(_ force: Bool) -> String {
+    public func toString(_ force: Bool) -> String {
         return (try? toJson(force, false)) ?? ""
     }
 
-    func toString(_ force: Bool, forSign: Bool) -> String {
+    public func toString(_ force: Bool, forSign: Bool) -> String {
         return (try? toJson(force, forSign)) ?? ""
     }
 
