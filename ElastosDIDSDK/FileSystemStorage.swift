@@ -74,8 +74,8 @@ public class FileSystemStorage: DIDStorage {
     private func initializeStore() throws {
         do {
             try FileManager.default.createDirectory(atPath: self._rootPath,
-                               withIntermediateDirectories: true,
-                                                attributes: nil)
+                                                    withIntermediateDirectories: true,
+                                                    attributes: nil)
 
             var data = Data(capacity: 8)
             data.append(contentsOf: FileSystemStorage.STORE_MAGIC)
@@ -199,6 +199,15 @@ public class FileSystemStorage: DIDStorage {
         }
         try fileManager.removeItem(atPath: path)
         return true
+    }
+
+    private func filePath( _ pathArgs: String...) -> String {
+        var path: String = _rootPath
+        for item in pathArgs {
+            path.append("/")
+            path.append(item)
+        }
+        return path
     }
 
     private func openFileHandle(_ forWrite: Bool, _ pathArgs: String...) throws -> FileHandle {
@@ -421,7 +430,7 @@ public class FileSystemStorage: DIDStorage {
         return try openDidMetaFile(did, false)
     }
 
-    func storeDidMeta(_ did: DID, _ meta: DIDMeta) throws {
+    func storeDidMetadata(_ did: DID, _ meta: DIDMeta) throws {
         do {
             let handle = try openDidMetaFile(did, true)
             defer {
@@ -446,11 +455,15 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func loadDidMeta(_ did: DID) throws -> DIDMeta {
+    func loadDidMetadata(_ did: DID) throws -> DIDMeta {
         let metadata = DIDMeta()
         do {
             let handle = try openDidMetaFile(did)
             try metadata.load(reader: handle)
+            let path = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.DOCUMENT_FILE
+            let modificationDate = try! getLastModificationDate(path)
+
+            metadata.setLastModified(modificationDate)
         } catch {
             print("Ignore")
         }
@@ -466,6 +479,12 @@ public class FileSystemStorage: DIDStorage {
         return try openDocumentFile(did, false)
     }
 
+    private func getLastModificationDate(_ path: String) throws -> Date {
+        let fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
+        let modificationDate = fileAttributes[FileAttributeKey.modificationDate] as! Date
+        return modificationDate
+    }
+
     func storeDid(_ doc: DIDDocument) throws {
         do {
             let handle = try openDocumentFile(doc.subject, true)
@@ -475,6 +494,16 @@ public class FileSystemStorage: DIDStorage {
 
             let data: Data = try doc.toJson(true, false)
             handle.write(data)
+            let path = filePath(Constants.DID_DIR, doc.subject.methodSpecificId, Constants.DOCUMENT_FILE)
+            if doc.getMetadata().getLastModified() != nil {
+                var fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
+                fileAttributes[FileAttributeKey.modificationDate] = doc.getMetadata().getLastModified()
+                try FileManager.default.setAttributes(fileAttributes, ofItemAtPath: path)
+            }
+            else {
+                let modificationDate = try! getLastModificationDate(path)
+                doc.getMetadata().setLastModified(modificationDate)
+            }
         } catch {
             throw DIDError.didStoreError("store DIDDocument error")
         }
@@ -484,7 +513,7 @@ public class FileSystemStorage: DIDStorage {
         do {
             var data: Data
             do {
-            let handle = try openDocumentFile(did)
+                let handle = try openDocumentFile(did)
                 defer {
                     handle.closeFile()
                 }
@@ -555,14 +584,14 @@ public class FileSystemStorage: DIDStorage {
 
     private func openCredentialMetaFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
         return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
-                       Constants.CREDENTIALS_DIR, id.fragment!, Constants.META_FILE)
+                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.META_FILE)
     }
 
     private func openCredentialMetaFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
         return try openCredentialMetaFile(did, id, false)
     }
 
-    func storeCredentialMeta(_ did: DID, _ id: DIDURL, _ metadata: CredentialMeta) throws {
+    func storeCredentialMetadata(_ did: DID, _ id: DIDURL, _ metadata: CredentialMeta) throws {
         do {
             let handle = try openCredentialMetaFile(did, id, true)
             if metadata.isEmpty() {
@@ -587,11 +616,14 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func loadCredentialMeta(_ did: DID, _ id: DIDURL) throws -> CredentialMeta {
+    func loadCredentialMetadata(_ did: DID, _ id: DIDURL) throws -> CredentialMeta {
         do {
             let handle = try openCredentialMetaFile(did, id)
             let metadata = CredentialMeta()
             try metadata.load(reader: handle)
+            let path = filePath(FileSystemStorage.DID_DIR, did.methodSpecificId, FileSystemStorage.CREDENTIALS_DIR, id.fragment!, FileSystemStorage.CREDENTIAL_FILE)
+            let modificationDate = try! getLastModificationDate(path)
+            metadata.setLastModified(modificationDate)
 
             return metadata
         } catch {
@@ -601,7 +633,7 @@ public class FileSystemStorage: DIDStorage {
 
     private func openCredentialFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
         return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
-                       Constants.CREDENTIALS_DIR, id.fragment!, Constants.CREDENTIAL_FILE)
+                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.CREDENTIAL_FILE)
     }
 
     private func openCredentialFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
@@ -617,6 +649,17 @@ public class FileSystemStorage: DIDStorage {
 
             let data = credential.toJson(true, false)
             handle.write(data.data(using: .utf8)!)
+
+            let path = filePath(Constants.DID_DIR, credential.subject.did.methodSpecificId, Constants.CREDENTIALS_DIR, credential.getId().fragment!, Constants.CREDENTIAL_FILE)
+            if credential.getMetadata().getLastModified() != nil {
+                var fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
+                fileAttributes[FileAttributeKey.modificationDate] = credential.getMetadata().getLastModified()
+                try FileManager.default.setAttributes(fileAttributes, ofItemAtPath: path)
+            }
+            else {
+                let modificationDate = try getLastModificationDate(path)
+                credential.getMetadata().setLastModified(modificationDate)
+            }
         } catch {
             throw DIDError.didStoreError("store credential error")
         }
@@ -833,8 +876,8 @@ public class FileSystemStorage: DIDStorage {
         let didDir = _rootPath + "/" + FileSystemStorage.DID_DIR
         let didJournal = _rootPath + "/" + FileSystemStorage.DID_DIR + FileSystemStorage.JOURNAL_SUFFIX
         do {
-        try copy(privateDir, privateJournal, callback)
-        try copy(didDir, didJournal, callback)
+            try copy(privateDir, privateJournal, callback)
+            try copy(didDir, didJournal, callback)
         }
         catch {
             throw DIDError.didStoreError("Change store password failed.")

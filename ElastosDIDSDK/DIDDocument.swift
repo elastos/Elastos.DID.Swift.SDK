@@ -150,7 +150,9 @@ public class DIDDocument {
         self._subject = doc.subject
         self._expirationDate = doc.expirationDate
         self._proof = doc.proof
-        self._meta = doc.getMetadata()
+        let metadata = doc.getMetadata()
+        metadata.clearLastModified()
+        self.setMetadata(metadata)
     }
 
     public var subject: DID {

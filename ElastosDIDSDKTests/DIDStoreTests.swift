@@ -376,11 +376,17 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
+            XCTAssertThrowsError(try store.publishDid(for: doc.subject, using: storePass)) { (error) in
+                switch error {
+                case DIDError.didStoreError:
+                    XCTAssertTrue(true)
+                    break
+                //everything is fine
+                default:  //TODO:
+                XCTFail("Unexpected error thrown")
+                    break
+                }
+            }
         } catch {
             XCTFail()
         }

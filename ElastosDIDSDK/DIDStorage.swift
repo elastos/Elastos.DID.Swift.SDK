@@ -16,8 +16,8 @@ protocol DIDStorage {
     func loadMnemonic() throws -> String
     
     // DIDs
-    func storeDidMeta(_ did: DID, _ meta: DIDMeta) throws
-    func loadDidMeta(_ did: DID) throws -> DIDMeta
+    func storeDidMetadata(_ did: DID, _ meta: DIDMeta) throws
+    func loadDidMetadata(_ did: DID) throws -> DIDMeta
 
     func storeDid(_ doc: DIDDocument) throws
     func loadDid(_ did: DID) throws -> DIDDocument?
@@ -26,8 +26,8 @@ protocol DIDStorage {
     func listDids(_ filter: Int) throws -> Array<DID>
 
     // Credentials
-    func storeCredentialMeta(_ did: DID, _ id: DIDURL, _ meta: CredentialMeta) throws
-    func loadCredentialMeta(_ did: DID, _ id: DIDURL) throws -> CredentialMeta
+    func storeCredentialMetadata(_ did: DID, _ id: DIDURL, _ meta: CredentialMeta) throws
+    func loadCredentialMetadata(_ did: DID, _ id: DIDURL) throws -> CredentialMeta
 
     func storeCredential(_ credential: VerifiableCredential) throws
     func loadCredential(_ did: DID, _ id: DIDURL) throws -> VerifiableCredential

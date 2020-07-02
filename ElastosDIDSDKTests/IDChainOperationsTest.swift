@@ -10,16 +10,8 @@ class IDChainOperationsTest: XCTestCase {
         do {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setupStore(IDChainOperationsTest.DUMMY_TEST)
-//            _ = try testData.initIdentity()
-            try store.initializePrivateIdentity(using: Mnemonic.CHINESE_SIMPLIFIED, mnemonic: "宋 羽 绒 疯 测 式 坑 辛 缆 兼 退 沿", passPhrase: "", storePassword: storePass)
+            _ = try testData.initIdentity()
             try testData.waitForWalletAvaliable()
-            // test
-            let did0 = try DID("did:elastos:ij5B2TM675Qk9RuQU9uGRqM144K4LRKMnR")
-            print("00000")
-            try store.synchronize(using: storePass)
-            let doc1 = try store.loadDid(did0)
-            print(doc1!.description)
-            print("0000")
 
             // Create new DID and publish to ID sidechain.
             let doc = try store.newDid(using: storePass)
