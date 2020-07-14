@@ -98,7 +98,7 @@ class DIDDoucumentTests: XCTestCase {
             // Add 2 public keys
             let id = try DIDURL(doc.subject, "test1")
             var key = try TestData.generateKeypair()
-            try db.appendPublicKey(id, doc.subject, key.getPublicKeyBase58())
+            db = try db.appendPublicKey(id, doc.subject, key.getPublicKeyBase58())
 
             key = try TestData.generateKeypair()
             db = try db.appendPublicKey(with: "test2", controller: doc.subject.toString(),
@@ -107,16 +107,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePass)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
-            /*
-             db.addPublicKey(id, db.getSubject(), key.getPublicKeyBase58());
 
-             key = TestData.generateKeypair();
-             db.addPublicKey("test2", doc.getSubject().toString(), key.getPublicKeyBase58());
-
-             doc = db.seal(TestConfig.storePass);
-             assertNotNull(doc);
-             assertTrue(doc.isValid());
-             */
             // Check existence
             var pk: PublicKey = try doc.publicKey(ofId: "test1")!
             XCTAssertNotNil(pk)

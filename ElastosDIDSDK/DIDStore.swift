@@ -173,14 +173,6 @@ public class DIDStore: NSObject {
         try storage.storePrivateIdentityIndex(0)
         preDerivedKey.wipe()
         privateIdentity.wipe()
-        /*
-         // Save pre-derived public key
-         HDKey preDerivedKey = privateIdentity.derive(HDKey.PRE_DERIVED_PUBLICKEY_PATH);
-         byte[] array = preDerivedKey.getPrivateKeyBytes();
-         String address = preDerivedKey.getAddress();
-         storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58());
-
-         */
     }
 
     public func exportMnemonic(using storePassword: String) throws -> String {

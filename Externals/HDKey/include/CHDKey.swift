@@ -75,7 +75,7 @@ internal func HDKey_PublicKey2Address(_ publickey: UnsafeMutablePointer<UInt8>,
                                       _ len: Int32) -> UnsafePointer<Int8>!
 
 @_silgen_name("HDKey_GetvDerivedKey")
-internal func HDKey_GetvDerivedKey(_ hdkey: UnsafePointer<CHDKey>, _ derivedkey: UnsafeMutablePointer<CHDKey>, _ depth: Int32, _ list: CVarArg) -> UnsafePointer<CHDKey>
+internal func HDKey_GetvDerivedKey(_ hdkey: UnsafePointer<CHDKey>, _ derivedkey: UnsafeMutablePointer<CHDKey>, _ depth: Int32, _ list: CVaListPointer) -> UnsafePointer<CHDKey>
 
 @_silgen_name("HDKey_GetPublicKey")
 internal func HDKey_GetPublicKey(_ hdkey: UnsafePointer<CHDKey>) -> UnsafePointer<UInt8>
