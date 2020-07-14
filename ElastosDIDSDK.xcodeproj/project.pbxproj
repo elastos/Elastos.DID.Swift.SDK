@@ -47,7 +47,7 @@
 		1137CFAB2398DE1C00250D4F /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
 		1147721523F6976800C7C36F /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1147721023F6976800C7C36F /* Mnemonic.swift */; };
 		1155D94B2352FACE00DF8C9D /* ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */; };
-		115A373E24404DA5005549CC /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 115A373B24404DA5005549CC /* HDkey.h */; };
+		115A373E24404DA5005549CC /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 115A373B24404DA5005549CC /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		115A373F24404DA5005549CC /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 115A373C24404DA5005549CC /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		115A374024404DA5005549CC /* CHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A373D24404DA5005549CC /* CHDKey.swift */; };
 		11641BB523B702FC0037016B /* AbstractAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BB423B702FC0037016B /* AbstractAdapter.swift */; };

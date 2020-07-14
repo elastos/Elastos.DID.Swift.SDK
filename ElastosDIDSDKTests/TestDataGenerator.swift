@@ -14,18 +14,18 @@ class TestDataGenerator: XCTestCase {
         let cblock: PasswordCallback = ({(walletDir, walletId) -> String in return walletPassword})
         adapter = SPVAdaptor(walletDir, walletId, networkConfig, resolver, cblock)
         //        TestUtils.deleteFile(storeRoot)
-        store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter)
+        store = try DIDStore.open("filesystem", storeRoot, adapter)
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
         let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passPhrase: passphrase, storePassword: storePass, true)
+        try store.initPrivateIdentity(Mnemonic.ENGLISH, mnemonic, passphrase, storePass, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic
     }
     
     func createTestIssuer() throws {
-        let doc: DIDDocument = try store.newDid(using: storePass)
+        let doc: DIDDocument = try store.newDid(storePass)
         print("Generate issuer DID: \(doc.subject)...")
 //        let selfIssuer = try Issuer(doc)
         let selfIssuer = try VerifiableCredentialIssuer(doc)
@@ -44,14 +44,15 @@ class TestDataGenerator: XCTestCase {
         let db: DIDDocumentBuilder = doc.editing()
         _ = try db.appendCredential(with: vc)
         issuer = try db.sealed(using: storePass)
-        try store.storeDid(using: issuer)
-        try store.storeCredential(using: vc, with: "Profile")
+        try store.storeDid(issuer)
+        try store.storeCredential(vc)
         
         let id: DIDURL = issuer.defaultPublicKey
-        let sk: String = try store.loadPrivateKey(for: issuer.subject, byId: id)
-        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
-        let binSk: [UInt8] = [UInt8](data)
-        writeTo("issuer." + id.fragment! + ".sk", Base58.base58FromBytes(binSk))
+        let key = HDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
+//        let sk: String = try store.loadPrivateKey(for: issuer.subject, byId: id)
+//        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
+//        let binSk: [UInt8] = [UInt8](data)
+        writeTo("issuer." + id.fragment! + ".sk", key.serializeBase58())
         
         var json = issuer.toString(true)
         writeTo("issuer.normalized.json", json)
@@ -65,7 +66,7 @@ class TestDataGenerator: XCTestCase {
     }
     
     func createTestDocument() throws {
-        let doc = try store.newDid(using: storePass)
+        let doc = try store.newDid(storePass)
         
         // Test document with two embedded credentials
         print("Generate test DID: \(doc.subject)...")
@@ -79,7 +80,7 @@ class TestDataGenerator: XCTestCase {
         //            writeTo("document.key3.sk", Base58.encode(temp.serialize()))
         
         temp = try TestData.generateKeypair()
-        let controller  = HDKey.DerivedKey.getAddress(temp.getPublicKeyBytes())
+        let controller  = temp.getAddress()
         
         _ = try db.appendAuthorizationKey(with: "recovery", controller: DID(DID.METHOD, controller), keyBase58: temp.getPublicKeyBase58())
         _ = try db.appendService(with: "openid", type: "OpenIdConnectVersion1.0Service", endpoint: "https://openid.example.com/")
@@ -114,13 +115,18 @@ class TestDataGenerator: XCTestCase {
         _ = try db.appendCredential(with: vcEmail)
 
         test = try db.sealed(using: storePass)
-        try store.storeDid(using: test)
-        
+        try store.storeDid(test)
+        vcProfile.getMetadata().setAlias("Profile")
+        try store.storeCredential(vcProfile)
+        vcEmail.getMetadata().setAlias("Email")
+        try store.storeCredential(vcEmail)
+
         var id = test.defaultPublicKey
-        let sk = try store.loadPrivateKey(for: test.subject, byId: id)
-        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
-        let binSk = [UInt8](data)
-        writeTo("document." + id.fragment! + ".sk", Base58.base58FromBytes(binSk))
+//        let sk = try store.loadPrivateKey(test.subject, id, storePass)
+//        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
+//        let binSk = [UInt8](data)
+        let key = HDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
+        writeTo("document." + id.fragment! + ".sk", key.serializeBase58())
         
         var json = test.toString(true)
         writeTo("document.normalized.json", json)
@@ -216,7 +222,8 @@ class TestDataGenerator: XCTestCase {
             .withProperties(jsonProps)
             .sealed(using: storePass)
 
-        try store.storeCredential(using: vcTwitter, with: "json")
+        vcJson.getMetadata().setAlias("json")
+        try store.storeCredential(vcTwitter)
         json = vcJson.toString(true)
         writeTo("vc-json.normalized.json", json)
         
@@ -292,7 +299,7 @@ class TestDataGenerator: XCTestCase {
                     wait(interval: 30)
                 }
                 
-                var doc = try store.newDid(using: storePass)
+                var doc = try store.newDid(storePass)
                 let selfIssuer: VerifiableCredentialIssuer = try VerifiableCredentialIssuer(doc)
                 
                 let did: DID = doc.subject
@@ -337,10 +344,10 @@ class TestDataGenerator: XCTestCase {
                     .appendCredential(with: vcPassport)
                     .appendCredential(with: vcTwitter)
                     .sealed(using: storePass)
-                try store.storeDid(using: doc)
+                try store.storeDid(doc)
                 
                 print("******** Publishing DID:\(doc.subject)")
-                _ = try store.publishDid(for: doc.subject, using: storePass)
+                _ = try store.publishDid(doc.subject, storePass)
                 
                 while true {
                     wait(interval: 30)
@@ -350,7 +357,7 @@ class TestDataGenerator: XCTestCase {
                             print(".")
                         }
                         else {
-                            try store.storeDid(using: d!)
+                            try store.storeDid(d!)
                             print(" OK")
                             break
                         }

@@ -42,7 +42,7 @@ class TestData: XCTestCase {
         return "\(NSHomeDirectory())/Library/Caches/.cache.did.elastos"
     }
         
-    public func setupStore(_ dummyBackend: Bool) throws -> DIDStore {
+    public func setup(_ dummyBackend: Bool) throws -> DIDStore {
         if dummyBackend {
             if TestData.dummyAdapter == nil {
                 TestData.dummyAdapter = DummyAdapter(verbose)
@@ -64,13 +64,13 @@ class TestData: XCTestCase {
         }
         try ResolverCache.reset()
         TestData.deleteFile(storeRoot)
-        store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter!)
+        store = try DIDStore.open("filesystem", storeRoot, adapter!)
         return store
     }
     
     public func initIdentity() throws -> String {
         let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passPhrase: passphrase, storePassword: storePass, true)
+        try store.initPrivateIdentity(Mnemonic.ENGLISH, mnemonic, passphrase, storePass, true)
         return mnemonic
     }
     
@@ -80,7 +80,7 @@ class TestData: XCTestCase {
         let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: jsonPath!)
         
         if store != nil {
-            try store.storeDid(using: doc)
+            try store.storeDid(doc)
         }
         return doc
     }
@@ -133,7 +133,7 @@ class TestData: XCTestCase {
         if testIssuer == nil {
             testIssuer = try loadDIDDocument("issuer", "json")
             try importPrivateKey(testIssuer!.defaultPublicKey, "issuer.primary", "sk")
-            _ = try store.publishDid(for: testIssuer!.subject, using: storePass)
+            _ = try store.publishDid(testIssuer!.subject, storePass)
         }
         return testIssuer!
     }
@@ -146,7 +146,7 @@ class TestData: XCTestCase {
         try importPrivateKey(testDocument!.defaultPublicKey, "document.primary", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key2")!.getId(), "document.key2", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key3")!.getId(), "document.key3", "sk")
-        _ = try store.publishDid(for: testDocument!.subject, using: storePass)
+        _ = try store.publishDid(testDocument!.subject, storePass)
         return testDocument!
     }
     
@@ -156,7 +156,7 @@ class TestData: XCTestCase {
         let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
         let vc: VerifiableCredential = try VerifiableCredential.fromJson(json)
         if store != nil {
-            try store.storeCredential(using: vc)
+            try store.storeCredential(vc)
         }
         return vc
     }
@@ -338,14 +338,16 @@ class TestData: XCTestCase {
         return restoreMnemonic!
     }
     
-    public class func generateKeypair() throws -> HDKey.DerivedKey {
+    public class func generateKeypair() throws -> HDKey {
         if TestData.rootKey == nil {
             let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-            TestData.rootKey = HDKey.fromMnemonic(mnemonic, "", Mnemonic.ENGLISH)
+            TestData.rootKey = HDKey(mnemonic, "", Mnemonic.ENGLISH)
             TestData.index = 0
         }
+        let path: String = HDKey.DERIVE_PATH_PREFIX + "\(TestData.index!)"
         TestData.index = TestData.index! + 1
-        return TestData.rootKey!.derivedKey(TestData.index!)
+
+        return try TestData.rootKey!.derive(path)
     }
 
    class func deleteFile(_ path: String) {
