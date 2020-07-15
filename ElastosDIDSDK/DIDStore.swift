@@ -149,7 +149,7 @@ public class DIDStore: NSObject {
             throw DIDError.illegalArgument("Already has private indentity.")
         }
 
-        let privateIdentity = HDKey.deserialize(Base58.bytesFromBase58(extentedPrivateKey))
+        let privateIdentity = HDKey.deserializeBase58(extentedPrivateKey)
         try initPrivateIdentity(privateIdentity, storepass)
     }
 
@@ -166,8 +166,7 @@ public class DIDStore: NSObject {
 
         // Save pre-derived public key
         let preDerivedKey = try privateIdentity.derive(HDKey.PRE_DERIVED_PUBLICKEY_PATH)
-//        try storage.storePublicIdentity(preDerivedKey.getPublicKeyBase58())// HDKey_GetPublicKeyBase58
-        try storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58()) // HDKey_SerializePubBase58
+        try storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58())
 
         // Save index
         try storage.storePrivateIdentityIndex(0)
@@ -567,6 +566,12 @@ public class DIDStore: NSObject {
             try publishDid(for: did, using: nil, storepass: storepass)
         } catch {
             // Dead code.
+            let e: DIDError = error as! DIDError
+            switch e {
+            case .invalidKeyError(_): break
+            default:
+                throw error
+            }
         }
     }
 
