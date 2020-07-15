@@ -1236,55 +1236,6 @@ public class DIDStore: NSObject {
         }
     }
 
-    /*
-     func sign(_ did: DID, _ id: DIDURL?, _ storePassword: String, _ data: [Data]) throws -> String {
-     guard !storePassword.isEmpty else {
-     throw DIDError.illegalArgument()
-     }
-
-     var usedId: DIDURL? = id
-     if  usedId == nil {
-     let doc = try loadDid(did)
-     if doc == nil {
-     throw DIDError.didStoreError("Can not resolve DID document.")
-     }
-     usedId = doc!.defaultPublicKey
-     }
-
-     let privatekeys = try DIDStore.decryptFromBase64(loadPrivateKey(for: did, byId: usedId!), storePassword)
-     var cinputs: [CVarArg] = []
-     var capacity: Int = 0
-     data.forEach { data in
-     let json = String(data: data, encoding: .utf8)
-     if json != "" {
-     let cjson = json!.toUnsafePointerInt8()!
-     cinputs.append(cjson)
-     cinputs.append(json!.count)
-     capacity += json!.count * 3
-     }
-     }
-
-     let toPPointer = privatekeys.toPointer()
-
-     let c_inputs = getVaList(cinputs)
-     let count = cinputs.count / 2
-
-     // digest
-     let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-     let size = sha256v_digest(cdigest, Int32(count), c_inputs)
-
-     let csig = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-     let re = ecdsa_sign_base64(csig, UnsafeMutablePointer(mutating: toPPointer), cdigest, size)
-
-     guard re >= 0 else {
-     throw DIDError.didStoreError("sign error.")
-     }
-     csig[re] = 0
-     let sig = String(cString: csig)
-     return sig
-     }
-     */
-
     func sign(_ did: DID, _ id: DIDURL?, _ storepass: String, _ digest: Data, _ capacity: Int) throws -> String {
         guard !storepass.isEmpty else {
             throw DIDError.illegalArgument("storePassword is empty.")
@@ -1298,7 +1249,6 @@ public class DIDStore: NSObject {
             }
             usedId = doc?.defaultPublicKey
         }
-
         
         let key = HDKey.deserialize(try loadPrivateKey(did, usedId!, storepass));
         let privatekeys = key.getPrivateKeyData()
@@ -1350,6 +1300,7 @@ public class DIDStore: NSObject {
             throw DIDError.didStoreError("Export DID \(did) failed, not exist.")
         }
 
+        Log.d(DIDStore.TAG, "Exporting \(did.toString())...")
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         sha256.update(&bytes)
@@ -1379,14 +1330,14 @@ public class DIDStore: NSObject {
         generator.writeStartObject()
         generator.writeFieldName("content")
         try doc!.toJson(generator, false)
-        value = doc!.toString()
+        value = doc!.toString(true)
         bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
-        
-        let didMeta: DIDMeta? = try storage.loadDidMetadata(did)
-        if didMeta!.isEmpty() {
+
+        let didMetadata: DIDMeta? = try storage.loadDidMetadata(did)
+        if !didMetadata!.isEmpty() {
             generator.writeFieldName("metadata")
-            value = try didMeta!.toString()
+            value = try didMetadata!.toString()
             generator.writeRawValue(value)
             bytes = [UInt8](value.data(using: .utf8)!)
             sha256.update(&bytes)
@@ -1550,7 +1501,7 @@ public class DIDStore: NSObject {
         value = did.description
         bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
-        Log.i(DIDStore.TAG, "Importing {}...\(did.description)")
+        Log.d(DIDStore.TAG, "Importing {}...\(did.description)")
 
         // Created
         options = JsonSerializer.Options()
@@ -1582,7 +1533,7 @@ public class DIDStore: NSObject {
         guard doc!.subject == did || doc!.isGenuine else {
             throw DIDError.didStoreError("Invalid DID document in the export data.")
         }
-        value = doc!.description
+        value = doc!.toString(true)
         bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
         
