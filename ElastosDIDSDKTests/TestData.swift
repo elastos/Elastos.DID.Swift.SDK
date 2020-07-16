@@ -64,13 +64,13 @@ class TestData: XCTestCase {
         }
         try ResolverCache.reset()
         TestData.deleteFile(storeRoot)
-        store = try DIDStore.open("filesystem", storeRoot, adapter!)
+        store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter!)
         return store
     }
     
     public func initIdentity() throws -> String {
         let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initPrivateIdentity(Mnemonic.ENGLISH, mnemonic, passphrase, storePass, true)
+        try store.initPrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
         return mnemonic
     }
     
@@ -80,7 +80,7 @@ class TestData: XCTestCase {
         let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: jsonPath!)
         
         if store != nil {
-            try store.storeDid(doc)
+            try store.storeDid(using: doc)
         }
         return doc
     }
@@ -133,7 +133,7 @@ class TestData: XCTestCase {
         if testIssuer == nil {
             testIssuer = try loadDIDDocument("issuer", "json")
             try importPrivateKey(testIssuer!.defaultPublicKey, "issuer.primary", "sk")
-            _ = try store.publishDid(testIssuer!.subject, storePass)
+            _ = try store.publishDid(for: testIssuer!.subject, storePassword: storePass)
         }
         return testIssuer!
     }
@@ -146,7 +146,7 @@ class TestData: XCTestCase {
         try importPrivateKey(testDocument!.defaultPublicKey, "document.primary", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key2")!.getId(), "document.key2", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key3")!.getId(), "document.key3", "sk")
-        _ = try store.publishDid(testDocument!.subject, storePass)
+        _ = try store.publishDid(for: testDocument!.subject, storePassword: storePass)
         return testDocument!
     }
     
@@ -156,7 +156,7 @@ class TestData: XCTestCase {
         let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
         let vc: VerifiableCredential = try VerifiableCredential.fromJson(json)
         if store != nil {
-            try store.storeCredential(vc)
+            try store.storeCredential(using: vc)
         }
         return vc
     }

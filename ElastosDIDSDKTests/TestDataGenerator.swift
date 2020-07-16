@@ -14,18 +14,18 @@ class TestDataGenerator: XCTestCase {
         let cblock: PasswordCallback = ({(walletDir, walletId) -> String in return walletPassword})
         adapter = SPVAdaptor(walletDir, walletId, networkConfig, resolver, cblock)
         //        TestUtils.deleteFile(storeRoot)
-        store = try DIDStore.open("filesystem", storeRoot, adapter)
+        store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter)
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
         let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initPrivateIdentity(Mnemonic.ENGLISH, mnemonic, passphrase, storePass, true)
+        try store.initPrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic
     }
     
     func createTestIssuer() throws {
-        let doc: DIDDocument = try store.newDid(storePass)
+        let doc: DIDDocument = try store.newDid(using: storePass)
         print("Generate issuer DID: \(doc.subject)...")
 //        let selfIssuer = try Issuer(doc)
         let selfIssuer = try VerifiableCredentialIssuer(doc)
@@ -44,8 +44,8 @@ class TestDataGenerator: XCTestCase {
         let db: DIDDocumentBuilder = doc.editing()
         _ = try db.appendCredential(with: vc)
         issuer = try db.sealed(using: storePass)
-        try store.storeDid(issuer)
-        try store.storeCredential(vc)
+        try store.storeDid(using: issuer)
+        try store.storeCredential(using: vc)
         
         let id: DIDURL = issuer.defaultPublicKey
         let key = HDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
@@ -66,7 +66,7 @@ class TestDataGenerator: XCTestCase {
     }
     
     func createTestDocument() throws {
-        let doc = try store.newDid(storePass)
+        let doc = try store.newDid(using: storePass)
         
         // Test document with two embedded credentials
         print("Generate test DID: \(doc.subject)...")
@@ -115,11 +115,11 @@ class TestDataGenerator: XCTestCase {
         _ = try db.appendCredential(with: vcEmail)
 
         test = try db.sealed(using: storePass)
-        try store.storeDid(test)
+        try store.storeDid(using: test)
         vcProfile.getMetadata().setAlias("Profile")
-        try store.storeCredential(vcProfile)
+        try store.storeCredential(using: vcProfile)
         vcEmail.getMetadata().setAlias("Email")
-        try store.storeCredential(vcEmail)
+        try store.storeCredential(using: vcEmail)
 
         var id = test.defaultPublicKey
 //        let sk = try store.loadPrivateKey(test.subject, id, storePass)
@@ -223,7 +223,7 @@ class TestDataGenerator: XCTestCase {
             .sealed(using: storePass)
 
         vcJson.getMetadata().setAlias("json")
-        try store.storeCredential(vcTwitter)
+        try store.storeCredential(using: vcTwitter)
         json = vcJson.toString(true)
         writeTo("vc-json.normalized.json", json)
         
@@ -299,7 +299,7 @@ class TestDataGenerator: XCTestCase {
                     wait(interval: 30)
                 }
                 
-                var doc = try store.newDid(storePass)
+                var doc = try store.newDid(using: storePass)
                 let selfIssuer: VerifiableCredentialIssuer = try VerifiableCredentialIssuer(doc)
                 
                 let did: DID = doc.subject
@@ -344,10 +344,10 @@ class TestDataGenerator: XCTestCase {
                     .appendCredential(with: vcPassport)
                     .appendCredential(with: vcTwitter)
                     .sealed(using: storePass)
-                try store.storeDid(doc)
+                try store.storeDid(using: doc)
                 
                 print("******** Publishing DID:\(doc.subject)")
-                _ = try store.publishDid(doc.subject, storePass)
+                _ = try store.publishDid(for: doc.subject, storePassword: storePass)
                 
                 while true {
                     wait(interval: 30)
@@ -357,7 +357,7 @@ class TestDataGenerator: XCTestCase {
                             print(".")
                         }
                         else {
-                            try store.storeDid(d!)
+                            try store.storeDid(using: d!)
                             print(" OK")
                             break
                         }

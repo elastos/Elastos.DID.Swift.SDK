@@ -2,26 +2,7 @@ import Foundation
 
 public class DIDDocument {
     private static let TAG = "DIDDocument"
-
-    private let ID = "id"
-    private let PUBLICKEY = "publicKey"
-    private let TYPE = "type"
-    private let CONTROLLER = "controller"
-    private let PUBLICKEY_BASE58 = "publicKeyBase58"
-    private let AUTHENTICATION = "authentication"
-    private let AUTHORIZATION = "authorization"
-    private let SERVICE = "service"
-    private let VERIFIABLE_CREDENTIAL = "verifiableCredential"
-    private let SERVICE_ENDPOINT = "serviceEndpoint"
-    private let EXPIRES = "expires"
-    private let PROOF = "proof"
-    private let CREATOR = "creator"
-    private let CREATED = "created"
-    private let SIGNATURE_VALUE = "signatureValue"
     private var _capacity: Int = 0
-
-    private let DEFAULT_PUBLICKEY_TYPE = Constants.DEFAULT_PUBLICKEY_TYPE
-    private let MAX_VALID_YEARS = Constants.MAX_VALID_YEARS
 
     private var _subject: DID?
     private var _expirationDate: Date?
@@ -229,7 +210,7 @@ public class DIDDocument {
             return false
         }
 
-        return store.containsPrivateKey(self.subject, forId)
+        return store.containsPrivateKey(for: self.subject, id: forId)
     }
 
     public func containsPrivateKey(forId: String) -> Bool {
@@ -265,7 +246,7 @@ public class DIDDocument {
         guard getMetadata().attachedStore else {
             throw DIDError.didStoreError("Not attached with DID store.")
         }
-        guard getMetadata().store!.containsPrivateKey(subject, ofId) else {
+        guard getMetadata().store!.containsPrivateKey(for: subject, id: ofId) else {
             throw DIDError.illegalArgument("Don't have private key")
         }
         let pubKey = publicKey(ofId: ofId)
@@ -283,7 +264,7 @@ public class DIDDocument {
         guard getMetadata().attachedStore else {
             throw DIDError.didStoreError("Not attached with DID store.")
         }
-        guard getMetadata().store!.containsPrivateKey(subject, ofId) else {
+        guard getMetadata().store!.containsPrivateKey(for: subject, id: ofId) else {
             throw DIDError.illegalArgument("Don't have private key")
         }
 
@@ -299,16 +280,16 @@ public class DIDDocument {
 
     // The result is extended private key format, the real private key is
     // 32 bytes long start from position 46.
-    public func derive(_ index: Int, storepass: String) throws -> String {
+    public func derive(index: Int, storePassword: String) throws -> String {
 
-        guard !storepass.isEmpty else {
-            throw DIDError.illegalArgument("storepass is empty.")
+        guard !storePassword.isEmpty else {
+            throw DIDError.illegalArgument("storePassword is empty.")
         }
         guard getMetadata().attachedStore else {
             throw DIDError.didStoreError("Not attached with a DID store.")
         }
 
-        let key = HDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storepass))!)
+        let key = HDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
         return key.derive(index).serializeBase58()
     }
 
@@ -324,7 +305,7 @@ public class DIDDocument {
             }
             return try self.keyPair_PublicKey(ofId: _id)
 
-        }) { (id, storepass) -> Data in
+        }) { (id, storePassword) -> Data in
             var _id: DIDURL
 
             if id == nil {
@@ -332,7 +313,7 @@ public class DIDDocument {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair_PrivateKey(ofId: _id, using: storepass)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword)
         }
         return build.setIssuer(iss: subject.description)
     }
@@ -350,7 +331,7 @@ public class DIDDocument {
             }
             return try self.keyPair_PublicKey(ofId: _id)
         }
-        builder.getPrivateKey = {(id, storepass) in
+        builder.getPrivateKey = {(id, storePassword) in
 
             var _id: DIDURL
             if id == nil {
@@ -358,7 +339,7 @@ public class DIDDocument {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair_PrivateKey(ofId: _id, using: storepass!)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword!)
         }
         return builder
     }
@@ -395,7 +376,7 @@ public class DIDDocument {
         }
 
         _ = publicKeyMap.remove(id)
-        _ = getMetadata().store?.deletePrivateKey(subject, id)
+        _ = getMetadata().store?.deletePrivateKey(for: subject, id: id)
         return true
     }
 
@@ -672,7 +653,6 @@ public class DIDDocument {
         subject.setMetadata(metadata)
     }
 
-
     public func getMetadata() -> DIDMeta {
         if _metadata == nil {
             _metadata = DIDMeta()
@@ -722,26 +702,31 @@ public class DIDDocument {
         return DIDDocumentBuilder(self)
     }
 
-    public func sign(withId: DIDURL, using storepass: String, for data: Data...) throws -> String {
-        try sign(withId, storepass, data)
+    public func sign(using storePassword: String, for data: Data...) throws -> String {
+        return try sign(self.defaultPublicKey, storePassword, data)
     }
 
-    public func sign(withId: String, using storepass: String, for data: Data...) throws -> String {
-        return try sign(try DIDURL(self.subject, withId), storepass, data)
+    public func sign(withId: DIDURL, using storePassword: String, for data: Data...) throws -> String {
+        try sign(withId, storePassword, data)
     }
 
-    public func sign(using storepass: String, for data: Data...) throws -> String {
-        return try sign(self.defaultPublicKey, storepass, data)
+    public func sign(withId: String, using storePassword: String, for data: Data...) throws -> String {
+        return try sign(try DIDURL(self.subject, withId), storePassword, data)
     }
 
-    func sign(_ id: DIDURL, _ storepass: String, _ data: [Data]) throws -> String {
+    func sign(_ id: DIDURL, _ storePassword: String, _ data: [Data]) throws -> String {
         guard data.count > 0 else {
             throw DIDError.illegalArgument()
         }
-        guard !storepass.isEmpty else {
+        guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
+        let digest = sha256Digest(data)
 
+        return try signDigest(withId: id, using: storePassword, for: digest)
+    }
+
+    private func sha256Digest(_ data: [Data]) -> Data {
         var cinputs: [CVarArg] = []
         var capacity: Int = 0
         data.forEach { data in
@@ -761,30 +746,33 @@ public class DIDDocument {
         let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
         let size = sha256v_digest(cdigest, Int32(count), c_inputs)
         let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
-        let digest = Data(buffer: cdigestPointerToArry)
 
-        return try signDigest(id, storepass, digest)
+        return Data(buffer: cdigestPointerToArry)
     }
 
-    public func signDigest(_ id: DIDURL, _ storepass: String, _ digest: Data) throws -> String {
-        guard !storepass.isEmpty else {
+    public func signDigest(using storePassword: String, for digest: Data) throws -> String {
+        return try signDigest(withId: self.defaultPublicKey, using: storePassword, for: digest)
+    }
+
+    public func signDigest(withId: DIDURL, using storePassword: String, for digest: Data) throws -> String {
+        guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
         guard getMetadata().attachedStore else {
             throw DIDError.didStoreError("Not attached with DID store")
         }
 
-        return try getMetadata().store!.sign(subject, id, storepass, digest, _capacity)
+        return try getMetadata().store!.sign(subject, withId, storePassword, digest, _capacity)
     }
 
-    public func signDigest(_ id: String, _ storepass: String, _ digest: Data) throws -> String {
-        let _id = try DIDURL(subject, id)
+    public func signDigest(withId: String, using storePassword: String, for digest: Data) throws -> String {
+        let _id = try DIDURL(subject, withId)
 
-        return try signDigest(_id, storepass, digest)
+        return try signDigest(withId: _id, using: storePassword, for: digest)
     }
 
-    public func signDigest(_ storepass: String, _ digest: Data) throws -> String {
-        return try signDigest(self.defaultPublicKey, storepass, digest)
+    public func verify(signature: String, onto data: Data...) throws -> Bool {
+        return try verify(self.defaultPublicKey, signature, data)
     }
 
     public func verify(withId: DIDURL, using signature: String, onto data: Data...) throws -> Bool {
@@ -793,10 +781,6 @@ public class DIDDocument {
 
     public func verify(withId: String, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(DIDURL(self.subject, withId), signature, data)
-    }
-
-    public func verify(signature: String, onto data: Data...) throws -> Bool {
-        return try verify(self.defaultPublicKey, signature, data)
     }
 
     func verify(_ id: DIDURL, _ sigature: String, _ data: [Data]) throws -> Bool {
@@ -811,36 +795,22 @@ public class DIDDocument {
         guard let _ = pubKey else {
             throw DIDError.illegalArgument()
         }
+        let digest = sha256Digest(data)
 
-        var cinputs: [CVarArg] = []
-        var capacity: Int = 0
-        data.forEach { data in
-            let json = String(data: data, encoding: .utf8)
-            if json != "" {
-                let cjson = json!.toUnsafePointerInt8()!
-                cinputs.append(cjson)
-                cinputs.append(json!.count)
-                capacity += json!.count * 3
-            }
-        }
-        let c_inputs = getVaList(cinputs)
-        let count = cinputs.count / 2
-
-        // digest
-        let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let size = sha256v_digest(cdigest, Int32(count), c_inputs)
-        let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
-        let digest = Data(buffer: cdigestPointerToArry)
-
-        return try verifyDigest(id, sigature, digest)
+        return try verifyDigest(withId: id, using: sigature, for: digest)
     }
 
-    public func verifyDigest(_ id: DIDURL, _ signature: String, _ digest: Data) throws -> Bool {
+    public func verifyDigest(signature: String, for digest: Data) throws -> Bool {
+
+        return try verifyDigest(withId: self.defaultPublicKey, using: signature, for: digest)
+    }
+
+    public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data) throws -> Bool {
         guard !signature.isEmpty else {
             throw DIDError.illegalArgument()
         }
 
-        let pubKey = publicKey(ofId: id)
+        let pubKey = publicKey(ofId: withId)
         guard let _ = pubKey else {
             throw DIDError.illegalArgument()
         }
@@ -858,58 +828,11 @@ public class DIDDocument {
         return re == 0 ? true : false
     }
 
-    public func verifyDigest(_ id: String, _ signature: String, _ digest: Data) throws -> Bool {
+    public func verifyDigest(withId id: String, using signature: String, for digest: Data) throws -> Bool {
         let _id = try DIDURL(subject, id)
 
-        return try verifyDigest(_id, signature, digest)
+        return try verifyDigest(withId: _id, using: signature, for: digest)
     }
-
-    public func verifyDigest(_ signature: String, _ digest: Data) throws -> Bool {
-
-        return try verifyDigest(self.defaultPublicKey, signature, digest)
-    }
-    /*
-     func verify(_ id: DIDURL, _ sigature: String, _ data: [Data]) throws -> Bool {
-     guard data.count > 0 else {
-     throw DIDError.illegalArgument()
-     }
-     guard !sigature.isEmpty else {
-     throw DIDError.illegalArgument()
-     }
-
-     let pubKey = publicKey(ofId: id)
-     guard let _ = pubKey else {
-     throw DIDError.illegalArgument()
-     }
-
-     var cinputs: [CVarArg] = []
-     var capacity: Int = 0
-     data.forEach { data in
-     let json = String(data: data, encoding: .utf8)
-     if json != "" {
-     let cjson = json!.toUnsafePointerInt8()!
-     cinputs.append(cjson)
-     cinputs.append(json!.count)
-     capacity += json!.count * 3
-     }
-     }
-     let pks = pubKey!.publicKeyBytes
-     var pkData = Data(bytes: pks, count: pks.count)
-     let cpk = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
-     return pk
-     }
-     let csignature = sigature.toUnsafeMutablePointerInt8()
-     let c_inputs = getVaList(cinputs)
-     let count = cinputs.count / 2
-
-     // digest
-     let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-     let size = sha256v_digest(cdigest, Int32(count), c_inputs)
-     let re = ecdsa_verify_base64(csignature, cpk, cdigest, size)
-
-     return re == 0 ? true : false
-     }
-     */
 
     private func parse(_ doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
