@@ -261,12 +261,6 @@ public class DIDStore: NSObject {
             throw DIDError.didStoreError("DID Store does not contains private identity.")
         }
 
-        defer {
-            if privateIdentity != nil {
-                privateIdentity!.wipe()
-            }
-        }
-
         var blanks = 0
         var i = 0
 
@@ -277,10 +271,6 @@ public class DIDStore: NSObject {
             let did = DID(Constants.METHOD, key.getAddress())
 
             Log.i(DIDStore.TAG, "Synchronize {}/{}... \(did.toString()) \(i)")
-            defer {
-                key.wipe()
-                privateIdentity?.wipe()
-            }
 
             let chainCopy: DIDDocument?
             do {
@@ -341,6 +331,12 @@ public class DIDStore: NSObject {
                     blanks += 1
                 }
             }
+            do {
+                key.wipe()
+            }
+        }
+        do {
+            privateIdentity?.wipe()
         }
     }
 
@@ -1175,7 +1171,7 @@ public class DIDStore: NSObject {
                     let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
                     let child = try identity!.derive(path)
                     if child.getPrivateKeyData() == keyBytes {
-                        extendedKeyBytes = child.serialize()
+                        extendedKeyBytes = try child.serialize()
                         break
                     }
                     child.wipe()
@@ -1249,7 +1245,7 @@ public class DIDStore: NSObject {
             usedId = doc?.defaultPublicKey
         }
         
-        let key = HDKey.deserialize(try loadPrivateKey(did, usedId!, storePassword));
+        let key = try HDKey.deserialize(try loadPrivateKey(did, usedId!, storePassword));
         let privatekeys = key.getPrivateKeyData()
         let toPPointer = privatekeys.toPointer()
         

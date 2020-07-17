@@ -639,8 +639,8 @@ class IDChainOperationsTest: XCTestCase {
             let store: DIDStore = try testData.setup(false)
             let mnemonic: String = try testData.loadRestoreMnemonic()
             try store.initPrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
-            try store.synchronize(using: storePass) //5
             print("Synchronizing from IDChain...")
+            try store.synchronize(using: storePass) //5
             print("OK")
 
             let dids: Array<DID> = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)

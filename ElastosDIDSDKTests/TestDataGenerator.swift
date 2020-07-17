@@ -48,7 +48,7 @@ class TestDataGenerator: XCTestCase {
         try store.storeCredential(using: vc)
         
         let id: DIDURL = issuer.defaultPublicKey
-        let key = HDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
+        let key = try HDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
 //        let sk: String = try store.loadPrivateKey(for: issuer.subject, byId: id)
 //        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
 //        let binSk: [UInt8] = [UInt8](data)
@@ -125,7 +125,7 @@ class TestDataGenerator: XCTestCase {
 //        let sk = try store.loadPrivateKey(test.subject, id, storePass)
 //        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
 //        let binSk = [UInt8](data)
-        let key = HDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
+        let key = try HDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
         writeTo("document." + id.fragment! + ".sk", key.serializeBase58())
         
         var json = test.toString(true)

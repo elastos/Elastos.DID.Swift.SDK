@@ -89,7 +89,7 @@ public class HDKey: NSObject {
         return String(cString: cpublickeybase58)
     }
 
-    public func serialize() -> Data {
+    public func serialize() throws -> Data {
         let data = Base58.bytesFromBase58(serializeBase58())
         return Data(bytes: data, count: data.count)
     }
@@ -126,12 +126,13 @@ public class HDKey: NSObject {
     }
 
     public class func deserialize(_ keyData: Data) -> HDKey {
-        let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
-        let cdata: UnsafePointer<UInt8> = keyData.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
-            return bytes
+        var extendedkeyData = keyData
+        let cextendedkey = extendedkeyData.withUnsafeMutableBytes { re -> UnsafeMutablePointer<UInt8> in
+            return re
         }
-        let k = HDKey_Deserialize(chdKey, cdata, Int32(keyData.count))
-        return self.init(k)
+        let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
+        let chdkey = HDKey_FromExtendedKey(cextendedkey, Int32(keyData.count), chdKey)
+        return self.init(chdkey)
     }
 
     public class func deserializeBase58(_ keyData: String) -> HDKey {
@@ -152,6 +153,7 @@ public class HDKey: NSObject {
         let extenedData: Data = Data(buffer: extenedToArrary)
 
         return extenedData
+//        return [UInt8](extenedData)
     }
 
     public func derive(_ path: String) throws -> HDKey {
