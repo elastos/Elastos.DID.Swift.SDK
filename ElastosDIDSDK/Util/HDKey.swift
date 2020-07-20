@@ -63,9 +63,9 @@ public class HDKey: NSObject {
         return Data(buffer: privatekeyPointerToArry)
     }
 
-//    public func getPrivateKeyBase58() -> String {
-//
-//    }
+    public func getPrivateKeyBase58() -> String {
+        return Base58.base58FromBytes(getPrivateKeyBytes())
+    }
 
     public func getPublicKeyBytes() ->[UInt8] {
         let cpublicKeyPointer = HDKey_GetPublicKey(key)
