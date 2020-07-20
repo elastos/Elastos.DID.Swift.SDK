@@ -707,7 +707,7 @@ public class DIDDocument {
     }
 
     public func sign(withId: DIDURL, using storePassword: String, for data: Data...) throws -> String {
-        try sign(withId, storePassword, data)
+        return try sign(withId, storePassword, data)
     }
 
     public func sign(withId: String, using storePassword: String, for data: Data...) throws -> String {

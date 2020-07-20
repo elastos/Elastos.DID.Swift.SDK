@@ -371,18 +371,18 @@ public class DIDStore: NSObject {
 
     public func synchronize(using storePassword: String) throws {
 
-        try synchronize(using: storePassword, conflictHandler: { (c, l) -> DIDDocument in
+            try synchronize(storePassword) { (c, l) throws -> DIDDocument in
             l.getMetadata().setPublished(c.getMetadata().getPublished()!)
             l.getMetadata().setSignature(c.getMetadata().signature)
             return l
-        })
+        }
     }
 
     private func synchronizeAsync(_ storePassword: String,
                                   _ conflictHandler: ConflictHandler) -> Promise<Void> {
         return Promise<Void> { resolver in
             do {
-                try synchronize(using: storePassword, conflictHandler: conflictHandler)
+                try synchronize(storePassword, conflictHandler)
                 resolver.fulfill(())
             } catch let error  {
                 resolver.reject(error)
@@ -423,16 +423,14 @@ public class DIDStore: NSObject {
         }
 
         let privateIdentity = try loadPrivateIdentity(storePassword)
-        if privateIdentity == nil {
+        guard privateIdentity != nil else {
             throw DIDError.didStoreError("DID Store not contains private identity.")
         }
         let path = HDKey.DERIVE_PATH_PREFIX + "\(privateIdentityIndex)"
         let key = try privateIdentity!.derive(path)
 
         defer {
-            if privateIdentity != nil {
-                privateIdentity!.wipe()
-            }
+            privateIdentity?.wipe()
             key.wipe()
         }
 
