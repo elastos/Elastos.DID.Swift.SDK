@@ -141,7 +141,7 @@ public class DIDStore: NSObject {
                                            storePassword: String,
                                                  _ force: Bool) throws {
 
-        try initializePrivateIdentity(language, mnemonic, passphrase, storePassword, false)
+        try initializePrivateIdentity(language, mnemonic, passphrase, storePassword, force)
     }
 
     public func initializePrivateIdentity(using language: String,
@@ -225,9 +225,9 @@ public class DIDStore: NSObject {
     }
 
     // initialized from saved private identity from DIDStore.
-    func loadPrivateIdentity(_ storePassword: String) throws -> HDKey? {
+    func loadPrivateIdentity(_ storePassword: String) throws -> HDKey {
         guard containsPrivateIdentity() else {
-            return nil
+            throw DIDError.didStoreError("no private identity contained")
         }
 
         let privateIdentity: HDKey?
@@ -256,7 +256,7 @@ public class DIDStore: NSObject {
             let preDerivedKey = try privateIdentity!.derive(HDKey.PRE_DERIVED_PUBLICKEY_PATH)
             try storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58())
         }
-        return privateIdentity
+        return privateIdentity!
     }
 
     func loadPublicIdentity() throws -> HDKey {
@@ -423,14 +423,11 @@ public class DIDStore: NSObject {
         }
 
         let privateIdentity = try loadPrivateIdentity(storePassword)
-        guard privateIdentity != nil else {
-            throw DIDError.didStoreError("DID Store not contains private identity.")
-        }
         let path = HDKey.DERIVE_PATH_PREFIX + "\(privateIdentityIndex)"
-        let key = try privateIdentity!.derive(path)
+        let key = try privateIdentity.derive(path)
 
         defer {
-            privateIdentity?.wipe()
+            privateIdentity.wipe()
             key.wipe()
         }
 
@@ -444,8 +441,8 @@ public class DIDStore: NSObject {
         let id  = try DIDURL(did, "primary")
         try storePrivateKey(for: did, id: id, privateKey: key.serialize(), using: storePassword)
 
-        let db = DIDDocumentBuilder(did, self)
-        doc = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+        let builder = DIDDocumentBuilder(did, self)
+        doc = try builder.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             .sealed(using: storePassword)
         doc?.getMetadata().setAlias(alias)
         try storeDid(using: doc!)
@@ -1238,18 +1235,16 @@ public class DIDStore: NSObject {
         var extendedKeyBytes: Data?
         if keyBytes.count == HDKey.PRIVATEKEY_BYTES {
             let identity = try loadPrivateIdentity(storePassword)
-            if identity != nil {
-                for i in 0..<100 {
-                    let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
-                    let child = try identity!.derive(path)
-                    if child.getPrivateKeyData() == keyBytes {
-                        extendedKeyBytes = try child.serialize()
-                        break
-                    }
-                    child.wipe()
+            for i in 0..<100 {
+                let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
+                let child = try identity.derive(path)
+                if child.getPrivateKeyData() == keyBytes {
+                    extendedKeyBytes = try child.serialize()
+                    break
                 }
-                identity?.wipe()
+                child.wipe()
             }
+            identity.wipe()
             if extendedKeyBytes == nil {
                 extendedKeyBytes = HDKey.paddingToExtendedPrivateKey(keyBytes)
             }
