@@ -30,21 +30,21 @@ public class DIDStore: NSObject {
     }
 
     public class func open(atPath: String,
-                           withType: String,
-                           adapter: DIDAdapter) throws -> DIDStore {
+                         withType: String,
+                          adapter: DIDAdapter) throws -> DIDStore {
 
         return try open(atPath: atPath,
-                        withType: withType,
-                        initialCacheCapacity: CACHE_INITIAL_CAPACITY,
-                        maxCacheCapacity: CACHE_MAX_CAPACITY,
-                        adapter: adapter)
+                      withType: withType,
+          initialCacheCapacity: CACHE_INITIAL_CAPACITY,
+              maxCacheCapacity: CACHE_MAX_CAPACITY,
+                       adapter: adapter)
     }
 
     public class func open(atPath: String,
-                           withType: String,
-                           initialCacheCapacity: Int,
-                           maxCacheCapacity: Int,
-                           adapter: DIDAdapter) throws -> DIDStore {
+                         withType: String,
+             initialCacheCapacity: Int,
+                 maxCacheCapacity: Int,
+                          adapter: DIDAdapter) throws -> DIDStore {
         guard !withType.isEmpty else {
             throw DIDError.illegalArgument("type is empty")
         }
@@ -99,19 +99,19 @@ public class DIDStore: NSObject {
     }
 
     public func initPrivateIdentity(using language: String,
-                                    mnemonic: String,
-                                    passphrase: String,
-                                    storePassword: String) throws {
+                                          mnemonic: String,
+                                        passphrase: String,
+                                     storePassword: String) throws {
 
         try initPrivateIdentity(using: language, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePassword, false)
     }
 
     // Initialize & create new private identity and save it to DIDStore.
     public func initPrivateIdentity(using language: String,
-                                    mnemonic: String,
-                                    passphrase: String?,
-                                    storePassword: String,
-                                    _ force: Bool ) throws {
+                                          mnemonic: String,
+                                        passphrase: String?,
+                                     storePassword: String,
+                                           _ force: Bool ) throws {
         guard try Mnemonic.isValid(language, mnemonic) else {
             throw DIDError.illegalArgument("Invalid mnemonic.")
         }
@@ -139,13 +139,13 @@ public class DIDStore: NSObject {
     }
 
     public func initPrivateIdentity(using extentedPrivateKey: String,
-                                    storePassword: String) throws {
+                                               storePassword: String) throws {
         try initPrivateIdentity(using: extentedPrivateKey, storePassword: storePassword, false)
     }
 
     public func initPrivateIdentity(using extentedPrivateKey: String,
-                                    storePassword: String,
-                                    _ force: Bool ) throws {
+                                               storePassword: String,
+                                                    _ force: Bool ) throws {
         guard !extentedPrivateKey.isEmpty else {
             throw DIDError.illegalArgument("Invalid extended private key.")
         }
@@ -163,7 +163,7 @@ public class DIDStore: NSObject {
     }
 
     private func initPrivateIdentity(_ privateIdentity: HDKey,
-                                     _ storePassword: String) throws {
+                                       _ storePassword: String) throws {
         // Save extended root private key
         let encryptedIdentity = try DIDStore.encryptToBase64(privateIdentity.serialize(), storePassword)
         try storage.storePrivateIdentity(encryptedIdentity)
@@ -387,8 +387,8 @@ public class DIDStore: NSObject {
     }
 
     public func newDid(withPrivateIdentityIndex: Int,
-                       alias: String?,
-                       using storePassword: String) throws -> DIDDocument {
+                                          alias: String?,
+                            using storePassword: String) throws -> DIDDocument {
         guard withPrivateIdentityIndex >= 0 else {
             throw DIDError.illegalArgument("invalid index")
         }
@@ -447,7 +447,7 @@ public class DIDStore: NSObject {
     }
 
     public func publishDid(for did: DID,
-                           storePassword: String) throws {
+                     storePassword: String) throws {
         do {
             try publishDid(for: did, using: nil, storePassword: storePassword)
         } catch {
@@ -462,8 +462,8 @@ public class DIDStore: NSObject {
     }
 
     public func publishDid(for did: DID,
-                           using signKey: DIDURL?,
-                           storePassword: String) throws {
+                     using signKey: DIDURL?,
+                     storePassword: String) throws {
 
         return try publishDid(did, signKey, storePassword, false)
     }
@@ -476,9 +476,9 @@ public class DIDStore: NSObject {
     }
 
     public func publishDid(_ did: DID,
-                           _ signKey: DIDURL?,
-                           _ storePassword: String,
-                           _ force: Bool) throws {
+                       _ signKey: DIDURL?,
+                 _ storePassword: String,
+                         _ force: Bool) throws {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -555,8 +555,8 @@ public class DIDStore: NSObject {
     }
 
     public func publishDid(for did: String,
-                           using signKey: String?,
-                           storePassword: String,
+                     using signKey: String?,
+                     storePassword: String,
                            _ force: Bool) throws {
         var _did: DID?
         var _signKey: DIDURL?
@@ -573,34 +573,34 @@ public class DIDStore: NSObject {
     }
 
     public func publishDidAsync(for did: DID,
-                                storePassword: String) throws -> Promise<Void> {
+                          storePassword: String) throws -> Promise<Void> {
 
         return publishDidAsync(for: did, using: nil, storePassword: storePassword)
     }
 
     public func publishDidAsync(for did: String,
-                                storePassword: String) -> Promise<Void> {
+                          storePassword: String) -> Promise<Void> {
 
         return publishDidAsync(for: did, using: nil, storePassword: storePassword)
     }
 
     public func publishDidAsync(for did: DID,
-                                using signKey: DIDURL?,
-                                storePassword: String) -> Promise<Void> {
+                          using signKey: DIDURL?,
+                          storePassword: String) -> Promise<Void> {
 
         return publishDidAsync(for: did, using: signKey, storePassword: storePassword, false)
     }
 
     public func publishDidAsync(for did: String,
-                                using signKey: String?,
-                                storePassword: String) -> Promise<Void> {
+                          using signKey: String?,
+                          storePassword: String) -> Promise<Void> {
 
         return publishDidAsync(for: did, using: signKey, storePassword: storePassword, false)
     }
 
     public func publishDidAsync(for did: DID,
-                                using signKey: DIDURL?,
-                                storePassword: String,
+                          using signKey: DIDURL?,
+                          storePassword: String,
                                 _ force: Bool) -> Promise<Void> {
 
         return Promise<Void> { resolver in
@@ -613,8 +613,8 @@ public class DIDStore: NSObject {
     }
 
     public func publishDidAsync(for did: String,
-                                using signKey: String?,
-                                storePassword: String,
+                          using signKey: String?,
+                          storePassword: String,
                                 _ force: Bool) -> Promise<Void> {
         return Promise<Void> { resolver in
             do {
@@ -626,7 +626,7 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDid(for target: DID,
-                              storePassword: String) throws {
+                           storePassword: String) throws {
         do {
             try deactivateDid(for: target, using: nil, storePassword: storePassword)
         } catch {
@@ -635,7 +635,7 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDid(for target: String,
-                              storePassword: String) throws {
+                           storePassword: String) throws {
         do {
             try deactivateDid(for: target, using:  nil, storePassword: storePassword)
         } catch {
@@ -645,8 +645,8 @@ public class DIDStore: NSObject {
 
     // Deactivate self DID using authentication keys
     public func deactivateDid(for target: DID,
-                              using signKey: DIDURL?,
-                              storePassword: String) throws {
+                           using signKey: DIDURL?,
+                           storePassword: String) throws {
 
         guard !storePassword.isEmpty else {
             throw DIDError.didStoreError("storePassword is empty.")
@@ -687,8 +687,8 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDid(for target: String,
-                              using signKey: String?,
-                              storePassword: String) throws {
+                           using signKey: String?,
+                           storePassword: String) throws {
         var _did: DID?
         var _signKey: DIDURL?
         do {
@@ -703,20 +703,20 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDidAsync(for target: DID,
-                                   storePassword: String) throws -> Promise<Void> {
+                                storePassword: String) throws -> Promise<Void> {
 
         return deactivateDidAsync(for: target, using: nil, storePassword: storePassword)
     }
 
     public func deactivateDidAsync(for target: String,
-                                   storePassword: String) throws -> Promise<Void> {
+                                storePassword: String) throws -> Promise<Void> {
 
         return try deactivateDidAsync(for: target, using: nil, storePassword: storePassword)
     }
 
     public func deactivateDidAsync(for target: DID,
-                                   using signKey: DIDURL?,
-                                   storePassword: String) -> Promise<Void> {
+                                using signKey: DIDURL?,
+                                storePassword: String) -> Promise<Void> {
 
         return Promise<Void> { resolver in
             do {
@@ -728,8 +728,8 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDidAsync(for target: String,
-                                   using signKey: String?,
-                                   storePassword: String) throws -> Promise<Void> {
+                                using signKey: String?,
+                                storePassword: String) throws -> Promise<Void> {
 
         return Promise<Void> { resolver in
             do {
@@ -742,9 +742,9 @@ public class DIDStore: NSObject {
 
     // Deactivate target DID with authorization
     func deactivateDid(_ target: DID,
-                       _ withAuthroizationDid: DID,
-                       _ signKey: DIDURL?,
-                       _ storePassword: String) throws {
+        _ withAuthroizationDid: DID,
+                     _ signKey: DIDURL?,
+               _ storePassword: String) throws {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument("storePassword is empty.")
         }
@@ -811,16 +811,16 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDid(for target: DID,
-                              withAuthroizationDid: DID,
-                              storePassword: String) throws {
+                    withAuthroizationDid: DID,
+                           storePassword: String) throws {
 
         return try deactivateDid(target, withAuthroizationDid, nil, storePassword)
     }
 
     public func deactivateDid(for target: String,
-                              withAuthroizationDid: String,
-                              using signKey: String?,
-                              storePassword: String) throws {
+                    withAuthroizationDid: String,
+                           using signKey: String?,
+                           storePassword: String) throws {
 
         var _target: DID?
         var _did: DID?
@@ -838,23 +838,23 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDidAsync(for target: DID,
-                                   withAuthroizationDid: DID,
-                                   storePassword: String) ->  Promise<Void> {
+                         withAuthroizationDid: DID,
+                                storePassword: String) ->  Promise<Void> {
 
         return deactivateDidAsync(for: target, withAuthroizationDid: withAuthroizationDid, using: nil, storePassword: storePassword)
     }
 
     public func deactivateDidAsync(for target: String,
-                                   withAuthroizationDid: String,
-                                   storePassword: String) throws ->  Promise<Void> {
+                         withAuthroizationDid: String,
+                                storePassword: String) throws ->  Promise<Void> {
 
         return try deactivateDidAsync(for: target, withAuthroizationDid: withAuthroizationDid, using: nil, storePassword: storePassword)
     }
 
     public func deactivateDidAsync(for target: DID,
-                                   withAuthroizationDid: DID,
-                                   using signKey: DIDURL?,
-                                   storePassword: String) -> Promise<Void> {
+                         withAuthroizationDid: DID,
+                                using signKey: DIDURL?,
+                                storePassword: String) -> Promise<Void> {
 
         return Promise<Void> { resolver in
             do {
@@ -866,9 +866,9 @@ public class DIDStore: NSObject {
     }
 
     public func deactivateDidAsync(for target: String,
-                                   withAuthroizationDid: String,
-                                   using signKey: String?,
-                                   storePassword: String) throws ->  Promise<Void> {
+                         withAuthroizationDid: String,
+                                using signKey: String?,
+                                storePassword: String) throws ->  Promise<Void> {
 
         return Promise<Void> { resolver in
             do {
@@ -1120,13 +1120,13 @@ public class DIDStore: NSObject {
 
     public func selectCredentials(for did: DID,
                                   byId id: DIDURL?,
-                                  andType type: Array<String>?) throws -> Array<DIDURL> {
+                             andType type: Array<String>?) throws -> Array<DIDURL> {
         return try storage.selectCredentials(did, id, type)
     }
     
     public func selectCredentials(for did: String,
                                   byId id: String?,
-                                  andType type: Array<String>?) throws -> Array<DIDURL> {
+                             andType type: Array<String>?) throws -> Array<DIDURL> {
         let _did = try DID(did)
         let _key = id != nil ? try DIDURL(_did, id!) : nil
 
@@ -1134,9 +1134,9 @@ public class DIDStore: NSObject {
     }
     
     public func storePrivateKey(for did: DID,
-                                id: DIDURL,
-                                privateKey: Data,
-                                using storePassword: String) throws {
+                                     id: DIDURL,
+                             privateKey: Data,
+                    using storePassword: String) throws {
 
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
@@ -1245,7 +1245,7 @@ public class DIDStore: NSObject {
             usedId = doc?.defaultPublicKey
         }
         
-        let key = try HDKey.deserialize(try loadPrivateKey(did, usedId!, storePassword));
+        let key = try HDKey.deserialize(loadPrivateKey(did, usedId!, storePassword));
         let privatekeys = key.getPrivateKeyData()
         let toPPointer = privatekeys.toPointer()
         
@@ -1280,9 +1280,9 @@ public class DIDStore: NSObject {
     }
 
     private func exportDid(_ did: DID,
-                           _ generator: JsonGenerator,
-                           _ password: String,
-                           _ storePassword: String) throws {
+                     _ generator: JsonGenerator,
+                      _ password: String,
+                 _ storePassword: String) throws {
         // All objects should load directly from storage,
         // avoid affects the cached objects.
         var doc: DIDDocument? = nil
@@ -1431,9 +1431,9 @@ public class DIDStore: NSObject {
     }
 
     public func exportDid(_ did: DID,
-                          to output: OutputStream,
-                          using password: String,
-                          storePassword: String) throws {
+                      to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
         let generator = JsonGenerator()
         try exportDid(did, generator, password, storePassword)
         let exportStr = generator.toString()
@@ -1443,16 +1443,16 @@ public class DIDStore: NSObject {
     }
 
     public func exportDid(_ did: String,
-                          to output: OutputStream,
-                          using password: String,
-                          storePassword: String) throws {
+                      to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
         try exportDid(DID(did), to: output, using: password, storePassword: storePassword)
     }
 
     public func exportDid(_ did: DID,
-                          to fileHandle: FileHandle,
-                          using password: String,
-                          storePassword: String) throws {
+                  to fileHandle: FileHandle,
+                 using password: String,
+                  storePassword: String) throws {
         let generator = JsonGenerator()
         try exportDid(did, generator, password, storePassword)
         let exportStr = generator.toString()
@@ -1460,15 +1460,15 @@ public class DIDStore: NSObject {
     }
 
     public func exportDid(_ did: String,
-                          to fileHandle: FileHandle,
-                          using password: String,
-                          storePassword: String) throws {
+                  to fileHandle: FileHandle,
+                 using password: String,
+                  storePassword: String) throws {
         try exportDid(DID(did), to: fileHandle, using: password, storePassword: storePassword)
     }
 
     private func importDid(_ root: JsonNode,
-                           _ password: String,
-                           _ storePassword: String) throws {
+                       _ password: String,
+                  _ storePassword: String) throws {
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         sha256.update(&bytes)
@@ -1658,9 +1658,8 @@ public class DIDStore: NSObject {
     }
 
     public func importDid(from data: Data,
-
-                          using password: String,
-                          storePassword: String) throws {
+                     using password: String,
+                      storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
@@ -1670,23 +1669,23 @@ public class DIDStore: NSObject {
     }
 
     public func importDid(from input: InputStream,
-                          using password: String,
-                          storePassword: String) throws {
+                      using password: String,
+                       storePassword: String) throws {
         let data = try readData(input: input)
         try importDid(from: data, using: password, storePassword: storePassword)
     }
 
     public func importDid(from handle: FileHandle,
-                          using password: String,
-                          storePassword: String) throws {
+                       using password: String,
+                        storePassword: String) throws {
         handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
         try importDid(from: data, using: password, storePassword: storePassword)
     }
 
     private func exportPrivateIdentity(_ generator: JsonGenerator,
-                                       _ password: String,
-                                       _ storePassword: String) throws {
+                                        _ password: String,
+                                   _ storePassword: String) throws {
         var encryptedMnemonic = try storage.loadMnemonic()
         var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, password)
@@ -1748,8 +1747,8 @@ public class DIDStore: NSObject {
     }
 
     public func exportPrivateIdentity(to output: OutputStream,
-                                      _ password: String,
-                                      _ storePassword: String) throws {
+                                     _ password: String,
+                                _ storePassword: String) throws {
         let generator = JsonGenerator()
         try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
@@ -1759,8 +1758,8 @@ public class DIDStore: NSObject {
     }
 
     public func exportPrivateIdentity(to handle: FileHandle,
-                                      _ password: String,
-                                      _ storePassword: String) throws {
+                                     _ password: String,
+                                _ storePassword: String) throws {
         let generator = JsonGenerator()
         try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
@@ -1768,7 +1767,7 @@ public class DIDStore: NSObject {
     }
 
     public func exportPrivateIdentity(_ password: String,
-                                      _ storePassword: String) throws -> Data {
+                                 _ storePassword: String) throws -> Data {
         let generator = JsonGenerator()
         try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
@@ -1776,8 +1775,8 @@ public class DIDStore: NSObject {
     }
     
     private func importPrivateIdentity(_ root: JsonNode,
-                                       _ password: String,
-                                       _ storePassword: String) throws {
+                                   _ password: String,
+                              _ storePassword: String) throws {
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         sha256.update(&bytes)
@@ -1862,8 +1861,8 @@ public class DIDStore: NSObject {
     }
 
     public func importPrivateIdentity(from data: Data,
-                                      using password: String,
-                                      storePassword: String) throws {
+                                 using password: String,
+                                  storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
@@ -1873,22 +1872,22 @@ public class DIDStore: NSObject {
     }
 
     public func importPrivateIdentity(from input: InputStream,
-                                      using password: String,
-                                      storePassword: String) throws {
+                                  using password: String,
+                                   storePassword: String) throws {
         let data = try readData(input: input)
         try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
     }
 
     public func importPrivateIdentity(from handle: FileHandle,
-                                      using password: String,
-                                      storePassword: String) throws {
+                                   using password: String,
+                                    storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
         try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
     }
 
     public func exportStore(to output: OutputStream,
-                            _ password: String,
-                            _ storePassword: String) throws {
+                           _ password: String,
+                      _ storePassword: String) throws {
         var exportStr = ""
         if containsPrivateIdentity() {
             let generator = JsonGenerator()
@@ -1908,8 +1907,8 @@ public class DIDStore: NSObject {
     }
 
     public func exportStore(to handle: FileHandle,
-                            _ password: String,
-                            _ storePassword: String) throws {
+                           _ password: String,
+                      _ storePassword: String) throws {
         var exportStr = ""
         if containsPrivateIdentity() {
             let generator = JsonGenerator()
@@ -1928,7 +1927,7 @@ public class DIDStore: NSObject {
 
     public func importStore(from input: InputStream,
                             _ password: String,
-                            _ storePassword: String) throws {
+                       _ storePassword: String) throws {
         let data = try readData(input: input)
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
@@ -1953,8 +1952,8 @@ public class DIDStore: NSObject {
     }
 
     public func importStore(from handle: FileHandle,
-                            _ password: String,
-                            _ storePassword: String) throws {
+                             _ password: String,
+                        _ storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {

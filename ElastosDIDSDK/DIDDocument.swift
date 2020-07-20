@@ -289,7 +289,7 @@ public class DIDDocument {
             throw DIDError.didStoreError("Not attached with a DID store.")
         }
 
-        let key = try HDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
+        let key = HDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
         return key.derive(index).serializeBase58()
     }
 
