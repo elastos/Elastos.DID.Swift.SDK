@@ -18,7 +18,7 @@ class TestDataGenerator: XCTestCase {
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
         let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initPrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+        try store.initializePrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic
@@ -347,7 +347,7 @@ class TestDataGenerator: XCTestCase {
                 try store.storeDid(using: doc)
                 
                 print("******** Publishing DID:\(doc.subject)")
-                _ = try store.publishDid(for: doc.subject, storePassword: storePass)
+                _ = try store.publishDid(for: doc.subject, using: storePass)
                 
                 while true {
                     wait(interval: 30)
