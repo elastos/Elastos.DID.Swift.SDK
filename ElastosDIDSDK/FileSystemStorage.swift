@@ -465,7 +465,7 @@ public class FileSystemStorage: DIDStorage {
 
             metadata.setLastModified(modificationDate)
         } catch {
-            print("Ignore")
+//            print("Ignore")
         }
 
         return metadata

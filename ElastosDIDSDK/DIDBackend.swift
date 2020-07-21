@@ -256,7 +256,7 @@ public class DIDBackend {
         return rr
      }
     
-    public class func setResolveHandle(_ handle: ResolveHandle) {
+    public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
         DIDBackend.resolveHandle = handle
     }
 
