@@ -289,7 +289,8 @@ public class DIDBackend {
             return nil
 
         default:
-            let transactionInfo = result!.transactionInfo(0)
+
+            let transactionInfo = try result!.transactionInfo(0)
             let doc = transactionInfo?.request.document
             let meta = DIDMeta()
 
