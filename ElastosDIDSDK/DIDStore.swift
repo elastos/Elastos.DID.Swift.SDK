@@ -1234,17 +1234,19 @@ public class DIDStore: NSObject {
         // TODO: Should be remove in the future
         var extendedKeyBytes: Data?
         if keyBytes.count == HDKey.PRIVATEKEY_BYTES {
-            let identity = try loadPrivateIdentity(storePassword)
-            for i in 0..<100 {
-                let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
-                let child = try identity.derive(path)
-                if child.getPrivateKeyData() == keyBytes {
-                    extendedKeyBytes = try child.serialize()
-                    break
+            let identity = try? loadPrivateIdentity(storePassword)
+            if identity != nil {
+                for i in 0..<100 {
+                    let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
+                    let child = try identity!.derive(path)
+                    if child.getPrivateKeyData() == keyBytes {
+                        extendedKeyBytes = try child.serialize()
+                        break
+                    }
+                    child.wipe()
                 }
-                child.wipe()
+                identity?.wipe()
             }
-            identity.wipe()
             if extendedKeyBytes == nil {
                 extendedKeyBytes = HDKey.paddingToExtendedPrivateKey(keyBytes)
             }

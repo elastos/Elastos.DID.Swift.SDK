@@ -43,10 +43,10 @@ class VerifiablePresentationTest: XCTestCase {
     func testBuild() {
         do {
             let testData = TestData()
-            let store = try! testData.setup(true)
+            let store = try testData.setup(true)
             // For integrity check
-            _ = try! testData.loadTestIssuer()
-            let testDoc = try! testData.loadTestDocument()
+            _ = try testData.loadTestIssuer()
+            let testDoc = try testData.loadTestDocument()
             
             let pb = try! VerifiablePresentation.editingVerifiablePresentation(for: testDoc.subject, using: store)
             let vp = try! pb.withCredentials(testData.loadProfileCredential()!,
