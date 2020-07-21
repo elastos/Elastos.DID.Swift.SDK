@@ -517,7 +517,7 @@ public class DIDStore: NSObject {
         }
         var lastTxid: String? = nil
         var reolvedSignautre: String? = nil
-        let resolvedDoc = try did.resolve()
+        let resolvedDoc = try did.resolve(true)
 
         if resolvedDoc != nil {
             guard !resolvedDoc!.isDeactivated else {
