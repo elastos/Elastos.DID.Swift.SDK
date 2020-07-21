@@ -721,9 +721,7 @@ public class DIDDocument {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
-        let digest = sha256Digest(data)
-
-        return try signDigest(withId: id, using: storePassword, for: digest)
+        return try signDigest(withId: id, using: storePassword, for: sha256Digest(data))
     }
 
     private func sha256Digest(_ data: [Data]) -> Data {

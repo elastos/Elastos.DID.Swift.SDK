@@ -19,10 +19,10 @@ public class DIDStore: NSObject {
     private var storage: DIDStorage
     private var backend: DIDBackend
 
-    private init(_ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ adapter: DIDAdapter, _ storage: DIDStorage) {
+    private init(_ initialCapacity: Int, _ maxCapacity: Int, _ adapter: DIDAdapter, _ storage: DIDStorage) {
         if maxCacheCapacity > 0 {
-            documentCache = LRUCache<DID, DIDDocument>(initialCacheCapacity, maxCacheCapacity)
-            credentialCache = LRUCache<DIDURL, VerifiableCredential>(initialCacheCapacity, maxCacheCapacity)
+            documentCache = LRUCache<DID, DIDDocument>(initialCapacity, maxCapacity)
+            credentialCache = LRUCache<DIDURL, VerifiableCredential>(initialCapacity, maxCapacity)
         }
 
         self.backend = DIDBackend.getInstance(adapter)

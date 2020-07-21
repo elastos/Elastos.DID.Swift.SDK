@@ -6,7 +6,7 @@ public class DIDBackend {
     private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) throws -> DIDDocument?
-    private static var resolveHandle: ResolveHandle?
+    private static var resolveHandle: ResolveHandle? = nil
 
     class TransactionResult: NSObject {
         private var _transactionId: String?
@@ -256,7 +256,7 @@ public class DIDBackend {
         return rr
      }
     
-    public class func setResolveHandle(_ handle: ResolveHandle?) {
+    public class func setResolveHandle(_ handle: ResolveHandle) {
         DIDBackend.resolveHandle = handle
     }
 
