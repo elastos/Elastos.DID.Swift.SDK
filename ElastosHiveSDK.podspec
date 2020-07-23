@@ -15,10 +15,10 @@ Pod::Spec.new do |s|
   s.description = 'Elastos DID Swift SDK framework distribution'
   s.homepage     = 'https://www.elastos.org'
   s.license      = { :type => 'MIT', :file => 'ElastosDIDSDK-framework/LICENSE' }
-  s.author       = { 'did-dev' => 'release@elastos.org' }
+  s.author       = { 'did-dev' => 'support@elastos.org' }
   s.platform     = :ios, '11.0'
   s.ios.deployment_target = '11.0'
-  s.source       = {'http':'https://github.com/elastos/Elastos.NET.DID.Swift.SDK/releases/download/release-v1.0.1/ElastosDIDSDK-framework.zip'}
+  s.source       = {'http':'https://github.com/elastos/Elastos.NET.DID.Swift.SDK/releases/download/release-v1.0/ElastosDIDSDK-framework.zip'}
   s.vendored_frameworks = 'ElastosDIDSDK-framework/*.framework'
   s.source_files = 'ElastosDIDSDK-framework/ElastosDIDSDK.framework/**/*.h'
 
