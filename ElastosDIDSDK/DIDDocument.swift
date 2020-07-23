@@ -179,6 +179,7 @@ public class DIDDocument {
         self.setMetadata(metadata)
     }
 
+    /// The unique identifier of the DID document
     public var subject: DID {
         return self._subject!
     }
@@ -187,43 +188,77 @@ public class DIDDocument {
         self._subject = subject
     }
 
+    /// Get public key count.
     public var publicKeyCount: Int {
         return self.publicKeyMap.count() { value -> Bool in return true }
     }
 
+    /// Get the array of publicKeys.
+    /// - Returns: The array of publicKeys
     public func publicKeys() -> Array<PublicKey> {
         return self.publicKeyMap.values() { value -> Bool in return true }
     }
 
+    /// Get public key conforming to type or identifier.
+    /// - Parameters:
+    ///   - byId: An identifier of public key to be selected.
+    ///   - andType: The type of public key to be selected.
+    /// - Returns: Array of public keys selected.
     public func selectPublicKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
         return self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
     }
 
+    /// Get public key conforming to type or identifier.
+    /// - Parameters:
+    ///   - byId: An identifier of public key to be selected.
+    ///   - andType: The type of public key to be selected.
+    /// - Throws: If an error occurred, throw error
+    /// - Returns: Array of public keys selected.
     public func selectPublicKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
         return selectPublicKeys(byId: id, andType: andType)
     }
 
+    /// Get public key conforming to type or identifier.
+    /// - Parameter byType: The type of public key to be selected.
+    /// - Returns: Array of public keys selected.
     public func selectPublicKeys(byType: String) -> Array<PublicKey> {
         return self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
     }
 
+    /// Get public key according to identifier of public key.
+    /// - Parameter ofId: An identifier of public key.
+    /// - Returns: The handle to public key
     public func publicKey(ofId: DIDURL) -> PublicKey? {
         return self.publicKeyMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
+    /// Get public key according to identifier of public key.
+    /// - Parameter ofId: An identifier of public key.
+    /// - Throws: If an error occurred, throw error
+    /// - Returns: The handle to public key
     public func publicKey(ofId: String) throws -> PublicKey? {
         return publicKey(ofId: try DIDURL(subject, ofId))
     }
 
+    /// Check key if public key or not.
+    /// - Parameter forId: An identifier of public key.
+    /// - Returns: True if has public key, or false.
     public func containsPublicKey(forId: DIDURL) -> Bool {
         return publicKey(ofId: forId) != nil
     }
 
+    /// Check key if public key or not.
+    /// - Parameter forId: An identifier of public key.
+    /// - Throws: If an error occurred, throw error
+    /// - Returns: True if has public key, or false.
     public func containsPublicKey(forId: String) throws -> Bool {
         return try publicKey(ofId: forId) != nil
     }
 
+    /// Check key if private key or not.
+    /// - Parameter forId: An identifier of private key.
+    /// - Returns: True if has public key, or false.
     public func containsPrivateKey(forId: DIDURL) -> Bool {
         guard containsPublicKey(forId: forId) else {
             return false
@@ -235,6 +270,9 @@ public class DIDDocument {
         return store.containsPrivateKey(for: self.subject, id: forId)
     }
 
+    /// Check key if private key or not.
+    /// - Parameter forId: An identifier of private key.
+    /// - Returns: True if has public key, or false.
     public func containsPrivateKey(forId: String) -> Bool {
         do {
             return containsPrivateKey(forId: try DIDURL(self.subject, forId))
