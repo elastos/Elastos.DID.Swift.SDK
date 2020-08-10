@@ -40,7 +40,7 @@ public class Mnemonic {
     /// - Returns: Random mnemonic.
     public class func generate(_ language: String) throws -> String {
         guard !language.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument("language is empty.")
         }
 
         let result = language.withCString { (clanuage) in
@@ -48,7 +48,7 @@ public class Mnemonic {
         }
 
         guard let _ = result else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument("generate mnemonic failed.")
         }
 
         return String(cString: result!)
