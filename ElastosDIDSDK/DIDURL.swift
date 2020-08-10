@@ -130,19 +130,22 @@ public class DIDURL {
         self._fragment = newValue
     }
 
-    /// <#Description#>
-    /// - Returns: <#description#>
+    /// Parameters for generating DIDURL .
+    /// - Returns: DIDURL string .
     public func parameters() -> String? {
         return mapToString(_parameters, ";")
     }
 
+    /// Get value in the DIDURL parameter by the key .
+    /// - Parameter ofKey: The key string.
+    /// - Returns: If no has, return value string.
     public func parameter(ofKey: String) -> String? {
         return _parameters?[ofKey]
     }
 
     /// Check is contains parameter
-    /// - Parameter forKey: <#forKey description#>
-    /// - Returns: <#description#>
+    /// - Parameter forKey: The key string.
+    /// - Returns: true if has value, or false.
     public func containsParameter(forKey: String) -> Bool {
         return _parameters?.keys.contains(forKey) ?? false
     }
@@ -154,7 +157,7 @@ public class DIDURL {
         self._parameters![forKey] = value
     }
 
-    /// <#Description#>
+    /// Get DIDURL path.
     public var path: String? {
         return _path
     }
@@ -163,30 +166,30 @@ public class DIDURL {
         self._path = newValue
     }
 
-    /// <#Description#>
-    /// - Returns: <#description#>
+    /// Query DIDURL parameters
+    /// - Returns: DIDURL parameters string .
     public func queryParameters() -> String? {
         return mapToString(_queryParameters, "&")
     }
 
-    /// <#Description#>
-    /// - Parameter ofKey: <#ofKey description#>
-    /// - Returns: <#description#>
+    /// Query DIDURL parameter by key.
+    /// - Parameter ofKey: The key string .
+    /// - Returns: if has value , return value string .
     public func queryParameter(ofKey: String) -> String? {
         return _queryParameters?[ofKey]
     }
 
-    /// <#Description#>
-    /// - Parameter forKey: <#forKey description#>
-    /// - Returns: <#description#>
+    /// Check is contains query parameter .
+    /// - Parameter forKey: The key string .
+    /// - Returns: true if has value, or false.
     public func containsQueryParameter(forKey: String) -> Bool {
         return _queryParameters?.keys.contains(forKey) ?? false
     }
 
-    /// <#Description#>
+    /// Add key-value for parameters .
     /// - Parameters:
-    ///   - value: <#value description#>
-    ///   - forKey: <#forKey description#>
+    ///   - value: The value string .
+    ///   - forKey: The key string.
     public func appendQueryParameter(_ value: String?, forKey: String) {
         if  self._queryParameters == nil {
             self._queryParameters = OrderedDictionary()
