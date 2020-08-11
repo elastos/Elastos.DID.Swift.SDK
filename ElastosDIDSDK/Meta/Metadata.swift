@@ -54,15 +54,18 @@ public class Metadata: NSObject {
     /// Set last modify for metadata.
     /// - Parameter timestamp: The time of metadata modified.
     public func setLastModified(_ timestamp: Date) {
-        put(key: Metadata.LAST_MODIFIED, value: DateHelper.getTimeStampForString(timestamp))
+        put(key: Metadata.LAST_MODIFIED, value: DateFormatter.convertToUTCStringFromDate(timestamp))
     }
 
     /// Get last modify for metadata.
     /// - Returns: The time of metadata modified.
     public func getLastModified() -> Date? {
-        let date = get(key: Metadata.LAST_MODIFIED) as? String
-        let time = DateHelper.getDateFromTimeStampWithString(date)
-        return time
+        if let date = get(key: Metadata.LAST_MODIFIED) as? String {
+            let time = DateFormatter.convertToUTCDateFromString(date)
+            return time
+        }
+
+        return nil
     }
 
     /// Clear last modified for metadata.

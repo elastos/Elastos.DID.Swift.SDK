@@ -87,14 +87,17 @@ public class DIDMeta: Metadata {
     /// Get the time of transaction id for did.
     /// - Returns: The time of transaction.
     public func getPublished() -> Date? {
-        let time = self.get(key: PUBLISHED) as? Int
-        return DateHelper.getDateFromTimeStamp(time)
+        if let time = self.get(key: PUBLISHED) as? String {
+           return DateFormatter.convertToUTCDateFromString(time)
+        }
+
+        return nil
     }
 
     /// Set the time of transaction id for did.
     /// - Parameter timestamp: The time of transaction.
     public func setPublished(_ timestamp: Date) {
-        let timestampDate = DateHelper.getTimeStamp(timestamp)
+        let timestampDate = DateFormatter.convertToUTCStringFromDate(timestamp)
         put(key: PUBLISHED, value: timestampDate as Any)
     }
 
