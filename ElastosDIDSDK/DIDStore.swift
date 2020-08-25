@@ -645,6 +645,11 @@ public class DIDStore: NSObject {
             throw DIDError.didStoreError("Can not find the document for \(did)")
         }
 
+        guard doc!.isGenuine else {
+            Log.e(DIDStore.TAG, "\(did.toString()) is not genuine.")
+            throw DIDError.didStoreError("DID document is not genuine.")
+        }
+
         guard !doc!.isDeactivated else {
             Log.e(DIDStore.TAG, "\(did.toString()) already deactivated.")
             throw DIDError.didStoreError("DID already deactivated.")
