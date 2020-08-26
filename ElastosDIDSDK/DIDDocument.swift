@@ -301,6 +301,56 @@ public class DIDDocument {
         return getDefaultPublicKey()!
     }
 
+    private func mapToDerivePath(_ identifier: String, _ securityCode: Int) -> String {
+        let sha256 = SHA256Helper()
+        var bytes = [UInt8](identifier.data(using: .utf8)!)
+        sha256.update(&bytes)
+        let result = sha256.finalize()
+
+        var path: String = ""
+        let resultArr = stride(from: 0, to: 32, by: 4).map {
+            Array(result[$0...$0+3])
+        }
+
+        resultArr.forEach { buf in
+            let data = Data(buf)
+            let idx = data.buffer().getInt()
+
+            if idx >= 0 {
+                path.append("\(idx)")
+            }
+            else {
+                path.append("\(idx & 0x7FFFFFFF)")
+                path.append("H")
+            }
+            path.append("/")
+        }
+        if securityCode >= 0 {
+            path.append("\(securityCode)")
+        }
+        else {
+            path.append("\(securityCode & 0x7FFFFFFF)")
+            path.append("H")
+        }
+
+        return path
+    }
+
+    public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
+        if identifier.isEmpty || storepass.isEmpty {
+            throw DIDError.illegalArgument("param is empty.")
+        }
+
+        guard getMetadata().attachedStore else {
+            throw DIDError.illegalArgument("Not attached with a DID store.")
+        }
+
+        let key = HDKey.deserialize(try getMetadata().store!.loadPrivateKey(subject, defaultPublicKey, storepass))
+        let path = mapToDerivePath(identifier, securityCode)
+
+        return try key.derive(path).serializeBase58()
+    }
+
     func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
         guard containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
