@@ -57,6 +57,7 @@
 		111215ED23ED63CF009B068C /* vc-twitter.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215DC23ED63CF009B068C /* vc-twitter.json */; };
 		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111BF480235467880043D570 /* Antlr4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 110AD2F8234E431D006578D6 /* Antlr4.framework */; };
+		111D47BF24F5708D00B7462B /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111D47BE24F5708D00B7462B /* ByteBuffer.swift */; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
 		1137CFAB2398DE1C00250D4F /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
@@ -264,6 +265,7 @@
 		111215DB23ED63CF009B068C /* vc-profile.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-profile.normalized.json"; sourceTree = "<group>"; };
 		111215DC23ED63CF009B068C /* vc-twitter.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-twitter.json"; sourceTree = "<group>"; };
 		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
+		111D47BE24F5708D00B7462B /* ByteBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
 		1125B5862382351700D396B6 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = "Externals/libhdkey/lib/-iphonesimulator/libspvsdk.a"; sourceTree = "<group>"; };
@@ -563,6 +565,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		111D47B824F5707A00B7462B /* ByteBuffer */ = {
+			isa = PBXGroup;
+			children = (
+				111D47BE24F5708D00B7462B /* ByteBuffer.swift */,
+			);
+			path = ByteBuffer;
+			sourceTree = "<group>";
+		};
 		114A73C22490A4FB00262228 /* jwt */ = {
 			isa = PBXGroup;
 			children = (
@@ -708,6 +718,7 @@
 		11E3F791233D121900EF35C3 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				111D47B824F5707A00B7462B /* ByteBuffer */,
 				11C3ECF3247782F500DF1B4F /* CryptorECC */,
 				11C3ECCE2477807300DF1B4F /* SwiftJWT */,
 				11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */,
@@ -1198,6 +1209,7 @@
 				11782ACA242130C4009A1F5A /* DIDURLParserATN.swift in Sources */,
 				11C3ECE32477807300DF1B4F /* JWTVerifier.swift in Sources */,
 				A31ACE0823F199AE008EC032 /* Service.swift in Sources */,
+				111D47BF24F5708D00B7462B /* ByteBuffer.swift in Sources */,
 				A31ACE6023F19A4E008EC032 /* CredentialMeta.swift in Sources */,
 				11B096E324193E200065228B /* OrderedDictionary.swift in Sources */,
 				11C3ED08247782F600DF1B4F /* ECError.swift in Sources */,
