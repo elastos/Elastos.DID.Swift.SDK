@@ -525,6 +525,7 @@ public class FileSystemStorage: DIDStorage {
             else {
                 let modificationDate = try! getLastModificationDate(path)
                 doc.getMetadata().setLastModified(modificationDate)
+                try storeDidMetadata(doc.subject, doc.getMetadata())
             }
         } catch {
             throw DIDError.didStoreError("store DIDDocument error")
@@ -681,6 +682,7 @@ public class FileSystemStorage: DIDStorage {
             else {
                 let modificationDate = try getLastModificationDate(path)
                 credential.getMetadata().setLastModified(modificationDate)
+                try storeCredentialMetadata(credential.subject.did, credential.getId(), credential.getMetadata())
             }
         } catch {
             throw DIDError.didStoreError("store credential error")
