@@ -239,6 +239,10 @@ public class FileSystemStorage: DIDStorage {
             path.append(item)
         }
 
+        if forWrite {
+            // Delete before writing
+            _ = try deleteFile(path)
+        }
         if !FileManager.default.fileExists(atPath: path) && forWrite {
             let dirPath: String = PathExtracter(path).dirname()
             let fileM = FileManager.default
