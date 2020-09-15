@@ -86,17 +86,15 @@ public struct JWT {
         self.header = header
         self.claims = claims
         let currentTime = Date()
-        guard let nbf = claims.getNotBefore() else {
-            return
+        if let nbf = claims.getNotBefore() {
+            guard nbf < currentTime else {
+                throw JWTError.notBeforeJwtTime
+            }
         }
-        guard nbf < currentTime else {
-            throw JWTError.notBeforeJwtTime
-        }
-        guard let exp = claims.getExpiration() else {
-            return
-        }
-        guard currentTime < exp else {
-            throw JWTError.expiredJwtTime
+        if let exp = claims.getExpiration() {
+            guard currentTime < exp else {
+                throw JWTError.expiredJwtTime
+            }
         }
     }
     
