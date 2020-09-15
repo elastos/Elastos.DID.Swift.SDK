@@ -24,14 +24,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
             _ = c.setSubject(subject: "JwtTest")
                 .setId(id: "0")
@@ -91,14 +91,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             var c = JwtBuilder.createClaims()
@@ -159,14 +159,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             let token = try doc.jwtBuilder()
@@ -226,14 +226,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             let token = try doc.jwtBuilder()
@@ -295,14 +295,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
             let node = try testData.loadEmailVcNormalizedJson()
             let dic: [String: Any]? = try JSONSerialization.jsonObject(with: node.data(using: .utf8)!, options: []) as? [String: Any]
@@ -369,14 +369,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             let jsonValue = try testData.loadEmailVcNormalizedJson()
@@ -441,14 +441,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             let json = "{\n" +
@@ -517,14 +517,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
 
             let json = "{\n" +
@@ -593,14 +593,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
             let json = "{\n" +
                     "  \"sub\":\"JwtTest\",\n" +
@@ -668,14 +668,14 @@ class JwtTest: XCTestCase {
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
-            components.month = 5
-            components.day = 27
+            components.month = 9
+            components.day = 14
             components.minute = 21
             components.hour = 21
             components.second = 41
             let iat = userCalendar.date(from: components)
 
-            let exp = iat! + 1000
+            let exp = iat! + 100000000000
             let nbf = iat! - 10
             let json = "{\n" +
                     "  \"sub\":\"JwtTest\",\n" +
@@ -724,6 +724,58 @@ class JwtTest: XCTestCase {
             XCTAssertEqual("bar", c.get(key: "foo") as? String)
             let s = jwt.signature
             XCTAssertNotNil(s)
+        } catch {
+            XCTFail()
+        }
+    }
+
+    func testExpiration() {
+        do {
+            let testData = TestData()
+            _ = try testData.setup(true)
+            _ = try testData.initIdentity()
+
+            let doc = try testData.loadTestDocument()
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(doc.isValid)
+            let userCalendar = Calendar.current
+            var components = DateComponents()
+            components.year = 2020
+            components.month = 9
+            components.day = 14
+            components.minute = 21
+            components.hour = 21
+            components.second = 41
+            let iat = userCalendar.date(from: components)
+
+            let exp = iat! + 10000
+            let nbf = iat! - 10
+
+            let token = try doc.jwtBuilder()
+                .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
+                .addHeader(key: Header.CONTENT_TYPE, value: "json")
+                .addHeader(key: "library", value: "Elastos DID")
+                .addHeader(key: "version", value: "1.0")
+                .setSubject(sub: "JwtTest").setId(id: "0")
+                .setAudience(audience: "Test cases")
+                .setIssuedAt(issuedAt: iat!)
+                .setExpiration(expiration: exp)
+                .setNotBefore(nbf: nbf)
+                .claim(name: "foo", value: "bar")
+                .sign(withKey: "#key2", using: storePass)
+                .compact()
+            XCTAssertNotNil(token)
+            print(token)
+
+            // The JWT token is expired
+            let jp = JwtParserBuilder().build()
+            XCTAssertThrowsError(try jp.parseClaimsJwt(token)){ error in
+                switch error {
+                case JWTError.expiredJwtTime: break
+                default:
+                    XCTFail()
+                }
+            }
         } catch {
             XCTFail()
         }
