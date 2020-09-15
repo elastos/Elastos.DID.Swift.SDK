@@ -33,9 +33,14 @@ public class Mnemonic {
     public static let KOREAN = "Korean";
     public static let SPANISH = "Spanish";
 
+    /// Gernerate a random mnemonic.
+    /// - Parameter language: The language for DID.
+    /// support language string: “chinese_simplified”, “chinese_traditional”, “czech”, “english”, “french”, “italian”, “japanese”, “korean”, “spanish”.
+    /// - Throws: Language is empty or failure to generate mnemonic will throw error.
+    /// - Returns: Random mnemonic.
     public class func generate(_ language: String) throws -> String {
         guard !language.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument("language is empty.")
         }
 
         let result = language.withCString { (clanuage) in
@@ -43,12 +48,19 @@ public class Mnemonic {
         }
 
         guard let _ = result else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument("generate mnemonic failed.")
         }
 
         return String(cString: result!)
     }
     
+    /// Check mnemonic.
+    /// - Parameters:
+    ///   - language: The language for DID.
+    ///   support language string: “chinese_simplified”, “chinese_traditional”, “czech”, “english”, “french”, “italian”, “japanese”, “korean”, “spanish”.
+    ///   - mnemonic: mnemonic string.
+    /// - Throws: mnemonic or language is empty.
+    /// - Returns: true, if mnemonic is valid. or else, return false.
     public class func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
         guard !mnemonic.isEmpty else {
             throw DIDError.illegalArgument("Invalid mnemonic.")

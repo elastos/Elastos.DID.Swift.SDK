@@ -6,6 +6,20 @@
 	objectVersion = 51;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		11F3A90724D927E2007ABB70 /* ElastosDIDSDKFramework */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 11F3A90F24D927E2007ABB70 /* Build configuration list for PBXAggregateTarget "ElastosDIDSDKFramework" */;
+			buildPhases = (
+				11F3A91024D927FA007ABB70 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = ElastosDIDSDKFramework;
+			productName = ElastosDIDSDKFramework;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		0E568F5F89CD94B76CE6213E /* Pods_ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED7485A64A06C161BCD31D48 /* Pods_ElastosDIDSDK.framework */; };
 		11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1C239D1B31008A4500 /* DIDURLTest.swift */; };
@@ -43,6 +57,7 @@
 		111215ED23ED63CF009B068C /* vc-twitter.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215DC23ED63CF009B068C /* vc-twitter.json */; };
 		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111BF480235467880043D570 /* Antlr4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 110AD2F8234E431D006578D6 /* Antlr4.framework */; };
+		111D47BF24F5708D00B7462B /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111D47BE24F5708D00B7462B /* ByteBuffer.swift */; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
 		1137CFAB2398DE1C00250D4F /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
@@ -116,8 +131,8 @@
 		11E751A523A75A120022C592 /* DummyAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E751A423A75A120022C592 /* DummyAdapter.swift */; };
 		11E751DB23A774DD0022C592 /* IDChainOperationsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E751DA23A774DD0022C592 /* IDChainOperationsTest.swift */; };
 		11F262AF23260CF40009C103 /* ElastosDIDSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F262AD23260CF40009C103 /* ElastosDIDSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		11FB0A6123F0FF1D001941CF /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11FB0A6023F0FF0B001941CF /* libcrypto.a */; };
-		11FB0A6223F0FF1D001941CF /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11FB0A5F23F0FF0B001941CF /* libhdkey.a */; };
+		11F3A8FC24D7E330007ABB70 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F3A8FA24D7E312007ABB70 /* libcrypto.a */; };
+		11F3A8FD24D7E330007ABB70 /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F3A8FB24D7E316007ABB70 /* libhdkey.a */; };
 		9BBAD7558D040C7F910B6F81 /* Pods_ElastosDIDSDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B39FB18C79DF653202E046 /* Pods_ElastosDIDSDKTests.framework */; };
 		A31801A324015EA30087E074 /* DIDResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A224015EA30087E074 /* DIDResolver.swift */; };
 		A31801A9240277190087E074 /* JsonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A8240277180087E074 /* JsonNode.swift */; };
@@ -250,6 +265,7 @@
 		111215DB23ED63CF009B068C /* vc-profile.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-profile.normalized.json"; sourceTree = "<group>"; };
 		111215DC23ED63CF009B068C /* vc-twitter.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-twitter.json"; sourceTree = "<group>"; };
 		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
+		111D47BE24F5708D00B7462B /* ByteBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
 		1125B5862382351700D396B6 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = "Externals/libhdkey/lib/-iphonesimulator/libspvsdk.a"; sourceTree = "<group>"; };
@@ -375,6 +391,8 @@
 		11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		11F262AD23260CF40009C103 /* ElastosDIDSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK.h; sourceTree = "<group>"; };
 		11F262AE23260CF40009C103 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		11F3A8FA24D7E312007ABB70 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Externals/HDKey/lib/libcrypto.a; sourceTree = "<group>"; };
+		11F3A8FB24D7E316007ABB70 /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = Externals/HDKey/lib/libhdkey.a; sourceTree = "<group>"; };
 		11FB0A5F23F0FF0B001941CF /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = "Externals/HDKey/lib/-iphoneos/libhdkey.a"; sourceTree = "<group>"; };
 		11FB0A6023F0FF0B001941CF /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Externals/HDKey/lib/-iphoneos/libcrypto.a"; sourceTree = "<group>"; };
 		2C9D52CBC88BB3D458134F3E /* Pods-ElastosDIDSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDK.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDK/Pods-ElastosDIDSDK.release.xcconfig"; sourceTree = "<group>"; };
@@ -446,10 +464,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11FB0A6223F0FF1D001941CF /* libhdkey.a in Frameworks */,
-				11FB0A6123F0FF1D001941CF /* libcrypto.a in Frameworks */,
 				111BF480235467880043D570 /* Antlr4.framework in Frameworks */,
+				11F3A8FD24D7E330007ABB70 /* libhdkey.a in Frameworks */,
 				0E568F5F89CD94B76CE6213E /* Pods_ElastosDIDSDK.framework in Frameworks */,
+				11F3A8FC24D7E330007ABB70 /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,8 +477,10 @@
 		1109D08723275DC600A03D56 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				11F3A8FB24D7E316007ABB70 /* libhdkey.a */,
 				11A6B159238FD77E00D3C1F1 /* libcrypto.a */,
 				11FB0A6023F0FF0B001941CF /* libcrypto.a */,
+				11F3A8FA24D7E312007ABB70 /* libcrypto.a */,
 				11A6B15A238FD77E00D3C1F1 /* libhdkey.a */,
 				11FB0A5F23F0FF0B001941CF /* libhdkey.a */,
 				1125B5912382351700D396B6 /* libboost_filesystem.a */,
@@ -543,6 +563,14 @@
 				11133F5923C48B4600BFDA3E /* SPVWrapper.framework */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		111D47B824F5707A00B7462B /* ByteBuffer */ = {
+			isa = PBXGroup;
+			children = (
+				111D47BE24F5708D00B7462B /* ByteBuffer.swift */,
+			);
+			path = ByteBuffer;
 			sourceTree = "<group>";
 		};
 		114A73C22490A4FB00262228 /* jwt */ = {
@@ -690,6 +718,7 @@
 		11E3F791233D121900EF35C3 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				111D47B824F5707A00B7462B /* ByteBuffer */,
 				11C3ECF3247782F500DF1B4F /* CryptorECC */,
 				11C3ECCE2477807300DF1B4F /* SwiftJWT */,
 				11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */,
@@ -936,6 +965,9 @@
 						CreatedOnToolsVersion = 10.3;
 						LastSwiftMigration = 1030;
 					};
+					11F3A90724D927E2007ABB70 = {
+						CreatedOnToolsVersion = 11.6;
+					};
 				};
 			};
 			buildConfigurationList = 11F262A423260CF40009C103 /* Build configuration list for PBXProject "ElastosDIDSDK" */;
@@ -963,6 +995,7 @@
 			targets = (
 				11F262A923260CF40009C103 /* ElastosDIDSDK */,
 				1155D9452352FACE00DF8C9D /* ElastosDIDSDKTests */,
+				11F3A90724D927E2007ABB70 /* ElastosDIDSDKFramework */,
 			);
 		};
 /* End PBXProject section */
@@ -1044,6 +1077,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		11F3A91024D927FA007ABB70 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "FMK_NAME=${PROJECT_NAME}\nINSTALL_DIR=${SRCROOT}/'Products'/${FMK_NAME}'.framework'\nFINAL_DIR=${SRCROOT}/Products\nWRK_DIR=${BUILD_DIR}\nDEVICE_DIR=${WRK_DIR}'/Debug-iphoneos'/${FMK_NAME}'.framework'\nSIMULATOR_DIR=${WRK_DIR}'/Debug-iphonesimulator'/${FMK_NAME}'.framework'\nxcodebuild -workspace ${FMK_NAME}\".xcworkspace\" -scheme ${FMK_NAME} OTHER_CFLAGS=\"-fembed-bitcode\" -configuration \"Debug\" -sdk iphoneos -arch arm64 clean build -UseModernBuildSystem=NO || exit 1\nxcodebuild -workspace ${FMK_NAME}\".xcworkspace\" -scheme ${FMK_NAME} OTHER_CFLAGS=\"-fembed-bitcode\" -configuration \"Debug\" -sdk iphonesimulator -arch x86_64 clean build -UseModernBuildSystem=NO || exit 1\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]\nthen\nrm -rf \"${INSTALL_DIR}\"\nfi\nmkdir -p \"${INSTALL_DIR}\"\ncp -R \"${DEVICE_DIR}/\" \"${INSTALL_DIR}/\"\ncp -R \"${SIMULATOR_DIR}/Modules/${FMK_NAME}.swiftmodule/\" \"${INSTALL_DIR}/Modules/${FMK_NAME}.swiftmodule/\"\nlipo -create \"${DEVICE_DIR}/${FMK_NAME}\" \"${SIMULATOR_DIR}/${FMK_NAME}\" -output \"${INSTALL_DIR}/${FMK_NAME}\"\nrm -r \"${WRK_DIR}\"\nopen \"${FINAL_DIR}\"\n";
+		};
 		48DAA1C7EA250401C94634D2 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1159,6 +1209,7 @@
 				11782ACA242130C4009A1F5A /* DIDURLParserATN.swift in Sources */,
 				11C3ECE32477807300DF1B4F /* JWTVerifier.swift in Sources */,
 				A31ACE0823F199AE008EC032 /* Service.swift in Sources */,
+				111D47BF24F5708D00B7462B /* ByteBuffer.swift in Sources */,
 				A31ACE6023F19A4E008EC032 /* CredentialMeta.swift in Sources */,
 				11B096E324193E200065228B /* OrderedDictionary.swift in Sources */,
 				11C3ED08247782F600DF1B4F /* ECError.swift in Sources */,
@@ -1462,11 +1513,13 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Externals/HDKey/lib/$(EFFECTIVE_PLATFORM_NAME)",
+					"$(PROJECT_DIR)/Externals/HDKey/lib",
 				);
 				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = elastos.ElastosDIDSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1503,15 +1556,33 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Externals/HDKey/lib/$(EFFECTIVE_PLATFORM_NAME)",
+					"$(PROJECT_DIR)/Externals/HDKey/lib",
 				);
 				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = elastos.ElastosDIDSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TestHost.app/TestHost";
 				VALID_ARCHS = "x86_64 arm64";
+			};
+			name = Release;
+		};
+		11F3A90824D927E2007ABB70 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		11F3A90924D927E2007ABB70 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -1541,6 +1612,15 @@
 			buildConfigurations = (
 				11F262B323260CF40009C103 /* Debug */,
 				11F262B423260CF40009C103 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		11F3A90F24D927E2007ABB70 /* Build configuration list for PBXAggregateTarget "ElastosDIDSDKFramework" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				11F3A90824D927E2007ABB70 /* Debug */,
+				11F3A90924D927E2007ABB70 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -45,6 +45,8 @@ private func mapToString(_ dict: OrderedDictionary<String, String>?, _ sep: Stri
     return result
 }
 
+/// DID URL defines by the did-url rule, refers to a URL that begins with a DID followed by one or more additional components.
+/// A DID URL always identifies the resource to be located. DIDURL includes DID and Url fragment by user defined.
 public class DIDURL {
     private static let TAG = "DIDURL"
 
@@ -56,6 +58,11 @@ public class DIDURL {
     private var _queryParameters: OrderedDictionary<String, String>?
     private var _metadata: CredentialMeta?
 
+    /// Create a new DID URL according to DID and fragment.
+    /// - Parameters:
+    ///   - id: A valid didurl guaranteed containing valid did.
+    ///   - url: A fragment string.
+    /// - Throws: If error occurs, throw error.
     public init(_ id: DID, _ url: String) throws {
         guard !url.isEmpty else {
             throw DIDError.illegalArgument("empty didurl string")
@@ -84,7 +91,10 @@ public class DIDURL {
         self._did = id
         self._fragment = fragment
     }
-    
+
+    /// Get DID URL from string.
+    /// - Parameter url: A  string including id information. idstring support: 1. “did:elastos:xxxxxxx#xxxxx”
+    /// - Throws: If error occurs, throw error.
     public init(_ url: String) throws {
         guard !url.isEmpty else {
             throw DIDError.illegalArgument()
@@ -103,6 +113,8 @@ public class DIDURL {
         return _did!
     }
 
+    /// Set did
+    /// - Parameter newValue: The new did
     public func setDid(_ newValue: DID) {
         self._did = newValue
     }
@@ -118,14 +130,22 @@ public class DIDURL {
         self._fragment = newValue
     }
 
+    /// Parameters for generating DIDURL .
+    /// - Returns: DIDURL string .
     public func parameters() -> String? {
         return mapToString(_parameters, ";")
     }
 
+    /// Get value in the DIDURL parameter by the key .
+    /// - Parameter ofKey: The key string.
+    /// - Returns: If no has, return value string.
     public func parameter(ofKey: String) -> String? {
         return _parameters?[ofKey]
     }
 
+    /// Check is contains parameter
+    /// - Parameter forKey: The key string.
+    /// - Returns: true if has value, or false.
     public func containsParameter(forKey: String) -> Bool {
         return _parameters?.keys.contains(forKey) ?? false
     }
@@ -137,6 +157,7 @@ public class DIDURL {
         self._parameters![forKey] = value
     }
 
+    /// Get DIDURL path.
     public var path: String? {
         return _path
     }
@@ -145,18 +166,30 @@ public class DIDURL {
         self._path = newValue
     }
 
+    /// Query DIDURL parameters
+    /// - Returns: DIDURL parameters string .
     public func queryParameters() -> String? {
         return mapToString(_queryParameters, "&")
     }
 
+    /// Query DIDURL parameter by key.
+    /// - Parameter ofKey: The key string .
+    /// - Returns: if has value , return value string .
     public func queryParameter(ofKey: String) -> String? {
         return _queryParameters?[ofKey]
     }
 
+    /// Check is contains query parameter .
+    /// - Parameter forKey: The key string .
+    /// - Returns: true if has value, or false.
     public func containsQueryParameter(forKey: String) -> Bool {
         return _queryParameters?.keys.contains(forKey) ?? false
     }
-    
+
+    /// Add key-value for parameters .
+    /// - Parameters:
+    ///   - value: The value string .
+    ///   - forKey: The key string.
     public func appendQueryParameter(_ value: String?, forKey: String) {
         if  self._queryParameters == nil {
             self._queryParameters = OrderedDictionary()
@@ -168,6 +201,8 @@ public class DIDURL {
         self._metadata = metadata
     }
 
+    /// Get CredentialMetaData from Credential.
+    /// - Returns: Return the handle to CredentialMetaData
     public func getMetadata() -> CredentialMeta {
         if  self._metadata == nil {
             self._metadata = CredentialMeta()
@@ -175,6 +210,8 @@ public class DIDURL {
         return self._metadata!
     }
 
+    /// Save Credential(DIDURL) MetaData.
+    /// - Throws: If error occurs, throw error.
     public func saveMetadata() throws {
         if (_metadata != nil && _metadata!.attachedStore) {
             try _metadata?.store?.storeCredentialMetadata(did, self, _metadata!)
@@ -206,6 +243,7 @@ extension DIDURL: CustomStringConvertible {
         return builder
     }
 
+    /// Get id string from DID URL.
     public var description: String {
         return toString()
     }

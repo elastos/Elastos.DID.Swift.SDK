@@ -1109,7 +1109,31 @@ class DIDDoucumentTests: XCTestCase {
             print(error)
             XCTFail()
         }
-        
     }
 
+    func testDeriveFromIdentifier() {
+        do {
+            let identifier = "org.elastos.did.test"
+            let testData: TestData = TestData()
+            _ = try testData.setup(true)
+            _ = try testData.initIdentity()
+
+            let doc: DIDDocument = try testData.loadTestDocument()
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(doc.isValid)
+
+            for i in -100..<100 {
+                let strKey = try doc.derive(identifier, i, storePass)
+                let key = HDKey.deserializeBase58(strKey)
+
+                let binKey = Base58.bytesFromBase58(strKey)
+                let sk = Array(binKey[46..<78])
+                XCTAssertEqual(key.getPrivateKeyBytes().count, sk.count)
+                XCTAssertEqual(key.getPrivateKeyBytes(), sk)
+            }
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
 }
