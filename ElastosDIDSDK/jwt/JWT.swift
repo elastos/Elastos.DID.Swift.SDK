@@ -65,7 +65,7 @@ public struct JWT {
     /// - Throws: `JWTError.invalidJWTString` if the provided String is not in the form mandated by the JWT specification.
     /// - Throws: `JWTError.failedVerification` if the verifier fails to verify the jwtString.
     /// - Throws: A DecodingError if the JSONDecoder throws an error while decoding the JWT.
-    public init(jwtString: String, verifier: JWTVerifier = .none ) throws {
+    public init(jwtString: String, verifier: JWTVerifier = .none) throws {
         let components = jwtString.components(separatedBy: ".")
         guard components.count == 2 || components.count == 3,
             let headerData = JWTDecoder.data(base64urlEncoded: components[0]),
@@ -85,6 +85,19 @@ public struct JWT {
         let claims = try Claims.decode(claimsData) // try jsonDecoder.decode(T.self, from: claimsData)
         self.header = header
         self.claims = claims
+        let currentTime = Date()
+        guard let nbf = claims.getNotBefore() else {
+            return
+        }
+        guard nbf < currentTime else {
+            throw JWTError.notBeforeJwtTime
+        }
+        guard let exp = claims.getExpiration() else {
+            return
+        }
+        guard currentTime < exp else {
+            throw JWTError.expiredJwtTime
+        }
     }
     
     /// Sign the JWT using the given algorithm and encode the header, claims and signature as a JWT String.

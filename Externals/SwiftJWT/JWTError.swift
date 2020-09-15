@@ -27,7 +27,7 @@ public struct JWTError: Error, Equatable {
     private let internalError: InternalError
     
     private enum InternalError {
-        case invalidJWTString, failedVerification, osVersionToLow, invalidPrivateKey, invalidData, invalidKeyID, missingPEMHeaders
+        case invalidJWTString, failedVerification, osVersionToLow, invalidPrivateKey, invalidData, invalidKeyID, missingPEMHeaders, expiredJwtTime, notBeforeJwtTime
     }
     
     /// Error when an invalid JWT String is provided
@@ -50,6 +50,12 @@ public struct JWTError: Error, Equatable {
     
     /// Error when a PEM string is provided without the expected PEM headers/footers. (e.g. -----BEGIN PRIVATE KEY-----)
     public static let missingPEMHeaders = JWTError(localizedDescription: "The provided key did not have the expected PEM headers/footers", internalError: .missingPEMHeaders)
+
+    /// Error when jwt token has expired.
+    public static let expiredJwtTime = JWTError(localizedDescription: "The jwt token has expired", internalError: .expiredJwtTime)
+
+    /// Error when current time is less than nbf
+    public static let notBeforeJwtTime = JWTError(localizedDescription: "Do not process the jwt token before this time", internalError: .notBeforeJwtTime)
     
     /// Function to check if JWTErrors are equal. Required for equatable protocol.
     public static func == (lhs: JWTError, rhs: JWTError) -> Bool {
