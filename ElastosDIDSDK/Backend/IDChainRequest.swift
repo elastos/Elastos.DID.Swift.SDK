@@ -93,7 +93,7 @@ public class IDChainRequest: NSObject {
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
-    class func deactivate(_ doc: DIDDocument,
+    public class func deactivate(_ doc: DIDDocument,
                       _ signKey: DIDURL,
                       _ storePassword: String) throws -> IDChainRequest {
 
@@ -112,7 +112,7 @@ public class IDChainRequest: NSObject {
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
-    class func deactivate(_ target: DID,
+    public class func deactivate(_ target: DID,
                       _ targetSignKey: DIDURL,
                       _ doc: DIDDocument,
                       _ signKey: DIDURL,
