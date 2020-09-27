@@ -22,8 +22,11 @@
 
 import Foundation
 
-class IDChainRequest: NSObject {
-    static let CURRENT_SPECIFICATION = "elastos/did/1.0"
+/// The class records the information of IDChain Request.
+public class IDChainRequest: NSObject {
+
+    /// The specification string of IDChain Request
+    public static let CURRENT_SPECIFICATION = "elastos/did/1.0"
 
     // header
     private var _specification: String                // must have value
@@ -45,7 +48,15 @@ class IDChainRequest: NSObject {
         self._operation = operation
     }
 
-    class func create(_ doc: DIDDocument,
+    /// Constructs the 'create' IDChain Request.
+    /// - Parameters:
+    ///   - doc: the DID Document be packed into Request
+    ///   - signKey: the key to sign Request
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: didStoreError: there is no store to attach.
+    /// - Throws: invalidKeyError: there is no an authentication key.
+    /// - Returns: the IDChainRequest object
+    public class func create(_ doc: DIDDocument,
                       _ signKey: DIDURL,
                       _ storePassword: String) throws -> IDChainRequest {
 
@@ -54,7 +65,16 @@ class IDChainRequest: NSObject {
                 .sealed(signKey, storePassword)
     }
 
-    class func update(_ doc: DIDDocument,
+    /// Constructs the 'update' IDChain Request.
+    /// - Parameters:
+    ///   - doc: the DID Document be packed into Request
+    ///   - previousTransactionId: the previous transaction id string
+    ///   - signKey: the key to sign Request
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: didStoreError: there is no store to attach.
+    /// - Throws: invalidKeyError: there is no an authentication key.
+    /// - Returns: the IDChainRequest object
+    public class func update(_ doc: DIDDocument,
                       _ previousTransactionId: String,
                       _ signKey: DIDURL,
                       _ storePassword: String) throws -> IDChainRequest {
@@ -65,7 +85,15 @@ class IDChainRequest: NSObject {
                 .sealed(signKey, storePassword)
     }
 
-    class func deactivate(_ doc: DIDDocument,
+    /// Constructs the 'deactivate' IDChain Request.
+    /// - Parameters:
+    ///   - doc: the DID Document be packed into Request
+    ///   - signKey: the key to sign Request
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: didStoreError: there is no store to attach.
+    /// - Throws: invalidKeyError: there is no an authentication key.
+    /// - Returns: the IDChainRequest object
+    public class func deactivate(_ doc: DIDDocument,
                       _ signKey: DIDURL,
                       _ storePassword: String) throws -> IDChainRequest {
 
@@ -74,7 +102,17 @@ class IDChainRequest: NSObject {
                 .sealed(signKey, storePassword)
     }
 
-    class func deactivate(_ target: DID,
+    /// Constructs the 'deactivate' IDChain Request.
+    /// - Parameters:
+    ///   - target: the DID to be deactivated
+    ///   - targetSignKey: the target DID's key to sign
+    ///   - doc: the authorizer's document
+    ///   - signKey: the key to sign Request
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: didStoreError: there is no store to attach.
+    /// - Throws: invalidKeyError: there is no an authentication key.
+    /// - Returns: the IDChainRequest object
+    public class func deactivate(_ target: DID,
                       _ targetSignKey: DIDURL,
                       _ doc: DIDDocument,
                       _ signKey: DIDURL,
@@ -85,23 +123,28 @@ class IDChainRequest: NSObject {
                 .sealed(targetSignKey, doc, signKey, storePassword)
     }
 
-    var operation: IDChainRequestOperation {
+    /// Get operation string.
+    public var operation: IDChainRequestOperation {
         return self._operation
     }
 
-    var previousTransactionId: String? {
+    /// Get previous transaction id string.
+    public var previousTransactionId: String? {
         return self._previousTransactionId
     }
 
-    var payload: String? {
+    /// Get payload of IDChain Request.
+    public var payload: String? {
         return self._payload
     }
 
-    var did: DID? {
+    /// Get DID of IDChain Request.
+    public var did: DID? {
         return self._did
     }
 
-    var document: DIDDocument? {
+    /// Get DID Document of IDChain Request.
+    public var document: DIDDocument? {
         return self._doc
     }
 
@@ -294,7 +337,7 @@ class IDChainRequest: NSObject {
         return try doc!.verify(_signKey!, _signature!, inputs)
     }
 
-    var isValid: Bool {
+    public var isValid: Bool {
         do {
             return try self.checkValid()
         } catch {
@@ -302,7 +345,7 @@ class IDChainRequest: NSObject {
         }
     }
 
-    class func fromJson(_ node: JsonNode) throws -> IDChainRequest {
+    public class func fromJson(_ node: JsonNode) throws -> IDChainRequest {
         let error = { (des: String) -> DIDError in
             return DIDError.didResolveError(des)
         }
@@ -376,7 +419,7 @@ class IDChainRequest: NSObject {
         return request
     }
 
-    class func fromJson(_ json: Data) throws -> IDChainRequest {
+    public class func fromJson(_ json: Data) throws -> IDChainRequest {
         guard !json.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -390,11 +433,11 @@ class IDChainRequest: NSObject {
         return try fromJson(JsonNode(data))
     }
 
-    class func fromJson(_ json: String) throws -> IDChainRequest {
+    public class func fromJson(_ json: String) throws -> IDChainRequest {
         return try fromJson(json.data(using: .utf8)!)
     }
 
-    func toJson(_ generator: JsonGenerator, _ normalized: Bool) {
+    public func toJson(_ generator: JsonGenerator, _ normalized: Bool) {
         generator.writeStartObject()
         generator.writeFieldName(Constants.HEADER)
 
@@ -428,7 +471,7 @@ class IDChainRequest: NSObject {
         generator.writeEndObject()
     }
 
-    func toJson(_ normalized: Bool) -> String {
+    public func toJson(_ normalized: Bool) -> String {
         let generator = JsonGenerator()
         toJson(generator, normalized)
         return generator.toString()
