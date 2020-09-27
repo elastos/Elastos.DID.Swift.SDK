@@ -22,12 +22,17 @@
 
 import Foundation
 
-class IDTransactionInfo: DIDTransaction {
+public class IDTransactionInfo: DIDTransaction {
     private var _transactionId: String
     private var _timestamp: Date
     private var _request: IDChainRequest
-    
-    init(_ transactionId: String, _ timestamp: Date, _ request: IDChainRequest) {
+
+    /// Constructs the IDChainTransaction with the given value.
+    /// - Parameters:
+    ///   - transactionId: The transaction id string.
+    ///   - timestamp: The time stamp
+    ///   - request: The IDChainRequest content.
+    public init(_ transactionId: String, _ timestamp: Date, _ request: IDChainRequest) {
         self._transactionId = transactionId;
         self._timestamp = timestamp;
         self._request = request;
@@ -63,31 +68,39 @@ class IDTransactionInfo: DIDTransaction {
         return request.document!
     }
 
-    var transactionId: String {
+    public var transactionId: String {
         return self._transactionId
     }
 
-    var timestamp: Date {
+    public var timestamp: Date {
         return self._timestamp
     }
 
-    var did: DID? {
+    /// The handle of did.
+    public var did: DID? {
         return self._request.did
     }
-    
-    var operation: IDChainRequestOperation {
+
+    /// The handle of operation.
+    public var operation: IDChainRequestOperation {
         return self._request.operation
     }
 
-    var payload: String {
+    /// The payload string.
+    public var payload: String {
         return self._request.toJson(false)
     }
 
-    var request: IDChainRequest {
+    /// The IDChainRequest object.
+    public var request: IDChainRequest {
         return self._request
     }
 
-    class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
+    /// Get IDChainTransaction from json content.
+    /// - Parameter node: the JsonNode content
+    /// - Throws: DIDTransaction error.
+    /// - Returns:The IDChainTransaction object.
+    public class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
         let error = { (des: String) -> DIDError in
             return DIDError.didResolveError(des)
         }
@@ -114,7 +127,9 @@ class IDTransactionInfo: DIDTransaction {
         return IDTransactionInfo(transactionId, timestamp, request)
     }
 
-    func toJson(_ generator: JsonGenerator) {
+    /// Get json string with input content.
+    /// - Parameter generator: the JsonGenerator handle.
+    public func toJson(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeStringField(Constants.TXID, self.transactionId)
         generator.writeStringField(Constants.TIMESTAMP, self.timestamp.description)

@@ -39,7 +39,7 @@ public enum IDChainRequestOperation: Int, CustomStringConvertible {
         return desc;
     }
 
-    static func valueOf(_ str: String) -> IDChainRequestOperation {
+    public static func valueOf(_ str: String) -> IDChainRequestOperation {
         let operation: IDChainRequestOperation
 
         switch str.uppercased() {

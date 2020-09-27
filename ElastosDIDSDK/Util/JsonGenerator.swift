@@ -22,7 +22,9 @@
 
 import Foundation
 
-class JsonGenerator {
+/// Base class that defines public API for writing JSON content.
+/// Instances are created using factory methods of JsonFactory instance.
+public class JsonGenerator {
     private static let COLON: Character = ":"
     private static let COMMA: Character = ","
     private static let OBJECT_STARTED: Character = "{"
@@ -65,7 +67,7 @@ class JsonGenerator {
         }
     }
 
-    init() {
+    public init() {
         self.position = 0
         self.deep = 0
         self.buffer = ""
@@ -118,7 +120,8 @@ class JsonGenerator {
         return state[deep-1] & 0x80 == 0x80
     }
 
-    func writeStartObject() {
+    /// Method for writing starting marker of an Object value.
+    public func writeStartObject() {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -128,7 +131,8 @@ class JsonGenerator {
         pushState(.Object)
     }
 
-    func writeEndObject() {
+    /// Method for writing closing marker of an Object value.
+    public func writeEndObject() {
         buffer.append(JsonGenerator.OBJECT_END)
         _ = popState()
         if getState() == .Field {
@@ -136,12 +140,14 @@ class JsonGenerator {
         }
     }
 
-    func writeStartArray() {
+    /// Method for writing starting marker of a Array value.
+    public func writeStartArray() {
         buffer.append(JsonGenerator.ARRAY_STARTED)
         pushState(.Array)
     }
 
-    func writeEndArray() {
+    /// Method for writing closing marker of a JSON Array value.
+    public func writeEndArray() {
         buffer.append(JsonGenerator.ARRAY_END)
         _ = popState()
         if getState() == .Field {
@@ -149,7 +155,9 @@ class JsonGenerator {
         }
     }
 
-    func writeFieldName(_ name: String) {
+    /// Method for writing a field name .
+    /// - Parameter name: Field names
+    public func writeFieldName(_ name: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -163,7 +171,10 @@ class JsonGenerator {
         pushState(.Field)
     }
 
-    func writeRawValue(_ value: String) {
+    /// Public API, write methods, binary/raw content.
+    /// Method that will force generator to copy input text verbatim without any modifications.
+    /// - Parameter value: String value to write
+    public func writeRawValue(_ value: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -176,7 +187,11 @@ class JsonGenerator {
             setSticky()
         }
     }
-    func writeString(_ value: String) {
+
+    ///  Public API, write methods, text/String values.
+    ///  Method for outputting a String value.
+    /// - Parameter value: String value to write
+    public func writeString(_ value: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -197,7 +212,10 @@ class JsonGenerator {
         }
     }
 
-    func writeNumber(_ value: Any) {
+    /// Public API, write methods, numeric.
+    /// Method for outputting given value as JSON number.
+    /// - Parameter value: Number value to write
+    public func writeNumber(_ value: Any) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -211,7 +229,10 @@ class JsonGenerator {
         }
     }
 
-    func writeBool(_ value: Bool) {
+    /// Public API, write methods, other value types.
+    /// Method for outputting literal JSON boolean value (one of Strings 'true' and 'false').
+    /// - Parameter value: Bool value to write
+    public func writeBool(_ value: Bool) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -229,22 +250,53 @@ class JsonGenerator {
         }
     }
 
-    func writeStringField(_ name: String, _ value: String) {
+    /// Convenience method for outputting a field entry ("member")
+    /// that has a String value. Equivalent to:
+    /// <pre>
+    /// writeFieldName(fieldName)
+    /// writeString(value)
+    /// </pre>
+    /// <p>
+    /// Note: many performance-sensitive implementations override this method
+    /// - Parameters:
+    ///   - name: Field names
+    ///   - value: String value to write
+    public func writeStringField(_ name: String, _ value: String) {
         writeFieldName(name)
         writeString(value)
     }
 
-    func writeNumberField(_ name: String, _ value: Int) {
+    /// Convenience method for outputting a field entry ("member")
+    /// that has the specified numeric value. Equivalent to:
+    /// <pre>
+    /// writeFieldName(fieldName)
+    /// writeNumber(value)
+    /// </pre>
+    /// - Parameters:
+    ///   - name: Field names
+    ///   - value: Int value to write
+    public func writeNumberField(_ name: String, _ value: Int) {
         writeFieldName(name)
         writeNumber(value)
     }
 
-    func writeBoolField(_ name: String, _ value: Bool) {
+    /// Convenience method for outputting a field entry ("member")
+    /// that has the specified bool value. Equivalent to:
+    /// <pre>
+    /// writeFieldName(fieldName)
+    /// writeBool(value)
+    /// </pre>
+    /// - Parameters:
+    ///   - name: Field names
+    ///   - value: Bool value to write
+    public func writeBoolField(_ name: String, _ value: Bool) {
         writeFieldName(name)
         writeBool(value)
     }
 
-    func toString() -> String {
+    /// JsonGenerator converted to json string
+    /// - Returns: String value
+    public func toString() -> String {
         let output = buffer
         buffer = ""
         return output
