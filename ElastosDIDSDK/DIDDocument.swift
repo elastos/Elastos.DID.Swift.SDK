@@ -383,9 +383,10 @@ public class DIDDocument {
         let pubKey = publicKey(ofId: ofId)
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
-
-        let privKey = try getMetadata().store?.loadPrivateKey(subject, ofId, storePassword)
-        let privateKeyData = try HDKey.PEM_ReadPrivateKey(pubData, privKey!)
+        // 46 - 78
+        let privKey = try getMetadata().store!.loadPrivateKey(subject, ofId, storePassword)
+        let pkey = privKey[46..<78]
+        let privateKeyData = try HDKey.PEM_ReadPrivateKey(pubData, pkey)
 
         return privateKeyData.data(using: .utf8)!
     }
@@ -456,7 +457,7 @@ public class DIDDocument {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword!)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword)
         }
         return builder
     }
@@ -465,7 +466,7 @@ public class DIDDocument {
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtParser instance.
     public func build() throws -> JwtParser {
-        return JwtParser()
+        return try JwtParserBuilder().build()
     }
 
     func appendPublicKey(_ publicKey: PublicKey) -> Bool {
