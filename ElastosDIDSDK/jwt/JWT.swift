@@ -75,9 +75,9 @@ public struct JWT {
         }
         if components.count == 3 {
             signature = components[2]
-        }
-        guard JWT.verify(jwtString, using: verifier) else {
-            throw JWTError.failedVerification
+            guard JWT.verify(jwtString, using: verifier) else {
+                throw JWTError.failedVerification
+            }
         }
         let jsonDecoder = JSONDecoder()
         jsonDecoder.dateDecodingStrategy = .secondsSince1970
@@ -122,7 +122,7 @@ public struct JWT {
         let claimsString = try claims.encode()
         header.headers[Header.alg] = tempHeader.headers[Header.alg]
 
-        return headerString + "." + claimsString + "." + (sign ?? "")
+        return headerString + "." + claimsString + (sign == nil ? "" : ".\(sign!)")
     }
 
     /// Verify the signature of the encoded JWT using the given algorithm.

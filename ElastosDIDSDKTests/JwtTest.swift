@@ -4,6 +4,33 @@ import XCTest
 
 class JwtTest: XCTestCase {
 
+    func testTokenJwt() {
+        do {
+            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
+            let store = try DIDStore.open(atPath: "/Users/liaihong/Desktop/java/Temp/store/testapp", withType: "filesystem", adapter: DummyAdapter())
+            let doc = try store.loadDid(store.getDid(byPrivateIdentityIndex: 0))
+            let token = try doc!.jwtBuilder()
+                .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
+                .addHeader(key: Header.CONTENT_TYPE, value: "json")
+                .addHeader(key: "library", value: "Elastos DID")
+                .addHeader(key: "version", value: "1.0")
+                .setSubject(sub: "JwtTest")
+                .setId(id: "0")
+                .setAudience(audience: "Test cases")
+                .claim(name: "foo", value: "bar")
+                .sign(using: "password")
+                .compact()
+            print(token)
+            let toks = token.split(separator: ".")
+            let str  = "\(toks[0]).\(toks[1])"
+            _ = try doc!.verify(signature: "\(toks[2])", onto: str.data(using: String.Encoding.utf8)!)
+            _ = try doc?.jwtParserBuilder().build().parseClaimsJwt(token)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+
     func testJWT() {
         do {
             let testData = TestData()
@@ -47,7 +74,7 @@ class JwtTest: XCTestCase {
                 .compact()
             print(token)
 
-            let jp: JwtParser = doc.jwtParserBuilder().build()
+            let jp: JwtParser = try doc.jwtParserBuilder().build()
             let jwt: JWT = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
             h = jwt.header
@@ -117,7 +144,7 @@ class JwtTest: XCTestCase {
                             .compact()
             XCTAssertNotNil(token)
 
-            let jp = doc.jwtParserBuilder().build()
+            let jp = try doc.jwtParserBuilder().build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -185,7 +212,7 @@ class JwtTest: XCTestCase {
                 .compact()
             XCTAssertNotNil(token)
 
-            let jp = doc.jwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -254,7 +281,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -325,7 +352,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -397,7 +424,7 @@ class JwtTest: XCTestCase {
                     .compact()
             XCTAssertNotNil(token)
 
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -476,7 +503,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -551,7 +578,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -627,7 +654,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -701,7 +728,7 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(token)
 
             // The JWT parser not related with a DID document
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             let jwt = try jp.parseClaimsJwt(token)
             XCTAssertNotNil(jwt)
 
@@ -768,7 +795,7 @@ class JwtTest: XCTestCase {
             print(token)
 
             // The JWT token is expired
-            let jp = JwtParserBuilder().build()
+            let jp = try JwtParserBuilder("#key2").build()
             XCTAssertThrowsError(try jp.parseClaimsJwt(token)){ error in
                 switch error {
                 case JWTError.expiredJwtTime: break
