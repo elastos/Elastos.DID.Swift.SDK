@@ -25,36 +25,58 @@ import UIKit
 public class JwtParserBuilder: NSObject {
 
     var getPublicKey : ((_ id: String?) throws -> Data)?
-
-    var getPrivateKey : ((_ id: String?, _ storepass: String?) throws -> Data)?
-
+    var getPrivateKey : ((_ id: String?, _ storepass: String) throws -> Data)?
     var claimsJwt : String?
+    var key: String?
+
+    /// Constructs the empty JwtParserBuilder.
+    public override init() { }
+
+    /// Constructs the JwtParserBuilder with the specified key.
+    /// - Parameter withKey: The verfiy key.
+    public init(_ withKey: String) {
+        key = withKey
+    }
 
     /// Parse jwt token.
     /// - Parameter claimsJwt: Jwt token.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The handle of JWT.
     public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
-        return try JWT(jwtString: claimsJwt)
+        let publicKey = try self.getPublicKey!(key)
+        let jwtVerifier = JWTVerifier.es256(publicKey: publicKey)
+        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier)
     }
 
     /// Create JwtParser
     /// - Returns: JwtParser instance.
-    public func build() -> JwtParser {
-        return JwtParser()
+    public func build() throws -> JwtParser {
+        guard let _ =  getPublicKey else {
+            return JwtParser(nil)
+        }
+        return JwtParser(try self.getPublicKey!(key))
     }
 }
 
 public class JwtParser: NSObject {
 
     var jwt: JWT?
+    var publickey: Data?
 
+    init(_ key: Data?) {
+        self.publickey = key
+    }
     /// Parse jwt token.
     /// - Parameter claimsJwt: Jwt token.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The handle of JWT.
     public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
-        return try JWT(jwtString: claimsJwt)
+        guard let _ = publickey else {
+            return try JWT(jwtString: claimsJwt)
+        }
+
+        let jwtVerifier = JWTVerifier.es256(publicKey: publickey!)
+        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier)
     }
 
     /// Get jwt header.
