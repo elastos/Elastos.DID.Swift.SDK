@@ -64,6 +64,7 @@ class TestData: XCTestCase {
         }
         try ResolverCache.reset()
         TestData.deleteFile(storeRoot)
+        print(storeRoot)
         store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter!)
         return store
     }
