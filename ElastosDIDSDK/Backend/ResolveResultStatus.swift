@@ -22,6 +22,7 @@
 
 import Foundation
 
+@objc(ResolveResultStatus)
 public enum ResolveResultStatus: Int, CustomStringConvertible {
     case STATUS_VALID = 0
     case STATUS_EXPIRED = 1

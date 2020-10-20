@@ -979,6 +979,8 @@ class IDChainOperationsTest: XCTestCase {
                 let did = try DID(did)
                 let doc = try store.loadDid(did)
                 XCTAssertNotNil(doc)
+//                did:elastos:ibRLAe8x6wfBpE5Njq4b2QKoknQomScN6Y
+//                did:elastos:ibRLAe8x6wfBpE5Njq4b2QKoknQomScN6Y
                 XCTAssertEqual(did, doc!.subject)
                 XCTAssertEqual(4, doc!.credentialCount)
 
@@ -1009,6 +1011,7 @@ class IDChainOperationsTest: XCTestCase {
                 lock.fulfill()
                 return c
             })
+
             wait(for: [lock], timeout: 100.0)
 
             dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)

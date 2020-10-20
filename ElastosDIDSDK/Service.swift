@@ -24,6 +24,7 @@ import Foundation
 
 /// A service endpoint may represent any type of service the subject wishes to advertise,
 /// including decentralized identity management services for further discovery, authentication, authorization, or interaction.
+@objc(Service)
 public class Service: DIDObject {
     private var _endpoint: String
 
@@ -32,7 +33,7 @@ public class Service: DIDObject {
         super.init(id, type)
     }
 
-    public var endpoint: String {
+    @objc public var endpoint: String {
         return _endpoint
     }
 
@@ -74,6 +75,7 @@ public class Service: DIDObject {
     }
 }
 
+// TODO:
 extension Service {
     public static func == (lhs: Service, rhs: Service) -> Bool {
         return lhs.equalsTo(rhs)
