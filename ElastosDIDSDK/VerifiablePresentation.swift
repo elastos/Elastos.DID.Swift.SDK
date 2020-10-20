@@ -164,7 +164,7 @@ public class VerifiablePresentation: NSObject {
 
     /// Presentation is genuine or not.
     /// - Returns: flase if not genuine, true if genuine.
-    @objc public func isGenuineAsync() -> AnyPromise {
+    @objc public func isGenuineAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             resolver(isGenuine)
         })
@@ -222,7 +222,7 @@ public class VerifiablePresentation: NSObject {
 
     /// Presentation is valid or not.
     /// - Returns: flase if not valid, true if valid.
-    @objc public func isValidAsync() -> AnyPromise {
+    @objc public func isValidAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             resolver(isValid)
         })

@@ -34,5 +34,5 @@ public protocol DIDResolver {
     ///   - did: Specified DID.
     ///   - all: Resolve all transaction data or the lastest one.
     ///   all = 1: all transaction; all = 0: only the lastest transaction.
-    @objc func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data
+    func resolve(_ requestId: String, _ did: String, _ all: Bool) throws -> Data
 }
