@@ -33,23 +33,24 @@ import Foundation
  ```
  */
 
-public struct JWT {
+@objc(JWT)
+public class JWT: NSObject {
     
     /// The JWT header.
-    public var header: Header
+    @objc public var header: Header
     
     /// The JWT claims
-    public var claims: Claims
+    @objc public var claims: Claims
 
     /// The JWT signature
-    public var signature: String?
+    @objc public var signature: String?
 
     /// Initialize a `JWT` instance from a `Header` and `Claims`.
     ///
     /// - Parameter header: A JSON Web Token header object.
     /// - Parameter claims: A JSON Web Token claims object.
     /// - Returns: A new instance of `JWT`.
-    public init(header: Header = Header(), claims: Claims) {
+    @objc public init(header: Header = Header(), claims: Claims) {
         self.header = header
         self.claims = claims
     }
@@ -65,7 +66,7 @@ public struct JWT {
     /// - Throws: `JWTError.invalidJWTString` if the provided String is not in the form mandated by the JWT specification.
     /// - Throws: `JWTError.failedVerification` if the verifier fails to verify the jwtString.
     /// - Throws: A DecodingError if the JSONDecoder throws an error while decoding the JWT.
-    public init(jwtString: String, verifier: JWTVerifier = .none) throws {
+    @objc public init(jwtString: String, verifier: JWTVerifier = .none) throws {
         let components = jwtString.components(separatedBy: ".")
         guard components.count == 2 || components.count == 3,
             let headerData = JWTDecoder.data(base64urlEncoded: components[0]),
@@ -107,7 +108,7 @@ public struct JWT {
     /// - Throws: An EncodingError if the JSONEncoder throws an error while encoding the JWT.
     /// - Throws: `JWTError.osVersionToLow` if not using macOS 10.12.0 (Sierra) or iOS 10.0 or higher.
     /// - Throws: A Signing error if the jwtSigner is unable to sign the JWT with the provided key.
-    public mutating func sign(using jwtSigner: JWTSigner) throws -> String {
+    @objc public func sign(using jwtSigner: JWTSigner) throws -> String {
         let tempHeader = header
         tempHeader.headers[Header.alg] = jwtSigner.name
         let headerString = try tempHeader.encode()
@@ -116,7 +117,7 @@ public struct JWT {
         return try jwtSigner.sign(header: headerString, claims: claimsString)
     }
 
-    public func compact(sign: String?) throws -> String {
+    @objc public func compact(sign: String?) throws -> String {
         let tempHeader = header
         let headerString = try tempHeader.encode()
         let claimsString = try claims.encode()
@@ -130,7 +131,7 @@ public struct JWT {
     /// - Parameter jwt: A String with the encoded and signed JWT.
     /// - Parameter using algorithm: The algorithm to verify with.
     /// - Returns: A Bool indicating whether the verification was successful.
-    public static func verify(_ jwt: String, using jwtVerifier: JWTVerifier) -> Bool {
+    @objc public static func verify(_ jwt: String, using jwtVerifier: JWTVerifier) -> Bool {
         return jwtVerifier.verify(jwt: jwt)
     }
 
@@ -140,7 +141,7 @@ public struct JWT {
     ///
     /// - Parameter leeway: The time in seconds that the JWT can be invalid but still accepted to account for clock differences.
     /// - Returns: A value of `ValidateClaimsResult`.
-    public func validateClaims(leeway: TimeInterval = 0) -> ValidateClaimsResult {        
+    @objc public func validateClaims(leeway: TimeInterval = 0) -> ValidateClaimsResult {
         if let expirationDate = claims.getExpiration() {
                 if expirationDate + leeway < Date() {
                     return .expired
