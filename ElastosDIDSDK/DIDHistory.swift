@@ -22,6 +22,7 @@
 
 import Foundation
 
+@objc(DIDHistory)
 public protocol DIDHistory {
 
     /// Get did.

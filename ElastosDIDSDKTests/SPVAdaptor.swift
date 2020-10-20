@@ -5,7 +5,7 @@ import SPVWrapper
 
 public typealias PasswordCallback = (_ walletDir: String, _ walletId: String) -> String?
 public class SPVAdaptor: DIDAdapter {
-    public func createIdTransaction(_ payload: String, _ memo: String?) {
+    public func createIdTransaction(_ payload: String, _ memo: String?) throws {
         var password = passwordCallback!(walletDir, walletId)
         if password == nil {
             password = ""
