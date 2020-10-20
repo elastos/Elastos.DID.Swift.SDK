@@ -49,7 +49,8 @@ import Foundation
  let signedJWT = try? jwt.sign(using: jwtSigner)
  ```
  */
-public struct JWTSigner {
+@objc(JWTSigner)
+public class JWTSigner: NSObject {
     
     /// The name of the algorithm that will be set in the "alg" header
     let name: String

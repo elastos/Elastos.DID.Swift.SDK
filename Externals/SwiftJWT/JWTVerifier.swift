@@ -42,7 +42,8 @@ import Foundation
  let verified: Bool = jwt.verify(signedJWT, using: jwtVerifier)
  ```
  */
-public struct JWTVerifier {    
+@objc(JWTVerifier)
+public class JWTVerifier: NSObject {    
     let verifierAlgorithm: VerifierAlgorithm
     
     init(verifierAlgorithm: VerifierAlgorithm) {
