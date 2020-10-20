@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class JwtBuilder {
+@objc(JwtBuilder)
+public class JwtBuilder: NSObject {
     var h: Header?
     var c: Claims?
     var signature: String?

@@ -23,7 +23,8 @@
 import Foundation
 
 /// A DIDDocument Builder to modify DIDDocument elems.
-public class DIDDocumentBuilder {
+@objc(DIDDocumentBuilder)
+public class DIDDocumentBuilder: NSObject {
     private var document: DIDDocument?
 
     init(_ did: DID, _ store: DIDStore) {
@@ -51,7 +52,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key propertie depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendPublicKey(_ id: DIDURL,
+    @objc public func appendPublicKey(_ id: DIDURL,
                                 _ controller: DID,
                                 _ keyBase58: String) throws -> DIDDocumentBuilder {
 
@@ -79,7 +80,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key propertie depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendPublicKey(with id: DIDURL,
+    @objc public func appendPublicKey(with id: DIDURL,
                              controller: String,
                               keyBase58: String) throws -> DIDDocumentBuilder {
         return try appendPublicKey(id, DID(controller), keyBase58)
@@ -94,6 +95,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key propertie depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendPublicKey:controller:keyBase58:error:)
     public func appendPublicKey(with id: String,
                              controller: String,
                               keyBase58: String) throws -> DIDDocumentBuilder {
@@ -121,7 +123,7 @@ public class DIDDocumentBuilder {
     ///    if key is authentication or authorization key, not to remove.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removePublicKey(with id: DIDURL,
+    @objc public func removePublicKey(with id: DIDURL,
                                _ force: Bool) throws -> DIDDocumentBuilder {
         return try removePublicKey(id, force)
     }
@@ -133,6 +135,7 @@ public class DIDDocumentBuilder {
     ///    if key is authentication or authorization key, not to remove.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removePublicKey:force:error:)
     public func removePublicKey(with id: String,
                                _ force: Bool) throws -> DIDDocumentBuilder {
         return try removePublicKey(DIDURL(getSubject(), id), force)
@@ -142,7 +145,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removePublicKey(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func removePublicKey(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try removePublicKey(id, false)
     }
 
@@ -150,6 +153,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removePublicKey:error:)
     public func removePublicKey(with id: String) throws -> DIDDocumentBuilder {
         return try removePublicKey(DIDURL(getSubject(), id), false)
     }
@@ -178,7 +182,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendAuthenticationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func appendAuthenticationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try appendAuthenticationKey(id)
     }
 
@@ -189,6 +193,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendAuthenticationKey:error:)
     public func appendAuthenticationKey(with id: String) throws -> DIDDocumentBuilder {
         return try appendAuthenticationKey(DIDURL(getSubject(), id))
     }
@@ -221,7 +226,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key propertie depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendAuthenticationKey(with id: DIDURL,
+    @objc public func appendAuthenticationKey(with id: DIDURL,
                                       keyBase58: String) throws -> DIDDocumentBuilder {
         return try appendAuthenticationKey(id, keyBase58)
     }
@@ -235,6 +240,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key propertie depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendAuthenticationKey:keyBase58:error:)
     public func appendAuthenticationKey(with id: String,
                                       keyBase58: String) throws -> DIDDocumentBuilder {
         return try appendAuthenticationKey(DIDURL(getSubject(), id), keyBase58)
@@ -255,7 +261,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removeAuthenticationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func removeAuthenticationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try removeAuthenticationKey(id)
     }
 
@@ -263,6 +269,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removeAuthenticationKeyWithId:error:)
     public func removeAuthenticationKey(with id: String) throws -> DIDDocumentBuilder {
         return try removeAuthenticationKey(DIDURL(getSubject(), id))
     }
@@ -289,7 +296,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendAuthorizationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func appendAuthorizationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try appendAuthorizationKey(id)
     }
 
@@ -298,6 +305,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendAuthorizationKeyWithId:error:)
     public func appendAuthorizationKey(with id: String) throws -> DIDDocumentBuilder  {
         return try appendAuthorizationKey(DIDURL(getSubject(), id))
     }
@@ -310,7 +318,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key property depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendAuthorizationKey(_ id: DIDURL,
+    @objc public func appendAuthorizationKey(_ id: DIDURL,
                                        _ controller: DID,
                                        _ keyBase58: String) throws -> DIDDocumentBuilder {
 
@@ -336,7 +344,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key property depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendAuthorizationKey(with id: DIDURL,
+    @objc public func appendAuthorizationKey(with id: DIDURL,
                                     controller: DID,
                                      keyBase58: String) throws -> DIDDocumentBuilder {
 
@@ -351,6 +359,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key property depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendAuthorizationKey:controller:keyBase58:error:)
     public func appendAuthorizationKey(with id: String,
                                     controller: String,
                                      keyBase58: String) throws -> DIDDocumentBuilder {
@@ -366,6 +375,7 @@ public class DIDDocumentBuilder {
     ///   - keyBase58: Key property depend on key type.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendAuthorizationKeyWithId:controller:keyBase58:error:)
     public func appendAuthorizationKey(with id: String,
                                     controller: DID,
                                      keyBase58: String) throws -> DIDDocumentBuilder {
@@ -421,7 +431,7 @@ public class DIDDocumentBuilder {
     ///   - key: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func authorizationDid(with id: DIDURL,
+    @objc public func authorizationDid(with id: DIDURL,
                               controller: DID,
                                      key: DIDURL) throws -> DIDDocumentBuilder {
 
@@ -436,7 +446,7 @@ public class DIDDocumentBuilder {
     ///   - controller: A controller property, identifies the controller of the corresponding private key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func authorizationDid(with id: DIDURL,
+    @objc public func authorizationDid(with id: DIDURL,
                               controller: DID) throws -> DIDDocumentBuilder {
 
         return try authorizationDid(id, controller, nil)
@@ -451,6 +461,7 @@ public class DIDDocumentBuilder {
     ///   - key: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(authorizationDid:controller:key:error:)
     public func authorizationDid(with id: String,
                               controller: String,
                                      key: String) throws -> DIDDocumentBuilder {
@@ -468,6 +479,7 @@ public class DIDDocumentBuilder {
     ///   - controller: A controller property, identifies the controller of the corresponding private key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(authorizationDid:controller:error:)
     public func authorizationDid(with id: String,
                               controller: String) throws -> DIDDocumentBuilder {
 
@@ -489,7 +501,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removeAuthorizationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func removeAuthorizationKey(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try removeAuthorizationKey(id)
     }
 
@@ -497,6 +509,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of public key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removeAuthorizationKey:error:)
     public func removeAuthorizationKey(with id: String) throws -> DIDDocumentBuilder {
         return try removeAuthorizationKey(DIDURL(getSubject(), id))
     }
@@ -505,7 +518,7 @@ public class DIDDocumentBuilder {
     /// - Parameter credential: The handle to Credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with credential: VerifiableCredential) throws -> DIDDocumentBuilder {
+    @objc public func appendCredential(with credential: VerifiableCredential) throws -> DIDDocumentBuilder {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
@@ -569,7 +582,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
@@ -587,6 +600,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:types:subject:expirationDate:storePassword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
@@ -604,7 +618,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -620,6 +634,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:subject:expirationDate:storePassword:error:)
     public func appendCredential(with id: String,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
@@ -636,7 +651,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -651,6 +666,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:types:subject:storePassword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
@@ -666,7 +682,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                  subject: Dictionary<String, String>,
                      using storePassword: String) throws -> DIDDocumentBuilder {
         return try appendCredential(id, nil, subject, nil, storePassword)
@@ -679,6 +695,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:subject:storePassword:error:)
     public func appendCredential(with id: String,
                                  subject: Dictionary<String, String>,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -739,7 +756,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                     json: String,
                           expirationDate: Date,
@@ -756,6 +773,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:types:json:expirationDate:storePassword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                     json: String,
@@ -773,7 +791,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                     json: String,
                           expirationDate: Date,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -789,6 +807,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredentialWithId:json:expirationDate:storePassword:error:)
     public func appendCredential(with id: String,
                                     json: String,
                           expirationDate: Date,
@@ -805,7 +824,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                     json: String,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -821,6 +840,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:types:json:storePassword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                     json: String,
@@ -836,7 +856,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendCredential(with id: DIDURL,
+    @objc public func appendCredential(with id: DIDURL,
                                     json: String,
                      using storePassword: String) throws -> DIDDocumentBuilder {
 
@@ -850,6 +870,7 @@ public class DIDDocumentBuilder {
     ///   - storePassword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendCredential:jsonString:storePassword:error:)
     public func appendCredential(with id: String,
                                     json: String,
                      using storePassword: String) throws -> DIDDocumentBuilder {
@@ -872,7 +893,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of Credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removeCredential(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func removeCredential(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try removeCredential(id)
     }
 
@@ -880,6 +901,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: An identifier of Credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removeCredential:error:)
     public func removeCredential(with id: String) throws -> DIDDocumentBuilder {
         return try removeCredential(DIDURL(getSubject(), id))
     }
@@ -904,7 +926,7 @@ public class DIDDocumentBuilder {
     ///   - endpoint: ServiceEndpoint property is a valid URI.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func appendService(with id: DIDURL,
+    @objc public func appendService(with id: DIDURL,
                                  type: String,
                              endpoint: String) throws -> DIDDocumentBuilder {
         return try appendService(id, type, endpoint)
@@ -917,6 +939,7 @@ public class DIDDocumentBuilder {
     ///   - endpoint: ServiceEndpoint property is a valid URI.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendService:type:endpoint:error:)
     public func appendService(with id: String,
                                  type: String,
                              endpoint: String) throws -> DIDDocumentBuilder {
@@ -938,7 +961,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: The identifier of Service.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func removeService(with id: DIDURL) throws -> DIDDocumentBuilder {
+    @objc public func removeService(with id: DIDURL) throws -> DIDDocumentBuilder {
         return try removeService(id)
     }
 
@@ -946,6 +969,7 @@ public class DIDDocumentBuilder {
     /// - Parameter id: The identifier of Service.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
+    @objc(removeService:error:)
     public func removeService(with id: String) throws -> DIDDocumentBuilder {
         return try removeService(DIDURL(getSubject(), id))
     }
@@ -953,7 +977,7 @@ public class DIDDocumentBuilder {
     /// Set default expire time about DID Document.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func withDefaultExpiresDate() throws -> DIDDocumentBuilder {
+    @objc public func withDefaultExpiresDate() throws -> DIDDocumentBuilder {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
@@ -966,7 +990,7 @@ public class DIDDocumentBuilder {
     /// - Parameter expiresDate: ime to expire.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    public func withExpiresDate(_ expiresDate: Date) throws -> DIDDocumentBuilder {
+    @objc public func withExpiresDate(_ expiresDate: Date) throws -> DIDDocumentBuilder {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
@@ -984,7 +1008,7 @@ public class DIDDocumentBuilder {
     /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to DIDDocument
-    public func sealed(using storePassword: String) throws -> DIDDocument {
+    @objc public func sealed(using storePassword: String) throws -> DIDDocument {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }

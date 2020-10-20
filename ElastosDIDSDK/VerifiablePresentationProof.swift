@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class VerifiablePresentationProof {
+@objc(VerifiablePresentationProof)
+public class VerifiablePresentationProof: NSObject {
     private let _type: String
     private let _verificationMethod: DIDURL
     private let _realm: String
@@ -42,27 +43,27 @@ public class VerifiablePresentationProof {
     }
 
     /// The type of target data is a verifiable expression
-    public var type: String {
+    @objc public var type: String {
         return _type
     }
 
     /// Proof method, the value is the public key reference used for signing and verification in the provider DID document
-    public var verificationMethod: DIDURL {
+    @objc public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
     /// Target areas to which the expression applies, such as website domain names, application names, etc.
-    public var realm: String {
+    @objc public var realm: String {
         return _realm
     }
 
     /// Random value used for signature operation
-    public var nonce: String {
+    @objc public var nonce: String {
         return _nonce
     }
 
     /// The signed value, using Base64 encoding
-    public var signature: String {
+    @objc public var signature: String {
         return _signature
     }
 

@@ -21,6 +21,8 @@
 */
 
 import Foundation
+
+@objc(IDChainRequestOperation)
 public enum IDChainRequestOperation: Int, CustomStringConvertible {
     case CREATE = 0
     case UPDATE = 1

@@ -22,6 +22,7 @@
 
 import Foundation
 
+@objc(JsonNodeType)
 public enum JsonNodeType: Int {
     case ARRAY
     case BOOLEAN
@@ -30,10 +31,12 @@ public enum JsonNodeType: Int {
     case DICTIONARY
     case STRING
 }
-public class JsonNode {
+
+@objc(JsonNode)
+public class JsonNode: NSObject {
     private var node: Any
 
-    init() {
+    override init() {
         self.node = [String: Any]()
     }
 
@@ -96,7 +99,7 @@ public class JsonNode {
         return 0
     }
 
-    public func toString() -> String {
+    @objc public func toString() -> String {
         var resultString: String
 
         if node is [JsonNode] {
@@ -239,7 +242,7 @@ public class JsonNode {
         self.node = dictionary
     }
 
-    public func asString() -> String? {
+    @objc public func asString() -> String? {
         return self.node as? String
     }
 
@@ -247,7 +250,16 @@ public class JsonNode {
         return self.node as? Int
     }
 
-    public func asNumber() -> Any? {
+    @objc public func asIntegerWithOC() -> NSNumber? {
+        if let result = self.node as? Int {
+            return NSNumber(value: result)
+        }
+        else {
+            return nil
+        }
+    }
+
+    @objc public func asNumber() -> Any? {
         return self.node
     }
 
@@ -255,15 +267,26 @@ public class JsonNode {
         return self.node as? Bool
     }
 
-    public func asArray() -> [JsonNode]? {
+    @objc public func asBool(error: NSErrorPointer) -> Bool {
+        if let result = self.node as? Bool {
+            return result
+        }
+        else {
+            let aError = NSError(domain: "the result is nil", code: -1, userInfo: nil)
+            error?.pointee = aError
+            return false
+        }
+    }
+
+    @objc public func asArray() -> [JsonNode]? {
         return self.node as? Array
     }
 
-    public func asDictionary() -> [String: JsonNode]? {
+    @objc public func asDictionary() -> [String: JsonNode]? {
         return self.node as? [String: JsonNode]
     }
 
-    public func getNodeType() -> JsonNodeType {
+    @objc public func getNodeType() -> JsonNodeType {
 
         if self.node is Array<Any> {
             return JsonNodeType.ARRAY

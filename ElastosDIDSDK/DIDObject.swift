@@ -22,11 +22,12 @@
 
 import Foundation
 
-public class DIDObject {
+@objc(DIDObject)
+public class DIDObject: NSObject {
     private var _id: DIDURL?
     private var _type: String?
 
-    init() {}
+    override init() {}
 
     init(_ id: DIDURL, _ type: String) {
         self._id = id
@@ -35,7 +36,7 @@ public class DIDObject {
 
     /// Get 'DIDURL'
     /// - Returns: 'DIDURL'
-    public func getId() -> DIDURL {
+    @objc public func getId() -> DIDURL {
         return _id!
     }
 
@@ -45,7 +46,7 @@ public class DIDObject {
 
     /// Get 'Type'
     /// - Returns: 'Type'
-    public func getType() -> String {
+    @objc public func getType() -> String {
         return _type!
     }
 
