@@ -22,12 +22,13 @@
 
 import Foundation
 
-public class DIDBackend {
+@objc(DIDBackend)
+public class DIDBackend: NSObject {
     private static let TAG = "DIDBackend"
     private static var resolver: DIDResolver?
     private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
-    public typealias ResolveHandle = (_ did: DID) throws -> DIDDocument?
+    public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
     private static var resolveHandle: ResolveHandle? = nil
 
     class TransactionResult: NSObject {
@@ -88,7 +89,7 @@ public class DIDBackend {
         }
     }
 
-    class DefaultResolver: DIDResolver {
+    class DefaultResolver: NSObject, DIDResolver {
         private var url: URL
 
         init(_ resolver: String) throws {
@@ -162,7 +163,7 @@ public class DIDBackend {
     ///   - resolverURL: The URL string.
     ///   - cacheDir: The directory for cache.
     /// - Throws:  if an error occurred, throw error.
-    public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
+    @objc public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
         guard !resolverURL.isEmpty, !cacheDir.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -175,6 +176,7 @@ public class DIDBackend {
     ///   - resolverURL: The URL string.
     ///   - cacheDir: The directory for cache.
     /// - Throws: if an error occurred, throw error.
+    @objc(initializeInstance:cacheDir:error:)
     public class func initializeInstance(_ resolverURL: String, _ cacheDir: URL) throws {
         guard !resolverURL.isEmpty, !cacheDir.isFileURL else {
             throw DIDError.illegalArgument()
@@ -188,6 +190,7 @@ public class DIDBackend {
     ///   - resolver: The handle to DIDResolver.
     ///   - cacheDir: The directory for cache.
     /// - Throws: if an error occurred, throw error.
+    @objc(initializeInstanceWith:cacheDir:error:)
     public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
         guard !cacheDir.isEmpty else {
             throw DIDError.illegalArgument()
@@ -206,6 +209,7 @@ public class DIDBackend {
     ///   - resolver: The handle to DIDResolver.
     ///   - cacheDir: The directory for cache.
     /// - Throws: if an error occurred, throw error.
+    @objc(initializeInstanceWithResolver:cacheDir:error:)
     public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: URL) throws {
         guard !cacheDir.isFileURL else {
             throw DIDError.illegalArgument()
@@ -222,7 +226,7 @@ public class DIDBackend {
     /// Get DIDBackend instance.
     /// - Parameter adapter: A handle to DIDAdapter.
     /// - Returns: DIDBackend instance.
-    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+    @objc public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
 
@@ -304,7 +308,7 @@ public class DIDBackend {
     ///  User set DID Local Resolve handle in order to give which did document to verify.
     ///  If handle != NULL, set DID Local Resolve Handle.
     /// - Parameter handle: A handle to ResolveHandle.
-    public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
+    @objc public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
         DIDBackend.resolveHandle = handle
     }
 
@@ -312,7 +316,7 @@ public class DIDBackend {
         Log.i(TAG, "Resolving {\(did.toString())} ...")
 
         guard DIDBackend.resolveHandle == nil else {
-           return try resolveHandle!(did)
+           return resolveHandle!(did)
         }
 
         var result: ResolveResult?

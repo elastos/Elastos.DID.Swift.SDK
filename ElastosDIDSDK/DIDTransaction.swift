@@ -22,6 +22,7 @@
 
 import Foundation
 
+@objc(DIDTransaction)
 public protocol DIDTransaction {
 
     /// Get did.

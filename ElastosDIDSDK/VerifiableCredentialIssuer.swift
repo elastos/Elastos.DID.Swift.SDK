@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class VerifiableCredentialIssuer {
+@objc(VerifiableCredentialIssuer)
+public class VerifiableCredentialIssuer: NSObject {
     private var _issuerDoc: DIDDocument
     private var _signKey: DIDURL
 
@@ -66,14 +67,14 @@ public class VerifiableCredentialIssuer {
     ///   - doc: Specified DID document
     ///   - signKey:  Issuer’s key to sign credential.
     /// - Throws: if an error occurred, throw error.
-    public convenience init(_ doc: DIDDocument, _ signKey: DIDURL) throws {
+    @objc public convenience init(_ doc: DIDDocument, _ signKey: DIDURL) throws {
         try self.init(doc: doc, signKey: signKey)
     }
 
     /// Create a issuer to issue Credential.
     /// - Parameter doc: Specified DID document
     /// - Throws: if an error occurred, throw error.
-    public convenience init(_ doc: DIDDocument) throws {
+    @objc public convenience init(_ doc: DIDDocument) throws {
         try self.init(doc: doc, signKey: nil)
     }
 
@@ -83,7 +84,7 @@ public class VerifiableCredentialIssuer {
     ///   - signKey: Issuer’s key to sign credential.
     ///   - store: The handle to DIDStore.
     /// - Throws: if an error occurred, throw error.
-    public convenience init(_ did: DID, _ signKey: DIDURL, _ store: DIDStore) throws {
+    @objc public convenience init(_ did: DID, _ signKey: DIDURL, _ store: DIDStore) throws {
         try self.init(did, signKey: signKey, store)
     }
 
@@ -92,17 +93,18 @@ public class VerifiableCredentialIssuer {
     ///   - did: Issuer’s did.
     ///   - store: Issuer’s key to sign credential.
     /// - Throws: if an error occurred, throw error.
+    @objc(init:store:error:)
     public convenience init(_ did: DID, _ store: DIDStore) throws {
         try self.init(did, signKey: nil, store)
     }
 
     /// Issuer’s did.
-    public var did: DID {
+    @objc public var did: DID {
         return _issuerDoc.subject
     }
 
     /// Get the DID of this issuer.
-    public var signKey: DIDURL {
+    @objc public var signKey: DIDURL {
         return _signKey
     }
 
@@ -110,13 +112,14 @@ public class VerifiableCredentialIssuer {
     /// - Parameter did: Issuer’s did.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func editingVerifiableCredentialFor(did: String) throws -> VerifiableCredentialBuilder {
+    @objc public func editingVerifiableCredentialFor(did: String) throws -> VerifiableCredentialBuilder {
         return VerifiableCredentialBuilder(try DID(did), _issuerDoc, signKey)
     }
 
     /// Get VerifiableCredential Builder to modify VerifiableCredential.
     /// - Parameter did: Issuer’s did.
     /// - Returns: VerifiableCredentialBuilder instance.
+    @objc(editingVerifiableCredentialForDid:)
     public func editingVerifiableCredentialFor(did: DID) -> VerifiableCredentialBuilder {
         return VerifiableCredentialBuilder(did, _issuerDoc, signKey)
     }

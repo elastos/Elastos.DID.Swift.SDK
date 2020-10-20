@@ -22,6 +22,7 @@
 
 import Foundation
 
+@objc(DIDLogLevel)
 public enum DIDLogLevel: Int, CustomStringConvertible {
     /// Log level None
     /// Indicate disable log output.
