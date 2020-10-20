@@ -177,7 +177,7 @@ public class DID: NSObject {
     ///  force = true, document gets only from chain. force = false, document can get from cache,
     ///   if no document is in the cache, resolve it from chain.
     /// - Returns: Return the handle to DID Document.
-    @objc public func resolveAsync(_ force: Bool) -> AnyPromise {
+    @objc public func resolveAsyncUsingObjectC(_ force: Bool) -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             do {
                 resolver(try resolve(force))
@@ -195,8 +195,8 @@ public class DID: NSObject {
 
     /// Get the newest DID Document asynchronously from chain.
     /// - Returns: Return the handle to DID Document.
-    @objc public func resolveAsync() -> AnyPromise {
-        return resolveAsync(false)
+    @objc public func resolveAsyncUsingObjectC() -> AnyPromise {
+        return resolveAsyncUsingObjectC(false)
     }
 
     /// Get all DID Documents from chain.
@@ -220,7 +220,7 @@ public class DID: NSObject {
 
     /// Get all DID Documents from chain.
     /// - Returns: return the handle to DID Document asynchronously.
-    @objc public func resolveHistoryAsync() -> AnyPromise {
+    @objc public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             do {
                 resolver(try resolveHistory())

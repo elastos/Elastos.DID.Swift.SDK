@@ -30,6 +30,6 @@ import Foundation
     /// - Parameters:
     ///   - payload: The content of id transaction to publish.
     ///   - memo: Memo string.
-    @objc func createIdTransaction(_ payload: String,
+    func createIdTransaction(_ payload: String,
                              _ memo: String?) throws
 }
