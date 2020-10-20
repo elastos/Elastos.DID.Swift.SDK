@@ -493,7 +493,6 @@ public class DIDStore: NSObject {
         }
     }
 
-    ///////////////////适配OC的方法调用 star
     private func synchronizeAsync_oc(_ storePassword: String,
                                   _ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
         return AnyPromise(__resolverBlock: { resolver in
@@ -505,7 +504,6 @@ public class DIDStore: NSObject {
             }
         })
     }
-    ///////////////////////适配OC end
 
     /// Synchronize DIDStore asynchronously.
     /// - Parameters:
@@ -517,19 +515,17 @@ public class DIDStore: NSObject {
 
         return synchronizeAsync(storePassword, conflictHandler)
     }
-///////////////////适配OC star====
+
     /// Synchronize DIDStore asynchronously.
     /// - Parameters:
     ///   - storePassword: The pass word of DID holder.
     ///   - conflictHandler: The method to merge document.
     /// - Returns: Void
-    @objc public func synchornizeAsync(using storePassword: String,
+    @objc public func synchornizeAsyncUsingObjectC(using storePassword: String,
                                        conflictHandler: @escaping ConflictHandler) -> AnyPromise {
 
         return synchronizeAsync_oc(storePassword, conflictHandler)
     }
-
-///////////////////////适配OC end======
 
     /// Synchronize DIDStore asynchronously.
     /// - Parameter storePassword: The pass word of DID holder.
@@ -554,8 +550,7 @@ public class DIDStore: NSObject {
     /// - Parameter storePassword: The pass word of DID holder.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-    ///////////////////适配OC
-    public func synchronizeAsync(using storePassword: String) throws -> AnyPromise {
+    public func synchornizeAsyncUsingObjectC(using storePassword: String) throws -> AnyPromise {
 
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument("store password is empty")
@@ -912,8 +907,7 @@ public class DIDStore: NSObject {
     ///   - force: documnet context is normalized or not.
     /// true represents normalized, false represents not compact.
     /// - Returns: Void
-//    适配OC
-    @objc public func publishDidAsync(for did: DID,
+    @objc public func publishDidAsyncUsingObjectC(for did: DID,
                           using signKey: DIDURL,
                           storePassword: String,
                                 _ force: Bool) -> AnyPromise {
@@ -940,8 +934,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
-//    OC
-    @objc public func publishDidAsync(for did: DID,
+    @objc public func publishDidAsyncUsingObjectC(for did: DID,
                           using signKey: DIDURL,
                           storePassword: String) -> AnyPromise {
 
@@ -976,8 +969,7 @@ public class DIDStore: NSObject {
     /// true represents normalized, false represents not compact.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc public func publishDidAsync(for did: String,
+    @objc public func publishDidAsyncUsingObjectC(for did: String,
                           using signKey: String,
                           storePassword: String,
                                 _ force: Bool) throws -> AnyPromise {
@@ -1011,8 +1003,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc public func publishDidAsync(for did: String,
+    @objc public func publishDidAsyncUsingObjectC(for did: String,
                           using signKey: String,
                           storePassword: String) throws -> AnyPromise {
 
@@ -1038,8 +1029,7 @@ public class DIDStore: NSObject {
     ///   - did: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
-//    oc
-    @objc public func publishDidAsync(for did: DID,
+    @objc public func publishDidAsyncUsingObjectC(for did: DID,
                     using storePassword: String) -> AnyPromise{
 
         return publishDidAsync_oc(did, nil, storePassword, false)
@@ -1063,8 +1053,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//      oc
-    @objc public func publishDidAsync(for did: String,
+    @objc public func publishDidAsyncUsingObjectC(for did: String,
                     using storePassword: String) throws -> AnyPromise {
 
         return publishDidAsync_oc(try DID(did), nil, storePassword, false)
@@ -1209,8 +1198,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    public func deactivateDidAsync(for target: DID,
+    public func deactivateDidAsyncUsingObjectC(for target: DID,
                                 using signKey: DIDURL,
                                 storePassword: String) throws -> AnyPromise {
 
@@ -1240,8 +1228,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc public func deactivateDidAsync(for target: String,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: String,
                                 using signKey: String,
                                 storePassword: String) throws -> AnyPromise {
         let _did = try DID(target)
@@ -1268,8 +1255,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc public func deactivateDidAsync(for target: DID,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: DID,
                           using storePassword: String) throws -> AnyPromise {
 
         return deactivateDidAsync_oc(target, nil, storePassword)
@@ -1293,9 +1279,8 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc(deactivateDidAsync:storePassword:error:)
-    public func deactivateDidAsync(for target: String,
+    @objc(deactivateDidAsyncUsingObjectC:storePassword:error:)
+    public func deactivateDidAsyncUsingObjectC(for target: String,
                           using storePassword: String) throws -> AnyPromise {
 
         return deactivateDidAsync_oc(try DID(target), nil, storePassword)
@@ -1480,8 +1465,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
-//    OC
-    @objc public func deactivateDidAsync(for target: DID,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: DID,
                          withAuthroizationDid: DID,
                                 using signKey: DIDURL,
                                 storePassword: String) -> AnyPromise {
@@ -1516,8 +1500,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-//    oc
-    @objc public func deactivateDidAsync(for target: String,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: String,
                          withAuthroizationDid: String,
                                 using signKey: String,
                                 storePassword: String) throws ->  AnyPromise {
@@ -1547,7 +1530,7 @@ public class DIDStore: NSObject {
     ///   - withAuthroizationDid: The authorization key id in the target doc.
     ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
-    @objc public func deactivateDidAsync(for target: DID,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: DID,
                          withAuthroizationDid: DID,
                                 storePassword: String) -> AnyPromise {
 
@@ -1575,7 +1558,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
-    @objc public func deactivateDidAsync(for target: String,
+    @objc public func deactivateDidAsyncUsingObjectC(for target: String,
                     withAuthroizationDid: String,
                            storePassword: String) throws ->  AnyPromise {
 

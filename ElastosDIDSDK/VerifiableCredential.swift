@@ -258,7 +258,7 @@ public class VerifiableCredential: DIDObject {
 
     /// Credential is expired or not asynchronous.
     /// - Returns: Issuance always occurs before any other actions involving a credential.
-    @objc public func isExpiredAsync() -> AnyPromise {
+    @objc public func isExpiredAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             resolver(isExpired)
         })
@@ -309,7 +309,7 @@ public class VerifiableCredential: DIDObject {
     /// Credential is genuine or not asynchronous.
     /// Issuance always occurs before any other actions involving a credential.
     /// flase if not genuine, true if genuine.
-    @objc public func isGenuineAsync() -> AnyPromise {
+    @objc public func isGenuineAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             resolver(isGenuine)
         })
@@ -336,7 +336,7 @@ public class VerifiableCredential: DIDObject {
 
     /// Credential is expired or not asynchronous.
     /// - Returns: flase if not genuine, true if genuine.
-    @objc public func isValidAsync() -> AnyPromise {
+    @objc public func isValidAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             resolver(isValid)
         })
