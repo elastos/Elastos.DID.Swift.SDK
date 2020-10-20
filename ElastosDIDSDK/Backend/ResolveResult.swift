@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class ResolveResult: DIDHistory{
+@objc(ResolveResult)
+public class ResolveResult: NSObject, DIDHistory{
     var _did: DID!
     var _status: ResolveResultStatus
     var _idtransactionInfos: [IDTransactionInfo] = []
@@ -34,25 +35,25 @@ public class ResolveResult: DIDHistory{
 
     /// Get did.
     /// - Returns: The handle of did.
-    public func getDid() -> DID {
+    @objc public func getDid() -> DID {
         return _did
     }
 
     /// Get resolve result status.
     /// - Returns: The handle of resolve result status.
-    public func getsStatus() -> ResolveResultStatus {
+    @objc public func getsStatus() -> ResolveResultStatus {
         return _status
     }
 
     /// Get all DIDTransaction.
     /// - Returns: Array of DIDTransaction.
-    public func getAllTransactions() -> [DIDTransaction] {
+    @objc public func getAllTransactions() -> [DIDTransaction] {
         return _idtransactionInfos
     }
 
     /// The count of transaction.
     /// - Returns: Transaction count.
-    public func getTransactionCount() -> Int {
+    @objc public func getTransactionCount() -> Int {
         return _idtransactionInfos.count
     }
 
@@ -160,8 +161,8 @@ public class ResolveResult: DIDHistory{
     }
 }
 
-extension ResolveResult: CustomStringConvertible {
-    @objc public var description: String {
+extension ResolveResult {
+    @objc public override var description: String {
         return toJson()
     }
 }

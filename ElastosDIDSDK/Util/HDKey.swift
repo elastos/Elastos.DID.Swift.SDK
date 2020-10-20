@@ -22,18 +22,14 @@
 
 import Foundation
 
-public struct KeyPair {
-    var publicKey: Data?
-    var privatekey: Data?
-}
-
+@objc(HDKey)
 public class HDKey: NSObject {
-    public static let PUBLICKEY_BYTES : Int = 33
-    public static let PRIVATEKEY_BYTES: Int = 32
-    public static let SEED_BYTES: Int = 64
-    public static let EXTENDED_KEY_BYTES = 82
-    public static let EXTENDED_PRIVATEKEY_BYTES = EXTENDED_KEY_BYTES
-    public static let EXTENDED_PUBLICKEY_BYTES = EXTENDED_KEY_BYTES
+    @objc public static let PUBLICKEY_BYTES : Int = 33
+    @objc public static let PRIVATEKEY_BYTES: Int = 32
+    @objc public static let SEED_BYTES: Int = 64
+    @objc public static let EXTENDED_KEY_BYTES = 82
+    @objc public static let EXTENDED_PRIVATEKEY_BYTES = EXTENDED_KEY_BYTES
+    @objc public static let EXTENDED_PUBLICKEY_BYTES = EXTENDED_KEY_BYTES
 
     private static let PADDING_IDENTITY = 0x67
     private static let PADDING_STANDARD = 0xAD
@@ -41,10 +37,10 @@ public class HDKey: NSObject {
     private var key: UnsafePointer<CHDKey>
 
     // Derive path: m/44'/0'/0'/0/index
-    public static let DERIVE_PATH_PREFIX = "44H/0H/0H/0/"
+    @objc public static let DERIVE_PATH_PREFIX = "44H/0H/0H/0/"
 
     // Pre-derive publickey path: m/44'/0'/0'
-    public static let PRE_DERIVED_PUBLICKEY_PATH = "44H/0H/0H"
+    @objc public static let PRE_DERIVED_PUBLICKEY_PATH = "44H/0H/0H"
 
     let PUBLICKEY_BASE58_BYTES = 64
 
@@ -52,7 +48,7 @@ public class HDKey: NSObject {
         self.key = key
     }
 
-    public convenience init(_ mnemonic: String, _ passPhrase: String, _ language: String) {
+    @objc public convenience init(_ mnemonic: String, _ passPhrase: String, _ language: String) {
         let cmnemonic = mnemonic.toUnsafePointerInt8()!
         let cpassphrase = passPhrase.toUnsafePointerInt8()!
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
@@ -60,7 +56,7 @@ public class HDKey: NSObject {
         self.init(key)
     }
 
-    public convenience init(_ seed: Data) {
+    @objc public convenience init(_ seed: Data) {
         let cseed: UnsafePointer<UInt8> = seed.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
             return bytes
         }
@@ -70,7 +66,7 @@ public class HDKey: NSObject {
         self.init(chdkey)
     }
 
-    public func getPrivateKeyBytes() -> [UInt8] {
+    @objc public func getPrivateKeyBytes() -> [UInt8] {
         let privatekeyPointer = HDKey_GetPrivateKey(key)
         let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: HDKey.PRIVATEKEY_BYTES)
         let privatekeyData: Data = Data(buffer: privatekeyPointerToArry)
@@ -78,18 +74,18 @@ public class HDKey: NSObject {
         return [UInt8](privatekeyData)
     }
 
-    public func getPrivateKeyData() -> Data {
+    @objc public func getPrivateKeyData() -> Data {
         let privatekeyPointer = HDKey_GetPrivateKey(key)
         let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: HDKey.PRIVATEKEY_BYTES)
 
         return Data(buffer: privatekeyPointerToArry)
     }
 
-    public func getPrivateKeyBase58() -> String {
+    @objc public func getPrivateKeyBase58() -> String {
         return Base58.base58FromBytes(getPrivateKeyBytes())
     }
 
-    public func getPublicKeyBytes() ->[UInt8] {
+    @objc public func getPublicKeyBytes() ->[UInt8] {
         let cpublicKeyPointer = HDKey_GetPublicKey(key)
         let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: HDKey.PUBLICKEY_BYTES)
         let publicKeyData: Data = Data(buffer: publicKeyPointerToArry)
@@ -97,37 +93,37 @@ public class HDKey: NSObject {
         return [UInt8](publicKeyData)
     }
 
-    public func getPublicKeyData() -> Data {
+    @objc public func getPublicKeyData() -> Data {
         let cpublicKeyPointer = HDKey_GetPublicKey(key)
         let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: HDKey.PUBLICKEY_BYTES)
 
         return Data(buffer: publicKeyPointerToArry)
     }
 
-    public func getPublicKeyBase58() -> String {
+    @objc public func getPublicKeyBase58() -> String {
         let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: HDKey.PUBLICKEY_BYTES)
         let cpublickeybase58 = HDKey_GetPublicKeyBase58(key, basePointer, Int32(PUBLICKEY_BASE58_BYTES))
         print(String(cString: cpublickeybase58))
         return String(cString: cpublickeybase58)
     }
 
-    public func serialize() throws -> Data {
+    @objc public func serialize() throws -> Data {
         let data = Base58.bytesFromBase58(serializeBase58())
         return Data(bytes: data, count: data.count)
     }
 
-    public func serializeBase58() -> String {
+    @objc public func serializeBase58() -> String {
         let extendedkeyPointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 512)
         let cextendedkey = HDKey_SerializePrvBase58(key, extendedkeyPointer, 512)
         
         return String(cString: cextendedkey!)
     }
 
-    public func serializePublicKey() throws -> [UInt8] {
+    @objc public func serializePublicKey() throws -> [UInt8] {
         return try Base58.bytesFromBase58(serializePublicKeyBase58())
     }
 
-    public func serializePublicKeyBase58() throws -> String {
+    @objc public func serializePublicKeyBase58() throws -> String {
 
         let extendedkeyPointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 256)
         let cextendedkey = HDKey_SerializePubBase58(key, extendedkeyPointer,Int32(256))
@@ -138,7 +134,7 @@ public class HDKey: NSObject {
         return String(cString: cextendedkey!)
     }
 
-    public class func deserialize(_ keyData: [UInt8]) -> HDKey {
+    @objc public class func deserialize(_ keyData: [UInt8]) -> HDKey {
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
         let cdata: UnsafePointer<UInt8> = Data(bytes: keyData, count: keyData.count).withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
             return bytes
@@ -147,6 +143,7 @@ public class HDKey: NSObject {
         return self.init(k)
     }
 
+    @objc(deserializeWithKeyData:)
     public class func deserialize(_ keyData: Data) -> HDKey {
         var extendedkeyData = keyData
         let cextendedkey = extendedkeyData.withUnsafeMutableBytes { re -> UnsafeMutablePointer<UInt8> in
@@ -157,13 +154,13 @@ public class HDKey: NSObject {
         return self.init(chdkey)
     }
 
-    public class func deserializeBase58(_ keyData: String) -> HDKey {
+    @objc public class func deserializeBase58(_ keyData: String) -> HDKey {
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
         let hdkey = HDKey_DeserializeBase58(chdKey, keyData.toUnsafePointerInt8()!, Int32(keyData.count))
         return self.init(hdkey)
     }
 
-    public class func paddingToExtendedPrivateKey(_ privateKeyBytes: Data) -> Data {
+    @objc public class func paddingToExtendedPrivateKey(_ privateKeyBytes: Data) -> Data {
         var pkData: Data = privateKeyBytes
         let cpks: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
             return bytes
@@ -178,7 +175,7 @@ public class HDKey: NSObject {
 //        return [UInt8](extenedData)
     }
 
-    public func derive(_ path: String) throws -> HDKey {
+    @objc public func derive(_ path: String) throws -> HDKey {
         let cderivedkey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 256)
         let childNum = try childList(path)
         let hkey = HDKey_GetvDerivedKey(key, cderivedkey, Int32(childNum.count), getVaList(childNum))
@@ -206,7 +203,7 @@ public class HDKey: NSObject {
         return childNum
     }
 
-    public func derive(_ index: Int, _ hardened: Bool) -> HDKey {
+    @objc public func derive(_ index: Int, _ hardened: Bool) -> HDKey {
         var childNum: [CVarArg] = []
         let cderivedkey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 256)
         if hardened {
@@ -220,17 +217,17 @@ public class HDKey: NSObject {
         return HDKey(hkey)
     }
 
-    public func derive(_ index: Int) -> HDKey {
+    @objc public func derive(_ index: Int) -> HDKey {
 
         return derive(index, false)
     }
 
-    public func getAddress() -> String {
+    @objc public func getAddress() -> String {
         let cid = HDKey_GetAddress(self.key)
         return (String(cString: cid!))
     }
 
-    public class func toAddress(_ pk: [UInt8]) -> String {
+    @objc public class func toAddress(_ pk: [UInt8]) -> String {
         var pkData: Data = Data(bytes: pk, count: pk.count)
         let cpks: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
             return bytes

@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class VerifiableCredentialBuilder {
+@objc(VerifiableCredentialBuilder)
+public class VerifiableCredentialBuilder: NSObject {
     private var _target: DID
     private var _signKey: DIDURL
     private var _forDoc: DIDDocument
@@ -42,7 +43,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter id: An identifier of credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func withId(_ id: DIDURL) throws -> VerifiableCredentialBuilder {
+    @objc public func withId(_ id: DIDURL) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -54,6 +55,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter id: An identifier of credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
+    @objc(withIdString:error:)
     public func withId(_ id: String) throws -> VerifiableCredentialBuilder {
         guard !id.isEmpty else {
             throw DIDError.illegalArgument()
@@ -82,7 +84,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter types: the credential types, which declare what data to expect in the credential
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
+    @objc public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
          guard let _ = credential else {
              throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
          }
@@ -97,7 +99,7 @@ public class VerifiableCredentialBuilder {
     /// Set credential default expiration date
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func withDefaultExpirationDate() throws -> VerifiableCredentialBuilder {
+    @objc public func withDefaultExpirationDate() throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -110,7 +112,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter expirationDate: when the credential will expire
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
+    @objc public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -128,7 +130,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter properites: Credential dictionary data.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
+    @objc public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -148,6 +150,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter json: Credential dictionary string
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
+    @objc(withPropertiesWithJson:error:)
     public func withProperties(_ json: String) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
@@ -172,6 +175,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter properties: Credential dictionary JsonNode
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
+    @objc(withPropertiesWithJsonNode:errro:)
     public func withProperties(_ properties: JsonNode) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
@@ -191,7 +195,7 @@ public class VerifiableCredentialBuilder {
     /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiableCredential.
-    public func sealed(using storePassword: String) throws -> VerifiableCredential {
+    @objc public func sealed(using storePassword: String) throws -> VerifiableCredential {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }

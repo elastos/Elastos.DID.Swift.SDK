@@ -25,16 +25,17 @@ import PromiseKit
 
 /// DID is a globally unique identifier that does not require a centralized registration authority.
 /// It includes method specific string. (elastos:id:ixxxxxxxxxx).
-public class DID {
+@objc(DID)
+public class DID: NSObject {
     private static let TAG = "DID"
 
     private var _method: String?
     private var _methodSpecificId: String?
     private var _metadata: DIDMeta?
 
-    public static let METHOD: String = "elastos"
+    @objc public static let METHOD: String = "elastos"
 
-    init() {}
+    override init() {}
     
     init(_ method: String, _ methodSpecificId: String) {
         self._method = method
@@ -44,7 +45,8 @@ public class DID {
     /// Create a new DID according to method specific string.
     /// - Parameter did: A pointer to specific string. The method-specific-id value should be globally unique by itself.
     /// - Throws: Language is empty or error occurs.
-    public init(_ did: String) throws {
+    @objc public init(_ did: String) throws {
+        super.init()
         guard !did.isEmpty else {
             throw DIDError.illegalArgument("empty did string")
         }
@@ -63,7 +65,7 @@ public class DID {
     }
 
     ///  Get method of DID.
-    public var method: String {
+    @objc public var method: String {
         return _method!
     }
 
@@ -72,7 +74,7 @@ public class DID {
     }
 
     /// Get method specific string of DID.
-    public var methodSpecificId: String {
+    @objc public var methodSpecificId: String {
         return _methodSpecificId!
     }
 
@@ -82,7 +84,7 @@ public class DID {
 
     /// Get DID MetaData from did.
     /// - Returns: Return the handle to DIDMetaData. Otherwise
-    public func getMetadata() -> DIDMeta {
+    @objc public func getMetadata() -> DIDMeta {
         if  self._metadata == nil {
             self._metadata = DIDMeta()
         }
@@ -95,14 +97,14 @@ public class DID {
 
     /// Save DID MetaData.
     /// - Throws: If error occurs, throw error.
-    public func saveMetadata() throws {
+    @objc public func saveMetadata() throws {
         if (_metadata != nil && _metadata!.attachedStore) {
             try _metadata?.store?.storeDidMetadata(self, _metadata!)
         }
     }
 
     /// Check deactivated
-    public var isDeactivated: Bool {
+    @objc public var isDeactivated: Bool {
         return getMetadata().isDeactivated
     }
 
@@ -122,10 +124,37 @@ public class DID {
     }
 
     /// Get the newest DID Document from chain.
+    /// - Parameter force: Indicate if load document from cache or not.
+    ///  force = true, document gets only from chain. force = false, document can get from cache,
+    ///   if no document is in the cache, resolve it from chain.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Return the handle to DID Document.
+    @objc public func resolve(_ force: Bool, error: NSErrorPointer) -> DIDDocument? {
+        do {
+            return try resolve(force)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
+    }
+
+    /// Get the newest DID Document from chain.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Return the handle to DID Document
     public func resolve() throws -> DIDDocument? {
         return try resolve(false)
+    }
+
+    /// Get the newest DID Document from chain.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Return the handle to DID Document
+    @objc public func resolve(error: NSErrorPointer) -> DIDDocument? {
+        do {
+            return try resolve(false)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
     }
 
     /// Get the newest DID Document asynchronously from chain.
@@ -144,15 +173,36 @@ public class DID {
     }
 
     /// Get the newest DID Document asynchronously from chain.
+    /// - Parameter force: Indicate if load document from cache or not.
+    ///  force = true, document gets only from chain. force = false, document can get from cache,
+    ///   if no document is in the cache, resolve it from chain.
+    /// - Returns: Return the handle to DID Document.
+    @objc public func resolveAsync(_ force: Bool) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            do {
+                resolver(try resolve(force))
+            } catch let error  {
+                resolver(error)
+            }
+        })
+    }
+
+    /// Get the newest DID Document asynchronously from chain.
     /// - Returns: Return the handle to DID Document.
     public func resolveAsync() -> Promise<DIDDocument?> {
+        return resolveAsync(false)
+    }
+
+    /// Get the newest DID Document asynchronously from chain.
+    /// - Returns: Return the handle to DID Document.
+    @objc public func resolveAsync() -> AnyPromise {
         return resolveAsync(false)
     }
 
     /// Get all DID Documents from chain.
     /// - Throws: If error occurs, throw error.
     /// - Returns: return the handle to DID Document.
-    public func resolveHistory() throws -> DIDHistory {
+    @objc public func resolveHistory() throws -> DIDHistory {
         return try DIDBackend.resolveHistory(self)
     }
 
@@ -167,25 +217,38 @@ public class DID {
             }
         }
     }
+
+    /// Get all DID Documents from chain.
+    /// - Returns: return the handle to DID Document asynchronously.
+    @objc public func resolveHistoryAsync() -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            do {
+                resolver(try resolveHistory())
+            } catch let error  {
+                resolver(error)
+            }
+        })
+    }
 }
 
-extension DID: CustomStringConvertible {
+extension DID {
     func toString() -> String {
         return String("did:\(_method!):\(_methodSpecificId!)")
     }
 
     /// Get id string from DID.
-    public var description: String {
+    @objc public override var description: String {
         return toString()
     }
 }
 
-extension DID: Equatable {
-    func equalsTo(_ other: DID) -> Bool {
+extension DID {
+    @objc public func equalsTo(_ other: DID) -> Bool {
         return methodSpecificId == other.methodSpecificId
     }
 
-    func equalsTo(_ other: String) -> Bool {
+    @objc(equalsToOther:)
+    public func equalsTo(_ other: String) -> Bool {
         return toString() == other
     }
 
@@ -198,10 +261,11 @@ extension DID: Equatable {
     }
 }
 
-extension DID: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.toString())
-    }
+extension DID {
+    //TODO:
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(self.toString())
+//    }
 }
 
 // Parse Listener
@@ -213,7 +277,7 @@ extension DID {
             self.did = did
             super.init()
         }
-
+//  todo: OC
         public override func exitMethod(_ ctx: DIDURLParser.MethodContext) {
             let method = ctx.getText()
             if (method != Constants.METHOD){

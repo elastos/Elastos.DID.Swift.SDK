@@ -23,17 +23,18 @@
 import Foundation
 import PromiseKit
 
-public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDocument) throws -> DIDDocument
+public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDocument) -> DIDDocument
 
 /// DIDStore is local store for specified DID.
+@objc(DIDStore)
 public class DIDStore: NSObject {
     private static let TAG = "DIDStore"
-    public static let CACHE_INITIAL_CAPACITY = 16
-    public static let CACHE_MAX_CAPACITY = 32
+    @objc public static let CACHE_INITIAL_CAPACITY = 16
+    @objc public static let CACHE_MAX_CAPACITY = 32
     
-    public static let DID_HAS_PRIVATEKEY = 0
-    public static let DID_NO_PRIVATEKEY = 1
-    public static let DID_ALL = 2
+    @objc public static let DID_HAS_PRIVATEKEY = 0
+    @objc public static let DID_NO_PRIVATEKEY = 1
+    @objc public static let DID_ALL = 2
 
     private var documentCache: LRUCache<DID, DIDDocument>?
     private var credentialCache: LRUCache<DIDURL, VerifiableCredential>?
@@ -86,7 +87,7 @@ public class DIDStore: NSObject {
     ///   - adapter: The handle to DIDAdapter.
     /// - Throws: If error occurs, throw error.
     /// - Returns: DIDStore instance.
-    public class func open(atPath: String,
+    @objc public class func open(atPath: String,
                          withType: String,
              initialCacheCapacity: Int,
                  maxCacheCapacity: Int,
@@ -102,7 +103,7 @@ public class DIDStore: NSObject {
     ///   - adapter: The handle to DIDAdapter.
     /// - Throws: If error occurs, throw error.
     /// - Returns: DIDStore instance.
-    public class func open(atPath: String,
+    @objc public class func open(atPath: String,
                          withType: String,
                           adapter: DIDAdapter) throws -> DIDStore {
 
@@ -111,7 +112,7 @@ public class DIDStore: NSObject {
 
     /// Check if it has private identity or not.
     /// - Returns: ture if it has identity, false if it has not.
-    public func containsPrivateIdentity() -> Bool {
+    @objc public func containsPrivateIdentity() -> Bool {
         return storage.containsPrivateIdentity()
     }
 
@@ -187,7 +188,7 @@ public class DIDStore: NSObject {
     ///   If force is true, then will choose to create a new identity even if the private identity already exists and the new private key will replace the original one in DIDStore.
     ///   If force is false, then will choose to remain the old private key if the private identity exists, and return error code.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using language: String,
+    @objc public func initializePrivateIdentity(using language: String,
                                                 mnemonic: String,
                                               passphrase: String,
                                            storePassword: String,
@@ -206,7 +207,7 @@ public class DIDStore: NSObject {
     ///   If force is true, then will choose to create a new identity even if the private identity already exists and the new private key will replace the original one in DIDStore.
     ///   If force is false, then will choose to remain the old private key if the private identity exists, and return error code.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using language: String,
+    @objc public func initializePrivateIdentity(using language: String,
                                                 mnemonic: String,
                                            storePassword: String,
                                                  _ force: Bool ) throws {
@@ -221,7 +222,7 @@ public class DIDStore: NSObject {
     ///   - passPhrase: The pass word to generate private identity.
     ///   - storePassword: The password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using language: String,
+    @objc public func initializePrivateIdentity(using language: String,
                                                 mnemonic: String,
                                               passPhrase: String,
                                            storePassword: String) throws {
@@ -235,7 +236,7 @@ public class DIDStore: NSObject {
     ///   - mnemonic: Mnemonic for generate key.
     ///   - storePassword: The password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using language: String,
+    @objc public func initializePrivateIdentity(using language: String,
                                                 mnemonic: String,
                                            storePassword: String) throws {
         try initializePrivateIdentity(language, mnemonic, nil, storePassword, false)
@@ -283,7 +284,7 @@ public class DIDStore: NSObject {
     ///   If force is true, then will choose to create a new identity even if the private identity already exists and the new private key will replace the original one in DIDStore.
     ///   If force is false, then will choose to remain the old private key if the private identity exists, and return error code.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using extendedPrivateKey: String,
+    @objc public func initializePrivateIdentity(using extendedPrivateKey: String,
                                                      storePassword: String,
                                                            _ force: Bool ) throws {
         return try initializePrivateIdentity(extendedPrivateKey, storePassword, force)
@@ -294,7 +295,7 @@ public class DIDStore: NSObject {
     ///   - extentedPrivateKey: The extended private key.
     ///   - storePassword: The password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func initializePrivateIdentity(using extentedPrivateKey: String,
+    @objc public func initializePrivateIdentity(using extentedPrivateKey: String,
                                                storePassword: String) throws {
         try initializePrivateIdentity(using: extentedPrivateKey, storePassword: storePassword, false)
     }
@@ -303,7 +304,7 @@ public class DIDStore: NSObject {
     /// - Parameter storePassword: The password of DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Mnemonic string.
-    public func exportMnemonic(using storePassword: String) throws -> String {
+    @objc public func exportMnemonic(using storePassword: String) throws -> String {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument("Invalid password.")
         }
@@ -462,7 +463,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: The pass word of DID holder.
     ///   - conflictHandler: The method to merge document.
     /// - Throws: If error occurs, throw error.
-    public func synchronize(using storePassword: String,
+    @objc public func synchronize(using storePassword: String,
                                 conflictHandler: ConflictHandler) throws {
 
         return try synchronize(storePassword, conflictHandler)
@@ -471,9 +472,9 @@ public class DIDStore: NSObject {
     /// Synchronize DIDStore.
     /// - Parameter storePassword: The pass word of DID holder.
     /// - Throws: If error occurs, throw error.
-    public func synchronize(using storePassword: String) throws {
+    @objc public func synchronize(using storePassword: String) throws {
 
-            try synchronize(storePassword) { (c, l) throws -> DIDDocument in
+            try synchronize(storePassword) { (c, l) -> DIDDocument in
             l.getMetadata().setPublished(c.getMetadata().getPublished()!)
             l.getMetadata().setSignature(c.getMetadata().signature)
             return l
@@ -492,6 +493,20 @@ public class DIDStore: NSObject {
         }
     }
 
+    ///////////////////适配OC的方法调用 star
+    private func synchronizeAsync_oc(_ storePassword: String,
+                                  _ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            do {
+                try self.synchronize(storePassword, conflictHandler)
+                resolver(nil)
+            } catch let error  {
+                resolver(error)
+            }
+        })
+    }
+    ///////////////////////适配OC end
+
     /// Synchronize DIDStore asynchronously.
     /// - Parameters:
     ///   - storePassword: The pass word of DID holder.
@@ -502,6 +517,19 @@ public class DIDStore: NSObject {
 
         return synchronizeAsync(storePassword, conflictHandler)
     }
+///////////////////适配OC star====
+    /// Synchronize DIDStore asynchronously.
+    /// - Parameters:
+    ///   - storePassword: The pass word of DID holder.
+    ///   - conflictHandler: The method to merge document.
+    /// - Returns: Void
+    @objc public func synchornizeAsync(using storePassword: String,
+                                       conflictHandler: @escaping ConflictHandler) -> AnyPromise {
+
+        return synchronizeAsync_oc(storePassword, conflictHandler)
+    }
+
+///////////////////////适配OC end======
 
     /// Synchronize DIDStore asynchronously.
     /// - Parameter storePassword: The pass word of DID holder.
@@ -520,6 +548,26 @@ public class DIDStore: NSObject {
                 resolver.reject(error)
             }
         }
+    }
+
+    /// Synchronize DIDStore asynchronously.
+    /// - Parameter storePassword: The pass word of DID holder.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    ///////////////////适配OC
+    public func synchronizeAsync(using storePassword: String) throws -> AnyPromise {
+
+        guard !storePassword.isEmpty else {
+            throw DIDError.illegalArgument("store password is empty")
+        }
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            do {
+                try synchronize(using: storePassword)
+                resolver(nil)
+            } catch let error  {
+                resolver(error)
+            }
+        })
     }
 
     private func newDid(_ privateIdentityIndex: Int,
@@ -568,7 +616,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The handle to DID Document.
-    public func newDid(withPrivateIdentityIndex: Int,
+    @objc public func newDid(withPrivateIdentityIndex: Int,
                                           alias: String,
                             using storePassword: String) throws -> DIDDocument {
         return try newDid(withPrivateIdentityIndex, alias, storePassword)
@@ -580,7 +628,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The handle to DID Document.
-    public func newDid(withPrivateIdentityIndex: Int,
+    @objc public func newDid(withPrivateIdentityIndex: Int,
                             using storePassword: String) throws -> DIDDocument {
 
         return try newDid(withPrivateIdentityIndex, nil, storePassword)
@@ -602,7 +650,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The handle to DID Document.
-    public func newDid(withAlias: String, using storePassword: String) throws -> DIDDocument {
+    @objc public func newDid(withAlias: String, using storePassword: String) throws -> DIDDocument {
         return try newDid(withAlias, storePassword)
     }
 
@@ -610,7 +658,7 @@ public class DIDStore: NSObject {
     /// - Parameter storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The handle to DID Document.
-    public func newDid(using storePassword: String) throws -> DIDDocument {
+    @objc public func newDid(using storePassword: String) throws -> DIDDocument {
         return try newDid(nil, storePassword)
     }
 
@@ -618,7 +666,7 @@ public class DIDStore: NSObject {
     /// - Parameter byPrivateIdentityIndex: The index to get did.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The handle to DID Document.
-    public func getDid(byPrivateIdentityIndex: Int) throws -> DID {
+    @objc public func getDid(byPrivateIdentityIndex: Int) throws -> DID {
         guard byPrivateIdentityIndex >= 0 else {
             throw DIDError.illegalArgument("invalid index.")
         }
@@ -723,7 +771,7 @@ public class DIDStore: NSObject {
     ///   - force: documnet context is normalized or not.
     /// true represents normalized, false represents not compact.
     /// - Throws: If error occurs, throw error.
-    public func publishDid(for did: DID,
+    @objc public func publishDid(for did: DID,
                      using signKey: DIDURL,
                      storePassword: String,
                            _ force: Bool) throws {
@@ -737,7 +785,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func publishDid(for did: DID,
+    @objc public func publishDid(for did: DID,
                      using signKey: DIDURL,
                      storePassword: String) throws {
 
@@ -752,6 +800,7 @@ public class DIDStore: NSObject {
     ///   - force: documnet context is normalized or not.
     /// true represents normalized, false represents not compact.
     /// - Throws: If error occurs, throw error.
+    @objc(publishDid:signKey:storePassword:force:error:)
     public func publishDid(for did: String,
                      using signKey: String,
                      storePassword: String,
@@ -769,6 +818,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(publishDid:signKey:storePassword:error:)
     public func publishDid(for did: String,
                      using signKey: String,
                      storePassword: String) throws {
@@ -784,7 +834,7 @@ public class DIDStore: NSObject {
     ///   - did: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func publishDid(for did: DID,
+    @objc public func publishDid(for did: DID,
                using storePassword: String) throws {
 
         do {
@@ -805,6 +855,7 @@ public class DIDStore: NSObject {
     ///   - did: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(publishDid:storePassword:error:)
     public func publishDid(for did: String,
                using storePassword: String) throws {
 
@@ -822,6 +873,19 @@ public class DIDStore: NSObject {
                 resolver.reject(error)
             }
         }
+    }
+
+    private func publishDidAsync_oc(_ did: DID,
+                                 _ signKey: DIDURL?,
+                                 _ storePassword: String,
+                                 _ force: Bool) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            do {
+                resolver(try self.publishDid(did, signKey, storePassword, force))
+            } catch let error  {
+                resolver(error)
+            }
+        })
     }
 
     /// Create or update DID asynchronously.
@@ -845,12 +909,43 @@ public class DIDStore: NSObject {
     ///   - did: Get the payload by did.
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Returns: Void
+//    适配OC
+    @objc public func publishDidAsync(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String,
+                                _ force: Bool) -> AnyPromise {
+
+        return publishDidAsync_oc(did, signKey, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
     public func publishDidAsync(for did: DID,
                           using signKey: DIDURL,
                           storePassword: String) -> Promise<Void> {
 
         return publishDidAsync(did, signKey, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+//    OC
+    @objc public func publishDidAsync(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String) -> AnyPromise {
+
+        return publishDidAsync_oc(did, signKey, storePassword, false)
     }
 
     /// Create or update DID asynchronously.
@@ -877,6 +972,26 @@ public class DIDStore: NSObject {
     ///   - did: Get the payload by did.
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//    oc
+    @objc public func publishDidAsync(for did: String,
+                          using signKey: String,
+                          storePassword: String,
+                                _ force: Bool) throws -> AnyPromise {
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync_oc(_did, _key, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
     public func publishDidAsync(for did: String,
@@ -887,6 +1002,24 @@ public class DIDStore: NSObject {
         let _key = try DIDURL(_did, signKey)
 
         return publishDidAsync(_did, _key, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//    oc
+    @objc public func publishDidAsync(for did: String,
+                          using signKey: String,
+                          storePassword: String) throws -> AnyPromise {
+
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync_oc(_did, _key, storePassword, false)
     }
 
     /// Create or update DID asynchronously.
@@ -904,12 +1037,37 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - did: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+//    oc
+    @objc public func publishDidAsync(for did: DID,
+                    using storePassword: String) -> AnyPromise{
+
+        return publishDidAsync_oc(did, nil, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
     public func publishDidAsync(for did: String,
                     using storePassword: String) throws -> Promise<Void> {
 
         return publishDidAsync(try DID(did), nil, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//      oc
+    @objc public func publishDidAsync(for did: String,
+                    using storePassword: String) throws -> AnyPromise {
+
+        return publishDidAsync_oc(try DID(did), nil, storePassword, false)
     }
 
     private func deactivateDid(_ did: DID,
@@ -959,7 +1117,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func deactivateDid(for target: DID,
+    @objc public func deactivateDid(for target: DID,
                            using signKey: DIDURL,
                            storePassword: String) throws {
 
@@ -972,6 +1130,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(deactivateDid:signKey:storePassword:error:)
     public func deactivateDid(for target: String,
                            using signKey: String,
                            storePassword: String) throws {
@@ -987,7 +1146,7 @@ public class DIDStore: NSObject {
     ///   - target: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func deactivateDid(for target: DID,
+    @objc public func deactivateDid(for target: DID,
                      using storePassword: String) throws {
 
         return try deactivateDid(target, nil, storePassword)
@@ -998,6 +1157,7 @@ public class DIDStore: NSObject {
     ///   - target: Get the payload by did.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(deactivateDid:storePassword:error:)
     public func deactivateDid(for target: String,
                      using storePassword: String) throws {
 
@@ -1014,6 +1174,18 @@ public class DIDStore: NSObject {
                 resolver.reject(error)
             }
         }
+    }
+
+    private func deactivateDidAsync_oc(_ target: DID,
+                                    _ signKey: DIDURL?,
+                                    _ storePassword: String) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            do {
+                resolver(try self.deactivateDid(target, signKey, storePassword))
+            } catch let error  {
+                resolver(error)
+            }
+        })
     }
 
     /// Deactivate DID asynchronously.
@@ -1037,6 +1209,21 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
+//    oc
+    public func deactivateDidAsync(for target: DID,
+                                using signKey: DIDURL,
+                                storePassword: String) throws -> AnyPromise {
+
+        return deactivateDidAsync_oc(target, signKey, storePassword)
+    }
+
+    /// Deactivate DID asynchronously.
+    /// - Parameters:
+    ///   - target: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
     public func deactivateDidAsync(for target: String,
                                 using signKey: String,
                                 storePassword: String) throws -> Promise<Void> {
@@ -1044,6 +1231,23 @@ public class DIDStore: NSObject {
         let _key = try DIDURL(_did, signKey)
 
         return deactivateDidAsync(_did, _key, storePassword)
+    }
+
+    /// Deactivate DID asynchronously.
+    /// - Parameters:
+    ///   - target: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//    oc
+    @objc public func deactivateDidAsync(for target: String,
+                                using signKey: String,
+                                storePassword: String) throws -> AnyPromise {
+        let _did = try DID(target)
+        let _key = try DIDURL(_did, signKey)
+
+        return deactivateDidAsync_oc(_did, _key, storePassword)
     }
 
     /// Deactivate DID asynchronously.
@@ -1064,10 +1268,37 @@ public class DIDStore: NSObject {
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
+//    oc
+    @objc public func deactivateDidAsync(for target: DID,
+                          using storePassword: String) throws -> AnyPromise {
+
+        return deactivateDidAsync_oc(target, nil, storePassword)
+    }
+
+    /// Deactivate DID asynchronously.
+    /// - Parameters:
+    ///   - target: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
     public func deactivateDidAsync(for target: String,
                           using storePassword: String) throws -> Promise<Void> {
 
         return deactivateDidAsync(try DID(target), nil, storePassword)
+    }
+
+    /// Deactivate DID asynchronously.
+    /// - Parameters:
+    ///   - target: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//    oc
+    @objc(deactivateDidAsync:storePassword:error:)
+    public func deactivateDidAsync(for target: String,
+                          using storePassword: String) throws -> AnyPromise {
+
+        return deactivateDidAsync_oc(try DID(target), nil, storePassword)
     }
 
     // Deactivate target DID with authorization
@@ -1147,7 +1378,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func deactivateDid(for target: DID,
+    @objc public func deactivateDid(for target: DID,
                     withAuthroizationDid: DID,
                            using signKey: DIDURL,
                            storePassword: String) throws {
@@ -1162,6 +1393,7 @@ public class DIDStore: NSObject {
     ///   - signKey: The public key is used to sign.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(deactivateDid:withAuthroizationDid:signKey:storePassword:error:)
     public func deactivateDid(for target: String,
                     withAuthroizationDid: String,
                            using signKey: String,
@@ -1179,7 +1411,7 @@ public class DIDStore: NSObject {
     ///   - withAuthroizationDid: The authorization key id in the target doc.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func deactivateDid(for target: DID,
+    @objc public func deactivateDid(for target: DID,
                     withAuthroizationDid: DID,
                            storePassword: String) throws {
 
@@ -1192,6 +1424,7 @@ public class DIDStore: NSObject {
     ///   - withAuthroizationDid: The authorization key id in the target doc.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(deactivateDid:withAuthroizationDid:storePassword:error:)
     public func deactivateDid(for target: String,
                     withAuthroizationDid: String,
                            storePassword: String) throws {
@@ -1212,6 +1445,19 @@ public class DIDStore: NSObject {
         }
     }
 
+    private func deactivateDidAsync_oc(_ target: DID,
+                                    _ did: DID,
+                                    _ signKey: DIDURL?,
+                                    _ storePassword: String) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            do {
+                resolver(try self.deactivateDid(target, did, signKey, storePassword))
+            } catch let error  {
+                resolver(error)
+            }
+        })
+    }
+
     /// Deactivate target DID with authorization asynchronously.
     /// - Parameters:
     ///   - target: Get the  target doc by did.
@@ -1225,6 +1471,22 @@ public class DIDStore: NSObject {
                                 storePassword: String) -> Promise<Void> {
 
         return deactivateDidAsync(target, withAuthroizationDid, signKey, storePassword)
+    }
+
+    /// Deactivate target DID with authorization asynchronously.
+    /// - Parameters:
+    ///   - target: Get the  target doc by did.
+    ///   - withAuthroizationDid: The authorization key id in the target doc.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+//    OC
+    @objc public func deactivateDidAsync(for target: DID,
+                         withAuthroizationDid: DID,
+                                using signKey: DIDURL,
+                                storePassword: String) -> AnyPromise {
+
+        return deactivateDidAsync_oc(target, withAuthroizationDid, signKey, storePassword)
     }
 
     /// Deactivate target DID with authorization asynchronously.
@@ -1250,6 +1512,26 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - target: Get the  target doc by did.
     ///   - withAuthroizationDid: The authorization key id in the target doc.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+//    oc
+    @objc public func deactivateDidAsync(for target: String,
+                         withAuthroizationDid: String,
+                                using signKey: String,
+                                storePassword: String) throws ->  AnyPromise {
+
+        let _did = try DID(withAuthroizationDid)
+        let _key = try DIDURL(_did, signKey)
+
+        return deactivateDidAsync_oc(try DID(target), _did, _key, storePassword)
+    }
+
+    /// Deactivate target DID with authorization asynchronously.
+    /// - Parameters:
+    ///   - target: Get the  target doc by did.
+    ///   - withAuthroizationDid: The authorization key id in the target doc.
     ///   - storePassword: Password for DIDStore.
     /// - Returns: Void
     public func deactivateDidAsync(for target: DID,
@@ -1257,6 +1539,19 @@ public class DIDStore: NSObject {
                                 storePassword: String) ->  Promise<Void> {
 
         return deactivateDidAsync(target, withAuthroizationDid, nil, storePassword)
+    }
+
+    /// Deactivate target DID with authorization asynchronously.
+    /// - Parameters:
+    ///   - target: Get the  target doc by did.
+    ///   - withAuthroizationDid: The authorization key id in the target doc.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+    @objc public func deactivateDidAsync(for target: DID,
+                         withAuthroizationDid: DID,
+                                storePassword: String) -> AnyPromise {
+
+        return deactivateDidAsync_oc(target, withAuthroizationDid, nil, storePassword)
     }
 
     /// Deactivate target DID with authorization asynchronously.
@@ -1273,10 +1568,24 @@ public class DIDStore: NSObject {
         return try deactivateDidAsync(DID(target), DID(withAuthroizationDid), nil, storePassword)
     }
 
+    /// Deactivate target DID with authorization asynchronously.
+    /// - Parameters:
+    ///   - target: Get the  target doc by did.
+    ///   - withAuthroizationDid: The authorization key id in the target doc.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    @objc public func deactivateDidAsync(for target: String,
+                    withAuthroizationDid: String,
+                           storePassword: String) throws ->  AnyPromise {
+
+        return try deactivateDidAsync_oc(DID(target), DID(withAuthroizationDid), nil, storePassword)
+    }
+
     /// Store DID Document in DID Store.
     /// - Parameter doc: The handle to DID Document.
     /// - Throws: If error occurs, throw error.
-    public func storeDid(using doc: DIDDocument) throws {
+    @objc public func storeDid(using doc: DIDDocument) throws {
         try storage.storeDid(doc)
 
         let metadata = try loadDidMetadata(doc.subject)
@@ -1336,7 +1645,7 @@ public class DIDStore: NSObject {
     /// - Parameter did: The handle to DID.
     /// - Throws: If error occurs, throw error.
     /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
-    public func loadDid(_ did: DID) throws -> DIDDocument? {
+     public func loadDid(_ did: DID) throws -> DIDDocument? {
         var doc: DIDDocument?
         if documentCache != nil {
             doc = documentCache!.getValue(for: did)
@@ -1364,14 +1673,41 @@ public class DIDStore: NSObject {
     /// - Parameter did: The handle to DID.
     /// - Throws: If error occurs, throw error.
     /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
+    @objc public func loadDid(_ did: DID, error: NSErrorPointer) -> DIDDocument? {
+        do {
+            return try loadDid(did)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
+    }
+
+    /// Load DID Document from DID Store.
+    /// - Parameter did: The handle to DID.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
     public func loadDid(_ did: String) throws -> DIDDocument? {
         return try loadDid(DID(did))
+    }
+
+    /// Load DID Document from DID Store.
+    /// - Parameter did: The handle to DID.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
+    @objc(loadDidWithString:error:)
+    public func loadDid(_ did: String, error: NSErrorPointer) -> DIDDocument? {
+        do {
+            return try loadDid(DID(did))
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
     }
     
     /// Check if contain specific DID or not.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
-    public func containsDid(_ did: DID) -> Bool {
+    @objc public func containsDid(_ did: DID) -> Bool {
         return storage.containsDid(did)
     }
 
@@ -1383,10 +1719,23 @@ public class DIDStore: NSObject {
         return containsDid(try DID(did))
     }
 
+    /// Check if contain specific DID or not.
+    /// - Parameter did: The handle to DID.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: true on success, false if an error occurred.
+    @objc public func containsDid(_ did: String, error: NSErrorPointer) -> Bool {
+        do {
+            return containsDid(try DID(did))
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return false
+        }
+    }
+
     /// Delete specific DID.
     /// - Parameter did: The identifier of DID.
     /// - Returns: true on success, false if an error occurred.
-    public func deleteDid(_ did: DID) -> Bool {
+    @objc public func deleteDid(_ did: DID) -> Bool {
         documentCache?.removeValue(for: did)
         return storage.deleteDid(did)
     }
@@ -1399,11 +1748,24 @@ public class DIDStore: NSObject {
         return try deleteDid(DID(did))
     }
 
+    /// Delete specific DID.
+    /// - Parameter did: The identifier of DID.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: true on success, false if an error occurred.
+    @objc public func deleteDid(_ did: String, error: NSErrorPointer) -> Bool {
+        do {
+            return try deleteDid(DID(did))
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return false
+        }
+    }
+
     /// List DIDs in DID Store.
     /// - Parameter filter: DID filer. 0: all did; 1: did has privatekeys; 2: did has no privatekeys.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Array of DID.
-    public func listDids(using filter: Int) throws -> Array<DID> {
+    @objc public func listDids(using filter: Int) throws -> Array<DID> {
         let dids = try storage.listDids(filter)
 
         try dids.forEach { did in
@@ -1418,7 +1780,7 @@ public class DIDStore: NSObject {
     /// Store Credential in DID Store.
     /// - Parameter credential: The handle to Credential.
     /// - Throws: If error occurs, throw error.
-    public func storeCredential(using credential: VerifiableCredential) throws {
+    @objc public func storeCredential(using credential: VerifiableCredential) throws {
         try storage.storeCredential(credential)
 
         let metadata = try loadCredentialMetadata(credential.subject.did, credential.getId())
@@ -1493,6 +1855,21 @@ public class DIDStore: NSObject {
 
         return vc
     }
+
+    /// Load Credential from DID Store.
+    /// - Parameters:
+    ///   - did: The handle to DID.
+    ///   - byId: The identifier of credential.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: If no error occurs, return the handle to Credential. Otherwise, return nil.
+    @objc public func loadCredential(for did: DID, byId: DIDURL, error: NSErrorPointer) -> VerifiableCredential? {
+        do {
+            return try loadCredential(for: did, byId: byId)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
+    }
     
     /// Load Credential from DID Store.
     /// - Parameters:
@@ -1505,17 +1882,34 @@ public class DIDStore: NSObject {
         let _key = try DIDURL(_did, byId)
         return try loadCredential(for: _did, byId: _key)
     }
+
+    /// Load Credential from DID Store.
+    /// - Parameters:
+    ///   - did: The handle to DID.
+    ///   - byId: The identifier of credential.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: If no error occurs, return the handle to Credential. Otherwise, return nil.
+    @objc(loadCredential:byId:error:)
+    public func loadCredential(for did: String, byId: String, error: NSErrorPointer) -> VerifiableCredential? {
+        do {
+            return try loadCredential(for: did, byId: byId)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return nil
+        }
+    }
     
     /// Check if contain any credential of specific DID.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
-    public func containsCredentials(_ did:DID) -> Bool {
+    @objc public func containsCredentials(_ did:DID) -> Bool {
         return storage.containsCredentials(did)
     }
     
     /// Check if contain any credential of specific DID.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
+    @objc(containsCredentialsWithDid:)
     public func containsCredentials(_ did: String) -> Bool {
         do {
             return containsCredentials(try DID(did))
@@ -1530,7 +1924,7 @@ public class DIDStore: NSObject {
     ///   - id: The identifier of credential.
     /// - Throws: If error occurs, throw error.
     /// - Returns: true on success, false if an error occurred.
-    public func containsCredential(_ did: DID, _ id: DIDURL) throws -> Bool {
+    @objc public func containsCredential(_ did: DID, _ id: DIDURL) -> Bool {
         return storage.containsCredential(did, id)
     }
     
@@ -1542,7 +1936,22 @@ public class DIDStore: NSObject {
     /// - Returns: true on success, false if an error occurred.
     public func containsCredential(_ did: String, _ id: String) throws -> Bool {
         let _did: DID = try DID(did)
-        return try containsCredential(_did, DIDURL(_did, id))
+        return containsCredential(_did, try DIDURL(_did, id))
+    }
+
+    /// Check if contain any credential of specific DID.
+    /// - Parameters:
+    ///   - did: The handle to DID.
+    ///   - id: The identifier of credential.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: true on success, false if an error occurred.
+    @objc public func containsCredential(_ did: String, _ id: String, error: NSErrorPointer) -> Bool {
+        do {
+            return try containsCredential(did, id)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return false
+        }
     }
     
     /// Delete specific credential.
@@ -1550,7 +1959,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of credential.
     /// - Returns: true on success, false if an error occurred.
-    public func deleteCredential(for did: DID, id: DIDURL) -> Bool{
+    @objc public func deleteCredential(for did: DID, id: DIDURL) -> Bool{
         credentialCache?.removeValue(for: id)
         return storage.deleteCredential(did, id)
     }
@@ -1560,6 +1969,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of credential.
     /// - Returns: true on success, false if an error occurred.
+    @objc(deleteCredential:id:)
     public func deleteCredential(for did: String, id: String) -> Bool{
         do {
             let _did = try DID(did)
@@ -1574,7 +1984,7 @@ public class DIDStore: NSObject {
     /// - Parameter did: The handle to DID.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Array of DIDURL.
-    public func listCredentials(for did: DID) throws -> Array<DIDURL> {
+    @objc public func listCredentials(for did: DID) throws -> Array<DIDURL> {
         let ids = try storage.listCredentials(did)
         for id in ids {
             let metadata = try loadCredentialMetadata(did, id)
@@ -1588,6 +1998,7 @@ public class DIDStore: NSObject {
     /// - Parameter did: The handle to DID.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Array of DIDURL.
+    @objc(listCredentials:error:)
     public func listCredentials(for did: String) throws -> Array<DIDURL> {
         return try listCredentials(for: DID(did))
     }
@@ -1599,7 +2010,7 @@ public class DIDStore: NSObject {
     ///   - type: The type of Credential to be selected.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Array of DIDURL.
-    public func selectCredentials(for did: DID,
+    @objc public func selectCredentials(for did: DID,
                                   byId id: DIDURL?,
                              andType type: Array<String>?) throws -> Array<DIDURL> {
         return try storage.selectCredentials(did, id, type)
@@ -1612,6 +2023,7 @@ public class DIDStore: NSObject {
     ///   - type: The type of Credential to be selected.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Array of DIDURL.
+    @objc(selectCredentials:id:type:error:)
     public func selectCredentials(for did: String,
                                   byId id: String?,
                              andType type: Array<String>?) throws -> Array<DIDURL> {
@@ -1628,7 +2040,7 @@ public class DIDStore: NSObject {
     ///   - privateKey: Private key string.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    public func storePrivateKey(for did: DID,
+    @objc public func storePrivateKey(for did: DID,
                                      id: DIDURL,
                              privateKey: Data,
                     using storePassword: String) throws {
@@ -1648,6 +2060,7 @@ public class DIDStore: NSObject {
     ///   - privateKey: Private key string.
     ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
+    @objc(storePrivateKey:id:privateKey:storePassword:error:)
     public func storePrivateKey(for did: String,
                                      id: String,
                              privateKey: Data,
@@ -1695,13 +2108,14 @@ public class DIDStore: NSObject {
     /// Check if contain any private key of specific DID.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
-    public func containsPrivateKeys(for did: DID) -> Bool {
+    @objc public func containsPrivateKeys(for did: DID) -> Bool {
         return storage.containsPrivateKeys(did)
     }
     
     /// Check if contain any private key of specific DID.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
+    @objc(containsPrivateKeys:)
     public func containsPrivateKeys(for did: String) -> Bool {
         do {
             return containsPrivateKeys(for: try DID(did))
@@ -1715,7 +2129,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of public key.
     /// - Returns: true on success, false if an error occurred.
-    public func containsPrivateKey(for did: DID, id: DIDURL) -> Bool {
+    @objc public func containsPrivateKey(for did: DID, id: DIDURL) -> Bool {
         return storage.containsPrivateKey(did, id)
     }
     
@@ -1724,6 +2138,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of public key.
     /// - Returns: true on success, false if an error occurred.
+    @objc(containsPrivateKey:id:)
     public func containsPrivateKey(for did: String, id: String) -> Bool {
         do {
             let _did = try DID(did)
@@ -1739,7 +2154,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of public key.
     /// - Returns: true on success, false if an error occurred.
-    public func deletePrivateKey(for did: DID, id: DIDURL) -> Bool {
+    @objc public func deletePrivateKey(for did: DID, id: DIDURL) -> Bool {
         return storage.deletePrivateKey(did, id)
     }
     
@@ -1748,6 +2163,7 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The identifier of public key.
     /// - Returns: true on success, false if an error occurred.
+    @objc(deletePrivateKey:id:)
     public func deletePrivateKey(for did: String, id: String) -> Bool {
         do {
             let _did = try DID(did)
@@ -1796,7 +2212,7 @@ public class DIDStore: NSObject {
         return try sign(did, nil, storePassword, digest, capacity)
     }
 
-    public func changePassword(_ oldPassword: String, _ newPassword: String) throws {
+    @objc public func changePassword(_ oldPassword: String, _ newPassword: String) throws {
         let re: (String) throws -> String = { (data: String) -> String in
             let udata = try DIDStore.decryptFromBase64(data, oldPassword)
             let result = try DIDStore.encryptToBase64(udata, newPassword)
@@ -1963,7 +2379,7 @@ public class DIDStore: NSObject {
     ///   - password: Password for export.
     ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
-    public func exportDid(_ did: DID,
+    @objc public func exportDid(_ did: DID,
                       to output: OutputStream,
                  using password: String,
                   storePassword: String) throws {
@@ -1982,6 +2398,7 @@ public class DIDStore: NSObject {
     ///   - password: Password for export.
     ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
+    @objc(exportDid:output:password:storePassword:error:)
     public func exportDid(_ did: String,
                       to output: OutputStream,
                  using password: String,
@@ -1996,6 +2413,7 @@ public class DIDStore: NSObject {
     ///   - password: Password for export.
     ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
+    @objc(exportDid:fileHandle:password:storePassword:error:)
     public func exportDid(_ did: DID,
                   to fileHandle: FileHandle,
                  using password: String,
@@ -2013,6 +2431,7 @@ public class DIDStore: NSObject {
     ///   - password: Password for export.
     ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
+    @objc(exportDidWithDid:fileHandle:password:storePassword:error:)
     public func exportDid(_ did: String,
                   to fileHandle: FileHandle,
                  using password: String,
@@ -2217,7 +2636,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    public func importDid(from data: Data,
+    @objc public func importDid(from data: Data,
                      using password: String,
                       storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
@@ -2234,6 +2653,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(importDid:password:storePassword:error:)
     public func importDid(from input: InputStream,
                       using password: String,
                        storePassword: String) throws {
@@ -2247,6 +2667,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(importDidFrom:password:storePassword:error:)
     public func importDid(from handle: FileHandle,
                        using password: String,
                         storePassword: String) throws {
@@ -2324,7 +2745,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    public func exportPrivateIdentity(to output: OutputStream,
+    @objc public func exportPrivateIdentity(to output: OutputStream,
                                      _ password: String,
                                 _ storePassword: String) throws {
         let generator = JsonGenerator()
@@ -2341,6 +2762,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(exportPrivateIdentity:password:storePassword:error:)
     public func exportPrivateIdentity(to handle: FileHandle,
                                      _ password: String,
                                 _ storePassword: String) throws {
@@ -2356,7 +2778,7 @@ public class DIDStore: NSObject {
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The data of private identity content.
-    public func exportPrivateIdentity(_ password: String,
+    @objc public func exportPrivateIdentity(_ password: String,
                                  _ storePassword: String) throws -> Data {
         let generator = JsonGenerator()
         try exportPrivateIdentity(generator, password, storePassword)
@@ -2456,7 +2878,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    public func importPrivateIdentity(from data: Data,
+    @objc public func importPrivateIdentity(from data: Data,
                                  using password: String,
                                   storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
@@ -2473,6 +2895,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(importPrivateIdentity:password:storePassword:error:)
     public func importPrivateIdentity(from input: InputStream,
                                   using password: String,
                                    storePassword: String) throws {
@@ -2486,6 +2909,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(importPrivateIdentityFrom:password:storePassword:error:)
     public func importPrivateIdentity(from handle: FileHandle,
                                    using password: String,
                                     storePassword: String) throws {
@@ -2499,7 +2923,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    public func exportStore(to output: OutputStream,
+    @objc public func exportStore(to output: OutputStream,
                            _ password: String,
                       _ storePassword: String) throws {
         var exportStr = ""
@@ -2526,6 +2950,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(exportStore:password:storePassword:error:)
     public func exportStore(to handle: FileHandle,
                            _ password: String,
                       _ storePassword: String) throws {
@@ -2551,7 +2976,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    public func importStore(from input: InputStream,
+    @objc public func importStore(from input: InputStream,
                             _ password: String,
                        _ storePassword: String) throws {
         let data = try readData(input: input)
@@ -2583,6 +3008,7 @@ public class DIDStore: NSObject {
     ///   - password: The password of export.
     ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
+    @objc(importStore:password:storePassword:error:)
     public func importStore(from handle: FileHandle,
                              _ password: String,
                         _ storePassword: String) throws {

@@ -22,7 +22,8 @@
 
 import Foundation
 
-public class VerifiableCredentialProof {
+@objc(VerifiableCredentialProof)
+public class VerifiableCredentialProof: NSObject {
     private var _type: String
     private var _verificationMethod: DIDURL
     private var _signature: String
@@ -34,17 +35,17 @@ public class VerifiableCredentialProof {
     }
 
     /// The cryptographic signature suite that was used to generate the signature
-    public var type: String {
+    @objc public var type: String {
         return _type
     }
 
     /// The public key identifier that created the signature
-    public var verificationMethod: DIDURL {
+    @objc public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
     /// The signed value, using Base64 encoding
-    public var signature: String {
+    @objc public var signature: String {
         return _signature
     }
     
