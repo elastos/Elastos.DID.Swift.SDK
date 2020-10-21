@@ -243,11 +243,10 @@ extension DID {
 }
 
 extension DID {
-    @objc public func equalsTo(_ other: DID) -> Bool {
+    public func equalsTo(_ other: DID) -> Bool {
         return methodSpecificId == other.methodSpecificId
     }
 
-    @objc(equalsToOther:)
     public func equalsTo(_ other: String) -> Bool {
         return toString() == other
     }
@@ -259,6 +258,15 @@ extension DID {
     public static func != (lhs: DID, rhs: DID) -> Bool {
         return !lhs.equalsTo(rhs)
     }
+
+   @objc public override func isEqual(_ object: Any?) -> Bool {
+        if object is DID {
+            return equalsTo(object as! DID)
+        }
+        else {
+            return equalsTo(object as! String)
+        }
+    }
 }
 
 extension DID {
@@ -266,6 +274,9 @@ extension DID {
 //    public func hash(into hasher: inout Hasher) {
 //        hasher.combine(self.toString())
 //    }
+    @objc public override var hash: Int {
+        return self.toString().hash
+    }
 }
 
 // Parse Listener
