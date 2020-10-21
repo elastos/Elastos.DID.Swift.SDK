@@ -251,11 +251,10 @@ extension DIDURL {
 }
 
 extension DIDURL {
-    @objc public func equalsTo(_ other: DIDURL) -> Bool {
+    public func equalsTo(_ other: DIDURL) -> Bool {
         return toString() == other.toString()
     }
 
-    @objc(equalsToOther:)
     public func equalsTo(_ other: String) -> Bool {
         return toString() == other
     }
@@ -267,15 +266,27 @@ extension DIDURL {
     public static func != (lhs: DIDURL, rhs: DIDURL) -> Bool {
         return !lhs.equalsTo(rhs)
     }
+
+    public override func isEqual(_ object: Any?) -> Bool {
+        if object is DIDURL {
+            return equalsTo(object as! DIDURL)
+        }
+        else {
+            return equalsTo(object as! String)
+        }
+    }
 }
 
 // DIDURL used as hash key.
 // TODO:
-//extension DIDURL: Hashable {
+extension DIDURL {
 //    public func hash(into hasher: inout Hasher) {
 //        hasher.combine(self.toString())
 //    }
-//}
+    public override var hash: Int {
+        return self.toString().hash
+    }
+}
 
 // Parse Listener
 extension DIDURL {
