@@ -35,17 +35,20 @@ public class VerifiableCredentialProof: NSObject {
     }
 
     /// The cryptographic signature suite that was used to generate the signature
-    @objc public var type: String {
+    @objc
+    public var type: String {
         return _type
     }
 
     /// The public key identifier that created the signature
-    @objc public var verificationMethod: DIDURL {
+    @objc
+    public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
     /// The signed value, using Base64 encoding
-    @objc public var signature: String {
+    @objc
+    public var signature: String {
         return _signature
     }
     

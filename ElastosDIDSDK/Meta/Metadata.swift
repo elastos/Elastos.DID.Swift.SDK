@@ -37,30 +37,35 @@ public class Metadata: NSObject {
     }
 
     /// Get store.
-    @objc public var store: DIDStore? {
+    @objc
+    public var store: DIDStore? {
         return self._store
     }
 
     /// Check is attached store or not.
-    @objc public var attachedStore: Bool {
+    @objc
+    public var attachedStore: Bool {
         return self._store != nil
     }
 
     /// Set store for did.
     /// - Parameter store: The handle of DIDStore.
-    @objc public func setStore(_ store: DIDStore) {
+    @objc
+    public func setStore(_ store: DIDStore) {
         self._store = store
     }
 
     /// Set last modify for metadata.
     /// - Parameter timestamp: The time of metadata modified.
-    @objc public func setLastModified(_ timestamp: Date) {
+    @objc
+    public func setLastModified(_ timestamp: Date) {
         put(key: Metadata.LAST_MODIFIED, value: DateFormatter.convertToUTCStringFromDate(timestamp))
     }
 
     /// Get last modify for metadata.
     /// - Returns: The time of metadata modified.
-    @objc public func getLastModified() -> Date? {
+    @objc
+    public func getLastModified() -> Date? {
         if let date = get(key: Metadata.LAST_MODIFIED) as? String {
             let time = DateFormatter.convertToUTCDateFromString(date)
             return time
@@ -70,7 +75,8 @@ public class Metadata: NSObject {
     }
 
     /// Clear last modified for metadata.
-    @objc public func clearLastModified() {
+    @objc
+    public func clearLastModified() {
         _extra.removeValue(forKey: Metadata.LAST_MODIFIED)
     }
 
@@ -78,21 +84,24 @@ public class Metadata: NSObject {
     /// - Parameters:
     ///   - key: The key string.
     ///   - value: The value string.
-    @objc public func setExtra(_ key: String, _ value: String?) {
+    @objc
+    public func setExtra(_ key: String, _ value: String?) {
         self._extra[key] = value
     }
 
     /// Get ‘string’ extra elem from DID.
     /// - Parameter key: The key string.
     /// - Returns: The elem string
-    @objc public func getExtra(_ key: String) -> String? {
+    @objc
+    public func getExtra(_ key: String) -> String? {
         return self._extra[key] as? String
     }
 
     /// Merge meta.
     /// - Parameter meta: The metadata foe merge.
     /// - Throws: If error occurs, throw error.
-    @objc public func merge(_ meta: Metadata) throws {
+    @objc
+    public func merge(_ meta: Metadata) throws {
         meta._extra.forEach{ (key, value) in
             if _extra.keys.contains(key) {
                 if _extra[key] == nil {
@@ -111,7 +120,8 @@ public class Metadata: NSObject {
     /// Load metadata.
     /// - Parameter reader: The FileHandle of metadata data.
     /// - Throws: If error occurs, throw error.
-    @objc public func load(reader: FileHandle) throws {
+    @objc
+    public func load(reader: FileHandle) throws {
         let data = reader.readDataToEndOfFile()
         defer {
             reader.closeFile()
@@ -131,7 +141,8 @@ public class Metadata: NSObject {
     /// Load metadata.
     /// - Parameter node: The JsonNode of metadata data.
     /// - Throws: If error occurs, throw error.
-    @objc public func load(_ node: JsonNode) throws {
+    @objc
+    public func load(_ node: JsonNode) throws {
         let dic = node.asDictionary()
         try dic?.forEach{ (key, value) in
             switch value.getNodeType() {
@@ -157,14 +168,16 @@ public class Metadata: NSObject {
     /// - Parameters:
     ///   - key: The key string.
     ///   - value: The value string.
-    @objc public func put(key: String, value: Any) {
+    @objc
+    public func put(key: String, value: Any) {
         _extra[key] = value
     }
 
     /// Get metadata value by key.
     /// - Parameter key: The key string.
     /// - Returns: If error occurs, throw error.
-    @objc public func get(key: String) -> Any {
+    @objc
+    public func get(key: String) -> Any {
         return _extra[key] as Any
     }
 
@@ -194,7 +207,8 @@ public class Metadata: NSObject {
     /// Save metada.
     /// - Parameter path: The path to save metada.
     /// - Throws: If error occurs, throw error.
-    @objc public func save(path: FileHandle) throws {
+    @objc
+    public func save(path: FileHandle) throws {
         defer {
             path.closeFile()
         }
@@ -207,7 +221,8 @@ public class Metadata: NSObject {
     /// Get string of metadata.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Metadata string.
-    @objc public func toJson() throws -> String {
+    @objc
+    public func toJson() throws -> String {
         let generator = JsonGenerator()
         try save(generator)
 
@@ -216,7 +231,8 @@ public class Metadata: NSObject {
 
     /// Check metadata is empty or not.
     /// - Returns: true if metadata is empty, otherwise false.
-    @objc public func isEmpty() -> Bool {
+    @objc
+    public func isEmpty() -> Bool {
         return _extra.isEmpty
     }
 }
@@ -226,7 +242,8 @@ extension Metadata {
     /// Get string of metadata.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Metadata string.
-    @objc public func toString() throws -> String {
+    @objc
+    public func toString() throws -> String {
         return try toJson()
     }
 }

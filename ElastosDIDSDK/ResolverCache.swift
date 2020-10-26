@@ -33,7 +33,8 @@ public class ResolverCache: NSObject {
     /// Set cache path.
     /// - Parameter rootPath: The path for cache.
     /// - Throws: if an error occurred, throw error.
-    @objc public class func setCacheDir(_ rootPath: String) throws {
+    @objc
+    public class func setCacheDir(_ rootPath: String) throws {
         ResolverCache.rootDir = rootPath
         if try !exists_dir(rootPath) {
             let fileManager = FileManager.default
@@ -64,7 +65,8 @@ public class ResolverCache: NSObject {
 
     /// Clear cachei.
     /// - Throws: if an error occurred, throw error.
-    @objc public class func reset() throws {
+    @objc
+    public class func reset() throws {
         cache.clear()
         deleteFile(try getCacheDir())
     }
@@ -72,7 +74,8 @@ public class ResolverCache: NSObject {
     /// Store resolve result in DID Store.
     /// - Parameter rr: The handle of ResolveResult.
     /// - Throws: if an error occurred, throw error.
-    @objc public class func store(_ rr: ResolveResult) throws {
+    @objc
+    public class func store(_ rr: ResolveResult) throws {
         let id = rr.did.methodSpecificId
         let path = try getFile(id)
         let json: String = rr.toJson()
@@ -124,7 +127,8 @@ public class ResolverCache: NSObject {
     ///   - ttl: The timestamp of load resolve result.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: If no error occurs, return the handle to ResolveResult. Otherwise, return nil.
-    @objc public class func load(_ did: DID, _ ttl: Int, error: NSErrorPointer) -> ResolveResult? {
+    @objc
+    public class func load(_ did: DID, _ ttl: Int, error: NSErrorPointer) -> ResolveResult? {
         do {
             return try load(did, ttl)
         } catch let aError as NSError {
@@ -182,7 +186,8 @@ public class ResolverCache: NSObject {
     /// Invali date.
     /// - Parameter did: The identify of resolve result.
     /// - Throws: if an error occurred, throw error.
-    @objc public class func invalidate(_ did: DID) throws {
+    @objc
+    public class func invalidate(_ did: DID) throws {
         let filePath = try getFile(did.methodSpecificId)
         deleteFile(filePath)
         cache.removeValue(for: did)

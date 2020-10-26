@@ -35,25 +35,29 @@ public class ResolveResult: NSObject, DIDHistory{
 
     /// Get did.
     /// - Returns: The handle of did.
-    @objc public func getDid() -> DID {
+    @objc
+    public func getDid() -> DID {
         return _did
     }
 
     /// Get resolve result status.
     /// - Returns: The handle of resolve result status.
-    @objc public func getsStatus() -> ResolveResultStatus {
+    @objc
+    public func getsStatus() -> ResolveResultStatus {
         return _status
     }
 
     /// Get all DIDTransaction.
     /// - Returns: Array of DIDTransaction.
-    @objc public func getAllTransactions() -> [DIDTransaction] {
+    @objc
+    public func getAllTransactions() -> [DIDTransaction] {
         return _idtransactionInfos
     }
 
     /// The count of transaction.
     /// - Returns: Transaction count.
-    @objc public func getTransactionCount() -> Int {
+    @objc
+    public func getTransactionCount() -> Int {
         return _idtransactionInfos.count
     }
 
@@ -162,7 +166,8 @@ public class ResolveResult: NSObject, DIDHistory{
 }
 
 extension ResolveResult {
-    @objc public override var description: String {
+    @objc
+    public override var description: String {
         return toJson()
     }
 }

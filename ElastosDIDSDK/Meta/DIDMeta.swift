@@ -37,57 +37,67 @@ public class DIDMeta: Metadata {
     private let ALIAS = RESERVED_PREFIX + "alias"
     private let DEACTIVATED = RESERVED_PREFIX + "deactivated"
 
-    @objc public required init() {
+    @objc
+    public required init() {
         super.init()
     }
 
     /// The name of alias.
-    @objc public var aliasName: String? {
+    @objc
+    public var aliasName: String? {
         return self.get(key: ALIAS) as? String
     }
 
     /// Set alias for did.
     /// - Parameter alias: The ailas string.
-    @objc public func setAlias(_ alias: String?) {
+    @objc
+    public func setAlias(_ alias: String?) {
         put(key: ALIAS, value: alias as Any)
     }
 
     /// Get transactionId.
-    @objc public var transactionId: String? {
+    @objc
+    public var transactionId: String? {
         return self.get(key: TXID) as? String
     }
 
     /// Set transactionId.
     /// - Parameter newValue: The transactionId string.
-    @objc public func setTransactionId(_ newValue: String?) {
+    @objc
+    public func setTransactionId(_ newValue: String?) {
         put(key: TXID, value: newValue as Any)
     }
 
     /// Get the time of previous signature for did.
-    @objc public var previousSignature: String? {
+    @objc
+    public var previousSignature: String? {
        return self.get(key: PREV_SIGNATURE) as? String
     }
 
     /// Set the time of previous signature for did.
     /// - Parameter newValue: The time of previous signature.
-    @objc public func setPreviousSignature(_ newValue: String?) {
+    @objc
+    public func setPreviousSignature(_ newValue: String?) {
          put(key: PREV_SIGNATURE, value: newValue as Any)
     }
 
     /// Get signature.
-    @objc public var signature: String? {
+    @objc
+    public var signature: String? {
         return self.get(key: SIGNATURE) as? String
     }
 
     /// Set signature.
     /// - Parameter newValue: The signature string.
-    @objc public func setSignature(_ newValue: String?) {
+    @objc
+    public func setSignature(_ newValue: String?) {
         put(key: SIGNATURE, value: newValue as Any)
     }
 
     /// Get the time of transaction id for did.
     /// - Returns: The time of transaction.
-    @objc public func getPublished() -> Date? {
+    @objc
+    public func getPublished() -> Date? {
         if let time = self.get(key: PUBLISHED) as? String {
            return DateFormatter.convertToUTCDateFromString(time)
         }
@@ -97,13 +107,15 @@ public class DIDMeta: Metadata {
 
     /// Set the time of transaction id for did.
     /// - Parameter timestamp: The time of transaction.
-    @objc public func setPublished(_ timestamp: Date) {
+    @objc
+    public func setPublished(_ timestamp: Date) {
         let timestampDate = DateFormatter.convertToUTCStringFromDate(timestamp)
         put(key: PUBLISHED, value: timestampDate as Any)
     }
 
     /// Get did status, deactived or not.
-    @objc public var isDeactivated: Bool {
+    @objc
+    public var isDeactivated: Bool {
         let v =  self.get(key: DEACTIVATED)
         if case Optional<Any>.none = v {
             return false
@@ -115,7 +127,8 @@ public class DIDMeta: Metadata {
 
     /// Set  did status, deactived or not.
     /// - Parameter newValue: Did status.
-    @objc public func setDeactivated(_ newValue: Bool) {
+    @objc
+    public func setDeactivated(_ newValue: Bool) {
         put(key: DEACTIVATED, value: newValue as Any)
     }
 }
