@@ -43,7 +43,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter id: An identifier of credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func withId(_ id: DIDURL) throws -> VerifiableCredentialBuilder {
+    @objc
+    public func withId(_ id: DIDURL) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -84,7 +85,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter types: the credential types, which declare what data to expect in the credential
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
+    @objc
+    public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
          guard let _ = credential else {
              throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
          }
@@ -99,7 +101,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// Set credential default expiration date
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func withDefaultExpirationDate() throws -> VerifiableCredentialBuilder {
+    @objc
+    public func withDefaultExpirationDate() throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -112,7 +115,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter expirationDate: when the credential will expire
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
+    @objc
+    public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -130,7 +134,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter properites: Credential dictionary data.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
+    @objc
+    public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
@@ -195,7 +200,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiableCredential.
-    @objc public func sealed(using storePassword: String) throws -> VerifiableCredential {
+    @objc
+    public func sealed(using storePassword: String) throws -> VerifiableCredential {
         guard let _ = credential else {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }

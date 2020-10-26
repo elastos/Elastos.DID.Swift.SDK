@@ -33,7 +33,8 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
     ///   - transactionId: The transaction id string.
     ///   - timestamp: The time stamp
     ///   - request: The IDChainRequest content.
-    @objc public init(_ transactionId: String, _ timestamp: Date, _ request: IDChainRequest) {
+    @objc
+    public init(_ transactionId: String, _ timestamp: Date, _ request: IDChainRequest) {
         self._transactionId = transactionId;
         self._timestamp = timestamp;
         self._request = request;
@@ -41,59 +42,70 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
 
     /// Get did.
     /// - Returns: The handle of did.
-    @objc public func getDid() -> DID {
+    @objc
+    public func getDid() -> DID {
         return request.did!
     }
 
     /// Get transaction id.
     /// - Returns: The handle of transaction id.
-    @objc public func getTransactionId() -> String {
+    @objc
+    public func getTransactionId() -> String {
         return self.transactionId
     }
 
     /// Get time stamp.
     /// - Returns: The handle time stamp.
-    @objc public func getTimestamp() -> Date {
+    @objc
+    public func getTimestamp() -> Date {
         return self.timestamp
     }
 
     /// Get IDChain request operation.
     /// - Returns: The handle of operation.
-    @objc public func getOperation() -> IDChainRequestOperation {
+    @objc
+    public func getOperation() -> IDChainRequestOperation {
         return request.operation
     }
 
     /// Get DID Document.
     /// - Returns: The handle of DID Document.
-    @objc public func getDocument() -> DIDDocument {
+    @objc
+    public func getDocument() -> DIDDocument {
         return request.document!
     }
 
-    @objc public var transactionId: String {
+    @objc
+    public var transactionId: String {
         return self._transactionId
     }
 
-    @objc public var timestamp: Date {
+    @objc
+    public var timestamp: Date {
         return self._timestamp
     }
 
     /// The handle of did.
-    @objc public var did: DID? {
+    @objc
+    public var did: DID? {
         return self._request.did
     }
 
     /// The handle of operation.
-    @objc public var operation: IDChainRequestOperation {
+    @objc
+    public var operation: IDChainRequestOperation {
         return self._request.operation
     }
 
     /// The payload string.
-    @objc public var payload: String {
+    @objc
+    public var payload: String {
         return self._request.toJson(false)
     }
 
     /// The IDChainRequest object.
-    @objc public var request: IDChainRequest {
+    @objc
+    public var request: IDChainRequest {
         return self._request
     }
 
@@ -101,7 +113,8 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
     /// - Parameter node: the JsonNode content
     /// - Throws: DIDTransaction error.
     /// - Returns:The IDChainTransaction object.
-    @objc public class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
+    @objc
+    public class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
         let error = { (des: String) -> DIDError in
             return DIDError.didResolveError(des)
         }
@@ -130,7 +143,8 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
 
     /// Get json string with input content.
     /// - Parameter generator: the JsonGenerator handle.
-    @objc public func toJson(_ generator: JsonGenerator) {
+    @objc
+    public func toJson(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeStringField(Constants.TXID, self.transactionId)
         generator.writeStringField(Constants.TIMESTAMP, self.timestamp.description)

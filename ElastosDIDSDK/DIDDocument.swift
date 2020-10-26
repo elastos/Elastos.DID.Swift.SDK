@@ -182,7 +182,8 @@ public class DIDDocument: NSObject {
     }
 
     /// The unique identifier of the DID document
-    @objc public var subject: DID {
+    @objc
+    public var subject: DID {
         return self._subject!
     }
 
@@ -192,13 +193,15 @@ public class DIDDocument: NSObject {
 
     /// Get the count of public keys.
     /// A DID Document must include a publicKey property.
-    @objc public var publicKeyCount: Int {
+    @objc
+    public var publicKeyCount: Int {
         return self.publicKeyMap.count() { value -> Bool in return true }
     }
 
     /// Get the array of publicKeys.
     /// - Returns: The array of publicKeys
-    @objc public func publicKeys() -> Array<PublicKey> {
+    @objc
+    public func publicKeys() -> Array<PublicKey> {
         return self.publicKeyMap.values() { value -> Bool in return true }
     }
 
@@ -207,7 +210,8 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of public key to be selected.
     ///   - andType: The type of public key to be selected.
     /// - Returns: Array of public keys selected.
-    @objc public func selectPublicKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
+    @objc
+    public func selectPublicKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
         return self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
     }
 
@@ -217,7 +221,8 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of public key to be selected.
     /// - Throws: If an error occurred, throw error
     /// - Returns: Array of public keys selected.
-    @objc public func selectPublicKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
+    @objc
+    public func selectPublicKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
         return selectPublicKeys(byId: id, andType: andType)
     }
@@ -225,14 +230,16 @@ public class DIDDocument: NSObject {
     /// Get public key conforming to type or identifier.
     /// - Parameter byType: The type of public key to be selected.
     /// - Returns: Array of public keys selected.
-    @objc public func selectPublicKeys(byType: String) -> Array<PublicKey> {
+    @objc
+    public func selectPublicKeys(byType: String) -> Array<PublicKey> {
         return self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
     }
 
     /// Get public key according to identifier of public key.
     /// - Parameter ofId: An identifier of public key.
     /// - Returns: The handle to public key
-    @objc public func publicKey(ofId: DIDURL) -> PublicKey? {
+    @objc
+    public func publicKey(ofId: DIDURL) -> PublicKey? {
         return self.publicKeyMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
@@ -248,7 +255,8 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: An identifier of public key.
     /// - Throws: If an error occurred, throw error
     /// - Returns: The handle to public key
-    @objc public func publicKey(ofId: String, error: NSErrorPointer) -> PublicKey? {
+    @objc
+    public func publicKey(ofId: String, error: NSErrorPointer) -> PublicKey? {
         do {
             return publicKey(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
@@ -260,7 +268,8 @@ public class DIDDocument: NSObject {
     /// Check key if public key or not.
     /// - Parameter forId: An identifier of public key.
     /// - Returns: True if has public key, or false.
-    @objc public func containsPublicKey(forId: DIDURL) -> Bool {
+    @objc
+    public func containsPublicKey(forId: DIDURL) -> Bool {
         return publicKey(ofId: forId) != nil
     }
 
@@ -276,7 +285,8 @@ public class DIDDocument: NSObject {
     /// - Parameter forId: An identifier of public key.
     /// - Throws: If an error occurred, throw error
     /// - Returns: True if has public key, or false.
-    @objc public func containsPublicKey(forId: String, error: NSErrorPointer) -> Bool {
+    @objc
+    public func containsPublicKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
             return try publicKey(ofId: forId) != nil
         } catch let aError as NSError {
@@ -288,7 +298,8 @@ public class DIDDocument: NSObject {
     /// Check key if private key or not.
     /// - Parameter forId: An identifier of private key.
     /// - Returns: True if has public key, or false.
-    @objc public func containsPrivateKey(forId: DIDURL) -> Bool {
+    @objc
+    public func containsPrivateKey(forId: DIDURL) -> Bool {
         guard containsPublicKey(forId: forId) else {
             return false
         }
@@ -326,7 +337,8 @@ public class DIDDocument: NSObject {
     }
 
     /// Get primary public key, which is for creating method specific string.
-    @objc public var defaultPublicKey: DIDURL {
+    @objc
+    public var defaultPublicKey: DIDURL {
         return getDefaultPublicKey()!
     }
 
@@ -365,7 +377,8 @@ public class DIDDocument: NSObject {
         return path
     }
 
-    @objc public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
+    @objc
+    public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
         if identifier.isEmpty || storepass.isEmpty {
             throw DIDError.illegalArgument("param is empty.")
         }
@@ -422,7 +435,8 @@ public class DIDDocument: NSObject {
 
     // The result is extended private key format, the real private key is
     // 32 bytes long start from position 46.
-    @objc public func derive(index: Int, storePassword: String) throws -> String {
+    @objc
+    public func derive(index: Int, storePassword: String) throws -> String {
 
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument("storePassword is empty.")
@@ -438,7 +452,8 @@ public class DIDDocument: NSObject {
     /// Create a JwtBuilder instance.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func jwtBuilder() throws -> JwtBuilder {
+    @objc
+    public func jwtBuilder() throws -> JwtBuilder {
 
         let build = JwtBuilder(issuer: subject.toString(), publicKey: { (id) -> Data in
 
@@ -465,7 +480,8 @@ public class DIDDocument: NSObject {
 
     /// Create a JwtParserBuilder instance.
     /// - Returns: JwtParserBuilder instance.
-    @objc public func jwtParserBuilder() -> JwtParserBuilder {
+    @objc
+    public func jwtParserBuilder() -> JwtParserBuilder {
 
         let builder: JwtParserBuilder = JwtParserBuilder()
         builder.getPublicKey = { (id) in
@@ -494,7 +510,8 @@ public class DIDDocument: NSObject {
     /// Create a JwtParser instance.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtParser instance.
-    @objc public func build() throws -> JwtParser {
+    @objc
+    public func build() throws -> JwtParser {
         return try JwtParserBuilder().build()
     }
 
@@ -531,7 +548,8 @@ public class DIDDocument: NSObject {
     }
 
     /// Get the count of authentication keys.
-    @objc public var authenticationKeyCount: Int {
+    @objc
+    public var authenticationKeyCount: Int {
         return publicKeyMap.count() { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -539,7 +557,8 @@ public class DIDDocument: NSObject {
 
     /// Get the array of authentication keys.
     /// - Returns: The array of authentication keys.
-    @objc public func authenticationKeys() -> Array<PublicKey> {
+    @objc
+    public func authenticationKeys() -> Array<PublicKey> {
         return publicKeyMap.values() { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -550,7 +569,8 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of authentication key to be selected.
     ///   - andType: The type of authentication key to be selected.
     /// - Returns: The array of authentication keys.
-    @objc public func selectAuthenticationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
+    @objc
+    public func selectAuthenticationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
         return publicKeyMap.select(byId, andType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -562,7 +582,8 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of authentication key to be selected.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: The array of authentication keys.
-    @objc public func selectAuthenticationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
+    @objc
+    public func selectAuthenticationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
         return selectAuthenticationKeys(byId: id, andType: andType)
     }
@@ -570,7 +591,8 @@ public class DIDDocument: NSObject {
     /// Get authentication key conforming to type or identifier of key.
     /// - Parameter byType: The type of authentication key to be selected.
     /// - Returns: The array of authentication keys.
-    @objc public func selectAuthenticationKeys(byType: String) -> Array<PublicKey> {
+    @objc
+    public func selectAuthenticationKeys(byType: String) -> Array<PublicKey> {
         return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -580,7 +602,8 @@ public class DIDDocument: NSObject {
     /// A DID Document must include a authentication property.
     /// - Parameter ofId: An identifier of authentication key.
     /// - Returns: The handle to public key.
-    @objc public func authenticationKey(ofId: DIDURL) -> PublicKey? {
+    @objc
+    public func authenticationKey(ofId: DIDURL) -> PublicKey? {
         return publicKeyMap.get(forKey: ofId) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
@@ -600,7 +623,8 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: An identifier of authentication key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: The handle to public key.
-    @objc public func authenticationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
+    @objc
+    public func authenticationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
             return authenticationKey(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
@@ -621,7 +645,8 @@ public class DIDDocument: NSObject {
     /// - Parameter forId: An identifier of authentication key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: true if has authentication key, or false.
-    @objc public func containsAuthenticationKey(forId: String, error: NSErrorPointer) -> Bool {
+    @objc
+    public func containsAuthenticationKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
             return try authenticationKey(ofId: forId) != nil
         } catch let aError as NSError {
@@ -633,7 +658,8 @@ public class DIDDocument: NSObject {
     /// Check key if authentiacation key or not.
     /// - Parameter forId: An identifier of authentication key.
     /// - Returns: true if has authentication key, or false.
-    @objc public func containsAuthenticationKey(forId: DIDURL) -> Bool {
+    @objc
+    public func containsAuthenticationKey(forId: DIDURL) -> Bool {
         return authenticationKey(ofId: forId) != nil
     }
 
@@ -673,7 +699,8 @@ public class DIDDocument: NSObject {
     }
 
     /// Get the count of authorization keys.
-    @objc public var authorizationKeyCount: Int {
+    @objc
+    public var authorizationKeyCount: Int {
         return publicKeyMap.count() { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -681,7 +708,8 @@ public class DIDDocument: NSObject {
 
     /// Get the array of authorization keys.
     /// - Returns: The array of authentication keys.
-    @objc public func authorizationKeys() -> Array<PublicKey> {
+    @objc
+    public func authorizationKeys() -> Array<PublicKey> {
         return publicKeyMap.values() { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -692,7 +720,8 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of authorization key to be selected.
     ///   - andType: The type of authorization key to be selected.
     /// - Returns: Array of authorization keys selected.
-    @objc public func selectAuthorizationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
+    @objc
+    public func selectAuthorizationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
         return publicKeyMap.select(byId, andType) { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -704,7 +733,8 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of authorization key to be selected.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: Array of authorization keys selected.
-    @objc public func selectAuthorizationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
+    @objc
+    public func selectAuthorizationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
         return selectAuthorizationKeys(byId: id, andType: andType)
     }
@@ -712,7 +742,8 @@ public class DIDDocument: NSObject {
     /// Get authorization key conforming to type or identifier of key.
     /// - Parameter byType: An identifier of authorization key to be selected.
     /// - Returns: Array of authorization keys selected.
-    @objc public func selectAuthorizationKeys(byType: String) -> Array<PublicKey> {
+    @objc
+    public func selectAuthorizationKeys(byType: String) -> Array<PublicKey> {
         return publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -721,7 +752,8 @@ public class DIDDocument: NSObject {
     /// Get authorization key according to identifier of key.
     /// - Parameter ofId: An identifier of authorization key.
     /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
-    @objc public func authorizationKey(ofId: DIDURL) -> PublicKey? {
+    @objc
+    public func authorizationKey(ofId: DIDURL) -> PublicKey? {
         return publicKeyMap.get(forKey: ofId) { value -> Bool in
             return (value as PublicKey).isAthorizationKey
         }
@@ -739,7 +771,8 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
-    @objc public func authorizationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
+    @objc
+    public func authorizationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
             return authorizationKey(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
@@ -760,7 +793,8 @@ public class DIDDocument: NSObject {
     /// - Parameter forId: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: true if has authorization key, or false.
-    @objc public func containsAuthorizationKey(forId: String, error: NSErrorPointer) -> Bool {
+    @objc
+    public func containsAuthorizationKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
             return try authorizationKey(ofId: forId) != nil
         } catch let aError as NSError {
@@ -772,7 +806,8 @@ public class DIDDocument: NSObject {
     /// Check key if authorization key or not.
     /// - Parameter forId: An identifier of authorization key.
     /// - Returns: true if has authorization key, or false.
-    @objc public func containsAuthorizationKey(forId: DIDURL) -> Bool {
+    @objc
+    public func containsAuthorizationKey(forId: DIDURL) -> Bool {
         return authorizationKey(ofId: forId) != nil
     }
 
@@ -807,13 +842,15 @@ public class DIDDocument: NSObject {
     }
 
     /// Get the count of credentials.
-    @objc public var credentialCount: Int {
+    @objc
+    public var credentialCount: Int {
         return credentialMap.count() { value -> Bool in return true }
     }
 
     /// Get the array of credentials.
     /// - Returns: Array of authorization keys.
-    @objc public func credentials() -> Array<VerifiableCredential> {
+    @objc
+    public func credentials() -> Array<VerifiableCredential> {
         return credentialMap.values() { value -> Bool in return true }
     }
 
@@ -822,7 +859,8 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of credential key to be selected.
     ///   - andType: The type of credential key to be selected.
     /// - Returns: Array of credential keys selected.
-    @objc public func selectCredentials(byId: DIDURL, andType: String?) -> Array<VerifiableCredential>  {
+    @objc
+    public func selectCredentials(byId: DIDURL, andType: String?) -> Array<VerifiableCredential>  {
         return credentialMap.select(byId, andType) { value -> Bool in return true }
     }
 
@@ -832,7 +870,8 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of credential key to be selected.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: Array of credential keys selected.
-    @objc public func selectCredentials(byId: String, andType: String?) throws -> Array<VerifiableCredential>  {
+    @objc
+    public func selectCredentials(byId: String, andType: String?) throws -> Array<VerifiableCredential>  {
         let id = try DIDURL(subject, byId)
         return selectCredentials(byId: id, andType: andType)
     }
@@ -840,14 +879,16 @@ public class DIDDocument: NSObject {
     /// Get credential key conforming to type or identifier of key.
     /// - Parameter byType: The type of credential key to be selected.
     /// - Returns: Array of credential keys selected.
-    @objc public func selectCredentials(byType: String) -> Array<VerifiableCredential>  {
+    @objc
+    public func selectCredentials(byType: String) -> Array<VerifiableCredential>  {
         return credentialMap.select(nil, byType) { value -> Bool in return true }
     }
 
     /// Get credential according to identifier of credential.
     /// - Parameter ofId: An identifier of Credential.
     /// - Returns: If has the credential, return the handle to Credential. Otherwise, return nil
-    @objc public func credential(ofId: DIDURL) -> VerifiableCredential? {
+    @objc
+    public func credential(ofId: DIDURL) -> VerifiableCredential? {
         return credentialMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
@@ -863,7 +904,8 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: An identifier of Credential.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: If has the credential, return the handle to Credential. Otherwise, return nil
-    @objc public func credential(ofId: String, error: NSErrorPointer) -> VerifiableCredential? {
+    @objc
+    public func credential(ofId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
             return credential(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
@@ -896,13 +938,15 @@ public class DIDDocument: NSObject {
     }
 
     /// Get the count of service keys.
-    @objc public var serviceCount: Int {
+    @objc
+    public var serviceCount: Int {
         return serviceMap.count() { value -> Bool in return true }
     }
 
     /// Get the array of services.
     /// - Returns: Array of services keys.
-    @objc public func services() -> Array<Service> {
+    @objc
+    public func services() -> Array<Service> {
         return serviceMap.values() { value -> Bool in return true }
     }
 
@@ -911,7 +955,8 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of Service to be selected.
     ///   - andType: The type of Service.
     /// - Returns: Array of Service keys selected.
-    @objc public func selectServices(byId: DIDURL, andType: String?) -> Array<Service>  {
+    @objc
+    public func selectServices(byId: DIDURL, andType: String?) -> Array<Service>  {
         return serviceMap.select(byId, andType) { value -> Bool in return true }
     }
 
@@ -921,7 +966,8 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of Service.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: Array of Service keys selected.
-    @objc public func selectServices(byId: String, andType: String?) throws -> Array<Service>  {
+    @objc
+    public func selectServices(byId: String, andType: String?) throws -> Array<Service>  {
         let id = try DIDURL(subject, byId)
         return selectServices(byId: id, andType: andType)
     }
@@ -929,14 +975,16 @@ public class DIDDocument: NSObject {
     /// Get Service conforming to type or identifier of key.
     /// - Parameter byType: The type of Service.
     /// - Returns: Array of Service keys selected.
-    @objc public func selectServices(byType: String) -> Array<Service>  {
+    @objc
+    public func selectServices(byType: String) -> Array<Service>  {
         return serviceMap.select(nil, byType) { value -> Bool in return true }
     }
 
     /// Get service according to identifier of credential.
     /// - Parameter ofId: An identifier of service key.
     /// - Returns: If has service, return the handle to service,Otherwise, return nil.
-    @objc public func service(ofId: DIDURL) -> Service? {
+    @objc
+    public func service(ofId: DIDURL) -> Service? {
         return serviceMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
@@ -952,7 +1000,8 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: An identifier of service key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: If has service, return the handle to service,Otherwise, return nil.
-    @objc public func service(ofId: String, error: NSErrorPointer) -> Service? {
+    @objc
+    public func service(ofId: String, error: NSErrorPointer) -> Service? {
         do {
             return service(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
@@ -971,7 +1020,8 @@ public class DIDDocument: NSObject {
     }
 
     /// Get expire time about DID Document.
-    @objc public var expirationDate: Date? {
+    @objc
+    public var expirationDate: Date? {
         return self._expirationDate
     }
 
@@ -980,7 +1030,8 @@ public class DIDDocument: NSObject {
     }
 
     /// Get proof of DIDDocument.
-    @objc public var proof: DIDDocumentProof {
+    @objc
+    public var proof: DIDDocumentProof {
         // Guaranteed that this field would not be nil because the object
         // was generated by "builder".
         return _proof!
@@ -1003,7 +1054,8 @@ public class DIDDocument: NSObject {
 
     /// Get DIDMetaData from DID.
     /// - Returns: Return the handle to DIDMetadata
-    @objc public func getMetadata() -> DIDMeta {
+    @objc
+    public func getMetadata() -> DIDMeta {
         if _metadata == nil {
             _metadata = DIDMeta()
             subject.setMetadata(_metadata!)
@@ -1014,7 +1066,8 @@ public class DIDDocument: NSObject {
 
     /// Save DIDMetaData of document.
     /// - Throws: If no error occurs, throw error.
-    @objc public func saveMetadata() throws {
+    @objc
+    public func saveMetadata() throws {
         if _metadata != nil && _metadata!.attachedStore {
             try  _metadata!.store?.storeDidMetadata(subject, _metadata!)
         }
@@ -1022,19 +1075,22 @@ public class DIDDocument: NSObject {
 
     /// Check that document is deactivated or not.
     /// true if document is deactivated, otherwise false.
-    @objc public var isDeactivated: Bool {
+    @objc
+    public var isDeactivated: Bool {
         return getMetadata().isDeactivated
     }
 
     /// Check that document is expired or not.
     /// true if document is expired, otherwise false.
-    @objc public var isExpired: Bool {
+    @objc
+    public var isExpired: Bool {
         return DateHelper.isExipired(self.expirationDate!)
     }
 
     /// Check that document is genuine or not.
     /// true if document is genuine, otherwise false.
-    @objc public var isGenuine: Bool {
+    @objc
+    public var isGenuine: Bool {
         // Document should be signed (only) by default public key.
         guard proof.creator == defaultPublicKey else {
             return false
@@ -1054,13 +1110,15 @@ public class DIDDocument: NSObject {
 
     /// Check that document is valid or not.
     /// true if document is valid, otherwise false.
-    @objc public var isValid: Bool {
+    @objc
+    public var isValid: Bool {
         return !isDeactivated && !isExpired && isGenuine
     }
 
     /// Get DIDDocument Builder to modify document.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc public func editing() -> DIDDocumentBuilder {
+    @objc
+    public func editing() -> DIDDocumentBuilder {
         return DIDDocumentBuilder(self)
     }
 
@@ -1082,7 +1140,8 @@ public class DIDDocument: NSObject {
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    @objc public func sign(using storePassword: String, for data: [Data]) throws -> String {
+    @objc
+    public func sign(using storePassword: String, for data: [Data]) throws -> String {
         return try sign(self.defaultPublicKey, storePassword, data)
     }
 
@@ -1104,7 +1163,8 @@ public class DIDDocument: NSObject {
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    @objc public func sign(withId: DIDURL, using storePassword: String, for data: [Data]) throws -> String {
+    @objc
+    public func sign(withId: DIDURL, using storePassword: String, for data: [Data]) throws -> String {
         return try sign(withId, storePassword, data)
     }
 
@@ -1172,11 +1232,13 @@ public class DIDDocument: NSObject {
     ///   - digest: The digest to sign.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    @objc public func signDigest(using storePassword: String, for digest: Data) throws -> String {
+    @objc
+    public func signDigest(using storePassword: String, for digest: Data) throws -> String {
         return try signDigest(withId: self.defaultPublicKey, using: storePassword, for: digest)
     }
 
-    @objc public func signDigest(withId: DIDURL, using storePassword: String, for digest: Data) throws -> String {
+    @objc
+    public func signDigest(withId: DIDURL, using storePassword: String, for digest: Data) throws -> String {
         guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -1219,7 +1281,8 @@ public class DIDDocument: NSObject {
     ///   - data: To verify of data list
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
-    @objc public func verify(signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
+    @objc
+    public func verify(signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
             return try verify(self.defaultPublicKey, signature, data)
         } catch let aError as NSError {
@@ -1246,6 +1309,23 @@ public class DIDDocument: NSObject {
     ///   - data: To verify of data list
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
+    @objc
+    public func verifyUsingObjectC(withId: DIDURL, using signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
+        do {
+            return try verify(withId, signature, data)
+        } catch let aError as NSError {
+            error?.pointee = aError
+            return false
+        }
+    }
+
+    /// verify data.
+    /// - Parameters:
+    ///   - withId: Public key to sign
+    ///   - signature: Signature data.
+    ///   - data: To verify of data list
+    /// - Throws: If no error occurs, throw error.
+    /// - Returns: True on success, or false.
     public func verify(withId: String, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(DIDURL(self.subject, withId), signature, data)
     }
@@ -1257,7 +1337,8 @@ public class DIDDocument: NSObject {
     ///   - data: To verify of data list
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
-    @objc public func verify(withId: String, using signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
+    @objc
+    public func verify(withId: String, using signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
             return try verify(DIDURL(self.subject, withId), signature, data)
         } catch let aError as NSError {
@@ -1302,7 +1383,8 @@ public class DIDDocument: NSObject {
     ///   - digest: The digest to sign.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
-    @objc public func verifyDigest(signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
+    @objc
+    public func verifyDigest(signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
             return try verifyDigest(withId: self.defaultPublicKey, using: signature, for: digest)
         } catch let aError as NSError {
@@ -1348,7 +1430,8 @@ public class DIDDocument: NSObject {
     ///   - digest: The digest to sign.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
-    @objc public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
+    @objc
+    public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
             return try verifyDigest(withId: withId, using: signature, for: digest)
         } catch let aError as NSError {
@@ -1559,7 +1642,8 @@ public class DIDDocument: NSObject {
     /// - Parameter data: Context of did conforming to Data informat.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: DIDDocument instance.
-    @objc public class func convertToDIDDocument(fromData data: Data) throws -> DIDDocument {
+    @objc
+    public class func convertToDIDDocument(fromData data: Data) throws -> DIDDocument {
         guard !data.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -1581,7 +1665,8 @@ public class DIDDocument: NSObject {
     /// - Parameter fromJson: Context of did conforming to string informat.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: DIDDocument instance.
-    @objc public class func convertToDIDDocument(fromJson: String) throws -> DIDDocument {
+    @objc
+    public class func convertToDIDDocument(fromJson: String) throws -> DIDDocument {
         return try  convertToDIDDocument(fromData: fromJson.data(using: .utf8)!)
     }
 
@@ -1589,7 +1674,8 @@ public class DIDDocument: NSObject {
     /// - Parameter fromFileAtPath: The data path with string.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: DIDDocument instance.
-    @objc public class func convertToDIDDocument(fromFileAtPath : String) throws -> DIDDocument {
+    @objc
+    public class func convertToDIDDocument(fromFileAtPath : String) throws -> DIDDocument {
         return try convertToDIDDocument(fromJson: String(contentsOfFile: fromFileAtPath, encoding: .utf8))
     }
 
@@ -1597,7 +1683,8 @@ public class DIDDocument: NSObject {
     /// - Parameter url: The data path with URL.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: DIDDocument instance.
-    @objc public class func convertToDIDDocument(fromUrl url: URL) throws -> DIDDocument {
+    @objc
+    public class func convertToDIDDocument(fromUrl url: URL) throws -> DIDDocument {
         return try convertToDIDDocument(fromJson: String(contentsOf: url, encoding: .utf8))
     }
 
@@ -1725,14 +1812,16 @@ public class DIDDocument: NSObject {
     /// true represents normalized, false represents not compact.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: json context.
-    @objc public func convertFromDIDDocument(_ normalized: Bool) throws -> String {
+    @objc
+    public func convertFromDIDDocument(_ normalized: Bool) throws -> String {
         return try toJson(normalized, false)
     }
 
     /// Get json context from DID Document.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: json context.
-    @objc public func convertFromDIDDocument() throws -> String {
+    @objc
+    public func convertFromDIDDocument() throws -> String {
         return try toJson(false, false)
     }
 
@@ -1760,7 +1849,8 @@ public class DIDDocument: NSObject {
     /// true represents normalized, false represents not compact.
     ///   - asFileAtPath: the path to write of string format.
     /// - Throws: If no error occurs, throw error.
-    @objc public func convertFromDIDDocument(_ normalized: Bool, asFileAtPath: String) throws {
+    @objc
+    public func convertFromDIDDocument(_ normalized: Bool, asFileAtPath: String) throws {
         return try convertFromDIDDocument(normalized, asURL: URL.init(fileURLWithPath: asFileAtPath))
     }
 
@@ -1768,7 +1858,8 @@ public class DIDDocument: NSObject {
     ///  Default  represents not compact.
     /// - Parameter asFileAtPath: the path to write of string format.
     /// - Throws: If no error occurs, throw error.
-    @objc public func convertFromDIDDocument(asFileAtPath: String) throws {
+    @objc
+    public func convertFromDIDDocument(asFileAtPath: String) throws {
         return try convertFromDIDDocument(false, asFileAtPath: asFileAtPath)
     }
 
@@ -1778,7 +1869,8 @@ public class DIDDocument: NSObject {
     /// true represents normalized, false represents not compact.
     ///   - asURL: the path to write of URL format.
     /// - Throws: If no error occurs, throw error.
-    @objc public func convertFromDIDDocument(_ normalized: Bool, asURL: URL) throws {
+    @objc
+    public func convertFromDIDDocument(_ normalized: Bool, asURL: URL) throws {
         let data: Data = try convertFromDIDDocument(normalized)
         let fileManager = FileManager.default
         if !fileManager.fileExists(atPath: asURL.absoluteString) {
@@ -1795,7 +1887,8 @@ public class DIDDocument: NSObject {
     /// Write DIDDocument in path.
     /// - Parameter asURL:  the path to write of URL format.
     /// - Throws: If no error occurs, throw error.
-    @objc public func convertFromDIDDocument(asURL: URL) throws {
+    @objc
+    public func convertFromDIDDocument(asURL: URL) throws {
         return try convertFromDIDDocument(false, asURL: asURL)
     }
 }
@@ -1805,7 +1898,8 @@ extension DIDDocument {
     /// Get DID Document string from DIDDocument.
     /// Default  represents not compact.
     /// - Returns: DIDDocument string
-    @objc public func toString() -> String {
+    @objc
+    public func toString() -> String {
         return (try? toJson(false, false)) ?? ""
     }
 
@@ -1814,7 +1908,8 @@ extension DIDDocument {
     /// - Parameter force: Json context is normalized or not.
     /// true represents normalized, false represents not compact.
     /// - Returns: DIDDocument string
-    @objc public func toString(_ force: Bool) -> String {
+    @objc
+    public func toString(_ force: Bool) -> String {
         return (try? toJson(force, false)) ?? ""
     }
 
@@ -1824,13 +1919,15 @@ extension DIDDocument {
     /// true represents normalized, false represents not compact.
     ///   - forSign: is sign or not
     /// - Returns: DIDDocument string
-    @objc public func toString(_ force: Bool, forSign: Bool) -> String {
+    @objc
+    public func toString(_ force: Bool, forSign: Bool) -> String {
         return (try? toJson(force, forSign)) ?? ""
     }
 
     /// DIDDocument string.
     /// Default  represents not compact.
-    @objc public override var description: String {
+    @objc
+    public override var description: String {
         return toString()
     }
 }

@@ -87,18 +87,21 @@ public class Claims: NSObject {
 
     var claims: [String: Any] = [: ]
 
-    @objc public override init() { }
+    @objc
+    public override init() { }
 
     /// Get jwt issuer.
     /// - Returns: If has, return issuer string. Otherwise, return nil.
-    @objc public func getIssuer() -> String? {
+    @objc
+    public func getIssuer() -> String? {
         return claims[Claims.iss] as? String
     }
 
     /// Set JWT issuer.
     /// - Parameter issuer: The issuer value.
     /// - Returns: Claims instance.
-    @objc public func setIssuer(issuer: String) -> Claims {
+    @objc
+    public func setIssuer(issuer: String) -> Claims {
         claims[Claims.iss] = issuer
         return self
     }
@@ -106,62 +109,71 @@ public class Claims: NSObject {
     /// Set JWT subject.
     /// - Parameter subject: The subject value.
     /// - Returns: Claims instance.
-    @objc public func setSubject(subject: String) -> Claims {
+    @objc
+    public func setSubject(subject: String) -> Claims {
         claims[Claims.sub] = subject
         return self
     }
 
     /// Get JWT subject.
     /// - Returns: If has, return subject string. Otherwise, return nil.
-    @objc public func getSubject() -> String? {
+    @objc
+    public func getSubject() -> String? {
         return claims[Claims.sub] as? String
     }
 
     /// Get jwt audience.
     /// - Returns: If has, return audience string. Otherwise, return nil.
-    @objc public func getAudience() -> String? {
+    @objc
+    public func getAudience() -> String? {
         return claims[Claims.aud] as? String
     }
 
     /// Set JWT audience.
     /// - Parameter audience: The audience value.
     /// - Returns: Claims instance.
-    @objc public func setAudience(audience: String) -> Claims {
+    @objc
+    public func setAudience(audience: String) -> Claims {
         claims[Claims.aud] = audience
         return self
     }
 
     /// Get expirate date.
     /// - Returns: If has, return jwt expiration Date. Otherwise, return nil.
-    @objc public func getExpiration() -> Date? {
+    @objc
+    public func getExpiration() -> Date? {
         return DateHelper.getDateFromTimeStamp(claims[Claims.exp] as? Int)
     }
 
     /// Set expirate date.
     /// - Parameter expiration: The date of jwt expiration.
     /// - Returns: JwtBuilder instance.
-    @objc public func setExpiration(expiration: Date) -> Claims {
+    @objc
+    public func setExpiration(expiration: Date) -> Claims {
         claims[Claims.exp] = DateHelper.getTimeStamp(expiration)
         return self
     }
 
     /// Get jwt 'nbf' time.
     /// - Returns: If has, return not before Date. Otherwise, return nil.
-    @objc public func getNotBefore() -> Date? {
+    @objc
+    public func getNotBefore() -> Date? {
         return DateHelper.getDateFromTimeStamp(claims[Claims.nbf] as? Int)
     }
 
     /// Set JWT ‘nbf’ value.
     /// - Parameter notBefore: The ‘nbf’ value.
     /// - Returns: Claims instance.
-    @objc public func setNotBefore(notBefore: Date) -> Claims {
+    @objc
+    public func setNotBefore(notBefore: Date) -> Claims {
         claims[Claims.nbf] = DateHelper.getTimeStamp(notBefore)
         return self
     }
 
     /// Get jwt issued time.
     /// - Returns: If has, return 'iat' Date. Otherwise, return nil.
-    @objc public func getIssuedAt() -> Date? {
+    @objc
+    public func getIssuedAt() -> Date? {
         
         return DateHelper.getDateFromTimeStamp(claims[Claims.iat] as? Int)
     }
@@ -169,48 +181,55 @@ public class Claims: NSObject {
     /// Set JWT issued time.
     /// - Parameter issuedAt: The ‘iat’ value.
     /// - Returns: Claims instance.
-    @objc public func setIssuedAt(issuedAt: Date) -> Claims {
+    @objc
+    public func setIssuedAt(issuedAt: Date) -> Claims {
         claims[Claims.iat] = DateHelper.getTimeStamp(issuedAt)
         return self
     }
 
     /// Get jwt id.
     /// - Returns: If has, return id string. Otherwise, return nil.
-    @objc public func getId() -> String? {
+    @objc
+    public func getId() -> String? {
         return claims[Claims.jti] as? String
     }
 
     /// Set JWT id.
     /// - Parameter id: The Id value
     /// - Returns: Claims instance.
-    @objc public func setId(id: String) -> Claims {
+    @objc
+    public func setId(id: String) -> Claims {
         claims[Claims.jti] = id
         return self
     }
 
     /// Get claims count.
     /// - Returns: The count of claim.
-    @objc public func size() -> Int {
+    @objc
+    public func size() -> Int {
         return claims.count
     }
 
     /// Check claim is empty or not.
     /// - Returns: true if claim is empty, otherwise false.
-    @objc public func isEmpty() -> Bool {
+    @objc
+    public func isEmpty() -> Bool {
         return claims.isEmpty
     }
 
     ///  Check key if claims key or not.
     /// - Parameter key: The key string.
     /// - Returns: True if has claims key, or false.
-    @objc public func containsKey(key: String) -> Bool {
+    @objc
+    public func containsKey(key: String) -> Bool {
         return claims[key] != nil
     }
 
     /// Check key if claims value or not.
     /// - Parameter value: The value string.
     /// - Returns: True if has claims value, or false.
-    @objc public func containsValue(value: Any) -> Bool {
+    @objc
+    public func containsValue(value: Any) -> Bool {
         for v in claims.values {
             if v as AnyObject === value as AnyObject {
                 return true
@@ -222,7 +241,8 @@ public class Claims: NSObject {
     /// Get claim value by claim key.
     /// - Parameter key: The key string.
     /// - Returns: If has, return value. Otherwise, return nil.
-    @objc public func get(key: String) -> Any {
+    @objc
+    public func get(key: String) -> Any {
         return claims[key] as Any
     }
 
@@ -230,7 +250,8 @@ public class Claims: NSObject {
     /// - Parameter key: The key string.
     /// - Throws: If error occurs,throw error.
     /// - Returns: Claim value string
-    @objc public func getAsJson(key: String) throws -> String {
+    @objc
+    public func getAsJson(key: String) throws -> String {
         let v = claims[key]
         if !(v is String) && v != nil {
             let data = try JSONSerialization.data(withJSONObject: v as Any, options: [])
@@ -243,7 +264,8 @@ public class Claims: NSObject {
     /// - Parameters:
     ///   - key: The key string.
     ///   - value: The value string.
-    @objc public func put(key: String, value: Any) {
+    @objc
+    public func put(key: String, value: Any) {
         claims[key] = value
     }
 
@@ -252,7 +274,8 @@ public class Claims: NSObject {
     ///   - key: The key string.
     ///   - value: The value string.
     /// - Throws: If error occurs,throw error.
-    @objc public func putWithJson(key: String, value: String) throws {
+    @objc
+    public func putWithJson(key: String, value: String) throws {
         let dic = try JSONSerialization.jsonObject(with: value.data(using: .utf8)!, options: [])
         claims[key] = dic
     }
@@ -260,7 +283,8 @@ public class Claims: NSObject {
     /// Remove claim value by claim key.
     /// - Parameter key: The key string.
     /// - Returns: If has, return value. Otherwise, return nil.
-    @objc public func remove(key: String) -> Any? {
+    @objc
+    public func remove(key: String) -> Any? {
         let value = claims[key]
         claims.removeValue(forKey: key)
 
@@ -269,14 +293,16 @@ public class Claims: NSObject {
 
     /// Add claim value by dictionary.
     /// - Parameter dic: The header key-value.
-    @objc public func putAll(dic: [String: Any]) {
+    @objc
+    public func putAll(dic: [String: Any]) {
         claims.merge(dict: dic)
     }
 
     /// Add claim value by json string.
     /// - Parameter json: The header json string.
     /// - Throws: If error occurs,throw error.
-    @objc public func putAllWithJson(json: String) throws {
+    @objc
+    public func putAllWithJson(json: String) throws {
         let dic = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String : Any]
         guard dic != nil else {
             throw DIDError.illegalArgument("Data parsing error in method in putAllWithJson().")
@@ -285,13 +311,15 @@ public class Claims: NSObject {
     }
 
     /// Clear claim
-    @objc public func clear() {
+    @objc
+    public func clear() {
         claims.removeAll()
     }
 
     /// Get claim values.
     /// - Returns: Array of claim.
-    @objc public func values() -> [Any] {
+    @objc
+    public func values() -> [Any] {
         var values = [Any]()
         claims.forEach { k, v in
             values.append(v)
@@ -304,7 +332,8 @@ public class Claims: NSObject {
     ///   - key: The key string.
     ///   - value: The value string
     /// - Returns: Claims instnce.
-    @objc public func setValue(key: String, value: Any) -> Claims {
+    @objc
+    public func setValue(key: String, value: Any) -> Claims {
         claims[key] = value
         return self
     }

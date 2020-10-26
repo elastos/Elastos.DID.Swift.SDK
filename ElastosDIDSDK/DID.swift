@@ -45,7 +45,8 @@ public class DID: NSObject {
     /// Create a new DID according to method specific string.
     /// - Parameter did: A pointer to specific string. The method-specific-id value should be globally unique by itself.
     /// - Throws: Language is empty or error occurs.
-    @objc public init(_ did: String) throws {
+    @objc
+    public init(_ did: String) throws {
         super.init()
         guard !did.isEmpty else {
             throw DIDError.illegalArgument("empty did string")
@@ -65,7 +66,8 @@ public class DID: NSObject {
     }
 
     ///  Get method of DID.
-    @objc public var method: String {
+    @objc
+    public var method: String {
         return _method!
     }
 
@@ -74,7 +76,8 @@ public class DID: NSObject {
     }
 
     /// Get method specific string of DID.
-    @objc public var methodSpecificId: String {
+    @objc
+    public var methodSpecificId: String {
         return _methodSpecificId!
     }
 
@@ -84,7 +87,8 @@ public class DID: NSObject {
 
     /// Get DID MetaData from did.
     /// - Returns: Return the handle to DIDMetaData. Otherwise
-    @objc public func getMetadata() -> DIDMeta {
+    @objc
+    public func getMetadata() -> DIDMeta {
         if  self._metadata == nil {
             self._metadata = DIDMeta()
         }
@@ -97,14 +101,16 @@ public class DID: NSObject {
 
     /// Save DID MetaData.
     /// - Throws: If error occurs, throw error.
-    @objc public func saveMetadata() throws {
+    @objc
+    public func saveMetadata() throws {
         if (_metadata != nil && _metadata!.attachedStore) {
             try _metadata?.store?.storeDidMetadata(self, _metadata!)
         }
     }
 
     /// Check deactivated
-    @objc public var isDeactivated: Bool {
+    @objc
+    public var isDeactivated: Bool {
         return getMetadata().isDeactivated
     }
 
@@ -129,7 +135,8 @@ public class DID: NSObject {
     ///   if no document is in the cache, resolve it from chain.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Return the handle to DID Document.
-    @objc public func resolve(_ force: Bool, error: NSErrorPointer) -> DIDDocument? {
+    @objc
+    public func resolve(_ force: Bool, error: NSErrorPointer) -> DIDDocument? {
         do {
             return try resolve(force)
         } catch let aError as NSError {
@@ -148,7 +155,8 @@ public class DID: NSObject {
     /// Get the newest DID Document from chain.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Return the handle to DID Document
-    @objc public func resolve(error: NSErrorPointer) -> DIDDocument? {
+    @objc
+    public func resolve(error: NSErrorPointer) -> DIDDocument? {
         do {
             return try resolve(false)
         } catch let aError as NSError {
@@ -177,7 +185,8 @@ public class DID: NSObject {
     ///  force = true, document gets only from chain. force = false, document can get from cache,
     ///   if no document is in the cache, resolve it from chain.
     /// - Returns: Return the handle to DID Document.
-    @objc public func resolveAsyncUsingObjectC(_ force: Bool) -> AnyPromise {
+    @objc
+    public func resolveAsyncUsingObjectC(_ force: Bool) -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             do {
                 resolver(try resolve(force))
@@ -195,14 +204,16 @@ public class DID: NSObject {
 
     /// Get the newest DID Document asynchronously from chain.
     /// - Returns: Return the handle to DID Document.
-    @objc public func resolveAsyncUsingObjectC() -> AnyPromise {
+    @objc
+    public func resolveAsyncUsingObjectC() -> AnyPromise {
         return resolveAsyncUsingObjectC(false)
     }
 
     /// Get all DID Documents from chain.
     /// - Throws: If error occurs, throw error.
     /// - Returns: return the handle to DID Document.
-    @objc public func resolveHistory() throws -> DIDHistory {
+    @objc
+    public func resolveHistory() throws -> DIDHistory {
         return try DIDBackend.resolveHistory(self)
     }
 
@@ -220,7 +231,8 @@ public class DID: NSObject {
 
     /// Get all DID Documents from chain.
     /// - Returns: return the handle to DID Document asynchronously.
-    @objc public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
+    @objc
+    public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             do {
                 resolver(try resolveHistory())
@@ -237,7 +249,8 @@ extension DID {
     }
 
     /// Get id string from DID.
-    @objc public override var description: String {
+    @objc
+    public override var description: String {
         return toString()
     }
 }
@@ -259,7 +272,8 @@ extension DID {
         return !lhs.equalsTo(rhs)
     }
 
-   @objc public override func isEqual(_ object: Any?) -> Bool {
+    @objc
+    public override func isEqual(_ object: Any?) -> Bool {
         if object is DID {
             return equalsTo(object as! DID)
         }
@@ -274,7 +288,8 @@ extension DID {
 //    public func hash(into hasher: inout Hasher) {
 //        hasher.combine(self.toString())
 //    }
-    @objc public override var hash: Int {
+    @objc
+    public override var hash: Int {
         return self.toString().hash
     }
 }
@@ -288,7 +303,7 @@ extension DID {
             self.did = did
             super.init()
         }
-//  todo: OC
+
         public override func exitMethod(_ ctx: DIDURLParser.MethodContext) {
             let method = ctx.getText()
             if (method != Constants.METHOD){

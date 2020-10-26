@@ -39,7 +39,8 @@ public class Mnemonic: NSObject {
     /// support language string: “chinese_simplified”, “chinese_traditional”, “czech”, “english”, “french”, “italian”, “japanese”, “korean”, “spanish”.
     /// - Throws: Language is empty or failure to generate mnemonic will throw error.
     /// - Returns: Random mnemonic.
-    @objc public class func generate(_ language: String) throws -> String {
+    @objc
+    public class func generate(_ language: String) throws -> String {
         guard !language.isEmpty else {
             throw DIDError.illegalArgument("language is empty.")
         }
@@ -85,7 +86,8 @@ public class Mnemonic: NSObject {
     ///   - mnemonic: mnemonic string.
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
-    @objc public class func isValid(_ language: String, _ mnemonic: String, error: NSErrorPointer) -> Bool {
+    @objc
+    public class func isValid(_ language: String, _ mnemonic: String, error: NSErrorPointer) -> Bool {
         do {
             return try isValid(language, mnemonic)
         }  catch let aError as NSError {

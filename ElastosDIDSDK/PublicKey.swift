@@ -145,7 +145,6 @@ public class PublicKey: DIDObject {
     }
 }
 
-// OC todo:
 extension PublicKey {
     public static func == (lhs: PublicKey, rhs: PublicKey) -> Bool {
         return lhs.equalsTo(rhs)
@@ -153,5 +152,10 @@ extension PublicKey {
 
     public static func != (lhs: PublicKey, rhs: PublicKey) -> Bool {
         return !lhs.equalsTo(rhs)
+    }
+
+    @objc
+    public override func isEqual(_ object: Any?) -> Bool {
+        return equalsTo(object as! DIDObject)
     }
 }
