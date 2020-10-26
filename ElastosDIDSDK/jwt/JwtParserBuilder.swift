@@ -31,11 +31,13 @@ public class JwtParserBuilder: NSObject {
     var key: String?
 
     /// Constructs the empty JwtParserBuilder.
-    @objc public override init() { }
+    @objc
+    public override init() { }
 
     /// Constructs the JwtParserBuilder with the specified key.
     /// - Parameter withKey: The verfiy key.
-    @objc public init(_ withKey: String) {
+    @objc
+    public init(_ withKey: String) {
         key = withKey
     }
 
@@ -43,7 +45,8 @@ public class JwtParserBuilder: NSObject {
     /// - Parameter claimsJwt: Jwt token.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The handle of JWT.
-    @objc public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
+    @objc
+    public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
         let publicKey = try self.getPublicKey!(key)
         let jwtVerifier = JWTVerifier.es256(publicKey: publicKey)
         return try JWT(jwtString: claimsJwt, verifier: jwtVerifier)
@@ -51,7 +54,8 @@ public class JwtParserBuilder: NSObject {
 
     /// Create JwtParser
     /// - Returns: JwtParser instance.
-    @objc public func build() throws -> JwtParser {
+    @objc
+    public func build() throws -> JwtParser {
         guard let _ =  getPublicKey else {
             return JwtParser(nil)
         }
@@ -72,7 +76,8 @@ public class JwtParser: NSObject {
     /// - Parameter claimsJwt: Jwt token.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The handle of JWT.
-    @objc public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
+    @objc
+    public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
         guard let _ = publickey else {
             return try JWT(jwtString: claimsJwt)
         }
@@ -84,14 +89,16 @@ public class JwtParser: NSObject {
     /// Get jwt header.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: Jwt Header.
-    @objc public func getHeader() throws -> Header {
+    @objc
+    public func getHeader() throws -> Header {
         return jwt!.header;
     }
 
     /// Get jwt claims.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: Jwt Claims.
-    @objc public func getBody() throws -> Claims {
+    @objc
+    public func getBody() throws -> Claims {
         return jwt!.claims;
     }
 }

@@ -36,7 +36,8 @@ public class DIDObject: NSObject {
 
     /// Get 'DIDURL'
     /// - Returns: 'DIDURL'
-    @objc public func getId() -> DIDURL {
+    @objc
+    public func getId() -> DIDURL {
         return _id!
     }
 
@@ -46,7 +47,8 @@ public class DIDObject: NSObject {
 
     /// Get 'Type'
     /// - Returns: 'Type'
-    @objc public func getType() -> String {
+    @objc
+    public func getType() -> String {
         return _type!
     }
 

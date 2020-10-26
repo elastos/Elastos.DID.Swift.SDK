@@ -40,14 +40,16 @@ public class JwtBuilder: NSObject {
 
     /// Create header for jwt.
     /// - Returns: Header instance.
-    @objc public class func createHeader() -> Header {
+    @objc
+    public class func createHeader() -> Header {
         return Header()
     }
 
     /// Create header for jwt.
     /// - Parameter header: The param of header.
     /// - Returns: Header instance.
-    @objc public class func createHeader(header: [String: Any]) -> Header {
+    @objc
+    public class func createHeader(header: [String: Any]) -> Header {
         let he = Header()
         he.putAll(dic: header)
         return he
@@ -56,7 +58,8 @@ public class JwtBuilder: NSObject {
     /// Set header for jwt.
     /// - Parameter header: The param of header.
     /// - Returns: JwtBuilder instance.
-    @objc public func setHeader(_ header: Header) -> JwtBuilder {
+    @objc
+    public func setHeader(_ header: Header) -> JwtBuilder {
         h = header
         return self
     }
@@ -77,7 +80,8 @@ public class JwtBuilder: NSObject {
     /// Add header for jwt.
     /// - Parameter header: The param of header.
     /// - Returns: JwtBuilder instance.
-    @objc public func addHeaders(header: [String: Any]) -> JwtBuilder {
+    @objc
+    public func addHeaders(header: [String: Any]) -> JwtBuilder {
         if h == nil {
             h = Header()
         }
@@ -92,7 +96,8 @@ public class JwtBuilder: NSObject {
     ///   - key: The key of header.
     ///   - value: The value of header.
     /// - Returns: JwtBuilder instance.
-    @objc public func addHeader(key: String, value: Any) -> JwtBuilder {
+    @objc
+    public func addHeader(key: String, value: Any) -> JwtBuilder {
         if h == nil {
             h = Header()
         }
@@ -104,7 +109,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter payload: The payload string.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func setPayload(payload: String) throws -> JwtBuilder {
+    @objc
+    public func setPayload(payload: String) throws -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -114,14 +120,16 @@ public class JwtBuilder: NSObject {
 
     /// Create Claims for jwt.
     /// - Returns: Claims instance.
-    @objc public class func createClaims() -> Claims {
+    @objc
+    public class func createClaims() -> Claims {
         return Claims()
     }
 
     /// Create Claims for jwt.
     /// - Parameter claims: The param of claims.
     /// - Returns: Claims instance.
-    @objc public class func createClaims(claims: [String: Any]) -> Claims {
+    @objc
+    public class func createClaims(claims: [String: Any]) -> Claims {
         let cl = Claims()
         cl.putAll(dic: claims)
         return cl
@@ -130,7 +138,8 @@ public class JwtBuilder: NSObject {
     /// Set Claims for jwt.
     /// - Parameter claim: The claim.
     /// - Returns: JwtBuilder instance.
-    @objc public func setClaims(_ claim: Claims) -> JwtBuilder {
+    @objc
+    public func setClaims(_ claim: Claims) -> JwtBuilder {
         c = claim
         if !claim.containsKey(key: Claims.iss) {
             c = claim.setIssuer(issuer: issuer)
@@ -141,7 +150,8 @@ public class JwtBuilder: NSObject {
     /// Set Claims for jwt.
     /// - Parameter claim: The param of claims.
     /// - Returns: JwtBuilder instance.
-    @objc public func setClaims(claim: [String: Any]) -> JwtBuilder {
+    @objc
+    public func setClaims(claim: [String: Any]) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -159,7 +169,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter claims: The param of claims.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func setClaims(claims: JsonNode) throws -> JwtBuilder {
+    @objc
+    public func setClaims(claims: JsonNode) throws -> JwtBuilder {
         let claimStr = claims.toString()
 
         return try setClaimsWithJson(value: claimStr)
@@ -169,7 +180,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter value: The param of claims.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func setClaimsWithJson(value: String) throws -> JwtBuilder {
+    @objc
+    public func setClaimsWithJson(value: String) throws -> JwtBuilder {
         let dic = try JSONSerialization.jsonObject(with: value.data(using: .utf8)!, options: []) as? [String : Any]
         guard dic != nil else {
             throw DIDError.illegalArgument("TODO")
@@ -180,7 +192,8 @@ public class JwtBuilder: NSObject {
     /// Add claims for jwt.
     /// - Parameter claims: The param of claims.
     /// - Returns: JwtBuilder instance.
-    @objc public func addClaims(claims: [String: Any]) -> JwtBuilder {
+    @objc
+    public func addClaims(claims: [String: Any]) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -192,7 +205,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter claims: The claim
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func addClaims(claims: JsonNode) throws -> JwtBuilder {
+    @objc
+    public func addClaims(claims: JsonNode) throws -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -205,7 +219,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter jsonClaims: The param of claims.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func addClaimsWithJson(jsonClaims: String) throws -> JwtBuilder {
+    @objc
+    public func addClaimsWithJson(jsonClaims: String) throws -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -217,7 +232,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT issuer.
     /// - Parameter iss: The issuer value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setIssuer(iss: String) -> JwtBuilder {
+    @objc
+    public func setIssuer(iss: String) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -228,7 +244,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT subject.
     /// - Parameter sub: The subject value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setSubject(sub: String) -> JwtBuilder {
+    @objc
+    public func setSubject(sub: String) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -239,7 +256,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT audience.
     /// - Parameter audience: The audience value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setAudience(audience: String) -> JwtBuilder {
+    @objc
+    public func setAudience(audience: String) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -250,7 +268,8 @@ public class JwtBuilder: NSObject {
     /// Set expirate date.
     /// - Parameter expiration: The date of jwt expiration.
     /// - Returns: JwtBuilder instance.
-    @objc public func setExpiration(expiration: Date) -> JwtBuilder {
+    @objc
+    public func setExpiration(expiration: Date) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -261,7 +280,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT ‘nbf’ value.
     /// - Parameter nbf: The ‘nbf’ value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setNotBefore(nbf: Date) -> JwtBuilder {
+    @objc
+    public func setNotBefore(nbf: Date) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -272,7 +292,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT issued time.
     /// - Parameter issuedAt: The ‘iat’ value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setIssuedAt(issuedAt: Date) -> JwtBuilder {
+    @objc
+    public func setIssuedAt(issuedAt: Date) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -283,7 +304,8 @@ public class JwtBuilder: NSObject {
     /// Set JWT id.
     /// - Parameter id: The Id value.
     /// - Returns: JwtBuilder instance.
-    @objc public func setId(id: String) -> JwtBuilder {
+    @objc
+    public func setId(id: String) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -296,7 +318,8 @@ public class JwtBuilder: NSObject {
     ///   - name: The key for claim.
     ///   - value: The value for claim.
     /// - Returns: JwtBuilder instance.
-    @objc public func claim(name: String, value: Any) -> JwtBuilder {
+    @objc
+    public func claim(name: String, value: Any) -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -311,7 +334,8 @@ public class JwtBuilder: NSObject {
     ///   - value: The value for claim.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func claim(name: String, value: JsonNode) throws -> JwtBuilder {
+    @objc
+    public func claim(name: String, value: JsonNode) throws -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -327,7 +351,8 @@ public class JwtBuilder: NSObject {
     ///   - jsonValue: The value for claim.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func claimWithJson(name: String, jsonValue: String) throws -> JwtBuilder {
+    @objc
+    public func claimWithJson(name: String, jsonValue: String) throws -> JwtBuilder {
         if c == nil {
             c = Claims()
         }
@@ -340,7 +365,8 @@ public class JwtBuilder: NSObject {
     /// - Parameter password: Pass word to sign.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func sign(using password: String) throws -> JwtBuilder {
+    @objc
+    public func sign(using password: String) throws -> JwtBuilder {
         jwt = JWT(header: self.h!, claims: self.c!)
         let privateKey = try self.privateKeyClosure!(nil, password)
         let jwtSigner = JWTSigner.es256(privateKey: privateKey)
@@ -355,7 +381,8 @@ public class JwtBuilder: NSObject {
     ///   - password: Pass word to sign.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
-    @objc public func sign(withKey: String, using password: String) throws -> JwtBuilder {
+    @objc
+    public func sign(withKey: String, using password: String) throws -> JwtBuilder {
         jwt = JWT(header: self.h!, claims: self.c!)
         let privateKey = try self.privateKeyClosure!(withKey, password)
         let jwtSigner = JWTSigner.es256(privateKey: privateKey)
@@ -367,7 +394,8 @@ public class JwtBuilder: NSObject {
     /// Get token from compacting JWTBuilder.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Token string.
-    @objc public func compact() throws -> String {
+    @objc
+    public func compact() throws -> String {
         if jwt == nil {
             jwt = JWT(header: self.h!, claims: self.c!)
         }

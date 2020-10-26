@@ -163,7 +163,8 @@ public class DIDBackend: NSObject {
     ///   - resolverURL: The URL string.
     ///   - cacheDir: The directory for cache.
     /// - Throws:  if an error occurred, throw error.
-    @objc public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
+    @objc
+    public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
         guard !resolverURL.isEmpty, !cacheDir.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -226,7 +227,8 @@ public class DIDBackend: NSObject {
     /// Get DIDBackend instance.
     /// - Parameter adapter: A handle to DIDAdapter.
     /// - Returns: DIDBackend instance.
-    @objc public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+    @objc
+    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
 
@@ -308,7 +310,8 @@ public class DIDBackend: NSObject {
     ///  User set DID Local Resolve handle in order to give which did document to verify.
     ///  If handle != NULL, set DID Local Resolve Handle.
     /// - Parameter handle: A handle to ResolveHandle.
-    @objc public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
+    @objc
+    public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
         DIDBackend.resolveHandle = handle
     }
 

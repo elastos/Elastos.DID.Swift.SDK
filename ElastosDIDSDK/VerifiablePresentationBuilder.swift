@@ -52,7 +52,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Parameter credentials: Verifiable credentials
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiablePresentationBuilder instance.
-    @objc public func withCredentials(_ credentials: Array<VerifiableCredential>) throws
+    @objc
+    public func withCredentials(_ credentials: Array<VerifiableCredential>) throws
         -> VerifiablePresentationBuilder {
 
         guard let _ = presentation else {
@@ -78,7 +79,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Parameter realm: Target areas to which the expression applies, such as website domain names, application names, etc.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiablePresentationBuilder instance.
-    @objc public func withRealm(_ realm: String) throws -> VerifiablePresentationBuilder {
+    @objc
+    public func withRealm(_ realm: String) throws -> VerifiablePresentationBuilder {
         guard let _ = presentation else {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
@@ -94,7 +96,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Parameter nonce: Random value used for signature operation
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiablePresentationBuilder instance.
-    @objc public func withNonce(_ nonce: String) throws -> VerifiablePresentationBuilder {
+    @objc
+    public func withNonce(_ nonce: String) throws -> VerifiablePresentationBuilder {
         guard let _ = presentation else {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
@@ -110,7 +113,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiablePresentation.
-    @objc public func sealed(using storePassword: String) throws -> VerifiablePresentation {
+    @objc
+    public func sealed(using storePassword: String) throws -> VerifiablePresentation {
         guard let _ = presentation else {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }

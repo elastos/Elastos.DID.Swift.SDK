@@ -32,38 +32,44 @@ public class VerifiableCredentialSubject: NSObject {
     }
 
     /// Get id property from Credential.
-    @objc public var did: DID {
+    @objc
+    public var did: DID {
         return self._id
     }
 
     /// Get count of subject properties in Credential.
-    @objc public var propertyCount: Int {
+    @objc
+    public var propertyCount: Int {
         return self._properties?.count ?? 0
     }
 
     /// Get string of subject properties in Credential.
     /// - Returns: properties as string.
-    @objc public func getPropertiesAsString() -> String {
+    @objc
+    public func getPropertiesAsString() -> String {
         return self._properties?.toString() ?? ""
     }
 
     /// Get array of subject properties in Credential.
     /// - Returns: Array of credential
-    @objc public func getProperties() -> JsonNode? {
+    @objc
+    public func getProperties() -> JsonNode? {
         return self._properties?.deepCopy()
     }
 
     /// Get specified subject property according to the key of property.
     /// - Parameter ofName: The key of property.
     /// - Returns: properties as string.
-    @objc public func getPropertyAsString(ofName: String) -> String? {
+    @objc
+    public func getPropertyAsString(ofName: String) -> String? {
         return self._properties?.get(forKey: ofName)?.toString()
     }
 
     /// Get specified subject property according to the key of property.
     /// - Parameter ofName: The key of property.
     /// - Returns: properties as string.
-    @objc public func getProperty(ofName: String) -> JsonNode? {
+    @objc
+    public func getProperty(ofName: String) -> JsonNode? {
         return self._properties?.get(forKey: ofName)
     }
 
