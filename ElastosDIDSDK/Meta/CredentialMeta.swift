@@ -31,18 +31,21 @@ public class CredentialMeta: Metadata {
     }
 
     /// init
-    @objc public required init() {
+    @objc
+    public required init() {
         super.init()
     }
 
     /// The name of alias.
-    @objc public var aliasName: String? {
+    @objc
+    public var aliasName: String? {
         return self.get(key: ALIAS) as? String
     }
 
     /// Set alias for did.
     /// - Parameter alias: The ailas string.
-    @objc public func setAlias(_ alias: String?) {
+    @objc
+    public func setAlias(_ alias: String?) {
         self.put(key: ALIAS, value: alias as Any)
     }
 }

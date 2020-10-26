@@ -99,7 +99,8 @@ public class JsonNode: NSObject {
         return 0
     }
 
-    @objc public func toString() -> String {
+    @objc
+    public func toString() -> String {
         var resultString: String
 
         if node is [JsonNode] {
@@ -242,7 +243,8 @@ public class JsonNode: NSObject {
         self.node = dictionary
     }
 
-    @objc public func asString() -> String? {
+    @objc
+    public func asString() -> String? {
         return self.node as? String
     }
 
@@ -250,7 +252,8 @@ public class JsonNode: NSObject {
         return self.node as? Int
     }
 
-    @objc public func asIntegerWithOC() -> NSNumber? {
+    @objc
+    public func asIntegerWithOC() -> NSNumber? {
         if let result = self.node as? Int {
             return NSNumber(value: result)
         }
@@ -259,7 +262,8 @@ public class JsonNode: NSObject {
         }
     }
 
-    @objc public func asNumber() -> Any? {
+    @objc
+    public func asNumber() -> Any? {
         return self.node
     }
 
@@ -267,7 +271,8 @@ public class JsonNode: NSObject {
         return self.node as? Bool
     }
 
-    @objc public func asBool(error: NSErrorPointer) -> Bool {
+    @objc
+    public func asBool(error: NSErrorPointer) -> Bool {
         if let result = self.node as? Bool {
             return result
         }
@@ -278,15 +283,18 @@ public class JsonNode: NSObject {
         }
     }
 
-    @objc public func asArray() -> [JsonNode]? {
+    @objc
+    public func asArray() -> [JsonNode]? {
         return self.node as? Array
     }
 
-    @objc public func asDictionary() -> [String: JsonNode]? {
+    @objc
+    public func asDictionary() -> [String: JsonNode]? {
         return self.node as? [String: JsonNode]
     }
 
-    @objc public func getNodeType() -> JsonNodeType {
+    @objc
+    public func getNodeType() -> JsonNodeType {
 
         if self.node is Array<Any> {
             return JsonNodeType.ARRAY

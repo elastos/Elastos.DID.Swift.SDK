@@ -64,7 +64,8 @@ public class DIDURL: NSObject {
     ///   - id: A valid didurl guaranteed containing valid did.
     ///   - url: A fragment string.
     /// - Throws: If error occurs, throw error.
-    @objc public init(_ id: DID, _ url: String) throws {
+    @objc
+    public init(_ id: DID, _ url: String) throws {
         guard !url.isEmpty else {
             throw DIDError.illegalArgument("empty didurl string")
         }
@@ -96,7 +97,8 @@ public class DIDURL: NSObject {
     /// Get DID URL from string.
     /// - Parameter url: A  string including id information. idstring support: 1. “did:elastos:xxxxxxx#xxxxx”
     /// - Throws: If error occurs, throw error.
-    @objc public init(_ url: String) throws {
+    @objc
+    public init(_ url: String) throws {
         guard !url.isEmpty else {
             throw DIDError.illegalArgument()
         }
@@ -110,20 +112,23 @@ public class DIDURL: NSObject {
     }
 
     // A valid didurl guaranteed containing valid did.
-    @objc public var did: DID {
+    @objc
+    public var did: DID {
         return _did!
     }
 
     /// Set did
     /// - Parameter newValue: The new did
-    @objc public func setDid(_ newValue: DID) {
+    @objc
+    public func setDid(_ newValue: DID) {
         self._did = newValue
     }
 
     // Regards to DIDs v1.0 specs:
     // "DID URL: A DID plus an optional DID path, optional ? character followed
     //  by a DID query, and optional # character followed by a DID fragment."
-    @objc public var fragment: String? {
+    @objc
+    public var fragment: String? {
         return _fragment
     }
 
@@ -133,21 +138,24 @@ public class DIDURL: NSObject {
 
     /// Parameters for generating DIDURL .
     /// - Returns: DIDURL string .
-    @objc public func parameters() -> String? {
+    @objc
+    public func parameters() -> String? {
         return mapToString(_parameters, ";")
     }
 
     /// Get value in the DIDURL parameter by the key .
     /// - Parameter ofKey: The key string.
     /// - Returns: If no has, return value string.
-    @objc public func parameter(ofKey: String) -> String? {
+    @objc
+    public func parameter(ofKey: String) -> String? {
         return _parameters?[ofKey]
     }
 
     /// Check is contains parameter
     /// - Parameter forKey: The key string.
     /// - Returns: true if has value, or false.
-    @objc public func containsParameter(forKey: String) -> Bool {
+    @objc
+    public func containsParameter(forKey: String) -> Bool {
         return _parameters?.keys.contains(forKey) ?? false
     }
 
@@ -159,7 +167,8 @@ public class DIDURL: NSObject {
     }
 
     /// Get DIDURL path.
-    @objc public var path: String? {
+    @objc
+    public var path: String? {
         return _path
     }
 
@@ -169,21 +178,24 @@ public class DIDURL: NSObject {
 
     /// Query DIDURL parameters
     /// - Returns: DIDURL parameters string .
-    @objc public func queryParameters() -> String? {
+    @objc
+    public func queryParameters() -> String? {
         return mapToString(_queryParameters, "&")
     }
 
     /// Query DIDURL parameter by key.
     /// - Parameter ofKey: The key string .
     /// - Returns: if has value , return value string .
-    @objc public func queryParameter(ofKey: String) -> String? {
+    @objc
+    public func queryParameter(ofKey: String) -> String? {
         return _queryParameters?[ofKey]
     }
 
     /// Check is contains query parameter .
     /// - Parameter forKey: The key string .
     /// - Returns: true if has value, or false.
-    @objc public func containsQueryParameter(forKey: String) -> Bool {
+    @objc
+    public func containsQueryParameter(forKey: String) -> Bool {
         return _queryParameters?.keys.contains(forKey) ?? false
     }
 
@@ -191,7 +203,8 @@ public class DIDURL: NSObject {
     /// - Parameters:
     ///   - value: The value string .
     ///   - forKey: The key string.
-    @objc public func appendQueryParameter(_ value: String?, forKey: String) {
+    @objc
+    public func appendQueryParameter(_ value: String?, forKey: String) {
         if  self._queryParameters == nil {
             self._queryParameters = OrderedDictionary()
         }
@@ -204,7 +217,8 @@ public class DIDURL: NSObject {
 
     /// Get CredentialMetaData from Credential.
     /// - Returns: Return the handle to CredentialMetaData
-    @objc public func getMetadata() -> CredentialMeta {
+    @objc
+    public func getMetadata() -> CredentialMeta {
         if  self._metadata == nil {
             self._metadata = CredentialMeta()
         }
@@ -213,7 +227,8 @@ public class DIDURL: NSObject {
 
     /// Save Credential(DIDURL) MetaData.
     /// - Throws: If error occurs, throw error.
-    @objc public func saveMetadata() throws {
+    @objc
+    public func saveMetadata() throws {
         if (_metadata != nil && _metadata!.attachedStore) {
             try _metadata?.store?.storeCredentialMetadata(did, self, _metadata!)
         }
@@ -245,7 +260,8 @@ extension DIDURL {
     }
 
     /// Get id string from DID URL.
-    @objc public override var description: String {
+    @objc
+    public override var description: String {
         return toString()
     }
 }
@@ -267,6 +283,7 @@ extension DIDURL {
         return !lhs.equalsTo(rhs)
     }
 
+    @objc
     public override func isEqual(_ object: Any?) -> Bool {
         if object is DIDURL {
             return equalsTo(object as! DIDURL)
@@ -278,7 +295,6 @@ extension DIDURL {
 }
 
 // DIDURL used as hash key.
-// TODO:
 extension DIDURL {
 //    public func hash(into hasher: inout Hasher) {
 //        hasher.combine(self.toString())
