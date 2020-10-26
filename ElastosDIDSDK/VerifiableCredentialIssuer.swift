@@ -67,14 +67,16 @@ public class VerifiableCredentialIssuer: NSObject {
     ///   - doc: Specified DID document
     ///   - signKey:  Issuer’s key to sign credential.
     /// - Throws: if an error occurred, throw error.
-    @objc public convenience init(_ doc: DIDDocument, _ signKey: DIDURL) throws {
+    @objc
+    public convenience init(_ doc: DIDDocument, _ signKey: DIDURL) throws {
         try self.init(doc: doc, signKey: signKey)
     }
 
     /// Create a issuer to issue Credential.
     /// - Parameter doc: Specified DID document
     /// - Throws: if an error occurred, throw error.
-    @objc public convenience init(_ doc: DIDDocument) throws {
+    @objc
+    public convenience init(_ doc: DIDDocument) throws {
         try self.init(doc: doc, signKey: nil)
     }
 
@@ -84,7 +86,8 @@ public class VerifiableCredentialIssuer: NSObject {
     ///   - signKey: Issuer’s key to sign credential.
     ///   - store: The handle to DIDStore.
     /// - Throws: if an error occurred, throw error.
-    @objc public convenience init(_ did: DID, _ signKey: DIDURL, _ store: DIDStore) throws {
+    @objc
+    public convenience init(_ did: DID, _ signKey: DIDURL, _ store: DIDStore) throws {
         try self.init(did, signKey: signKey, store)
     }
 
@@ -99,12 +102,14 @@ public class VerifiableCredentialIssuer: NSObject {
     }
 
     /// Issuer’s did.
-    @objc public var did: DID {
+    @objc
+    public var did: DID {
         return _issuerDoc.subject
     }
 
     /// Get the DID of this issuer.
-    @objc public var signKey: DIDURL {
+    @objc
+    public var signKey: DIDURL {
         return _signKey
     }
 
@@ -112,7 +117,8 @@ public class VerifiableCredentialIssuer: NSObject {
     /// - Parameter did: Issuer’s did.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc public func editingVerifiableCredentialFor(did: String) throws -> VerifiableCredentialBuilder {
+    @objc
+    public func editingVerifiableCredentialFor(did: String) throws -> VerifiableCredentialBuilder {
         return VerifiableCredentialBuilder(try DID(did), _issuerDoc, signKey)
     }
 

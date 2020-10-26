@@ -68,7 +68,8 @@ public class JsonGenerator: NSObject {
         }
     }
 
-    @objc public override init() {
+    @objc
+    public override init() {
         self.position = 0
         self.deep = 0
         self.buffer = ""
@@ -122,7 +123,8 @@ public class JsonGenerator: NSObject {
     }
 
     /// Method for writing starting marker of an Object value.
-    @objc public func writeStartObject() {
+    @objc
+    public func writeStartObject() {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -133,7 +135,8 @@ public class JsonGenerator: NSObject {
     }
 
     /// Method for writing closing marker of an Object value.
-    @objc public func writeEndObject() {
+    @objc
+    public func writeEndObject() {
         buffer.append(JsonGenerator.OBJECT_END)
         _ = popState()
         if getState() == .Field {
@@ -142,13 +145,15 @@ public class JsonGenerator: NSObject {
     }
 
     /// Method for writing starting marker of a Array value.
-    @objc public func writeStartArray() {
+    @objc
+    public func writeStartArray() {
         buffer.append(JsonGenerator.ARRAY_STARTED)
         pushState(.Array)
     }
 
     /// Method for writing closing marker of a JSON Array value.
-    @objc public func writeEndArray() {
+    @objc
+    public func writeEndArray() {
         buffer.append(JsonGenerator.ARRAY_END)
         _ = popState()
         if getState() == .Field {
@@ -158,7 +163,8 @@ public class JsonGenerator: NSObject {
 
     /// Method for writing a field name .
     /// - Parameter name: Field names
-    @objc public func writeFieldName(_ name: String) {
+    @objc
+    public func writeFieldName(_ name: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -175,7 +181,8 @@ public class JsonGenerator: NSObject {
     /// Public API, write methods, binary/raw content.
     /// Method that will force generator to copy input text verbatim without any modifications.
     /// - Parameter value: String value to write
-    @objc public func writeRawValue(_ value: String) {
+    @objc
+    public func writeRawValue(_ value: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -192,7 +199,8 @@ public class JsonGenerator: NSObject {
     ///  Public API, write methods, text/String values.
     ///  Method for outputting a String value.
     /// - Parameter value: String value to write
-    @objc public func writeString(_ value: String) {
+    @objc
+    public func writeString(_ value: String) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -216,7 +224,8 @@ public class JsonGenerator: NSObject {
     /// Public API, write methods, numeric.
     /// Method for outputting given value as JSON number.
     /// - Parameter value: Number value to write
-    @objc public func writeNumber(_ value: Any) {
+    @objc
+    public func writeNumber(_ value: Any) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -233,7 +242,8 @@ public class JsonGenerator: NSObject {
     /// Public API, write methods, other value types.
     /// Method for outputting literal JSON boolean value (one of Strings 'true' and 'false').
     /// - Parameter value: Bool value to write
-    @objc public func writeBool(_ value: Bool) {
+    @objc
+    public func writeBool(_ value: Bool) {
         if isSticky() {
             buffer.append(JsonGenerator.COMMA)
         }
@@ -262,7 +272,8 @@ public class JsonGenerator: NSObject {
     /// - Parameters:
     ///   - name: Field names
     ///   - value: String value to write
-    @objc public func writeStringField(_ name: String, _ value: String) {
+    @objc
+    public func writeStringField(_ name: String, _ value: String) {
         writeFieldName(name)
         writeString(value)
     }
@@ -276,7 +287,8 @@ public class JsonGenerator: NSObject {
     /// - Parameters:
     ///   - name: Field names
     ///   - value: Int value to write
-    @objc public func writeNumberField(_ name: String, _ value: Int) {
+    @objc
+    public func writeNumberField(_ name: String, _ value: Int) {
         writeFieldName(name)
         writeNumber(value)
     }
@@ -290,14 +302,16 @@ public class JsonGenerator: NSObject {
     /// - Parameters:
     ///   - name: Field names
     ///   - value: Bool value to write
-    @objc public func writeBoolField(_ name: String, _ value: Bool) {
+    @objc
+    public func writeBoolField(_ name: String, _ value: Bool) {
         writeFieldName(name)
         writeBool(value)
     }
 
     /// JsonGenerator converted to json string
     /// - Returns: String value
-    @objc public func toString() -> String {
+    @objc
+    public func toString() -> String {
         let output = buffer
         buffer = ""
         return output

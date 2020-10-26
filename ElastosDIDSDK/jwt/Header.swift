@@ -46,33 +46,38 @@ public class Header: NSObject {
 
     var headers: [String: Any] = [: ]
 
-    @objc public override init() { }
+    @objc
+    public override init() { }
 
     /// Set header 'typ'.
     /// - Parameter type: The type value.
     /// - Returns: Header instance.
-    @objc public func setType(_ type: String) -> Header {
+    @objc
+    public func setType(_ type: String) -> Header {
         headers[Header.TYPE] = type
         return self
     }
 
     /// Get header type.
     /// - Returns: If has, return value string. Otherwise, return nil.
-    @objc public func getType() -> String? {
+    @objc
+    public func getType() -> String? {
         return headers[Header.TYPE] as? String
     }
 
     /// Set header 'cty'.
     /// - Parameter contentType: The content type value.
     /// - Returns: Header instance.
-    @objc public func setContentType(_ contentType: String) -> Header {
+    @objc
+    public func setContentType(_ contentType: String) -> Header {
         headers[Header.CONTENT_TYPE] = contentType
         return self
     }
 
     /// Get header content type.
     /// - Returns: If has, return value string. Otherwise, return nil.
-    @objc public func getContentType() -> String? {
+    @objc
+    public func getContentType() -> String? {
         return headers[Header.CONTENT_TYPE] as? String
     }
 
@@ -81,7 +86,8 @@ public class Header: NSObject {
     ///   - key: The key string.
     ///   - value: The value string.
     /// - Returns: Header instance.
-    @objc public func setValue(key: String, value: Any) -> Header {
+    @objc
+    public func setValue(key: String, value: Any) -> Header {
         headers[key] = value
         return self
     }
@@ -89,33 +95,38 @@ public class Header: NSObject {
     /// Get header value by header key.
     /// - Parameter key: The key to header.
     /// - Returns: If has, return value. Otherwise, return nil.
-    @objc public func getValue(key: String) -> Any? {
+    @objc
+    public func getValue(key: String) -> Any? {
         return headers[key] as Any
     }
 
     /// Get Header count.
     /// - Returns: Header count.
-    @objc public func size() -> Int {
+    @objc
+    public func size() -> Int {
         return headers.count
     }
 
     /// Check header is empty or not.
     /// - Returns: true if header is empty, otherwise false.
-    @objc public func isEmpty() -> Bool {
+    @objc
+    public func isEmpty() -> Bool {
         return headers.isEmpty
     }
 
     /// Check key if headers key or not.
     /// - Parameter key: The key string.
     /// - Returns: True if has headers key, or false.
-    @objc public func containsKey(key: String) -> Bool {
+    @objc
+    public func containsKey(key: String) -> Bool {
         return headers[key] != nil
     }
 
     /// Check key if headers value or not.
     /// - Parameter value: The value string.
     /// - Returns: True if has headers value, or false.
-    @objc public func containsValue(value: Any) -> Bool {
+    @objc
+    public func containsValue(value: Any) -> Bool {
         for v in headers.values {
             if v as AnyObject === value as AnyObject {
                 return true
@@ -127,7 +138,8 @@ public class Header: NSObject {
     /// Get header value by header key.
     /// - Parameter key: The key string.
     /// - Returns: If has, return value. Otherwise, return nil.
-    @objc public func get(key: String) -> Any? {
+    @objc
+    public func get(key: String) -> Any? {
         return headers[key]
     }
 
@@ -135,14 +147,16 @@ public class Header: NSObject {
     /// - Parameters:
     ///   - key: The key string.
     ///   - value: The value string.
-    @objc public func put(key: String, value: String) {
+    @objc
+    public func put(key: String, value: String) {
         headers[key] = value
     }
 
     /// Remove header value by header key.
     /// - Parameter key: The key string.
     /// - Returns: If has, return value. Otherwise, return nil.
-    @objc public func remove(key: String) -> Any? {
+    @objc
+    public func remove(key: String) -> Any? {
         let value = headers[key]
         headers.removeValue(forKey: key)
 
@@ -151,18 +165,21 @@ public class Header: NSObject {
 
     /// Add header value by dictionary.
     /// - Parameter dic: The header key-value.
-    @objc public func putAll(dic: [String: Any]) {
+    @objc
+    public func putAll(dic: [String: Any]) {
         headers.merge(dict: dic)
     }
 
     /// Clear header
-    @objc public func clear() {
+    @objc
+    public func clear() {
         headers.removeAll()
     }
 
     /// Get header values.
     /// - Returns: Array of header.
-    @objc public func values() -> [Any] {
+    @objc
+    public func values() -> [Any] {
         var values = [Any]()
         headers.forEach { k, v in
             values.append(v)

@@ -43,27 +43,32 @@ public class VerifiablePresentationProof: NSObject {
     }
 
     /// The type of target data is a verifiable expression
-    @objc public var type: String {
+    @objc
+    public var type: String {
         return _type
     }
 
     /// Proof method, the value is the public key reference used for signing and verification in the provider DID document
-    @objc public var verificationMethod: DIDURL {
+    @objc
+    public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
     /// Target areas to which the expression applies, such as website domain names, application names, etc.
-    @objc public var realm: String {
+    @objc
+    public var realm: String {
         return _realm
     }
 
     /// Random value used for signature operation
-    @objc public var nonce: String {
+    @objc
+    public var nonce: String {
         return _nonce
     }
 
     /// The signed value, using Base64 encoding
-    @objc public var signature: String {
+    @objc
+    public var signature: String {
         return _signature
     }
 

@@ -75,7 +75,6 @@ public class Service: DIDObject {
     }
 }
 
-// TODO:
 extension Service {
     public static func == (lhs: Service, rhs: Service) -> Bool {
         return lhs.equalsTo(rhs)
@@ -83,5 +82,10 @@ extension Service {
 
     public static func != (lhs: Service, rhs: Service) -> Bool {
         return !lhs.equalsTo(rhs)
+    }
+
+    @objc
+    public override func isEqual(_ object: Any?) -> Bool {
+        return equalsTo(object as! DIDObject)
     }
 }
