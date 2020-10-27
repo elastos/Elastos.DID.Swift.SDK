@@ -45,6 +45,7 @@ public enum DIDError: Error {
     case invalidKeyError(_ des: String? = nil)
 
     case notFoundError (_ des: String? = nil)
+    case didMetaDateLocalFormatError (_ des: String? = nil)
 }
 
 extension DIDError {
@@ -90,6 +91,8 @@ extension DIDError {
             return des ?? "did not found"
         case .invalidKeyError(let des):
             return des ?? "invalid key"
+        case .didMetaDateLocalFormatError(let des):
+            return des ?? "Loading metadata format error."
         }
     }
 }

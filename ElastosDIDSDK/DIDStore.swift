@@ -41,6 +41,7 @@ public class DIDStore: NSObject {
 
     private var storage: DIDStorage
     private var backend: DIDBackend
+    private static var storePath: String = ""
 
     private init(_ initialCapacity: Int, _ maxCapacity: Int, _ adapter: DIDAdapter, _ storage: DIDStorage) {
         if maxCapacity > 0 {
@@ -74,6 +75,7 @@ public class DIDStore: NSObject {
         }
 
         let storage = try FileSystemStorage(path)
+        storePath = path
         return DIDStore(initialCacheCapacity, maxCacheCapacity, adapter, storage)
     }
 
@@ -1320,16 +1322,44 @@ public class DIDStore: NSObject {
                 }
             }
         }
-        metadata = try storage.loadDidMetadata(did)
+        do {
+            metadata = try storage.loadDidMetadata(did)
+        } catch {
+            // Local did format error, resolver storage .
+            let path: String = DIDStore.storePath + "/" + Constants.DID_DIR + "/" + did.methodSpecificId + Constants.META_FILE
+            _ = try deleteFile(path)
+            doc = try did.resolve()
+            metadata = DIDMeta()
+            if doc != nil {
+                metadata = doc?.getMetadata()
+            }
+            else {
+                metadata?.setDeactivated(false)
+            }
+            try storeDidMetadata(did, metadata!)
+        }
         if doc != nil {
             doc!.setMetadata(metadata!)
         }
         return metadata!
     }
-
+    
     func loadDidMetadata(_ did: String) throws -> DIDMeta {
         let _did = try DID(did)
         return try loadDidMetadata(_did)
+    }
+
+    private func deleteFile(_ path: String) throws -> Bool {
+        let fileManager = FileManager.default
+        var isDir = ObjCBool.init(false)
+        let fileExists = fileManager.fileExists(atPath: path, isDirectory: &isDir)
+        // If path is a folder, traverse the subfiles under the folder and delete them
+        let re: Bool = false
+        guard fileExists else {
+            return re
+        }
+        try fileManager.removeItem(atPath: path)
+        return true
     }
 
     /// Load DID Document from DID Store.
@@ -1453,7 +1483,20 @@ public class DIDStore: NSObject {
                 return metadata!
             }
         }
-        metadata = try? storage.loadCredentialMetadata(did, byId)
+        do {
+            metadata = try storage.loadCredentialMetadata(did, byId)
+        } catch {
+            if error is  DIDError {
+                switch error as! DIDError {
+                case .didMetaDateLocalFormatError("Loading metadata format error."):
+                    let path = DIDStore.storePath + "/" + Constants.DID_DIR + "/" + did.methodSpecificId + "/" + Constants.CREDENTIALS_DIR + "/" + byId.fragment! + "/" + Constants.META_FILE
+                    _ = try deleteFile(path)
+                    break
+                default:
+                    break
+                }
+            }
+        }
         if metadata == nil {
             metadata = CredentialMeta()
         }

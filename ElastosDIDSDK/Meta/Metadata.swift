@@ -115,10 +115,14 @@ public class Metadata: NSObject {
         defer {
             reader.closeFile()
         }
-
-        let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
-        let dic = json as! Dictionary<String, Any>
-        let node = JsonNode(dic)
+        var node = JsonNode()
+        do {
+            let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+            let dic = json as! Dictionary<String, Any>
+            node = JsonNode(dic)
+        } catch {
+            throw DIDError.didMetaDateLocalFormatError("Loading metadata format error.")
+        }
 
         try load(node)
     }
