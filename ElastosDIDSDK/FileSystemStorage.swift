@@ -491,6 +491,13 @@ public class FileSystemStorage: DIDStorage {
 
             metadata.setLastModified(modificationDate)
         } catch {
+            if error is DIDError {
+                switch error as! DIDError {
+                case .didMetaDateLocalFormatError("Loading metadata format error."):
+                    throw error
+                default: break
+                }
+            }
 //            print("Ignore")
         }
 
@@ -654,7 +661,18 @@ public class FileSystemStorage: DIDStorage {
 
             return metadata
         } catch {
-            throw DIDError.didStoreError("load credential meta error")
+            if error is DIDError {
+                switch error as! DIDError {
+                case .didMetaDateLocalFormatError("Loading metadata format error."):
+                    throw error
+                default:
+                    throw DIDError.didStoreError("load credential meta error")
+                }
+            }
+            else {
+                throw DIDError.didStoreError("load credential meta error")
+            }
+//            print("Ignore")
         }
     }
 
