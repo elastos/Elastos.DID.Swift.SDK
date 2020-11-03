@@ -1,3 +1,14 @@
+11/03/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.2**, main changes to previous version:
+
+```markdown
+- Add verify of nbf & exp fields when parse the JWT token.
+- Public some apis.
+- Compatiable the old format of meta file.
+- Minor bug fixes.
+```
+
 09/15/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.1.0**, main changes to previous version:
