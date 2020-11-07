@@ -307,6 +307,14 @@ public class Claims {
         claims[key] = value
         return self
     }
+
+    public func asDictionary() -> Dictionary<String, Any> {
+        var dic: [String: Any] = [: ]
+        claims.forEach { k, v in
+            dic[k] = v
+        }
+        return dic
+    }
 }
 
 public extension Claims {
