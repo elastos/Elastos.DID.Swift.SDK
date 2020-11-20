@@ -1,3 +1,12 @@
+11/20/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.3**, main changes to previous version:
+
+```markdown
+- Add asDictionary method for claim.
+- Adapter xcode12.2.
+```
+
 11/03/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.2**, main changes to previous version:
