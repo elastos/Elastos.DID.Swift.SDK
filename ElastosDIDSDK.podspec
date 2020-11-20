@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name = 'ElastosDIDSDK'
-  s.version = '1.2'
+  s.version = '1.3'
   s.summary ='Elastos DID Swift SDK Distribution'
   s.swift_version  = '4.2'
   s.description = 'Elastos DID Swift SDK framework distribution'
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.author       = { 'did-dev' => 'support@elastos.org' }
   s.platform     = :ios, '11.0'
   s.ios.deployment_target = '11.0'
-  s.source       = {'http':'https://github.com/elastos/Elastos.DID.Swift.SDK/releases/download/release-v1.2/ElastosDIDSDK-framework.zip'}
+  s.source       = {'http':'https://github.com/elastos/Elastos.DID.Swift.SDK/releases/download/release-v1.3/ElastosDIDSDK-framework.zip'}
   s.vendored_frameworks = 'ElastosDIDSDK-framework/*.framework'
   s.source_files = 'ElastosDIDSDK-framework/ElastosDIDSDK.framework/**/*.h'
   s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
