@@ -1,3 +1,11 @@
+12/01/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.4**, main changes to previous version:
+
+```markdown
+- Support bitcode.
+```
+
 11/20/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.3**, main changes to previous version:
