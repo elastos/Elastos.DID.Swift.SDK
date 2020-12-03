@@ -21,7 +21,7 @@
 */
 
 import Foundation
-import Antlr4
+//import Antlr4
 
 class DIDAntlr4ErrorListener: BaseErrorListener {
     override func syntaxError<T>(_ recognizer: Recognizer<T>,

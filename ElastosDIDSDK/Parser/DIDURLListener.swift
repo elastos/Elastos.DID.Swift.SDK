@@ -1,5 +1,5 @@
 // Generated from DIDURL.g4 by ANTLR 4.7.2
-import Antlr4
+//import Antlr4
 
 /**
  * This interface defines a complete listener for a parse tree produced by
