@@ -1209,7 +1209,7 @@ public class DIDDocument: NSObject {
             if json != "" {
                 let cjson = json!.toUnsafePointerInt8()!
                 cinputs.append(cjson)
-                cinputs.append(json!.count)
+                cinputs.append(json!.lengthOfBytes(using: .utf8))
                 capacity += json!.count * 3
             }
         }

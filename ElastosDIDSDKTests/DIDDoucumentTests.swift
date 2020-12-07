@@ -8,6 +8,97 @@ class DIDDoucumentTests: XCTestCase {
     var compactPath: String!
     var documentPath: String!
     var normalizedPath: String!
+
+    func test0Payload() {
+        let payload = "eyJpZCI6ImRpZDplbGFzdG9zOmlqNUIyVE02NzVRazlSdVFVOXVHUnFNMTQ0SzRMUktNblIiLCJwdWJsaWNLZXkiOlt7ImlkIjoiI3ByaW1hcnkiLCJwdWJsaWNLZXlCYXNlNTgiOiIyN1JOMkNySlpxS21aMjFHMko1VWdNWG14aUVkbTFwYWVMZG5CU1BGd3hZR0MifV0sImF1dGhlbnRpY2F0aW9uIjpbIiNwcmltYXJ5Il0sInZlcmlmaWFibGVDcmVkZW50aWFsIjpbeyJpZCI6IiNuYW1lIiwidHlwZSI6WyJCYXNpY1Byb2ZpbGVDcmVkZW50aWFsIiwiU2VsZlByb2NsYWltZWRDcmVkZW50aWFsIl0sImlzc3VhbmNlRGF0ZSI6IjIwMjAtMDMtMDNUMTI6MjA6MDhaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDIwLTAzLTE4VDEyOjIwOjA4WiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7Im5hbWUiOiLmiZjlsJTmlq_ms7AifSwicHJvb2YiOnsidmVyaWZpY2F0aW9uTWV0aG9kIjoiI3ByaW1hcnkiLCJzaWduYXR1cmUiOiJrSmVZVE5weEt4NjR5X3hYME5xdmFNVlF2TWxiY2xxTkJpYzJHUnYyMXo0dVZsMnRuNFVCZkNJbVR6ZHlGVUV3c3NEbkFCM21ub0xNYWhDckpWU19XdyJ9fV0sImV4cGlyZXMiOiIyMDI1LTAzLTAzVDEyOjIwOjA3WiIsInByb29mIjp7ImNyZWF0ZWQiOiIyMDIwLTEyLTA1VDAyOjAxOjMxWiIsInNpZ25hdHVyZVZhbHVlIjoiZmc1Sm5Hc3kyeS1XaVpvYlZIMDV0V3hod3QyMHZQcUd3UzBnZnRWU0dhT2dHdmxRSWJKVlc3cFhxY2d4VWdxYTB4WDAyVy1wS1MxdHNyRkJ6aEs2b0EifX0"
+        let capacity = payload.count * 3
+        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let cp = payload.toUnsafePointerInt8()
+        let c = base64_url_decode(buffer, cp)
+        buffer[c] = 0
+        let json: String = String(cString: buffer)
+        print("json == \(json)")
+        do {
+            let doc = try DIDDocument.convertToDIDDocument(fromJson: json)
+            let vc = try doc.credential(ofId: "did:elastos:ij5B2TM675Qk9RuQU9uGRqM144K4LRKMnR#name")
+            let dataString = vc!.toJson(true, true)
+            print("doc === \(doc.description)")
+            print("vcstring====\(dataString)")
+            let publicKeyBase58 = "27RN2CrJZqKmZ21G2J5UgMXmxiEdm1paeLdnBSPFwxYGC"
+            let pks = Base58.bytesFromBase58(publicKeyBase58)
+            var pkData = Data(bytes: pks, count: pks.count)
+            let cpk = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+                return pk
+            }
+            // vc 验签
+            let signature = "kJeYTNpxKx64y_xX0NqvaMVQvMlbclqNBic2GRv21z4uVl2tn4UBfCImTzdyFUEwssDnAB3mnoLMahCrJVS_Ww"
+            let digest = sha256Digest([dataString.data(using: .utf8)!])
+            let cdigest = digest.toPointer()
+            let size: Int = digest.count
+            let csignature = signature.toUnsafeMutablePointerInt8()
+            let re = ecdsa_verify_base64(csignature, cpk, UnsafeMutablePointer(mutating: cdigest), size)
+            print("vcre==\(re)")
+            
+            // doc 验签
+            let dataString1 = doc.toString(true, forSign: true)
+            let signature1 = "fg5JnGsy2y-WiZobVH05tWxhwt20vPqGwS0gftVSGaOgGvlQIbJVW7pXqcgxUgqa0xX02W-pKS1tsrFBzhK6oA"
+            let digest1 = sha256Digest([dataString1.data(using: .utf8)!])
+            let cdigest1 = digest1.toPointer()
+            let size1: Int = digest1.count
+            let csignature1 = signature1.toUnsafeMutablePointerInt8()
+            let docRe = ecdsa_verify_base64(csignature1, cpk, UnsafeMutablePointer(mutating: cdigest1), size1)
+            print("docRe==\(docRe)")
+            
+            let json = doc.toString()
+            let capacity = json.count * 3
+
+            // payload
+            let cInput = json.toUnsafePointerUInt8()
+            let cPayload = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+            let rePayload = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
+            cPayload[rePayload] = 0
+            let payload = String(cString: cPayload)
+            print(payload)
+            
+        } catch {
+        print("error=====\(error)")
+        }
+    }
+
+    private func sha256Digest(_ data: [Data]) -> Data {
+        var cinputs: [CVarArg] = []
+        var capacity: Int = 0
+        data.forEach { data in
+            let json = String(data: data, encoding: .utf8)
+            if json != "" {
+                let cjson = json!.toUnsafePointerInt8()!
+                cinputs.append(cjson)
+                cinputs.append(json!.lengthOfBytes(using: .utf8))
+                capacity += json!.count * 3
+            }
+        }
+
+        let c_inputs = getVaList(cinputs)
+        let count = cinputs.count / 2
+        
+        // digest
+        let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let size = sha256v_digest(cdigest, Int32(count), c_inputs)
+        let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
+
+        return Data(buffer: cdigestPointerToArry)
+    }
+    
+    func getDictionaryFromJSONString(_ jsonString: String) -> Dictionary<String, Any> {
+     
+        let jsonData:Data = jsonString.data(using: .utf8)!
+     
+        let dict = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers)
+        if dict != nil {
+            return dict as! [String: Any]
+        }
+        return [: ]
+    }
     
     func testGetPublicKey() {
         do {
