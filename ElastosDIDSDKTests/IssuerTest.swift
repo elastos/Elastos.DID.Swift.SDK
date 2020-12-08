@@ -39,7 +39,7 @@ class IssuerTest: XCTestCase {
             _ = try testData.setup(true)
             var issuerDoc: DIDDocument = try testData.loadTestIssuer()
             
-            let key: HDKey = try TestData.generateKeypair()
+            let key = try TestData.generateKeypair()
             let signKey: DIDURL = try DIDURL(issuerDoc.subject, "testKey")
             let db: DIDDocumentBuilder = issuerDoc.editing()
             _ = try db.appendAuthenticationKey(with: signKey, keyBase58: key.getPublicKeyBase58())

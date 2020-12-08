@@ -173,7 +173,7 @@ public class DIDStore: NSObject {
             usedPhrase = ""
         }
 
-        let privateIdentity = HDKey(mnemonic, usedPhrase!, language)
+        let privateIdentity = HiveHDKey(mnemonic, usedPhrase!, language)
         try initializePrivateIdentity(privateIdentity, storePassword)
 
         // Save mnemonic
@@ -251,14 +251,14 @@ public class DIDStore: NSObject {
         try initializePrivateIdentity(language, mnemonic, nil, storePassword, false)
     }
 
-    private func initializePrivateIdentity(_ privateIdentity: HDKey,
+    private func initializePrivateIdentity(_ privateIdentity: HiveHDKey,
                                            _ storePassword: String) throws {
         // Save extended root private key
         let encryptedIdentity = try DIDStore.encryptToBase64(privateIdentity.serialize(), storePassword)
         try storage.storePrivateIdentity(encryptedIdentity)
 
         // Save pre-derived public key
-        let preDerivedKey = try privateIdentity.derive(HDKey.PRE_DERIVED_PUBLICKEY_PATH)
+        let preDerivedKey = try privateIdentity.derive(HiveHDKey.HIVE_PRE_DERIVED_PUBLICKEY_PATH)
         try storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58())
 
         // Save index
@@ -281,7 +281,7 @@ public class DIDStore: NSObject {
          guard !containsPrivateIdentity() || force else {
          throw DIDError.didStoreError("Already has private indentity.")
          }
-         let privateIdentity = HDKey.deserializeBase58(extendedPrivateKey)
+         let privateIdentity = HiveHDKey.deserializeBase58(extendedPrivateKey)
          try initializePrivateIdentity(privateIdentity, storePassword)
     }
 
@@ -332,27 +332,27 @@ public class DIDStore: NSObject {
     }
 
     // initialized from saved private identity from DIDStore.
-    func loadPrivateIdentity(_ storePassword: String) throws -> HDKey {
+    func loadPrivateIdentity(_ storePassword: String) throws -> HiveHDKey {
         guard containsPrivateIdentity() else {
             throw DIDError.didStoreError("no private identity contained")
         }
 
-        let privateIdentity: HDKey?
+        let privateIdentity: HiveHDKey?
         var keyData = try DIDStore.decryptFromBase64(storage.loadPrivateIdentity(), storePassword)
         defer {
             keyData.removeAll()
         }
 
-        if  keyData.count == HDKey.SEED_BYTES {
+        if  keyData.count == HiveHDKey.HIVE_SEED_BYTES {
             // For backward compatible, convert to extended root private key
             // TODO: Should be remove in the future
-            privateIdentity = HDKey(keyData)
+            privateIdentity = HiveHDKey(keyData)
 
             // convert to extended root private key.
             let encryptedIdentity = try DIDStore.encryptToBase64(privateIdentity!.serialize(), storePassword)
             try storage.storePrivateIdentity(encryptedIdentity)
-        } else if keyData.count == HDKey.EXTENDED_PRIVATEKEY_BYTES {
-            privateIdentity = HDKey.deserialize(keyData)
+        } else if keyData.count == HiveHDKey.HIVE_EXTENDED_PRIVATEKEY_BYTES {
+            privateIdentity = HiveHDKey.deserialize(keyData)
         } else {
             throw DIDError.didStoreError("invalid private identity")
         }
@@ -360,19 +360,19 @@ public class DIDStore: NSObject {
         // For backward compatible, create pre-derived public key if not exist.
         // TODO: Should be remove in the future
         if (!storage.containsPublicIdentity()) {
-            let preDerivedKey = try privateIdentity!.derive(HDKey.PRE_DERIVED_PUBLICKEY_PATH)
+            let preDerivedKey = try privateIdentity!.derive(HiveHDKey.HIVE_PRE_DERIVED_PUBLICKEY_PATH)
             try storage.storePublicIdentity(preDerivedKey.serializePublicKeyBase58())
         }
         return privateIdentity!
     }
 
-    func loadPublicIdentity() throws -> HDKey {
+    func loadPublicIdentity() throws -> HiveHDKey {
         guard containsPrivateIdentity() else {
             throw DIDError.didStoreError("no private identity contained")
         }
 
         let keyData = try storage.loadPublicIdentity()
-        let publicIdentity = HDKey.deserializeBase58(keyData)
+        let publicIdentity = HiveHDKey.deserializeBase58(keyData)
 
         return publicIdentity
     }
@@ -385,7 +385,7 @@ public class DIDStore: NSObject {
         }
 
         let nextIndex = try storage.loadPrivateIdentityIndex()
-        let privateIdentity: HDKey?
+        let privateIdentity: HiveHDKey?
         privateIdentity = try loadPrivateIdentity(storePassword)
         if privateIdentity == nil {
             throw DIDError.didStoreError("DID Store does not contains private identity.")
@@ -395,8 +395,8 @@ public class DIDStore: NSObject {
         var i = 0
 
         while i < nextIndex || blanks < 20 {
-            let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
-            let key: HDKey = try privateIdentity!.derive(path)
+            let path = HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "\(i)"
+            let key: HiveHDKey = try privateIdentity!.derive(path)
             i += 1
             let did = DID(Constants.METHOD, key.getAddress())
 
@@ -593,7 +593,7 @@ public class DIDStore: NSObject {
         }
 
         let privateIdentity = try loadPrivateIdentity(storePassword)
-        let path = HDKey.DERIVE_PATH_PREFIX + "\(privateIdentityIndex)"
+        let path = HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "\(privateIdentityIndex)"
         let key = try privateIdentity.derive(path)
 
         defer {
@@ -2160,11 +2160,11 @@ public class DIDStore: NSObject {
         // For backward compatible, convert to extended private key
         // TODO: Should be remove in the future
         var extendedKeyBytes: Data?
-        if keyBytes.count == HDKey.PRIVATEKEY_BYTES {
+        if keyBytes.count == HiveHDKey.HIVE_PRIVATEKEY_BYTES {
             let identity = try? loadPrivateIdentity(storePassword)
             if identity != nil {
                 for i in 0..<100 {
-                    let path = HDKey.DERIVE_PATH_PREFIX + "\(i)"
+                    let path = HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "\(i)"
                     let child = try identity!.derive(path)
                     if child.getPrivateKeyData() == keyBytes {
                         extendedKeyBytes = try child.serialize()
@@ -2175,7 +2175,7 @@ public class DIDStore: NSObject {
                 identity?.wipe()
             }
             if extendedKeyBytes == nil {
-                extendedKeyBytes = HDKey.paddingToExtendedPrivateKey(keyBytes)
+                extendedKeyBytes = HiveHDKey.paddingToExtendedPrivateKey(keyBytes)
             }
             try storePrivateKey(for: did, id: byId, privateKey: extendedKeyBytes!, using: storePassword)
         }
@@ -2273,7 +2273,7 @@ public class DIDStore: NSObject {
             usedId = doc?.defaultPublicKey
         }
         
-        let key = try HDKey.deserialize(loadPrivateKey(did, usedId!, storePassword));
+        let key = try HiveHDKey.deserialize(loadPrivateKey(did, usedId!, storePassword));
         let privatekeys = key.getPrivateKeyData()
         let toPPointer = privatekeys.toPointer()
         

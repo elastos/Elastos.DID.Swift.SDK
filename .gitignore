@@ -13,9 +13,6 @@ xcshareddata
 /node_modules
 /package-lock.json
 
-/Externals/HDKey/lib/-iphoneos
-/Externals/HDKey/lib/-iphonesimulator
-/Externals/HDKey/lib/maces
 /Externals/SPVWrapper/SPVWrapper/lib/-iphoneos
 /Externals/SPVWrapper/SPVWrapper/lib/-iphonesimulator
 /Externals/SPVWrapper/SPVWrapper/lib/macos
