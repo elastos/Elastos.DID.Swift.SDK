@@ -1215,7 +1215,7 @@ class DIDDoucumentTests: XCTestCase {
 
             for i in -100..<100 {
                 let strKey = try doc.derive(identifier, i, storePass)
-                let key = HiveHDKey.deserializeBase58(strKey)
+                let key = DIDHDKey.deserializeBase58(strKey)
 
                 let binKey = Base58.bytesFromBase58(strKey)
                 let sk = Array(binKey[46..<78])

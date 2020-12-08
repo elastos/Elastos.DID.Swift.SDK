@@ -17,13 +17,13 @@ class HDKeyTest: XCTestCase {
         do {
             let expectedIDString = "iY4Ghz9tCuWvB5rNwvn4ngWvthZMNzEA7U"
             let mnemonic = "cloth always junk crash fun exist stumble shift over benefit fun toe"
-            let root = HiveHDKey.init(mnemonic, "", Mnemonic.HIVE_ENGLISH)
-            let key = try root.derive(HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "0")
+            let root = DIDHDKey.init(mnemonic, "", Mnemonic.DID_ENGLISH)
+            let key = try root.derive(DIDHDKey.DID_DERIVE_PATH_PREFIX + "0")
 
             XCTAssertEqual(expectedIDString, key.getAddress())
 
-            let sk = HiveHDKey.paddingToExtendedPrivateKey(key.getPrivateKeyData())
-            let rk = HiveHDKey.deserialize(sk)
+            let sk = DIDHDKey.paddingToExtendedPrivateKey(key.getPrivateKeyData())
+            let rk = DIDHDKey.deserialize(sk)
             XCTAssertEqual(key.getPublicKeyBase58(), rk.getPublicKeyBase58())
             XCTAssertEqual(key.getPrivateKeyBase58(), rk.getPrivateKeyBase58())
         } catch {
@@ -35,13 +35,13 @@ class HDKeyTest: XCTestCase {
         do {
             let expectedIDString = "iW3HU8fTmwkENeVT9UCEvvg3ddUD5oCxYA"
             let mnemonic = "service illegal blossom voice three eagle grace agent service average knock round"
-            let root = HiveHDKey.init(mnemonic, "", Mnemonic.HIVE_ENGLISH)
-            let key = try root.derive(HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "0")
+            let root = DIDHDKey.init(mnemonic, "", Mnemonic.DID_ENGLISH)
+            let key = try root.derive(DIDHDKey.DID_DERIVE_PATH_PREFIX + "0")
 
             XCTAssertEqual(expectedIDString, key.getAddress())
 
-            let sk = HiveHDKey.paddingToExtendedPrivateKey(key.getPrivateKeyData())
-            let rk = HiveHDKey.deserialize(sk)
+            let sk = DIDHDKey.paddingToExtendedPrivateKey(key.getPrivateKeyData())
+            let rk = DIDHDKey.deserialize(sk)
             XCTAssertEqual(key.getPublicKeyBase58(), rk.getPublicKeyBase58())
             XCTAssertEqual(key.getPrivateKeyBase58(), rk.getPrivateKeyBase58())
         } catch {
@@ -55,12 +55,12 @@ class HDKeyTest: XCTestCase {
             let passphrase = "helloworld"
             let key = "xprv9s21ZrQH143K4biiQbUq8369meTb1R8KnstYFAKtfwk3vF8uvFd1EC2s49bMQsbdbmdJxUWRkuC48CXPutFfynYFVGnoeq8LJZhfd9QjvUt"
 
-            var root = HiveHDKey.init(mnemonic, passphrase, Mnemonic.HIVE_ENGLISH)
+            var root = DIDHDKey.init(mnemonic, passphrase, Mnemonic.DID_ENGLISH)
 
             XCTAssertEqual(key, root.serializeBase58())
 
             let keyBytes = try root.serialize()
-            root = HiveHDKey.deserializeBase58(key)
+            root = DIDHDKey.deserializeBase58(key)
             XCTAssertEqual(key, root.serializeBase58())
             XCTAssertEqual(keyBytes, try root.serialize())
         } catch {
@@ -73,13 +73,13 @@ class HDKeyTest: XCTestCase {
             let mnemonic = "pact reject sick voyage foster fence warm luggage cabbage any subject carbon"
             let passphrase = "helloworld"
 
-            let root = HiveHDKey.init(mnemonic, passphrase, Mnemonic.HIVE_ENGLISH)
-            let preDerivedKey = try root.derive(HiveHDKey.HIVE_PRE_DERIVED_PUBLICKEY_PATH)
+            let root = DIDHDKey.init(mnemonic, passphrase, Mnemonic.DID_ENGLISH)
+            let preDerivedKey = try root.derive(DIDHDKey.DID_PRE_DERIVED_PUBLICKEY_PATH)
             let preDerivedPubBase58 = try preDerivedKey.serializePublicKeyBase58()
-            let preDerivedPub = HiveHDKey.deserializeBase58(preDerivedPubBase58)
+            let preDerivedPub = DIDHDKey.deserializeBase58(preDerivedPubBase58)
 
             for i in 0...1000 {
-                let path = HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "\(i)"
+                let path = DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(i)"
                 let key = try root.derive(path)
 
                 let keyPubOnly = try preDerivedPub.derive("0/" + "\(i)")

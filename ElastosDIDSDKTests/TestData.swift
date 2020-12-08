@@ -5,7 +5,7 @@ import XCTest
 class TestData: XCTestCase {
     private static var dummyAdapter: DummyAdapter?
     private static var spvAdapter: DIDAdapter?
-    private static var rootKey: HiveHDKey?
+    private static var rootKey: DIDHDKey?
     private static var index: Int?
     
     private var testIssuer: DIDDocument?
@@ -70,8 +70,8 @@ class TestData: XCTestCase {
     }
     
     public func initIdentity() throws -> String {
-        let mnemonic: String = try Mnemonic.generate(Mnemonic.HIVE_ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+        let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
+        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
         return mnemonic
     }
     
@@ -339,13 +339,13 @@ class TestData: XCTestCase {
         return restoreMnemonic!
     }
     
-    public class func generateKeypair() throws -> HiveHDKey {
+    public class func generateKeypair() throws -> DIDHDKey {
         if TestData.rootKey == nil {
-            let mnemonic: String = try Mnemonic.generate(Mnemonic.HIVE_ENGLISH)
-            TestData.rootKey = HiveHDKey(mnemonic, "", Mnemonic.HIVE_ENGLISH)
+            let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
+            TestData.rootKey = DIDHDKey(mnemonic, "", Mnemonic.DID_ENGLISH)
             TestData.index = 0
         }
-        let path: String = HiveHDKey.HIVE_DERIVE_PATH_PREFIX + "\(TestData.index!)"
+        let path: String = DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(TestData.index!)"
         TestData.index = TestData.index! + 1
 
         return try TestData.rootKey!.derive(path)

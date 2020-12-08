@@ -638,7 +638,7 @@ class IDChainOperationsTest: XCTestCase {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setup(false)
             let mnemonic: String = try testData.loadRestoreMnemonic()
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
             print("Synchronizing from IDChain...")
             try store.synchronize(using: storePass) //5
             print("OK")
@@ -672,7 +672,7 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
 
             print("Synchronizing from IDChain...")
 
@@ -732,7 +732,7 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
             print("Synchronizing from IDChain...")
             try store.synchronize(using: storePass)
             print("OK")
@@ -830,7 +830,7 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
             print("Synchronizing from IDChain...")
             try store.synchronize(using: storePass)
             print("OK")
@@ -948,7 +948,7 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
             print("Synchronizing from IDChain...")
             var lock = XCTestExpectation()
             try store.synchronizeAsync(using: storePass).done{ _ in
