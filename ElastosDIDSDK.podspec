@@ -8,21 +8,26 @@
 
 Pod::Spec.new do |s|
 
-  s.name = 'ElastosDIDSDK'
-  s.version = '1.4'
-  s.summary ='Elastos DID Swift SDK Distribution'
-  s.swift_version  = '4.2'
-  s.description = 'Elastos DID Swift SDK framework distribution'
+  s.name         = 'ElastosDIDSDK'
+  s.version      = '1.5'
+  s.summary      = 'Elastos Hive iOS SDK Distribution.'
+  s.swift_version = '4.2'
+  s.description  = 'Elastos hive ios sdk framework distribution.'
   s.homepage     = 'https://www.elastos.org'
-  s.license      = { :type => 'MIT', :file => 'ElastosDIDSDK-framework/LICENSE' }
-  s.author       = { 'did-dev' => 'support@elastos.org' }
-  s.platform     = :ios, '11.0'
-  s.ios.deployment_target = '11.0'
-  s.source       = {'http':'https://github.com/elastos/Elastos.DID.Swift.SDK/releases/download/release-v1.4/ElastosDIDSDK-framework.zip'}
-  s.vendored_frameworks = 'ElastosDIDSDK-framework/*.framework'
-  s.source_files = 'ElastosDIDSDK-framework/ElastosDIDSDK.framework/**/*.h'
+  s.license      = { :type => 'MIT', :file => 'ElastosCarrier-framework/LICENSE' }
+  s.author       = { 'hive-dev' => 'support@elastos.org' }
+  s.platform     = :ios, '9.0'
+  s.ios.deployment_target = '9.0'
+  s.source = {:git => 'https://github.com/elastos/Elastos.DID.Swift.SDK.git', :tag => s.version}
+  s.xcconfig = { 'FRAMEWORK_SEARCH_PATHS' => '"${PODS_CONFIGURATION_BUILD_DIR}/ElastosDIDSDK"' }
+  s.source_files = 'ElastosDIDSDK/**/*.{h,m,swift}','Externals/Antlr4/**/**/*.{h,m,swift,interp,tokens,g4}','Externals/base58/*.{swift}','Externals/ByteBuffer/*.{swift}','Externals/CryptorECC/*.{swift}','Externals/HDKey/include/*.{h,swift}','Externals/SwiftJWT/*.{swift}'
+  s.vendored_libraries = 'Externals/HDKey/lib/*.a'
+  s.dependency 'PromiseKit','~> 6.9'
+  s.dependency 'BlueRSA', '~> 1.0'
+  s.dependency 'LoggerAPI','~> 1.7'
+  s.dependency 'KituraContracts','~> 1.1'
+  s.dependency 'BlueCryptor', '~> 1.0'
   s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
   s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
-
 
 end

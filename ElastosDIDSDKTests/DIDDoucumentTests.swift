@@ -368,7 +368,7 @@ class DIDDoucumentTests: XCTestCase {
             
             // Add 2 public keys for test.
             let id: DIDURL = try DIDURL(doc.subject, "test1")
-            var key: HDKey = try TestData.generateKeypair()
+            var key = try TestData.generateKeypair()
             _ = try db.appendPublicKey(with: id, controller: doc.subject.toString(),
                                        keyBase58: key.getPublicKeyBase58())
             key = try TestData.generateKeypair()
@@ -452,7 +452,7 @@ class DIDDoucumentTests: XCTestCase {
             let db: DIDDocumentBuilder = doc.editing()
             
             // Add 2 public keys for test
-            var key: HDKey = try TestData.generateKeypair()
+            var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(
                 with: try DIDURL(doc.subject, "test1"), keyBase58: key.getPublicKeyBase58())
             
@@ -582,7 +582,7 @@ class DIDDoucumentTests: XCTestCase {
             
             // Add 2 public keys for test.
             let id: DIDURL = try DIDURL(doc.subject, "test1")
-            var key: HDKey = try TestData.generateKeypair()
+            var key = try TestData.generateKeypair()
             let did = DID(DID.METHOD, key.getAddress())
             _ = try db.appendPublicKey(with: id, controller: did.toString(), keyBase58: key.getPublicKeyBase58())
             
@@ -665,7 +665,7 @@ class DIDDoucumentTests: XCTestCase {
             
             // Add 2 keys for test.
             let id: DIDURL = try DIDURL(doc.subject, "test1")
-            var key: HDKey = try TestData.generateKeypair()
+            var key = try TestData.generateKeypair()
             let did = DID(DID.METHOD, key.getAddress())
             _ = try db.appendAuthorizationKey(id, did, key.getPublicKeyBase58())
             
@@ -1215,7 +1215,7 @@ class DIDDoucumentTests: XCTestCase {
 
             for i in -100..<100 {
                 let strKey = try doc.derive(identifier, i, storePass)
-                let key = HDKey.deserializeBase58(strKey)
+                let key = HiveHDKey.deserializeBase58(strKey)
 
                 let binKey = Base58.bytesFromBase58(strKey)
                 let sk = Array(binKey[46..<78])

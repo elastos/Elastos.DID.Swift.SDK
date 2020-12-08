@@ -1,11 +1,11 @@
 import Foundation
 
 internal struct CHDKey {
-    static let PUBLICKEY_BYTES:     Int = 33
-    static let PRIVATEKEY_BYTES:    Int = 32
-    static let ADDRESS_LEN:         Int = 48
-    static let CHAINCODE_BYTES:     Int = 32
-    static let EXTENDEDKEY_BYTES:   Int = 82
+    static let HIVE_PUBLICKEY_BYTES:     Int = 33
+    static let HIVE_PRIVATEKEY_BYTES:    Int = 32
+    static let HIVE_ADDRESS_LEN:         Int = 48
+    static let HIVE_CHAINCODE_BYTES:     Int = 32
+    static let HIVE_EXTENDEDKEY_BYTES:   Int = 82
 
     var depth: UInt8?
     var fingerPrint: UInt32?
