@@ -328,7 +328,7 @@ public class DIDDocument: NSObject {
                 continue
             }
 
-            let address = HDKey.toAddress(key.publicKeyBytes)
+            let address = HiveHDKey.toAddress(key.publicKeyBytes)
             if  address == subject.methodSpecificId {
                 return key.getId()
             }
@@ -387,7 +387,7 @@ public class DIDDocument: NSObject {
             throw DIDError.illegalArgument("Not attached with a DID store.")
         }
 
-        let key = HDKey.deserialize(try getMetadata().store!.loadPrivateKey(subject, defaultPublicKey, storepass))
+        let key = HiveHDKey.deserialize(try getMetadata().store!.loadPrivateKey(subject, defaultPublicKey, storepass))
         let path = mapToDerivePath(identifier, securityCode)
 
         return try key.derive(path).serializeBase58()
@@ -406,7 +406,7 @@ public class DIDDocument: NSObject {
         let pubKey = publicKey(ofId: ofId)
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
-        let publicKeyData = try HDKey.PEM_ReadPublicKey(pubData)
+        let publicKeyData = try HiveHDKey.PEM_ReadPublicKey(pubData)
 
         return publicKeyData.data(using: .utf8)!
     }
@@ -428,7 +428,7 @@ public class DIDDocument: NSObject {
         // 46 - 78
         let privKey = try getMetadata().store!.loadPrivateKey(subject, ofId, storePassword)
         let pkey = privKey[46..<78]
-        let privateKeyData = try HDKey.PEM_ReadPrivateKey(pubData, pkey)
+        let privateKeyData = try HiveHDKey.PEM_ReadPrivateKey(pubData, pkey)
 
         return privateKeyData.data(using: .utf8)!
     }
@@ -445,7 +445,7 @@ public class DIDDocument: NSObject {
             throw DIDError.didStoreError("Not attached with a DID store.")
         }
 
-        let key = HDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
+        let key = HiveHDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
         return key.derive(index).serializeBase58()
     }
 
