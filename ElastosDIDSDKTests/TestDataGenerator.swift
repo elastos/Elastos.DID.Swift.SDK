@@ -17,8 +17,8 @@ class TestDataGenerator: XCTestCase {
         store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter)
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
-        let mnemonic: String = try Mnemonic.generate(Mnemonic.ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+        let mnemonic: String = try Mnemonic.generate(Mnemonic.HIVE_ENGLISH)
+        try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic
@@ -48,7 +48,7 @@ class TestDataGenerator: XCTestCase {
         try store.storeCredential(using: vc)
         
         let id: DIDURL = issuer.defaultPublicKey
-        let key = try HDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
+        let key = try HiveHDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
 //        let sk: String = try store.loadPrivateKey(for: issuer.subject, byId: id)
 //        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
 //        let binSk: [UInt8] = [UInt8](data)
@@ -125,7 +125,7 @@ class TestDataGenerator: XCTestCase {
 //        let sk = try store.loadPrivateKey(test.subject, id, storePass)
 //        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
 //        let binSk = [UInt8](data)
-        let key = try HDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
+        let key = try HiveHDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
         writeTo("document." + id.fragment! + ".sk", key.serializeBase58())
         
         var json = test.toString(true)

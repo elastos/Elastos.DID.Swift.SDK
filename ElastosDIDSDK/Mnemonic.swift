@@ -24,15 +24,15 @@ import Foundation
 
 @objc(Mnemonic)
 public class Mnemonic: NSObject {
-    @objc public static let CHINESE_SIMPLIFIED = "chinese_simplified"
-    @objc public static let CHINESE_TRADITIONAL = "chinese_traditional";
-    @objc public static let CZECH = "Czech";
-    @objc public static let ENGLISH = "english";
-    @objc public static let FRENCH = "French";
-    @objc public static let ITALIAN = "Italian";
-    @objc public static let JAPANESE = "japanese";
-    @objc public static let KOREAN = "Korean";
-    @objc public static let SPANISH = "Spanish";
+    @objc public static let HIVE_CHINESE_SIMPLIFIED = "chinese_simplified"
+    @objc public static let HIVE_CHINESE_TRADITIONAL = "chinese_traditional"
+    @objc public static let HIVE_CZECH = "Czech"
+    @objc public static let HIVE_ENGLISH = "english"
+    @objc public static let HIVE_FRENCH = "French"
+    @objc public static let HIVE_ITALIAN = "Italian"
+    @objc public static let HIVE_JAPANESE = "japanese"
+    @objc public static let HIVE_KOREAN = "Korean"
+    @objc public static let HIVE_SPANISH = "Spanish"
 
     /// Gernerate a random mnemonic.
     /// - Parameter language: The language for DID.
