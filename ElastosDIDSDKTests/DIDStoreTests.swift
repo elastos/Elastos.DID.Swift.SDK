@@ -65,7 +65,7 @@ class DIDStoreTests: XCTestCase {
             var store = try testData.setup(true)
             XCTAssertFalse(store.containsPrivateIdentity())
 
-            try store.initializePrivateIdentity(using: Mnemonic.HIVE_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePassword: storePass)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePassword: storePass)
             XCTAssertTrue(store.containsPrivateIdentity())
 
             var path = storeRoot + "/" + "private" + "/" + "key"

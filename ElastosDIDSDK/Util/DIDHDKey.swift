@@ -22,27 +22,27 @@
 
 import Foundation
 
-@objc(HiveHDKey)
-public class HiveHDKey: NSObject {
-    @objc public static let HIVE_PUBLICKEY_BYTES : Int = 33
-    @objc public static let HIVE_PRIVATEKEY_BYTES: Int = 32
-    @objc public static let HIVE_SEED_BYTES: Int = 64
-    @objc public static let HIVE_EXTENDED_KEY_BYTES = 82
-    @objc public static let HIVE_EXTENDED_PRIVATEKEY_BYTES = HIVE_EXTENDED_KEY_BYTES
-    @objc public static let HIVE_EXTENDED_PUBLICKEY_BYTES = HIVE_EXTENDED_KEY_BYTES
+@objc(DIDHDKey)
+public class DIDHDKey: NSObject {
+    @objc public static let DID_PUBLICKEY_BYTES : Int = 33
+    @objc public static let DID_PRIVATEKEY_BYTES: Int = 32
+    @objc public static let DID_SEED_BYTES: Int = 64
+    @objc public static let DID_EXTENDED_KEY_BYTES = 82
+    @objc public static let DID_EXTENDED_PRIVATEKEY_BYTES = DID_EXTENDED_KEY_BYTES
+    @objc public static let DID_EXTENDED_PUBLICKEY_BYTES = DID_EXTENDED_KEY_BYTES
 
-    private static let HIVE_PADDING_IDENTITY = 0x67
-    private static let HIVE_PADDING_STANDARD = 0xAD
+    private static let DID_PADDING_IDENTITY = 0x67
+    private static let DID_PADDING_STANDARD = 0xAD
     
     private var key: UnsafePointer<CHDKey>
 
     // Derive path: m/44'/0'/0'/0/index
-    @objc public static let HIVE_DERIVE_PATH_PREFIX = "44H/0H/0H/0/"
+    @objc public static let DID_DERIVE_PATH_PREFIX = "44H/0H/0H/0/"
 
     // Pre-derive publickey path: m/44'/0'/0'
-    @objc public static let HIVE_PRE_DERIVED_PUBLICKEY_PATH = "44H/0H/0H"
+    @objc public static let DID_PRE_DERIVED_PUBLICKEY_PATH = "44H/0H/0H"
 
-    let HIVE_PUBLICKEY_BASE58_BYTES = 64
+    let DID_PUBLICKEY_BASE58_BYTES = 64
 
     required init(_ key: UnsafePointer<CHDKey>) {
         self.key = key
@@ -71,7 +71,7 @@ public class HiveHDKey: NSObject {
     @objc
     public func getPrivateKeyBytes() -> [UInt8] {
         let privatekeyPointer = HDKey_GetPrivateKey(key)
-        let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: HiveHDKey.HIVE_PRIVATEKEY_BYTES)
+        let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: DIDHDKey.DID_PRIVATEKEY_BYTES)
         let privatekeyData: Data = Data(buffer: privatekeyPointerToArry)
 
         return [UInt8](privatekeyData)
@@ -80,7 +80,7 @@ public class HiveHDKey: NSObject {
     @objc
     public func getPrivateKeyData() -> Data {
         let privatekeyPointer = HDKey_GetPrivateKey(key)
-        let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: HiveHDKey.HIVE_PRIVATEKEY_BYTES)
+        let privatekeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: privatekeyPointer, count: DIDHDKey.DID_PRIVATEKEY_BYTES)
 
         return Data(buffer: privatekeyPointerToArry)
     }
@@ -93,7 +93,7 @@ public class HiveHDKey: NSObject {
     @objc
     public func getPublicKeyBytes() ->[UInt8] {
         let cpublicKeyPointer = HDKey_GetPublicKey(key)
-        let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: HiveHDKey.HIVE_PUBLICKEY_BYTES)
+        let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: DIDHDKey.DID_PUBLICKEY_BYTES)
         let publicKeyData: Data = Data(buffer: publicKeyPointerToArry)
 
         return [UInt8](publicKeyData)
@@ -102,15 +102,15 @@ public class HiveHDKey: NSObject {
     @objc
     public func getPublicKeyData() -> Data {
         let cpublicKeyPointer = HDKey_GetPublicKey(key)
-        let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: HiveHDKey.HIVE_PUBLICKEY_BYTES)
+        let publicKeyPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cpublicKeyPointer, count: DIDHDKey.DID_PUBLICKEY_BYTES)
 
         return Data(buffer: publicKeyPointerToArry)
     }
 
     @objc
     public func getPublicKeyBase58() -> String {
-        let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: HiveHDKey.HIVE_PUBLICKEY_BYTES)
-        let cpublickeybase58 = HDKey_GetPublicKeyBase58(key, basePointer, Int32(HIVE_PUBLICKEY_BASE58_BYTES))
+        let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: DIDHDKey.DID_PUBLICKEY_BYTES)
+        let cpublickeybase58 = HDKey_GetPublicKeyBase58(key, basePointer, Int32(DID_PUBLICKEY_BASE58_BYTES))
         print(String(cString: cpublickeybase58))
         return String(cString: cpublickeybase58)
     }
@@ -147,7 +147,7 @@ public class HiveHDKey: NSObject {
     }
 
     @objc
-    public class func deserialize(_ keyData: [UInt8]) -> HiveHDKey {
+    public class func deserialize(_ keyData: [UInt8]) -> DIDHDKey {
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
         let cdata: UnsafePointer<UInt8> = Data(bytes: keyData, count: keyData.count).withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
             return bytes
@@ -157,7 +157,7 @@ public class HiveHDKey: NSObject {
     }
 
     @objc(deserializeWithKeyData:)
-    public class func deserialize(_ keyData: Data) -> HiveHDKey {
+    public class func deserialize(_ keyData: Data) -> DIDHDKey {
         var extendedkeyData = keyData
         let cextendedkey = extendedkeyData.withUnsafeMutableBytes { re -> UnsafeMutablePointer<UInt8> in
             return re
@@ -168,7 +168,7 @@ public class HiveHDKey: NSObject {
     }
 
     @objc
-    public class func deserializeBase58(_ keyData: String) -> HiveHDKey {
+    public class func deserializeBase58(_ keyData: String) -> DIDHDKey {
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
         let hdkey = HDKey_DeserializeBase58(chdKey, keyData.toUnsafePointerInt8()!, Int32(keyData.count))
         return self.init(hdkey)
@@ -180,10 +180,10 @@ public class HiveHDKey: NSObject {
         let cpks: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
             return bytes
         }
-        let cextenedkey: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: HIVE_EXTENDED_PRIVATEKEY_BYTES)
+        let cextenedkey: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: DID_EXTENDED_PRIVATEKEY_BYTES)
 
-        _ = HDKey_PaddingToExtendedPrivateKey(cpks, 32, cextenedkey, UInt32(HIVE_EXTENDED_PRIVATEKEY_BYTES))
-        let extenedToArrary: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cextenedkey, count: HIVE_EXTENDED_PRIVATEKEY_BYTES)
+        _ = HDKey_PaddingToExtendedPrivateKey(cpks, 32, cextenedkey, UInt32(DID_EXTENDED_PRIVATEKEY_BYTES))
+        let extenedToArrary: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cextenedkey, count: DID_EXTENDED_PRIVATEKEY_BYTES)
         let extenedData: Data = Data(buffer: extenedToArrary)
 
         return extenedData
@@ -191,12 +191,12 @@ public class HiveHDKey: NSObject {
     }
 
     @objc
-    public func derive(_ path: String) throws -> HiveHDKey {
+    public func derive(_ path: String) throws -> DIDHDKey {
         let cderivedkey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 256)
         let childNum = try childList(path)
         let hkey = HDKey_GetvDerivedKey(key, cderivedkey, Int32(childNum.count), getVaList(childNum))
 
-        return HiveHDKey(hkey)
+        return DIDHDKey(hkey)
     }
 
     // "44H/0H/0H"
@@ -220,7 +220,7 @@ public class HiveHDKey: NSObject {
     }
 
     @objc
-    public func derive(_ index: Int, _ hardened: Bool) -> HiveHDKey {
+    public func derive(_ index: Int, _ hardened: Bool) -> DIDHDKey {
         var childNum: [CVarArg] = []
         let cderivedkey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 256)
         if hardened {
@@ -231,11 +231,11 @@ public class HiveHDKey: NSObject {
         }
         let hkey = HDKey_GetvDerivedKey(key, cderivedkey, Int32(childNum.count), getVaList(childNum))
 
-        return HiveHDKey(hkey)
+        return DIDHDKey(hkey)
     }
 
     @objc
-    public func derive(_ index: Int) -> HiveHDKey {
+    public func derive(_ index: Int) -> DIDHDKey {
 
         return derive(index, false)
     }
