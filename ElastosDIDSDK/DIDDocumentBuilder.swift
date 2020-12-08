@@ -60,7 +60,7 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
-        guard Base58.bytesFromBase58(keyBase58).count == HiveHDKey.HIVE_PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
             throw DIDError.illegalArgument()
         }
 
@@ -209,7 +209,7 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
-        guard Base58.bytesFromBase58(keyBase58).count == HiveHDKey.HIVE_PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
             throw DIDError.illegalArgument()
         }
 
@@ -334,7 +334,7 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
-        guard Base58.bytesFromBase58(keyBase58).count == HiveHDKey.HIVE_PUBLICKEY_BYTES else {
+        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
             throw DIDError.illegalArgument()
         }
 
