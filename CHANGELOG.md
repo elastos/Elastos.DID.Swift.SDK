@@ -1,3 +1,11 @@
+12/08/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.5**, main changes to previous version:
+
+```markdown
+- Minor bug fixes.
+```
+
 12/01/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.4**, main changes to previous version:
