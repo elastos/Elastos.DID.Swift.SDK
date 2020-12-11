@@ -1,3 +1,13 @@
+12/11/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.6**, main changes to previous version:
+
+```markdown
+- Fix LRUChache thresd safety.
+- Fix async promise usage.
+- Fix memory bug.
+```
+
 12/08/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.5**, main changes to previous version:
