@@ -42,7 +42,7 @@ public class DIDHDKey: NSObject {
     // Pre-derive publickey path: m/44'/0'/0'
     @objc public static let DID_PRE_DERIVED_PUBLICKEY_PATH = "44H/0H/0H"
 
-    let DID_PUBLICKEY_BASE58_BYTES = 64
+    let DID_PUBLICKEY_BASE58_BYTES = 66
 
     required init(_ key: UnsafePointer<CHDKey>) {
         self.key = key
@@ -109,7 +109,7 @@ public class DIDHDKey: NSObject {
 
     @objc
     public func getPublicKeyBase58() -> String {
-        let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: DIDHDKey.DID_PUBLICKEY_BYTES)
+        let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: DID_PUBLICKEY_BASE58_BYTES)
         let cpublickeybase58 = HDKey_GetPublicKeyBase58(key, basePointer, Int32(DID_PUBLICKEY_BASE58_BYTES))
         print(String(cString: cpublickeybase58))
         return String(cString: cpublickeybase58)
