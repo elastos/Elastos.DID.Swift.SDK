@@ -171,13 +171,7 @@ public class DID: NSObject {
     ///   if no document is in the cache, resolve it from chain.
     /// - Returns: Return the handle to DID Document.
     public func resolveAsync(_ force: Bool) -> Promise<DIDDocument?> {
-        return Promise<DIDDocument?> { resolver in
-            do {
-                resolver.fulfill(try resolve(force))
-            } catch let error  {
-                resolver.reject(error)
-            }
-        }
+        return DispatchQueue.global().async(.promise){ [self] in try self.resolve(force) }
     }
 
     /// Get the newest DID Document asynchronously from chain.
@@ -188,10 +182,12 @@ public class DID: NSObject {
     @objc
     public func resolveAsyncUsingObjectC(_ force: Bool) -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            do {
-                resolver(try resolve(force))
-            } catch let error  {
-                resolver(error)
+            DispatchQueue.global().async{
+                do {
+                    resolver(try resolve(force))
+                } catch let error  {
+                    resolver(error)
+                }
             }
         })
     }
@@ -220,13 +216,7 @@ public class DID: NSObject {
     /// Get all DID Documents from chain.
     /// - Returns: return the handle to DID Document asynchronously.
     public func resolveHistoryAsync() -> Promise<DIDHistory> {
-        return Promise<DIDHistory> { resolver in
-            do {
-                resolver.fulfill(try resolveHistory())
-            } catch let error  {
-                resolver.reject(error)
-            }
-        }
+        return DispatchQueue.global().async(.promise){ [self] in try resolveHistory() }
     }
 
     /// Get all DID Documents from chain.
@@ -234,10 +224,12 @@ public class DID: NSObject {
     @objc
     public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            do {
-                resolver(try resolveHistory())
-            } catch let error  {
-                resolver(error)
+            DispatchQueue.global().async{
+                do {
+                    resolver(try resolveHistory())
+                } catch let error  {
+                    resolver(error)
+                }
             }
         })
     }

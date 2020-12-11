@@ -885,13 +885,7 @@ public class DIDStore: NSObject {
                                  _ signKey: DIDURL?,
                                  _ storePassword: String,
                                  _ force: Bool) -> Promise<Void> {
-        return Promise<Void> { resolver in
-            do {
-                resolver.fulfill(try publishDid(did, signKey, storePassword, force))
-            } catch let error  {
-                resolver.reject(error)
-            }
-        }
+        return DispatchQueue.global().async(.promise){ [self] in try publishDid(did, signKey, storePassword, force) }
     }
 
     private func publishDidAsync_oc(_ did: DID,
@@ -899,10 +893,12 @@ public class DIDStore: NSObject {
                                  _ storePassword: String,
                                  _ force: Bool) -> AnyPromise {
         return AnyPromise(__resolverBlock: { resolver in
-            do {
-                resolver(try self.publishDid(did, signKey, storePassword, force))
-            } catch let error  {
-                resolver(error)
+            DispatchQueue.global().async{
+                do {
+                    resolver(try self.publishDid(did, signKey, storePassword, force))
+                } catch let error  {
+                    resolver(error)
+                }
             }
         })
     }
@@ -1188,23 +1184,19 @@ public class DIDStore: NSObject {
     private func deactivateDidAsync(_ target: DID,
                                     _ signKey: DIDURL?,
                                     _ storePassword: String) -> Promise<Void> {
-        return Promise<Void> { resolver in
-            do {
-                resolver.fulfill(try deactivateDid(target, signKey, storePassword))
-            } catch let error  {
-                resolver.reject(error)
-            }
-        }
+        return DispatchQueue.global().async(.promise){ [self] in try deactivateDid(target, signKey, storePassword) }
     }
 
     private func deactivateDidAsync_oc(_ target: DID,
                                     _ signKey: DIDURL?,
                                     _ storePassword: String) -> AnyPromise {
         return AnyPromise(__resolverBlock: { resolver in
-            do {
-                resolver(try self.deactivateDid(target, signKey, storePassword))
-            } catch let error  {
-                resolver(error)
+            DispatchQueue.global().async{
+                do {
+                    resolver(try self.deactivateDid(target, signKey, storePassword))
+                } catch let error  {
+                    resolver(error)
+                }
             }
         })
     }
@@ -1458,13 +1450,7 @@ public class DIDStore: NSObject {
                                     _ did: DID,
                                     _ signKey: DIDURL?,
                                     _ storePassword: String) -> Promise<Void> {
-        return Promise<Void> { resolver in
-            do {
-                resolver.fulfill(try deactivateDid(target, did, signKey, storePassword))
-            } catch let error  {
-                resolver.reject(error)
-            }
-        }
+        return DispatchQueue.global().async(.promise){ [self] in try deactivateDid(target, did, signKey, storePassword) }
     }
 
     private func deactivateDidAsync_oc(_ target: DID,
@@ -1472,10 +1458,12 @@ public class DIDStore: NSObject {
                                     _ signKey: DIDURL?,
                                     _ storePassword: String) -> AnyPromise {
         return AnyPromise(__resolverBlock: { resolver in
-            do {
-                resolver(try self.deactivateDid(target, did, signKey, storePassword))
-            } catch let error  {
-                resolver(error)
+            DispatchQueue.global().async{
+                do {
+                    resolver(try self.deactivateDid(target, did, signKey, storePassword))
+                } catch let error  {
+                    resolver(error)
+                }
             }
         })
     }
