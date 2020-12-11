@@ -21,6 +21,7 @@
 */
 
 import Foundation
+import ReadWriteLock
 
 final class LRUCache<Key: Hashable, Value> {
     private struct CachePayload {
@@ -34,6 +35,7 @@ final class LRUCache<Key: Hashable, Value> {
     private let initCapacity: Int
     private let maxCapacity: Int
 
+    private let lock = ReadWriteLock()
     init(_ capacity: Int) {
         self.initCapacity = 0
         self.maxCapacity = max(0, capacity)
@@ -45,31 +47,36 @@ final class LRUCache<Key: Hashable, Value> {
     }
 
     func setValue(_ value: Value, for key: Key) {
-        let payload = CachePayload(key: key, value: value)
-
-        if let node = self.nodesDict[key] {
-            node.payload = payload
-            self.list.moveToHead(node)
-        } else {
-            let node = self.list.addHead(payload)
-            self.nodesDict[key] = node
-        }
-
-        if self.list.count > self.maxCapacity {
-            let nodeRemoved = self.list.removeLast()
-            if let key = nodeRemoved?.payload.key {
-                self.nodesDict[key] = nil
+        lock.acquireWriteLock {
+            
+            let payload = CachePayload(key: key, value: value)
+            
+            if let node = self.nodesDict[key] {
+                node.payload = payload
+                self.list.moveToHead(node)
+            } else {
+                let node = self.list.addHead(payload)
+                self.nodesDict[key] = node
+            }
+            
+            if self.list.count > self.maxCapacity {
+                let nodeRemoved = self.list.removeLast()
+                if let key = nodeRemoved?.payload.key {
+                    self.nodesDict[key] = nil
+                }
             }
         }
     }
 
     func getValue(for key: Key) -> Value? {
-        guard let node = nodesDict[key] else {
-            return nil
+        lock.acquireReadLock {
+            guard let node = nodesDict[key] else {
+                return nil
+            }
+            
+            list.moveToHead(node)
+            return node.payload.value
         }
-
-        list.moveToHead(node)
-        return node.payload.value
     }
     
     func containsKey(for key: Key) -> Bool {
@@ -78,16 +85,20 @@ final class LRUCache<Key: Hashable, Value> {
     }
     
     func clear() {
-        self.list.clear()
-        self.nodesDict.removeAll()
+        lock.acquireWriteLock {
+            self.list.clear()
+            self.nodesDict.removeAll()
+        }
     }
 
     func removeValue(for key: Key) {
-        guard let node = nodesDict[key] else {
-            return
+        lock.acquireWriteLock {
+            guard let node = nodesDict[key] else {
+                return
+            }
+            list.removeNode(node)
+            nodesDict.removeValue(forKey: key)
         }
-        list.removeNode(node)
-        nodesDict.removeValue(forKey: key)
     }
 }
 
