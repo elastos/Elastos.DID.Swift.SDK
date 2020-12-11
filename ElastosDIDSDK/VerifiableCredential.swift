@@ -262,7 +262,7 @@ public class VerifiableCredential: DIDObject {
     /// Credential is expired or not asynchronous.
     /// - Returns: Issuance always occurs before any other actions involving a credential.
     public func isExpiredAsync() -> Promise<Bool> {
-        return Promise<Bool> { $0.fulfill(isExpired) }
+        return DispatchQueue.global().async(.promise){ [self] in isExpired }
     }
 
     /// Credential is expired or not asynchronous.
@@ -270,7 +270,7 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isExpiredAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            resolver(isExpired)
+            DispatchQueue.global().async{ resolver(isExpired) }
         })
     }
 
@@ -314,7 +314,7 @@ public class VerifiableCredential: DIDObject {
     /// Issuance always occurs before any other actions involving a credential.
     /// flase if not genuine, true if genuine.
     public func isGenuineAsync() -> Promise<Bool> {
-        return Promise<Bool> { $0.fulfill(isGenuine) }
+        return DispatchQueue.global().async(.promise){ [self] in isGenuine }
     }
 
     /// Credential is genuine or not asynchronous.
@@ -323,7 +323,7 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isGenuineAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            resolver(isGenuine)
+            DispatchQueue.global().async{ resolver(isGenuine) }
         })
     }
 
@@ -344,7 +344,7 @@ public class VerifiableCredential: DIDObject {
     /// Credential is expired or not asynchronous.
     /// - Returns: flase if not genuine, true if genuine.
     public func isValidAsync() -> Promise<Bool> {
-        return Promise<Bool> { $0.fulfill(isValid) }
+       return DispatchQueue.global().async(.promise){ [self] in isValid }
     }
 
     /// Credential is expired or not asynchronous.
@@ -352,7 +352,7 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isValidAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            resolver(isValid)
+            DispatchQueue.global().async{ resolver(isValid) }
         })
     }
     /// claims about the subject of the credential
