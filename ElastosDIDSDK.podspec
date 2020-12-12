@@ -26,6 +26,7 @@ Pod::Spec.new do |s|
   s.dependency 'LoggerAPI','~> 1.7'
   s.dependency 'KituraContracts','~> 1.1'
   s.dependency 'BlueCryptor', '~> 1.0'
+  s.dependency 'ReadWriteLock', '~> 1.0'
   s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
   s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
 
