@@ -46,6 +46,7 @@ public class DIDHDKey: NSObject {
 
     required init(_ key: UnsafePointer<CHDKey>) {
         self.key = key
+        super.init()
     }
 
     @objc
@@ -109,7 +110,7 @@ public class DIDHDKey: NSObject {
 
     @objc
     public func getPublicKeyBase58() -> String {
-        let basePointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: DID_PUBLICKEY_BASE58_BYTES)
+        let basePointer: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: DID_PUBLICKEY_BASE58_BYTES)
         let cpublickeybase58 = HDKey_GetPublicKeyBase58(key, basePointer, Int32(DID_PUBLICKEY_BASE58_BYTES))
         print(String(cString: cpublickeybase58))
         return String(cString: cpublickeybase58)
@@ -123,7 +124,7 @@ public class DIDHDKey: NSObject {
 
     @objc
     public func serializeBase58() -> String {
-        let extendedkeyPointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 512)
+        let extendedkeyPointer: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 512)
         let cextendedkey = HDKey_SerializePrvBase58(key, extendedkeyPointer, 512)
         
         return String(cString: cextendedkey!)
@@ -137,7 +138,7 @@ public class DIDHDKey: NSObject {
     @objc
     public func serializePublicKeyBase58() throws -> String {
 
-        let extendedkeyPointer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 256)
+        let extendedkeyPointer: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 256)
         let cextendedkey = HDKey_SerializePubBase58(key, extendedkeyPointer,Int32(256))
         guard let _ = cextendedkey else {
             throw DIDError.notFoundError("HDKey_SerializePubBase58 error.")
@@ -158,13 +159,13 @@ public class DIDHDKey: NSObject {
 
     @objc(deserializeWithKeyData:)
     public class func deserialize(_ keyData: Data) -> DIDHDKey {
-        var extendedkeyData = keyData
-        let cextendedkey = extendedkeyData.withUnsafeMutableBytes { re -> UnsafeMutablePointer<UInt8> in
+        let extendedkeyData = keyData
+        let cextendedkey = extendedkeyData.withUnsafeBytes { re -> UnsafePointer<UInt8> in
             return re
         }
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
-        let chdkey = HDKey_FromExtendedKey(cextendedkey, Int32(keyData.count), chdKey)
-        return self.init(chdkey)
+        let hdkey = HDKey_FromExtendedKey(cextendedkey, Int32(extendedkeyData.count), chdKey)
+        return self.init(hdkey)
     }
 
     @objc
@@ -177,7 +178,7 @@ public class DIDHDKey: NSObject {
     @objc
     public class func paddingToExtendedPrivateKey(_ privateKeyBytes: Data) -> Data {
         var pkData: Data = privateKeyBytes
-        let cpks: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
+        let cpks = pkData.withUnsafeBytes { (bytes) -> UnsafePointer<UInt8> in
             return bytes
         }
         let cextenedkey: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: DID_EXTENDED_PRIVATEKEY_BYTES)
@@ -248,11 +249,11 @@ public class DIDHDKey: NSObject {
 
     @objc
     public class func toAddress(_ pk: [UInt8]) -> String {
-        var pkData: Data = Data(bytes: pk, count: pk.count)
-        let cpks: UnsafeMutablePointer<UInt8> = pkData.withUnsafeMutableBytes { (bytes) -> UnsafeMutablePointer<UInt8> in
+        let pkData: Data = Data(bytes: pk, count: pk.count)
+        let cpks = pkData.withUnsafeBytes { (bytes) -> UnsafePointer<UInt8> in
             return bytes
         }
-        let address: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 48)
+        let address: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 48)
         let cid = HDKey_PublicKey2Address(cpks, address, 48)
 
         return (String(cString: cid!))
@@ -262,7 +263,7 @@ public class DIDHDKey: NSObject {
         let cpub: UnsafePointer<UInt8> = publicKey.withUnsafeBytes { (bytes) -> UnsafePointer<UInt8> in
             return bytes
         }
-        let cprivateKey: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: 512)
+        let cprivateKey: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 512)
         var size: Int32 = 512
         let re = PEM_WritePublicKey(cpub, cprivateKey, &size)
         if re < 0 {
@@ -276,10 +277,11 @@ public class DIDHDKey: NSObject {
         let cpub: UnsafePointer<UInt8> = publicKey.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
             return bytes
         }
-        let cpri: UnsafePointer<UInt8> = privatekey.withUnsafeBytes { bytes -> UnsafePointer<UInt8> in
+        let cpri: UnsafePointer<UInt8> = privatekey.withUnsafeBytes { bytes
+            -> UnsafePointer<UInt8> in
             return bytes
         }
-        let cPEM_privateKey: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: 512)
+        let cPEM_privateKey: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 512)
         var count = 512
         let re = PEM_WritePrivateKey(cpub, cpri, cPEM_privateKey, &count)
         if re < 0 {
