@@ -61,17 +61,17 @@ internal func HDKey_Deserialize(_ hdkey: UnsafeMutablePointer<CHDKey>, _ extende
 internal func HDKey_DeserializeBase58(_ hdkey: UnsafeMutablePointer<CHDKey>, _ extendedkeyBase58: UnsafePointer<Int8>, _ size: Int32) -> UnsafePointer<CHDKey>
 
 @_silgen_name("HDKey_SerializePrvBase58")
-internal func HDKey_SerializePrvBase58(_ hdkey: UnsafePointer<CHDKey>, _ extendedkeyBase58: UnsafeMutablePointer<Int8>, _ size: Int32) -> UnsafePointer<Int8>!
+internal func HDKey_SerializePrvBase58(_ hdkey: UnsafePointer<CHDKey>, _ extendedkeyBase58: UnsafeMutablePointer<CChar>, _ size: Int32) -> UnsafePointer<Int8>!
 
 @_silgen_name("HDKey_SerializePubBase58")
-internal func HDKey_SerializePubBase58(_ hdkey: UnsafePointer<CHDKey>, _ extendedkeyBase58: UnsafeMutablePointer<Int8>, _ size: Int32) -> UnsafePointer<Int8>!
+internal func HDKey_SerializePubBase58(_ hdkey: UnsafePointer<CHDKey>, _ extendedkeyBase58: UnsafeMutablePointer<CChar>, _ size: Int32) -> UnsafePointer<Int8>!
 
 @_silgen_name("HDKey_Wipe")
 internal func HDKey_Wipe(_ hdkey: UnsafeMutablePointer<CHDKey>)
 
 @_silgen_name("HDKey_PublicKey2Address")
-internal func HDKey_PublicKey2Address(_ publickey: UnsafeMutablePointer<UInt8>,
-                                      _ address: UnsafePointer<Int8>!,
+internal func HDKey_PublicKey2Address(_ publickey: UnsafePointer<UInt8>,
+                                      _ address: UnsafePointer<CChar>!,
                                       _ len: Int32) -> UnsafePointer<Int8>!
 
 @_silgen_name("HDKey_GetvDerivedKey")
@@ -81,7 +81,7 @@ internal func HDKey_GetvDerivedKey(_ hdkey: UnsafePointer<CHDKey>, _ derivedkey:
 internal func HDKey_GetPublicKey(_ hdkey: UnsafePointer<CHDKey>) -> UnsafePointer<UInt8>
 
 @_silgen_name("HDKey_GetPublicKeyBase58")
-internal func HDKey_GetPublicKeyBase58(_ hdkey: UnsafePointer<CHDKey>, _ base: UnsafeMutablePointer<Int8>, _ size: Int32) -> UnsafePointer<Int8>
+internal func HDKey_GetPublicKeyBase58(_ hdkey: UnsafePointer<CHDKey>, _ base: UnsafeMutablePointer<CChar>, _ size: Int32) -> UnsafePointer<Int8>
 
 @_silgen_name("HDKey_GetPrivateKey")
 internal func HDKey_GetPrivateKey(_ hdkey: UnsafePointer<CHDKey>) -> UnsafePointer<UInt8>
@@ -93,11 +93,11 @@ internal func HDKey_GetAddress(_ hdkey: UnsafePointer<CHDKey>) -> UnsafePointer<
 internal func HDKey_Wipe(_ hdkey: UnsafePointer<CHDKey>)
 
 @_silgen_name("HDKey_PaddingToExtendedPrivateKey")
-internal func HDKey_PaddingToExtendedPrivateKey(_ privatekey: UnsafeMutablePointer<UInt8>, _ psize: UInt32, _ extendedkey: UnsafeMutablePointer<UInt8>, _ esize: UInt32) -> Int32
+internal func HDKey_PaddingToExtendedPrivateKey(_ privatekey: UnsafePointer<UInt8>, _ psize: UInt32, _ extendedkey: UnsafeMutablePointer<UInt8>, _ esize: UInt32) -> Int32
 
 @_silgen_name("PEM_WritePublicKey")
-internal func PEM_WritePublicKey(_ publicKey: UnsafePointer<UInt8>, _ buffer: UnsafePointer<Int8>, _ size: UnsafeMutablePointer<Int32>) -> Int32
+internal func PEM_WritePublicKey(_ publicKey: UnsafePointer<UInt8>, _ buffer: UnsafeMutablePointer<CChar>, _ size: UnsafeMutablePointer<Int32>) -> Int32
 
 @_silgen_name("PEM_WritePrivateKey")
-internal func PEM_WritePrivateKey(_ publickey: UnsafePointer<UInt8>, _ privatekey: UnsafePointer<UInt8>, _ buffer: UnsafeMutablePointer<UInt8>, _ size: UnsafeMutablePointer<Int>!) -> Int32
+internal func PEM_WritePrivateKey(_ publickey: UnsafePointer<UInt8>, _ privatekey: UnsafePointer<UInt8>, _ buffer: UnsafeMutablePointer<CChar>, _ size: UnsafeMutablePointer<Int>!) -> Int32
 
