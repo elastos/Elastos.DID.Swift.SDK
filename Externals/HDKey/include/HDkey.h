@@ -123,7 +123,7 @@ const char *HDKey_SerializePubBase58(HDKey *hdkey, char *extendedkeyBase58, size
 
 void HDKey_Wipe(HDKey *hdkey);
 
-char *HDKey_PublicKey2Address(uint8_t *publickey, char *address, size_t len);
+char *HDKey_PublicKey2Address(const uint8_t *publickey, char *address, size_t len);
 
 HDKey *HDKey_GetDerivedKey(HDKey* hdkey, HDKey *derivedkey, int depth, ...);
 
@@ -139,7 +139,7 @@ char *HDKey_GetAddress(HDKey *hdkey);
 
 void HDKey_Wipe(HDKey *hdkey);
 
-ssize_t HDKey_PaddingToExtendedPrivateKey(uint8_t *privatekey, size_t psize,
+ssize_t HDKey_PaddingToExtendedPrivateKey(const uint8_t *privatekey, size_t psize,
         uint8_t *extendedkey, size_t esize);
 
 //- for jwt -----------------------------------------------
