@@ -126,7 +126,7 @@ public class DIDStore: NSObject {
             return by
         }
         let capacity = input.count * 3
-        let base64url: UnsafeMutablePointer<Int8> = UnsafeMutablePointer.allocate(capacity: capacity)
+        let base64url = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
         let re = encrypt_to_base64(base64url, storePassword, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError("encryptToBase64 error.")
@@ -2267,7 +2267,7 @@ public class DIDStore: NSObject {
         
         let cdigest = digest.toPointer()
 
-        let csig = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+        let csig = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
         let re = ecdsa_sign_base64(csig, UnsafeMutablePointer(mutating: toPPointer), UnsafeMutablePointer(mutating: cdigest), digest.count)
 
         guard re >= 0 else {
@@ -2432,9 +2432,9 @@ public class DIDStore: NSObject {
         let result = sha256.finalize()
 
         let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
+        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        let dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2673,9 +2673,9 @@ public class DIDStore: NSObject {
         let refFingerprint = node?.asString()
         let result = sha256.finalize()
         let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8>  in
+        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        let dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8>  in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2802,9 +2802,9 @@ public class DIDStore: NSObject {
         // Fingerprint
         let result = sha256.finalize()
         let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
+        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        let dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
@@ -2928,9 +2928,9 @@ public class DIDStore: NSObject {
         }
         let result = sha256.finalize()
         let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
-        var dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeMutableBytes { fing -> UnsafeMutablePointer<UInt8> in
+        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        let dateFing = Data(bytes: result, count: result.count)
+        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
             return fing
         }
         let re = base64_url_encode(cFing, cFingerprint, dateFing.count)

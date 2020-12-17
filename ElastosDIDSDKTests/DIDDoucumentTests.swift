@@ -54,7 +54,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // payload
             let cInput = json.toUnsafePointerUInt8()
-            let cPayload = UnsafeMutablePointer<Int8>.allocate(capacity: capacity)
+            let cPayload = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
             let rePayload = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
             cPayload[rePayload] = 0
             let payload = String(cString: cPayload)
