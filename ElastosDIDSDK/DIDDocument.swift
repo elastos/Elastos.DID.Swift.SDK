@@ -1411,8 +1411,8 @@ public class DIDDocument: NSObject {
         }
 
         let pks = pubKey!.publicKeyBytes
-        var pkData = Data(bytes: pks, count: pks.count)
-        let cpk = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
+        let pkData = Data(bytes: pks, count: pks.count)
+        let cpk = pkData.withUnsafeBytes { (pk: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return pk
         }
         let cdigest = digest.toPointer()

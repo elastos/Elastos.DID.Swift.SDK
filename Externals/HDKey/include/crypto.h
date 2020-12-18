@@ -74,7 +74,7 @@ ssize_t ecdsa_sign_base64(char *sig, uint8_t *privatekey, uint8_t *digest, size_
 
 int ecdsa_verify(uint8_t *sig, uint8_t *publickey, uint8_t *digest, size_t size);
 
-int ecdsa_verify_base64(char *sig, uint8_t *publickey, uint8_t *digest, size_t size);
+int ecdsa_verify_base64(char *sig, const uint8_t *publickey, uint8_t *digest, size_t size);
 
 #ifdef __cplusplus
 }
