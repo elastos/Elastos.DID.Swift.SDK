@@ -1,3 +1,11 @@
+12/18/2020 Li Aihong liaihong@trinity-tech.io
+
+**version 1.7**, main changes to previous version:
+
+```markdown
+- Fix crash when release environment.
+```
+
 12/11/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.6**, main changes to previous version:
