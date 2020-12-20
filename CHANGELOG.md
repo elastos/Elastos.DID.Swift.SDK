@@ -1,5 +1,13 @@
 12/18/2020 Li Aihong liaihong@trinity-tech.io
 
+**version 1.8**, main changes to previous version:
+
+```markdown
+- Fix JWT sign() crash in release environment.
+```
+
+12/18/2020 Li Aihong liaihong@trinity-tech.io
+
 **version 1.7**, main changes to previous version:
 
 ```markdown
