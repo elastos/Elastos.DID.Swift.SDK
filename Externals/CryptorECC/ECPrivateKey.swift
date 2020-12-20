@@ -447,9 +447,13 @@ public class ECPrivateKey {
         #else
             let keyData = publicKeyData + privateKeyData
             var error: Unmanaged<CFError>? = nil
+        
+            let dic = NSMutableDictionary()
+        dic.setValue(kSecAttrKeyTypeECSECPrimeRandom, forKey: kSecAttrKeyType as String)
+        dic.setValue(kSecAttrKeyClassPrivate, forKey: kSecAttrKeyClass as String)
+
             guard let secKey = SecKeyCreateWithData(keyData as CFData,
-                                                    [kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
-                                                     kSecAttrKeyClass: kSecAttrKeyClassPrivate] as CFDictionary,
+                                                    dic,
                                                     &error)
             else {
                 if let secError = error?.takeRetainedValue() {
