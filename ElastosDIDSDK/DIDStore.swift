@@ -2268,7 +2268,7 @@ public class DIDStore: NSObject {
         let cdigest = digest.toPointer()
 
         let csig = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let re = ecdsa_sign_base64(csig, UnsafeMutablePointer(mutating: toPPointer), UnsafeMutablePointer(mutating: cdigest), digest.count)
+        let re = ecdsa_sign_base64(csig, toPPointer, UnsafeMutablePointer(mutating: cdigest), digest.count)
 
         guard re >= 0 else {
             throw DIDError.didStoreError("sign error.")
