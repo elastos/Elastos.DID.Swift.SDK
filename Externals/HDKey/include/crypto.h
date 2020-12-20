@@ -70,7 +70,7 @@ ssize_t sha256v_digest(uint8_t *digest, int count, va_list inputs);
 
 ssize_t ecdsa_sign(uint8_t *sig, uint8_t *privatekey, uint8_t *digest, size_t size);
 
-ssize_t ecdsa_sign_base64(char *sig, uint8_t *privatekey, uint8_t *digest, size_t size);
+ssize_t ecdsa_sign_base64(char *sig, const uint8_t *privatekey, uint8_t *digest, size_t size);
 
 int ecdsa_verify(uint8_t *sig, uint8_t *publickey, uint8_t *digest, size_t size);
 
