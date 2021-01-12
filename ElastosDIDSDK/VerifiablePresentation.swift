@@ -129,6 +129,10 @@ public class VerifiablePresentation: NSObject {
             doc = nil
         }
 
+        guard let _ = doc else {
+            return false
+        }
+        
         // Check the integrity of signer's document.
         guard doc!.isGenuine else {
             return false

@@ -46,6 +46,8 @@ public enum DIDError: Error {
 
     case notFoundError (_ des: String? = nil)
     case didMetaDateLocalFormatError (_ des: String? = nil)
+    case didNotUpToDate (_ des: String? = nil)
+    case didNotGenuine (_ des: String? = nil)
 }
 
 extension DIDError {
@@ -93,6 +95,10 @@ extension DIDError {
             return des ?? "invalid key"
         case .didMetaDateLocalFormatError(let des):
             return des ?? "Loading metadata format error."
+        case .didNotUpToDate(let des):
+            return des ?? "DID document not up-to-date."
+        case .didNotGenuine(let des):
+            return des ?? "Publish failed because document is not genuine."
         }
     }
 }
