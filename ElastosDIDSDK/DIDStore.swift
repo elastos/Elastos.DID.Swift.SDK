@@ -700,27 +700,29 @@ public class DIDStore: NSObject {
                             _ storePassword: String,
                             _ force: Bool) throws {
         guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
+            throw DIDError.illegalArgument("Invalid storepass")
         }
-        Log.i(DIDStore.TAG, "Publishing {}{}...", did.toString(), force ? " in force mode" : "" )
+        Log.i(DIDStore.TAG, "Publishing ...", did.toString(), force ? " in force mode" : "" )
         let  doc = try loadDid(did)
         if doc == nil {
-            Log.e(DIDStore.TAG, "No document for {}", did.toString())
-            throw DIDError.didStoreError("Can not find the document for \(did)")
+            Log.e(DIDStore.TAG, "No document for ", did.toString())
+            throw DIDError.didNotFoundError("Can not find the document for \(did)")
         }
 
         guard doc!.isGenuine else {
-            Log.e(DIDStore.TAG, "\(did.toString()) is not genuine.")
-            throw DIDError.didStoreError("DID document is not genuine.")
+            Log.e(DIDStore.TAG, "Publish failed because document is not genuine.")
+            throw DIDError.didNotGenuine(did.toString())
         }
 
         guard !doc!.isDeactivated else {
-            Log.e(DIDStore.TAG, "\(did.toString()) already deactivated.")
-            throw DIDError.didStoreError("DID already deactivated.")
+            Log.e(DIDStore.TAG, "Publish failed because DID is deactivated.")
+            throw DIDError.didDeactivated(did.toString())
         }
 
         if doc!.isExpired && !force {
-            Log.e(DIDStore.TAG, "\(did.toString()) already expired, use force mode to publish anyway.")
+            Log.e(DIDStore.TAG, "Publish failed because document is expired.")
+            Log.i(DIDStore.TAG, "You can publish the expired document using force mode.")
+            throw DIDError.didExpired(did.toString())
         }
         var lastTxid: String? = nil
         var reolvedSignautre: String? = nil
@@ -730,8 +732,8 @@ public class DIDStore: NSObject {
             guard !resolvedDoc!.isDeactivated else {
                 doc!.getMetadata().setDeactivated(true)
                 try storage.storeDidMetadata(doc!.subject, doc!.getMetadata())
-                Log.e(DIDStore.TAG, "\(did.toString()) already deactivated.")
-                throw  DIDError.didStoreError("DID already deactivated")
+                Log.e(DIDStore.TAG, "Publish failed because DID is deactivated.")
+                throw  DIDError.didDeactivated(did.toString())
             }
             reolvedSignautre = resolvedDoc?.proof.signature
             if !force {
@@ -740,20 +742,20 @@ public class DIDStore: NSObject {
 
                 if localPrevSignature == nil && localSignature == nil {
                     Log.e(DIDStore.TAG ,"Missing signatures information, DID SDK dosen't know how to handle it, use force mode to ignore checks.")
-                    throw DIDError.didStoreError("DID document not up-to-date")
+                    throw DIDError.didNotUpToDate(did.toString())
                 }
 
                 else if localPrevSignature == nil || localSignature == nil {
                     let ls = localPrevSignature != nil ? localPrevSignature : localSignature
                     if ls != reolvedSignautre {
-                        Log.e(DIDStore.TAG ,"Current copy not based on the lastest on-chain copy, txid mismatch.")
-                        throw DIDError.didStoreError("DID document not up-to-date")
+                        Log.e(DIDStore.TAG ,"Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.didNotUpToDate(did.toString())
                     }
                 }
                 else {
                     if localSignature != reolvedSignautre && localPrevSignature != reolvedSignautre {
-                        Log.e(DIDStore.TAG ,"Current copy not based on the lastest on-chain copy, txid mismatch.")
-                        throw DIDError.didStoreError("DID document not up-to-date")
+                        Log.e(DIDStore.TAG ,"Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.didNotUpToDate(did.toString())
                     }
                 }
             }
