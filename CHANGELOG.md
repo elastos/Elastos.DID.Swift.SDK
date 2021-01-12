@@ -1,3 +1,11 @@
+01/12/2021 Li Aihong liaihong@trinity-tech.io
+
+**version 1.9**, main changes to previous version:
+
+```markdown
+- Add didNotUpToDate error type.
+```
+
 12/18/2020 Li Aihong liaihong@trinity-tech.io
 
 **version 1.8**, main changes to previous version:
