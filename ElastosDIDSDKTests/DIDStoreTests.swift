@@ -378,7 +378,7 @@ class DIDStoreTests: XCTestCase {
 
             XCTAssertThrowsError(try store.publishDid(for: doc.subject, using: storePass)) { (error) in
                 switch error {
-                case DIDError.didStoreError:
+                case DIDError.didNotUpToDate:
                     XCTAssertTrue(true)
                     break
                 //everything is fine
@@ -423,7 +423,7 @@ class DIDStoreTests: XCTestCase {
 
             XCTAssertThrowsError(try store.publishDid(for: did, using: storePass)) { error in
                 switch error as! DIDError {
-                case .didStoreError("DID document not up-to-date"):
+                case .didNotUpToDate:
                     XCTAssertTrue(true)
                 default:
                     XCTFail()
@@ -533,7 +533,7 @@ class DIDStoreTests: XCTestCase {
 
             XCTAssertThrowsError(try store.publishDid(for: did, using: storePass)) { error in
                 switch error as! DIDError {
-                case .didStoreError("DID document not up-to-date"):
+                case .didNotUpToDate:
                     XCTAssertTrue(true)
                 default:
                     XCTFail()
