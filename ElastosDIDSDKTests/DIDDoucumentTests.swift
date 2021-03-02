@@ -102,6 +102,25 @@ class DIDDoucumentTests: XCTestCase {
     
     func testGetPublicKey() {
         do {
+            let time = DateHelper.currentDate()
+            let timestr = DateHelper.formateDate(time)
+            print("timestr=== \(timestr)")
+            
+            let timester2 = DateHelper.getTimeStampForString(time)
+            print("timester2 === \(timester2)")
+            
+            let maxExpirationDate = DateHelper.maxExpirationDate()
+            let maxExpirationDateStr = DateHelper.formateDate(maxExpirationDate)
+            print("maxExpirationDateStr == \(maxExpirationDateStr)")
+            
+            let date = DateFormatter.convertToUTCDateFromString("1612510747")
+            let dateSTR = DateHelper.formateDate(date!)
+
+            print("dateSTR == \(dateSTR)")
+            
+            let ss = DateFormatter.convertToUTCStringFromDate(maxExpirationDate)
+            print("ss ===== \(ss)")
+            
             let testData: TestData = TestData()
             _ = try testData.setup(true)
             

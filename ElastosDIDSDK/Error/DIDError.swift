@@ -48,6 +48,8 @@ public enum DIDError: Error {
     case didMetaDateLocalFormatError (_ des: String? = nil)
     case didNotUpToDate (_ des: String? = nil)
     case didNotGenuine (_ des: String? = nil)
+    case IllegalArgumentError(_ des: String? = nil)
+    
 }
 
 extension DIDError {
