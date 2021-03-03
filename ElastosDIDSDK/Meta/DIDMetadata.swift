@@ -22,8 +22,8 @@
 
 import Foundation
 
-@objc(DIDMeta)
-public class DIDMeta: Metadata {
+@objc(DIDMetadata)
+public class DIDMetadata: Metadata {
     private var _deactivated: Bool = false
     private var _transactionId: String?
     private var _aliasName: String?

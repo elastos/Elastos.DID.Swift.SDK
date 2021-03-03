@@ -38,8 +38,8 @@ protocol DIDStorage {
     func loadMnemonic() throws -> String
     
     // DIDs
-    func storeDidMetadata(_ did: DID, _ meta: DIDMeta) throws
-    func loadDidMetadata(_ did: DID) throws -> DIDMeta
+    func storeDidMetadata(_ did: DID, _ meta: DIDMetadata) throws
+    func loadDidMetadata(_ did: DID) throws -> DIDMetadata
 
     func storeDid(_ doc: DIDDocument) throws
     func loadDid(_ did: DID) throws -> DIDDocument?

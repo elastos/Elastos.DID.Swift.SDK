@@ -24,17 +24,53 @@ import Foundation
 
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
-    private static let TAG = "DIDDocument"
-    private var _capacity: Int = 0
+    private static let TAG = NSStringFromClass(DIDDocument.self)
+    let ID = "id"
+    let PUBLICKEY = "publicKey"
+    let TYPE = "type"
+    let CONTROLLER = "controller"
+    let MULTI_SIGNATURE = "multisig"
+    let PUBLICKEY_BASE58 = "publicKeyBase58"
+    let AUTHENTICATION = "authentication"
+    let AUTHORIZATION = "authorization"
+    let SERVICE = "service"
+    let VERIFIABLE_CREDENTIAL = "verifiableCredential"
+    let SERVICE_ENDPOINT = "serviceEndpoint"
+    let EXPIRES = "expires"
+    let PROOF = "proof"
+    let CREATOR = "creator"
+    let CREATED = "created"
+    let SIGNATURE_VALUE = "signatureValue"
 
     private var _subject: DID?
-    private var _expirationDate: Date?
-    private var _proof: DIDDocumentProof?
-    private var _metadata: DIDMeta?
+    private var _controllers: [DID]?
+    private var _controllerDocs: [DID: DIDDocument]
+    private var _effectiveController: DID
+    private var _multisig: MultiSignature
+    private var publicKeys: EntryMap<PublicKey>
+    public var defaultPublicKey: PublicKey?
+    private var _publickeys: [PublicKey]
+    private var _authentications: [WeakPublicKey]
+    private var _authorizations: [WeakPublicKey]
+    private var credentials: EntryMap<VerifiableCredential>
+    private var _credentials: [VerifiableCredential]
+    private var services: EntryMap<Service>
+    private var _services: [Service]
+    private var _expires: Date?
+    private var proofs: [DIDURL: DIDDocumentProof]
+    private var _proofs: [DIDDocumentProof]
+    private var _metadata: DIDMetadata?
 
-    private var publicKeyMap: EntryMap<PublicKey>
-    private var credentialMap: EntryMap<VerifiableCredential>
-    private var serviceMap: EntryMap<Service>
+    private var _capacity: Int = 0
+
+//    private var _subject: DID?
+//    private var _expirationDate: Date?
+//    private var _proof: DIDDocumentProof?
+//    private var _metadata: DIDMeta?
+
+//    private var publicKeyMap: EntryMap<PublicKey>
+//    private var credentialMap: EntryMap<VerifiableCredential>
+//    private var serviceMap: EntryMap<Service>
 
     class EntryMap<T: DIDObject> {
         private var map: Dictionary<DIDURL, T>?
@@ -53,7 +89,7 @@ public class DIDDocument: NSObject {
 
         func count(_ fulfill: (T) -> Bool) -> Int {
             var total: Int = 0
-
+            
             guard map?.count ?? 0 > 0 else {
                 return 0
             }
@@ -152,36 +188,76 @@ public class DIDDocument: NSObject {
             return map?.removeValue(forKey: key) != nil
         }
     }
+    
+    class WeakPublicKey: NSObject {
+        private var _id: DIDURL?
+        private var _key: PublicKey?
+        
+        init(_ id: DIDURL) {
+            _id = id
+        }
+        
+        init(_ key: PublicKey) {
+            _key = key
+        }
+        
+        public var isReference: Bool {
+            return _id != nil
+        }
+        
+        public var id: DIDURL? {
+            return _id
+        }
+        
+        public var publicKey: PublicKey? {
+            return _key
+        }
+        
+        public func weaken() {
+            if _key != nil {
+                self._id = _key!.getId()
+                self._key = nil
+            }
+        }
+        
+        // TODO: Serializer Deserializer
+    }
 
     private override init() {
-        publicKeyMap = EntryMap<PublicKey>()
-        credentialMap = EntryMap<VerifiableCredential>()
-        serviceMap = EntryMap<Service>()
+        publicKeys = EntryMap<PublicKey>()
+        credentials = EntryMap<VerifiableCredential>()
+        services = EntryMap<Service>()
     }
 
     init(_ subject: DID) {
         self._subject = subject
-
-        publicKeyMap = EntryMap<PublicKey>()
-        credentialMap = EntryMap<VerifiableCredential>()
-        serviceMap = EntryMap<Service>()
+        publicKeys = EntryMap<PublicKey>()
+        credentials = EntryMap<VerifiableCredential>()
+        services = EntryMap<Service>()
     }
 
     init(_ doc: DIDDocument) {
-        publicKeyMap = EntryMap<PublicKey>(doc.publicKeyMap)
-        credentialMap = EntryMap<VerifiableCredential>(doc.credentialMap)
-        serviceMap = EntryMap<Service>(doc.serviceMap)
-
-        self._subject = doc.subject
-        self._expirationDate = doc.expirationDate
-        self._proof = doc.proof
-        super.init()
-        let metadata = doc.getMetadata()
-        metadata.clearLastModified()
-        self.setMetadata(metadata)
+        _subject = doc.subject
+        _controllers = doc._controllers
+        _controllerDocs = doc._controllerDocs
+        _multisig = doc._multisig
+        publicKeys = doc.publicKeys
+        _publickeys = doc._publickeys
+        _authentications = doc._authentications
+        _authorizations = doc._authorizations
+        defaultPublicKey = doc.defaultPublicKey
+        credentials = doc.credentials
+        _credentials = doc._credentials
+        services = doc.services
+        _services = doc._services
+        _expires = doc._expires
+        proofs = doc.proofs
+        _metadata = doc._metadata
     }
 
-    /// The unique identifier of the DID document
+
+    /// Get subject of DIDDocument.
+    /// - return: the DID object
     @objc
     public var subject: DID {
         return self._subject!
@@ -190,12 +266,49 @@ public class DIDDocument: NSObject {
     private func setSubject(_ subject: DID) {
         self._subject = subject
     }
+    
+    private func canonicalId(_ id: String) throws -> DIDURL? {
+        return try DIDURL.valueOf(subject, id)
+    }
+    
+    private func canonicalId(_ id: DIDURL) throws -> DIDURL? {
+        if id.did != nil {
+            return id
+        }
+        
+        return try DIDURL(subject, id)
+    }
+    
+    public func isCustomizedDid() -> Bool {
+        return defaultPublicKey == nil
+    }
+    
+    /// Get contoller's DID.
+    /// - Returns: the Controllers DID list or empty list if no controller
+    public func controllers() -> [DID] {
+        var ctrls: [DID] = []
+        if _controllers != nil {
+            ctrls = _controllers!
+        }
+        return ctrls
+    }
+    
+    /// Get controller count.
+    /// - Returns: the controller count
+    public func controllerCount() -> Int {
+        return _controllers == nil ? 0 : _controllers!.count
+    }
+    /*
+     public int getControllerCount() {
+         return controllers == null ? 0 : controllers.size();
+     }
 
+     */
     /// Get the count of public keys.
     /// A DID Document must include a publicKey property.
     @objc
     public var publicKeyCount: Int {
-        return self.publicKeyMap.count() { value -> Bool in return true }
+        return self.publicKeys.count() { value -> Bool in return true }
     }
 
     /// Get the array of publicKeys.
@@ -1047,7 +1160,7 @@ public class DIDDocument: NSObject {
         self._proof = proof
     }
 
-    func setMetadata(_ metadata: DIDMeta) {
+    func setMetadata(_ metadata: DIDMetadata) {
         self._metadata = metadata
         subject.setMetadata(metadata)
     }
@@ -1055,9 +1168,9 @@ public class DIDDocument: NSObject {
     /// Get DIDMetaData from DID.
     /// - Returns: Return the handle to DIDMetadata
     @objc
-    public func getMetadata() -> DIDMeta {
+    public func getMetadata() -> DIDMetadata {
         if _metadata == nil {
-            _metadata = DIDMeta()
+            _metadata = DIDMetadata()
             subject.setMetadata(_metadata!)
         }
 

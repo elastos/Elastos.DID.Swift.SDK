@@ -1616,7 +1616,7 @@ public class DIDStore: NSObject {
         }
     }
     
-    func storeDidMetadata(_  did: DID, _ metadata: DIDMeta) throws {
+    func storeDidMetadata(_  did: DID, _ metadata: DIDMetadata) throws {
         try storage.storeDidMetadata(did, metadata)
         if documentCache != nil {
             let doc = documentCache?.getValue(for: did)
@@ -1626,15 +1626,15 @@ public class DIDStore: NSObject {
         }
     }
 
-    func storeDidMetadata(_ did: String, _ metadata: DIDMeta) throws {
+    func storeDidMetadata(_ did: String, _ metadata: DIDMetadata) throws {
         let _did = try DID(did)
         try storeDidMetadata(_did, metadata)
 
     }
     
-    func loadDidMetadata(_ did: DID) throws -> DIDMeta {
+    func loadDidMetadata(_ did: DID) throws -> DIDMetadata {
         var doc: DIDDocument? = nil
-        var metadata: DIDMeta?
+        var metadata: DIDMetadata?
         if documentCache != nil {
             doc = documentCache!.getValue(for: did)
             if doc != nil {
@@ -1651,7 +1651,7 @@ public class DIDStore: NSObject {
             let path: String = DIDStore.storePath + "/" + Constants.DID_DIR + "/" + did.methodSpecificId + Constants.META_FILE
             _ = try deleteFile(path)
             doc = try did.resolve()
-            metadata = DIDMeta()
+            metadata = DIDMetadata()
             if doc != nil {
                 metadata = doc?.getMetadata()
             }
@@ -1666,7 +1666,7 @@ public class DIDStore: NSObject {
         return metadata!
     }
     
-    func loadDidMetadata(_ did: String) throws -> DIDMeta {
+    func loadDidMetadata(_ did: String) throws -> DIDMetadata {
         let _did = try DID(did)
         return try loadDidMetadata(_did)
     }
@@ -2346,7 +2346,7 @@ public class DIDStore: NSObject {
         bytes = [UInt8](value.data(using: .utf8)!)
         sha256.update(&bytes)
 
-        let didMetadata: DIDMeta? = try storage.loadDidMetadata(did)
+        let didMetadata: DIDMetadata? = try storage.loadDidMetadata(did)
         if !didMetadata!.isEmpty() {
             generator.writeFieldName("metadata")
             value = try didMetadata!.toString()
@@ -2583,7 +2583,7 @@ public class DIDStore: NSObject {
         
         let metaNode = node?.get(forKey: "metadata")
         if metaNode != nil {
-            let metadata = DIDMeta()
+            let metadata = DIDMetadata()
             try metadata.load(metaNode!)
             metadata.setStore(self)
             doc?.setMetadata(metadata)

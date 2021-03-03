@@ -31,7 +31,7 @@ public class DID: NSObject {
 
     private var _method: String?
     private var _methodSpecificId: String?
-    private var _metadata: DIDMeta?
+    private var _metadata: DIDMetadata?
 
     @objc public static let METHOD: String = "elastos"
 
@@ -64,6 +64,10 @@ public class DID: NSObject {
             throw DIDError.malformedDID(errmsg)
         }
     }
+    
+    public class func valueOf(_ did: String) throws -> DID? {
+        return did.isEmpty ? nil : try DID(did)
+    }
 
     ///  Get method of DID.
     @objc
@@ -88,14 +92,14 @@ public class DID: NSObject {
     /// Get DID MetaData from did.
     /// - Returns: Return the handle to DIDMetaData. Otherwise
     @objc
-    public func getMetadata() -> DIDMeta {
+    public func getMetadata() -> DIDMetadata {
         if  self._metadata == nil {
-            self._metadata = DIDMeta()
+            self._metadata = DIDMetadata()
         }
         return _metadata!
     }
 
-    func setMetadata(_ newValue: DIDMeta) {
+    func setMetadata(_ newValue: DIDMetadata) {
         self._metadata = newValue
     }
 

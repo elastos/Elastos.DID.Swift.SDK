@@ -322,7 +322,7 @@
 		A31ACE5723F19A3A008EC032 /* DIDURL.g4 in Resources */ = {isa = PBXBuildFile; fileRef = A31ACE4B23F19A39008EC032 /* DIDURL.g4 */; };
 		A31ACE5F23F19A4E008EC032 /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5C23F19A4E008EC032 /* Metadata.swift */; };
 		A31ACE6023F19A4E008EC032 /* CredentialMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */; };
-		A31ACE6123F19A4E008EC032 /* DIDMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5E23F19A4E008EC032 /* DIDMeta.swift */; };
+		A31ACE6123F19A4E008EC032 /* DIDMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */; };
 		A31ACE6823F19A66008EC032 /* ResolveResultStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6323F19A66008EC032 /* ResolveResultStatus.swift */; };
 		A31ACE6923F19A66008EC032 /* IDTransactionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */; };
 		A31ACE6A23F19A66008EC032 /* ResolveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6523F19A66008EC032 /* ResolveResult.swift */; };
@@ -722,7 +722,7 @@
 		A31ACE4B23F19A39008EC032 /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURL.g4; path = Parser/DIDURL.g4; sourceTree = "<group>"; };
 		A31ACE5C23F19A4E008EC032 /* Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Metadata.swift; path = Meta/Metadata.swift; sourceTree = "<group>"; };
 		A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialMeta.swift; path = Meta/CredentialMeta.swift; sourceTree = "<group>"; };
-		A31ACE5E23F19A4E008EC032 /* DIDMeta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDMeta.swift; path = Meta/DIDMeta.swift; sourceTree = "<group>"; };
+		A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDMetadata.swift; path = Meta/DIDMetadata.swift; sourceTree = "<group>"; };
 		A31ACE6323F19A66008EC032 /* ResolveResultStatus.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResultStatus.swift; path = Backend/ResolveResultStatus.swift; sourceTree = "<group>"; };
 		A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IDTransactionInfo.swift; path = Backend/IDTransactionInfo.swift; sourceTree = "<group>"; };
 		A31ACE6523F19A66008EC032 /* ResolveResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResult.swift; path = Backend/ResolveResult.swift; sourceTree = "<group>"; };
@@ -1353,7 +1353,7 @@
 			isa = PBXGroup;
 			children = (
 				A31ACE5C23F19A4E008EC032 /* Metadata.swift */,
-				A31ACE5E23F19A4E008EC032 /* DIDMeta.swift */,
+				A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */,
 				A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */,
 			);
 			name = Meta;
@@ -1677,7 +1677,7 @@
 				11D1F7A3257F3A5400BC5A54 /* ParserRuleContext.swift in Sources */,
 				11D1F76A257F3A5400BC5A54 /* PredictionMode.swift in Sources */,
 				11D1F70F257F3A5400BC5A54 /* UUIDExtension.swift in Sources */,
-				A31ACE6123F19A4E008EC032 /* DIDMeta.swift in Sources */,
+				A31ACE6123F19A4E008EC032 /* DIDMetadata.swift in Sources */,
 				11D1F79A257F3A5400BC5A54 /* PlusBlockStartState.swift in Sources */,
 				11D1F785257F3A5400BC5A54 /* PlusLoopbackState.swift in Sources */,
 				11D1F793257F3A5400BC5A54 /* StarBlockStartState.swift in Sources */,

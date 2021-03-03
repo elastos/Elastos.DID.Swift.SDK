@@ -347,7 +347,7 @@ public class DIDBackend: NSObject {
 
             let transactionInfo = try result!.transactionInfo(0)
             let doc = transactionInfo?.request.document
-            let meta = DIDMeta()
+            let meta = DIDMetadata()
 
             meta.setTransactionId(transactionInfo!.transactionId)
             meta.setSignature(doc!.proof.signature)

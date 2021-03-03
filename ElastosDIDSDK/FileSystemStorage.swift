@@ -456,7 +456,7 @@ public class FileSystemStorage: DIDStorage {
         return try openDidMetaFile(did, false)
     }
 
-    func storeDidMetadata(_ did: DID, _ meta: DIDMeta) throws {
+    func storeDidMetadata(_ did: DID, _ meta: DIDMetadata) throws {
         do {
             let handle = try openDidMetaFile(did, true)
             defer {
@@ -481,8 +481,8 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func loadDidMetadata(_ did: DID) throws -> DIDMeta {
-        let metadata = DIDMeta()
+    func loadDidMetadata(_ did: DID) throws -> DIDMetadata {
+        let metadata = DIDMetadata()
         do {
             let handle = try openDidMetaFile(did)
             try metadata.load(reader: handle)

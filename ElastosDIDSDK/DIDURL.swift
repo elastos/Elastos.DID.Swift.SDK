@@ -59,15 +59,15 @@ public class DIDURL: NSObject {
     private var _queryParameters: OrderedDictionary<String, String>?
     private var _metadata: CredentialMeta?
 
-    /// Create a new DID URL according to DID and fragment.
+    ///  Constructs the DIDURl with the given value.
     /// - Parameters:
-    ///   - id: A valid didurl guaranteed containing valid did.
-    ///   - url: A fragment string.
+    ///   - baseRef: base the owner of DIDURL
+    ///   - url: url the DIDURl string
     /// - Throws: If error occurs, throw error.
     @objc
-    public init(_ id: DID, _ url: String) throws {
+    public init(_ baseRef: DID, _ url: String) throws {
         guard !url.isEmpty else {
-            throw DIDError.illegalArgument("empty didurl string")
+            throw DIDError.illegalArgument("Invalid url")
         }
         super.init()
         var fragment = url
@@ -79,18 +79,19 @@ public class DIDURL: NSObject {
                 throw DIDError.malformedDIDURL("malformed DIDURL \(url)")
             }
 
-            guard did == id else {
+            guard did == baseRef else {
                 throw DIDError.illegalArgument("Mismatched arguments")
             }
             return
         }
 
-        if url.hasPrefix("#") {
-            let starIndex = fragment.index(fragment.startIndex, offsetBy: 1)
-            let endIndex  = fragment.index(starIndex, offsetBy: fragment.count - 2)
-            fragment  = String(fragment[starIndex...endIndex])
+        if !url.hasPrefix("#") {
+            fragment = "#" + fragment
         }
-        self._did = id
+        let starIndex = fragment.index(fragment.startIndex, offsetBy: 1)
+        let endIndex  = fragment.index(starIndex, offsetBy: fragment.count - 2)
+        fragment  = String(fragment[starIndex...endIndex])
+        self._did = baseRef
         self._fragment = fragment
     }
 
@@ -110,11 +111,32 @@ public class DIDURL: NSObject {
             throw DIDError.malformedDIDURL("malformed DIDURL \(url)")
         }
     }
+    
+    public init(_ baseRef: DID, _ url: DIDURL) throws {
+        _did = url._did == nil ? baseRef : url.did
+        _parameters = url._parameters
+        _path = url._path
+        _queryParameters = url._queryParameters
+        _fragment = url._fragment
+        _metadata = url._metadata
+    }
+
+    public class func valueOf(_ baseRef: DID, _ url: String) throws -> DIDURL? {
+        return url.isEmpty ? nil : try DIDURL(baseRef, url)
+    }
+    
+    public class func valueOf(_ baseRef: String, _ url: String) throws -> DIDURL? {
+        return url.isEmpty ? nil : try DIDURL(DID.valueOf(baseRef)!, url)
+    }
+    
+    public class func valueOf(_ url: String) throws -> DIDURL? {
+        return url.isEmpty ? nil : try DIDURL(url)
+    }
 
     // A valid didurl guaranteed containing valid did.
     @objc
-    public var did: DID {
-        return _did!
+    public var did: DID? {
+        return _did
     }
 
     /// Set did

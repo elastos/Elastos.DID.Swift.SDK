@@ -101,6 +101,8 @@ extension DIDError {
             return des ?? "DID document not up-to-date."
         case .didNotGenuine(let des):
             return des ?? "Publish failed because document is not genuine."
+        case .IllegalArgumentError(let des):
+            return des ?? "invalid arguments"
         }
     }
 }
