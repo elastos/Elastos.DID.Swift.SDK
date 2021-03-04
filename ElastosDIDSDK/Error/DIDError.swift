@@ -23,35 +23,223 @@
 import Foundation
 
 public enum DIDError: Error {
-    case unknownFailure (_ des: String? = nil)
-    case illegalArgument(_ des: String? = nil)
-
-    case malformedMeta  (_ des: String? = nil)
-    case malformedDID   (_ des: String? = nil)
-    case malformedDIDURL(_ des: String? = nil)
-    case malformedDocument  (_ des: String? = nil)
-    case malformedCredential(_ des: String? = nil)
-    case malformedPresentation(_ des: String? = nil)
-
-    case didStoreError  (_ des: String? = nil)
-
-    case didResolveError(_ des: String? = nil)
-    case didDeactivated (_ des: String? = nil)
-    case didExpired     (_ des: String? = nil)
-    case didtransactionError(_ des: String? = nil)
-    case didNotFoundError(_ des: String? = nil)
-
-    case invalidState   (_ des: String? = nil)
-    case invalidKeyError(_ des: String? = nil)
-
-    case notFoundError (_ des: String? = nil)
-    case didMetaDateLocalFormatError (_ des: String? = nil)
-    case didNotUpToDate (_ des: String? = nil)
-    case didNotGenuine (_ des: String? = nil)
-    case IllegalArgumentError(_ des: String? = nil)
+    public enum UncheckedError {
+        public enum IllegalArgumentError {
+            case MalformedDIDError(_ des: String?)
+            case MalformedDIDURLError(_ des: String?)
+            case DIDObjectAlreadyExistError(_ des: String?)
+            case DIDObjectNotExistError(_ des: String?)
+            case InvalidKeyError(_ des: String?)
+            case NotControllerError(_ des: String?)
+            case IllegalUsageError(_ des: String?)
+        }
+        
+        public enum IllegalStateError {
+            case DIDNotFoundError(_ des: String?)
+            case DIDDeactivatedError(_ des: String?)
+            case DIDAlreadyExistError(_ des: String?)
+            case DIDExpiredError(_ des: String?)
+            case DIDNotUpToDateError(_ des: String?)
+            case DIDNotGenuineError(_ des: String?)
+            case CredentialNotGenuineError(_ des: String?)
+            case CredentialExpiredError(_ des: String?)
+            case CredentialRevokedError(_ des: String?)
+            case CredentialAlreadyExistError(_ des: String?)
+            case RootIdentityAlreadyExistError(_ des: String?)
+            case NotCustomizedDIDError(_ des: String)
+            case NoEffectiveControllerError(_ des: String?)
+            case NotAttachedWithStoreError(_ des: String?)
+            case NotPrimitiveDIDError(_ des: String?)
+            case AlreadySignedError(_ des: String?)
+            case AlreadySealedError(_ des: String?)
+            case UnknownInternalError(_ des: String?)
+        }
+        
+        public enum UnsupportedOperationError {
+            case DIDObjectHasReferenceError(_ des: String?)
+            case CanNotRemoveEffectiveControllerError(_ des: String?)
+        }
+    }
     
+    public enum CheckedError {
+        public enum MnemonicError {
+        }
+        
+        public enum DIDSyntaxError {
+            case MalformedDocumentError(_ des: String?)
+            case MalformedCredentialError(_ des: String)
+            case MalformedPresentationError(_ des: String?)
+            case MalformedExportDataError(_ des: String?)
+            case MalformedIDChainRequestError(_ des: String?)
+            case MalformedIDChainTransactionError(_ des: String?)
+            case MalformedResolveRequestError(_ des: String?)
+            case MalformedResolveResponseError(_ des: String?)
+            case MalformedResolveResultError(_ des: String?)
+            case MalformedTransferTicketError(_ des: String?)
+        }
+        
+        public enum DIDStoreError {
+            public enum DIDStorageError {
+                case DIDStoreVersionMismatchError(_ des: String?)
+            }
+            case WrongPasswordError(_ des: String?)
+            case DIDStoreCryptoError(_ des: String?)
+        }
+        
+        public enum DIDBackendError {
+            public enum DIDResolveError {
+                case NetworkError(_ des: String?)
+            }
+            case DIDTransactionError(_ des: String?)
+        }
+    }
 }
 
+// MARK: - Error Descriptions
+extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
+        
+    public var errorDescription: String? {
+        switch self {
+        case .MalformedDIDError(let des):
+            return des
+        case .MalformedDIDURLError(let des):
+            return des
+        case .DIDObjectAlreadyExistError(let des):
+            return des
+        case .DIDObjectNotExistError(let des):
+            return des
+        case .InvalidKeyError(let des):
+            return des
+        case .NotControllerError(let des):
+            return des
+        case .IllegalUsageError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.UncheckedError.IllegalStateError: LocalizedError {
+    
+    public var errorDescription: String? {
+        switch self {
+        case .DIDNotFoundError(let des):
+            return des
+        case .DIDDeactivatedError(let des):
+            return des
+        case .DIDAlreadyExistError(let des):
+            return des
+        case .DIDExpiredError(let des):
+            return des
+        case .DIDNotUpToDateError(let des):
+            return des
+        case .DIDNotGenuineError(let des):
+            return des
+        case .CredentialNotGenuineError(let des):
+            return des
+        case .CredentialExpiredError(let des):
+            return des
+        case .CredentialRevokedError(let des):
+            return des
+        case .CredentialAlreadyExistError(let des):
+            return des
+        case .RootIdentityAlreadyExistError(let des):
+            return des
+        case .NotCustomizedDIDError(let des):
+            return des
+        case .NoEffectiveControllerError(let des):
+            return des
+        case .NotAttachedWithStoreError(let des):
+            return des
+        case .NotPrimitiveDIDError(let des):
+            return des
+        case .AlreadySignedError(let des):
+            return des
+        case .AlreadySealedError(let des):
+            return des
+        case .UnknownInternalError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.UncheckedError.UnsupportedOperationError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .DIDObjectHasReferenceError(let des):
+            return des
+        case .CanNotRemoveEffectiveControllerError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.CheckedError.DIDSyntaxError: LocalizedError {
+    
+    public var errorDescription: String? {
+        switch self {
+        case .MalformedDocumentError(let des):
+            return des
+        case .MalformedCredentialError(let des):
+            return des
+        case .MalformedPresentationError(let des):
+            return des
+        case .MalformedExportDataError(let des):
+            return des
+        case .MalformedIDChainRequestError(let des):
+            return des
+        case .MalformedIDChainTransactionError(let des):
+            return des
+        case .MalformedResolveRequestError(let des):
+            return des
+        case .MalformedResolveResponseError(let des):
+            return des
+        case .MalformedResolveResultError(let des):
+            return des
+        case .MalformedTransferTicketError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.CheckedError.DIDStoreError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .WrongPasswordError(let des):
+            return des
+        case .DIDStoreCryptoError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.CheckedError.DIDStoreError.DIDStorageError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .DIDStoreVersionMismatchError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.CheckedError.DIDBackendError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .DIDTransactionError(let des):
+            return des
+        }
+    }
+}
+
+extension DIDError.CheckedError.DIDBackendError.DIDResolveError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .NetworkError(let des):
+            return des
+        }
+    }
+}
+
+/*
 extension DIDError {
     static func desription(_ error: DIDError) -> String {
         switch error {
@@ -106,3 +294,4 @@ extension DIDError {
         }
     }
 }
+*/
