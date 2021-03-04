@@ -44,8 +44,8 @@ public class DIDDocument: NSObject {
 
     private var _subject: DID?
     private var _controllers: [DID]?
-    private var _controllerDocs: [DID: DIDDocument]
-    private var _effectiveController: DID
+    private var _controllerDocs: [DID: DIDDocument]?
+    private var _effectiveController: DID?
     private var _multisig: MultiSignature
     private var publicKeys: EntryMap<PublicKey>
     public var defaultPublicKey: PublicKey?
@@ -298,11 +298,62 @@ public class DIDDocument: NSObject {
     public func controllerCount() -> Int {
         return _controllers == nil ? 0 : _controllers!.count
     }
+    
+    /// Get contoller's DID.
+    /// - Returns: the Controller's DID if only has one controller, other wise nil
+    var controller: DID? {
+        return _controllers != nil && _controllers!.count == 1 ? _controllers[0] : nil
+    }
+    
+    /// Check if current DID has controller.
+    /// - Returns: true if has, otherwise false
+    public func hasController() -> Bool {
+        return _controllers != nil && !(_controllers?.isEmpty)
+    }
+    
+    /// Check if current DID has specific controller.
+    /// - Returns: true if has, otherwise false
+    public func hasController(_ did: DID) -> Bool {
+        return _controllers != nil && _controllers!.contains(did)
+    }
+    
+    /// Get controller's DID document.
+    /// - Returns: the DIDDocument object or null if no controller
+    public func controllerDocument(_ did: DID) -> DIDDocument? {
+        return _controllerDocs[did]
+    }
+    
+    public var effectiveController: DID? {
+        return _effectiveController
+    }
+    
+    func effectiveControllerDocument() -> DIDDocument? {
+        return _effectiveController == nil ? nil : controllerDocument(_effectiveController)
+    }
+    
+    public func setEffectiveController(_ controller: DID) throws {
+        
+    }
     /*
-     public int getControllerCount() {
-         return controllers == null ? 0 : controllers.size();
-     }
+     public void setEffectiveController(DID controller) throws NotControllerException {
+         if (!isCustomizedDid())
+             throw new UnsupportedOperationException("Not customized DID");
 
+         if (controller == null) {
+             effectiveController = controller;
+             return;
+         } else {
+             if (!hasController(controller))
+                 throw new NotControllerException("No this controller");
+
+             effectiveController = controller;
+
+             // attach to the store if necessary
+             DIDDocument doc = getControllerDocument(effectiveController);
+             if (!doc.getMetadata().attachedStore())
+                 doc.getMetadata().attachStore(getMetadata().getStore());
+         }
+     }
      */
     /// Get the count of public keys.
     /// A DID Document must include a publicKey property.
