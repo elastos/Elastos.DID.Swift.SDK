@@ -22,193 +22,126 @@
 
 import Foundation
 
+/// The class defines the implement of DID Metadata.
+public class DIDMetadata: AbstractMetadata {
+    private let ROOT_IDENTITY = "rootIdentity"
+    private let INDEX = "index"
+    private let TXID = "txid"
+    private let PREV_SIGNATURE = "prevSignature"
+    private let SIGNATURE = "signature"
+    private let PUBLISHED = "published"
+    private let DEACTIVATED = "deactivated"
+    
+    private var _did: DID?
+    
+    /// The default constructor for JSON deserialize creator.
+    override init() { }
+    
+    /// Constructs the empty DIDMetadataImpl.
+    init(_ did: DID) {
+        self._did = did
+    }
+    
+    /// Constructs the empty DIDMetadataImpl with the given store.
+    /// - Parameters:
+    ///   - store: the specified DIDStore
+    init(_ did: DID, _ store: DIDStore) {
+        self._did = did
+        super.init(store)
+    }
+    
+    var did: DID? {
+        get {
+            return _did
+        }
+        set{
+            _did  = newValue
+        }
+    }
+    
+    var rootIdentityId: String? {
+        get {
+            return get(ROOT_IDENTITY)
+        }
+        set{
+            put(ROOT_IDENTITY, newValue)
+        }
+    }
+    
+    var index: Int? {
+        get {
+            return getInteger(INDEX)
+        }
+        set{
+            put(INDEX, newValue)
+        }
+    }
+    
+    /// Set transaction id into DIDMetadata.
+    /// Get the last transaction id.
+    var transactionId: String? {
+        get {
+            return get(TXID)
+        }
+        set{
+            put(TXID, newValue)
+        }
+    }
+    
+    /// Set previous signature into DIDMetadata.
+    /// Get the document signature from the previous transaction.
+    var previousSignature: String? {
+        get {
+            return get(PREV_SIGNATURE)
+        }
+        set{
+            put(PREV_SIGNATURE, newValue)
+        }
+    }
+    
+    /// Set signature into DIDMetadata.
+    /// Get the document signature from the lastest transaction.
+    var signature: String? {
+        get {
+            return get(SIGNATURE)
+        }
+        set{
+            put(SIGNATURE, newValue)
+        }
+    }
+    
+    /// Set published time into DIDMetadata.
+    /// Get the time of the lastest published transaction.
+    var published: Date? {
+        get {
+            return getDate(PUBLISHED)
+        }
+        set{
+            put(PUBLISHED, newValue)
+        }
+    }
+    
+    /// Set deactivate status into DIDMetadata.
+    /// Get the DID deactivated status.
+    var deactivated: Bool {
+        get {
+            return getBoolean(DEACTIVATED)
+        }
+        set{
+            put(DEACTIVATED, newValue)
+        }
+    }
+    
+    public override func clone() {
+    // TODO:
+    }
+    
+    override func save() {
+        // TODO:
+    }
+}
 
 /*
- /**
-  * The class defines the implement of DID Metadata.
-  */
- public class DIDMetadata extends AbstractMetadata implements Cloneable {
-     private final static String ROOT_IDENTITY = "rootIdentity";
-     private final static String INDEX = "index";
-     private final static String TXID = "txid";
-     private final static String PREV_SIGNATURE = "prevSignature";
-     private final static String SIGNATURE = "signature";
-     private final static String PUBLISHED = "published";
-     private final static String DEACTIVATED = "deactivated";
-
-     private DID did;
-
-     private static final Logger log = LoggerFactory.getLogger(DIDMetadata.class);
-
-     /**
-      *  The default constructor for JSON deserialize creator.
-      */
-     protected DIDMetadata() {
-         this(null);
-     }
-
-     /**
-      * Constructs the empty DIDMetadataImpl.
-      */
-     protected DIDMetadata(DID did) {
-         this(did, null);
-     }
-
-     /**
-      * Constructs the empty DIDMetadataImpl with the given store.
-      *
-      * @param store the specified DIDStore
-      */
-     protected DIDMetadata(DID did, DIDStore store) {
-         super(store);
-         this.did = did;
-     }
-
-     protected void setDid(DID did) {
-         this.did = did;
-     }
-
-     protected void setRootIdentityId(String id) {
-         put(ROOT_IDENTITY, id);
-     }
-
-     protected String getRootIdentityId() {
-         return get(ROOT_IDENTITY);
-     }
-
-     protected void setIndex(int index) {
-         put(INDEX, index);
-     }
-
-     protected int getIndex() {
-         return getInteger(INDEX);
-     }
-
-     /**
-      * Set transaction id into DIDMetadata.
-      *
-      * @param txid the transaction id string
-      */
-     protected void setTransactionId(String txid) {
-         put(TXID, txid);
-     }
-
-     /**
-      * Get the last transaction id.
-      *
-      * @return the transaction string
-      */
-     public String getTransactionId() {
-         return get(TXID);
-     }
-
-     /**
-      * Set previous signature into DIDMetadata.
-      *
-      * @param signature the signature string
-      */
-     protected void setPreviousSignature(String signature) {
-         put(PREV_SIGNATURE, signature);
-     }
-
-     /**
-      * Get the document signature from the previous transaction.
-      *
-      * @return the signature string
-      */
-     public String getPreviousSignature() {
-         return get(PREV_SIGNATURE);
-     }
-
-     /**
-      * Set signature into DIDMetadata.
-      *
-      * @param signature the signature string
-      */
-     protected void setSignature(String signature) {
-         put(SIGNATURE, signature);
-     }
-
-     /**
-      * Get the document signature from the lastest transaction.
-      *
-      * @return the signature string
-      */
-     public String getSignature() {
-         return get(SIGNATURE);
-     }
-
-     /**
-      * Set published time into DIDMetadata.
-      *
-      * @param timestamp the time published
-      */
-     protected void setPublished(Date timestamp) {
-         put(PUBLISHED, timestamp);
-     }
-
-     /**
-      * Get the time of the lastest published transaction.
-      *
-      * @return the published time
-      */
-     public Date getPublished() {
-         try {
-             return getDate(PUBLISHED);
-         } catch (ParseException e) {
-             return null;
-         }
-     }
-
-     /**
-      * Set deactivate status into DIDMetadata.
-      *
-      * @param deactivated the deactivate status
-      */
-     protected void setDeactivated(boolean deactivated) {
-         put(DEACTIVATED, deactivated);
-     }
-
-     /**
-      * the DID deactivated status.
-      *
-      * @return the returned value is true if the did is deactivated.
-      *         the returned value is false if the did is activated.
-      */
-     public boolean isDeactivated( ) {
-         return getBoolean(DEACTIVATED);
-     }
-
-     /**
-      * Returns a shallow copy of this instance: the keys and values themselves
-      * are not cloned.
-      *
-      * @return a shallow copy of this object
-      */
-     @Override
-     public DIDMetadata clone() {
-         try {
-             return (DIDMetadata)super.clone();
-         } catch (CloneNotSupportedException ignore) {
-             ignore.printStackTrace();
-             return null;
-         }
-     }
-
-     @Override
-     protected void save() {
-         if (attachedStore()) {
-             try {
-                 getStore().storeDidMetadata(did, this);
-             } catch (DIDStoreException ignore) {
-                 log.error("INTERNAL - error store metadata for DID {}", did);
-             }
-         }
-     }
- }
- */
-
-
 @objc(DIDMetadata)
 public class DIDMetadata: Metadata {
     private var _deactivated: Bool = false
@@ -319,3 +252,4 @@ public class DIDMetadata: Metadata {
         put(key: DEACTIVATED, value: newValue as Any)
     }
 }
+*/

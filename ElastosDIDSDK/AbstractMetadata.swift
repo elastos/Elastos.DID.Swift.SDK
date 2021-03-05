@@ -65,7 +65,7 @@ public class AbstractMetadata: NSObject {
         return _props
     }
     
-    func put(_ name: String, _ value: String) {
+    func put(_ name: String, _ value: String?) {
         _props[name] = value
         save()
     }
@@ -86,8 +86,8 @@ public class AbstractMetadata: NSObject {
         return true
     }
     
-    func put(_ name: String, _ value: Int) {
-        put(name, String(value))
+    func put(_ name: String, _ value: Int?) {
+        put(name, value == nil ? nil : String(value!))
     }
     
     func getInteger(_ name: String) -> Int? {
@@ -95,8 +95,8 @@ public class AbstractMetadata: NSObject {
         return result == nil ? nil : Int(result!)
     }
     
-    func put(_ name: String, _ value: Date) {
-        put(name, DateFormatter.convertToUTCStringFromDate(value))
+    func put(_ name: String, _ value: Date?) {
+        put(name, value == nil ? nil : DateFormatter.convertToUTCStringFromDate(value!))
     }
     
     func getDate(_ name: String) -> Date? {
