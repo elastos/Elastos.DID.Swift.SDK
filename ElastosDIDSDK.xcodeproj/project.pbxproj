@@ -67,6 +67,7 @@
 		115A374024404DA5005549CC /* CHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A373D24404DA5005549CC /* CHDKey.swift */; };
 		11641BB523B702FC0037016B /* AbstractAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BB423B702FC0037016B /* AbstractAdapter.swift */; };
 		11641BBB23B715CF0037016B /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BBA23B715CF0037016B /* TestError.swift */; };
+		116F71A025F1D5F20041D983 /* AbstractMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116F719F25F1D5F20041D983 /* AbstractMetadata.swift */; };
 		11782AC6242130C4009A1F5A /* DIDURLLexer.tokens in Resources */ = {isa = PBXBuildFile; fileRef = 11782ABB242130C3009A1F5A /* DIDURLLexer.tokens */; };
 		11782AC7242130C4009A1F5A /* DIDURLLexer.interp in Resources */ = {isa = PBXBuildFile; fileRef = 11782ABC242130C3009A1F5A /* DIDURLLexer.interp */; };
 		11782AC8242130C4009A1F5A /* DIDURLBaseListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11782ABD242130C3009A1F5A /* DIDURLBaseListener.swift */; };
@@ -427,6 +428,7 @@
 		115A373D24404DA5005549CC /* CHDKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CHDKey.swift; sourceTree = "<group>"; };
 		11641BB423B702FC0037016B /* AbstractAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractAdapter.swift; sourceTree = "<group>"; };
 		11641BBA23B715CF0037016B /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
+		116F719F25F1D5F20041D983 /* AbstractMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractMetadata.swift; sourceTree = "<group>"; };
 		11782ABB242130C3009A1F5A /* DIDURLLexer.tokens */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURLLexer.tokens; path = Parser/DIDURLLexer.tokens; sourceTree = "<group>"; };
 		11782ABC242130C3009A1F5A /* DIDURLLexer.interp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURLLexer.interp; path = Parser/DIDURLLexer.interp; sourceTree = "<group>"; };
 		11782ABD242130C3009A1F5A /* DIDURLBaseListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDURLBaseListener.swift; path = Parser/DIDURLBaseListener.swift; sourceTree = "<group>"; };
@@ -722,7 +724,7 @@
 		A31ACE4B23F19A39008EC032 /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURL.g4; path = Parser/DIDURL.g4; sourceTree = "<group>"; };
 		A31ACE5C23F19A4E008EC032 /* Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Metadata.swift; path = Meta/Metadata.swift; sourceTree = "<group>"; };
 		A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialMeta.swift; path = Meta/CredentialMeta.swift; sourceTree = "<group>"; };
-		A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDMetadata.swift; path = Meta/DIDMetadata.swift; sourceTree = "<group>"; };
+		A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDMetadata.swift; sourceTree = "<group>"; };
 		A31ACE6323F19A66008EC032 /* ResolveResultStatus.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResultStatus.swift; path = Backend/ResolveResultStatus.swift; sourceTree = "<group>"; };
 		A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IDTransactionInfo.swift; path = Backend/IDTransactionInfo.swift; sourceTree = "<group>"; };
 		A31ACE6523F19A66008EC032 /* ResolveResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResult.swift; path = Backend/ResolveResult.swift; sourceTree = "<group>"; };
@@ -1259,6 +1261,8 @@
 				A31ACE2423F199F7008EC032 /* Error */,
 				A31ACE5B23F19A3F008EC032 /* Meta */,
 				A31ACE6223F19A58008EC032 /* Backend */,
+				116F719F25F1D5F20041D983 /* AbstractMetadata.swift */,
+				A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */,
 				A31ACDFE23F199AE008EC032 /* Constants.swift */,
 				A31801A8240277180087E074 /* JsonNode.swift */,
 				1147721023F6976800C7C36F /* Mnemonic.swift */,
@@ -1353,7 +1357,6 @@
 			isa = PBXGroup;
 			children = (
 				A31ACE5C23F19A4E008EC032 /* Metadata.swift */,
-				A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */,
 				A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */,
 			);
 			name = Meta;
@@ -1842,6 +1845,7 @@
 				A31ACE3723F19A22008EC032 /* ExtensionInt.swift in Sources */,
 				11C3EC6724765D0F00DF1B4F /* JwtParserBuilder.swift in Sources */,
 				A3368469242201D90049126D /* LogLevel.swift in Sources */,
+				116F71A025F1D5F20041D983 /* AbstractMetadata.swift in Sources */,
 				11C3ECEC2477807300DF1B4F /* BlueRSA.swift in Sources */,
 				11D1F723257F3A5400BC5A54 /* ParseTreeWalker.swift in Sources */,
 				11D1F72B257F3A5400BC5A54 /* ParseTreeMatch.swift in Sources */,

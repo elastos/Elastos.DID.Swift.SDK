@@ -21,7 +21,7 @@
 */
 
 import Foundation
-
+/*
 class DateHelper {
     class func currentDate()-> Date {
         let current  = Date()
@@ -115,3 +115,4 @@ class DateHelper {
         return maxExpirationDate(Date())
     }
 }
+*/

@@ -302,13 +302,13 @@ public class DIDDocument: NSObject {
     /// Get contoller's DID.
     /// - Returns: the Controller's DID if only has one controller, other wise nil
     var controller: DID? {
-        return _controllers != nil && _controllers!.count == 1 ? _controllers[0] : nil
+        return _controllers != nil && _controllers!.count == 1 ? _controllers![0] : nil
     }
     
     /// Check if current DID has controller.
     /// - Returns: true if has, otherwise false
     public func hasController() -> Bool {
-        return _controllers != nil && !(_controllers?.isEmpty)
+        return _controllers != nil && !(_controllers!.isEmpty)
     }
     
     /// Check if current DID has specific controller.
@@ -320,7 +320,7 @@ public class DIDDocument: NSObject {
     /// Get controller's DID document.
     /// - Returns: the DIDDocument object or null if no controller
     public func controllerDocument(_ did: DID) -> DIDDocument? {
-        return _controllerDocs[did]
+        return _controllerDocs?[did]
     }
     
     public var effectiveController: DID? {
@@ -328,32 +328,283 @@ public class DIDDocument: NSObject {
     }
     
     func effectiveControllerDocument() -> DIDDocument? {
-        return _effectiveController == nil ? nil : controllerDocument(_effectiveController)
+        return _effectiveController == nil ? nil : controllerDocument(_effectiveController!)
     }
     
-    public func setEffectiveController(_ controller: DID) throws {
+    public func setEffectiveController(_ controller: DID?) throws {
+        guard isCustomizedDid() else {
+            throw DIDError.UncheckedError.UnsupportedOperationError.NotCustomizedDIDError("Not customized DID")
+        }
         
+        guard controller != nil else {
+            _effectiveController = controller
+            return
+        }
+        
+        guard hasController(controller!) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError("No this controller")
+        }
+        _effectiveController = controller
+        
+        // attach to the store if necessary
+        let doc = controllerDocument(_effectiveController!)
+        if !((doc?.getMetadata().attachedStore)!) {
+            
+        }
     }
     /*
-     public void setEffectiveController(DID controller) throws NotControllerException {
-         if (!isCustomizedDid())
-             throw new UnsupportedOperationException("Not customized DID");
+     public void setEffectiveController(DID controller) {
+             if (!isCustomizedDid())
+                 throw new NotCustomizedDIDException(getSubject().toString());
 
-         if (controller == null) {
-             effectiveController = controller;
-             return;
-         } else {
-             if (!hasController(controller))
-                 throw new NotControllerException("No this controller");
+             if (controller == null) {
+                 effectiveController = controller;
+                 return;
+             } else {
+                 if (!hasController(controller))
+                     throw new NotControllerException("Not contoller for target DID");
 
-             effectiveController = controller;
+                 effectiveController = controller;
 
-             // attach to the store if necessary
-             DIDDocument doc = getControllerDocument(effectiveController);
-             if (!doc.getMetadata().attachedStore())
-                 doc.getMetadata().attachStore(getMetadata().getStore());
+                 // attach to the store if necessary
+                 DIDDocument doc = getControllerDocument(effectiveController);
+                 if (!doc.getMetadata().attachedStore())
+                     doc.getMetadata().attachStore(getMetadata().getStore());
+             }
          }
-     }
+
+         public boolean isMultiSignature() {
+             return multisig != null;
+         }
+
+         public MultiSignature getMultiSignature() {
+             return multisig;
+         }
+
+         /**
+          * Get the count of public keys.
+          *
+          * @return the count
+          */
+         public int getPublicKeyCount() {
+             int count = publicKeys.size();
+
+             if (hasController()) {
+                 for (DIDDocument doc : controllerDocs.values())
+                     count += doc.getAuthenticationKeyCount();
+             }
+
+             return count;
+         }
+
+         /**
+          * Get the public keys array.
+          *
+          * @return the PublicKey array
+          */
+         public List<PublicKey> getPublicKeys() {
+             List<PublicKey> pks = new ArrayList<PublicKey>(publicKeys.values());
+
+             if (hasController()) {
+                 for (DIDDocument doc : controllerDocs.values())
+                     pks.addAll(doc.getAuthenticationKeys());
+             }
+
+             return Collections.unmodifiableList(pks);
+         }
+
+         /**
+          * Select public keys with the specified key id or key type.
+          *
+          * @param id the key id
+          * @param type the type string
+          * @return the matched PublicKey array
+          */
+         public List<PublicKey> selectPublicKeys(DIDURL id, String type) {
+             checkArgument(id != null || type != null, "Invalid select args");
+
+             id = canonicalId(id);
+
+             List<PublicKey> pks = new ArrayList<PublicKey>(publicKeys.size());
+             for (PublicKey pk : publicKeys.values()) {
+                 if (id != null && !pk.getId().equals(id))
+                     continue;
+
+                 if (type != null && !pk.getType().equals(type))
+                     continue;
+
+                 pks.add(pk);
+             }
+
+             if (hasController()) {
+                 for (DIDDocument doc : controllerDocs.values())
+                     pks.addAll(doc.selectAuthenticationKeys(id, type));
+             }
+
+             return Collections.unmodifiableList(pks);
+
+         }
+
+         /**
+          * Select public keys with the specified key id or key type.
+          *
+          * @param id the key id string
+          * @param type the type string
+          * @return the matched PublicKey array
+          */
+         public List<PublicKey> selectPublicKeys(String id, String type) {
+             return selectPublicKeys(canonicalId(id), type);
+         }
+
+         /**
+          * Get public key matched specified key id.
+          *
+          * @param id the key id string
+          * @return the PublicKey object
+          */
+         public PublicKey getPublicKey(String id) {
+             return getPublicKey(canonicalId(id));
+         }
+
+         /**
+          * Get public key matched specified key id.
+          *
+          * @param id the key id
+          * @return the PublicKey object
+          */
+         public PublicKey getPublicKey(DIDURL id) {
+             checkArgument(id != null, "Invalid publicKey id");
+
+             id = canonicalId(id);
+             PublicKey pk = publicKeys.get(id);
+             if (pk == null && hasController()) {
+                 DIDDocument doc = getControllerDocument(id.getDid());
+                 if (doc != null)
+                     pk = doc.getAuthenticationKey(id);
+             }
+
+             return pk;
+         }
+
+         /**
+          * Check if the specified public key exists.
+          *
+          * @param id the key id
+          * @return the key exists or not
+          */
+         public boolean hasPublicKey(DIDURL id) {
+             return getPublicKey(id) != null;
+         }
+
+         /**
+          * Check if the specified public key exists.
+          *
+          * @param id the key id string
+          * @return the key exists or not
+          */
+         public boolean hasPublicKey(String id) {
+             return hasPublicKey(canonicalId(id));
+         }
+
+         /**
+          * Check if the specified private key exists.
+          *
+          * @param id the key id
+          * @return the key exists or not
+          * @throws DIDStoreException there is no store
+          */
+         public boolean hasPrivateKey(DIDURL id) throws DIDStoreException {
+             checkArgument(id != null, "Invalid publicKey id");
+
+             if (hasPublicKey(id) && getMetadata().attachedStore())
+                 return getMetadata().getStore().containsPrivateKey(id);
+             else
+                 return false;
+         }
+
+         /**
+          * Check if the specified private key exists.
+          *
+          * @param id the key id string
+          * @return the key exists or not
+          * @throws DIDStoreException there is no store
+          */
+         public boolean hasPrivateKey(String id) throws DIDStoreException {
+             return hasPrivateKey(canonicalId(id));
+         }
+
+         /**
+          * Get default key id of did document.
+          *
+          * @return the default key id
+          */
+         public DIDURL getDefaultPublicKeyId() {
+             PublicKey pk = getDefaultPublicKey();
+             return pk != null ? pk.getId() : null;
+         }
+
+         /**
+          * Get default key of did document.
+          *
+          * @return the default key
+          */
+         public PublicKey getDefaultPublicKey() {
+             if (defaultPublicKey != null)
+                 return defaultPublicKey;
+
+             if (effectiveController != null)
+                 return getControllerDocument(effectiveController).getDefaultPublicKey();
+
+             return null;
+         }
+
+         /**
+          * Get KeyPair object according to the given key id.
+          *
+          * @param id the given key id
+          * @return the KeyPair object
+          * @throws InvalidKeyException there is no the matched key
+          */
+         public KeyPair getKeyPair(DIDURL id) {
+             PublicKey pk;
+
+             if (id == null) {
+                 pk = getDefaultPublicKey();
+                 if (pk == null)
+                     throw new NoEffectiveControllerException(getSubject().toString());
+             } else {
+                 pk = getPublicKey(id);
+                 if (pk == null)
+                     throw new InvalidKeyException(id.toString());
+             }
+
+             HDKey key = HDKey.deserialize(HDKey.paddingToExtendedPublicKey(
+                     pk.getPublicKeyBytes()));
+
+             return key.getJCEKeyPair();
+         }
+
+         /**
+          * Get KeyPair object according to the given key id.
+          *
+          * @param id the key id string
+          * @return the KeyPair object
+          * @throws InvalidKeyException there is no matched key
+          */
+         public KeyPair getKeyPair(String id) {
+             return getKeyPair(canonicalId(id));
+         }
+
+         /**
+          * Get KeyPair object according to the given key id.
+          *
+          * @return the KeyPair object
+          * @throws InvalidKeyException there is no the matched key
+          */
+         public KeyPair getKeyPair() {
+             return getKeyPair((DIDURL)null);
+         }
+
      */
     /// Get the count of public keys.
     /// A DID Document must include a publicKey property.
