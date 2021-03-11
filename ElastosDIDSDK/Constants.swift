@@ -23,8 +23,13 @@
 import Foundation
 
 class Constants {
+    /// The default PublicKey type
     static let DEFAULT_PUBLICKEY_TYPE = "ECDSAsecp256r1"
 
+    /// The deprecated default PublicKey type
+    static let _DEFAULT_PUBLICKEY_TYPE = "secp256r1"
+
+    
     // DID method
     static let METHOD = "elastos"
 

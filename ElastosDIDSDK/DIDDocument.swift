@@ -43,22 +43,22 @@ public class DIDDocument: NSObject {
     let SIGNATURE_VALUE = "signatureValue"
 
     private var _subject: DID?
-    private var _controllers: [DID]?
-    private var _controllerDocs: [DID: DIDDocument]?
+    private var _controllers: [DID] = [ ]
+    private var _controllerDocs: [DID: DIDDocument] = [: ]
     private var _effectiveController: DID?
-    private var _multisig: MultiSignature
-    private var publicKeys: EntryMap<PublicKey>
-    public var defaultPublicKey: PublicKey?
-    private var _publickeys: [PublicKey]
-    private var _authentications: [WeakPublicKey]
-    private var _authorizations: [WeakPublicKey]
-    private var credentials: EntryMap<VerifiableCredential>
-    private var _credentials: [VerifiableCredential]
-    private var services: EntryMap<Service>
-    private var _services: [Service]
+    private var _multisig: MultiSignature?
+    private var publicKeyMap: EntryMap<PublicKey> = EntryMap()
+    private var _defaultPublicKey: PublicKey?
+    private var _publickeys: [PublicKey] = []
+    private var _authentications: [PublicKeyReference] = []
+    private var _authorizations: [PublicKeyReference] = []
+    private var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
+    private var _credentials: [VerifiableCredential] = []
+    private var serviceMap: EntryMap<Service> = EntryMap()
+    private var _services: [Service] = []
     private var _expires: Date?
-    private var proofs: [DIDURL: DIDDocumentProof]
-    private var _proofs: [DIDDocumentProof]
+    private var _proofsDic: [DID: DIDDocumentProof] = [: ]
+    private var _proofs: [DIDDocumentProof] = [ ]
     private var _metadata: DIDMetadata?
 
     private var _capacity: Int = 0
@@ -189,7 +189,7 @@ public class DIDDocument: NSObject {
         }
     }
     
-    class WeakPublicKey: NSObject {
+    class PublicKeyReference: NSObject {
         private var _id: DIDURL?
         private var _key: PublicKey?
         
@@ -213,6 +213,16 @@ public class DIDDocument: NSObject {
             return _key
         }
         
+        public var isVirtual: Bool {
+            return _key != nil
+        }
+        
+        func update(_ key: PublicKey) throws {
+            try DIDError.checkArgument(key.getId() == id, "")
+            self._id = key.getId()
+            self._key = key
+        }
+
         public func weaken() {
             if _key != nil {
                 self._id = _key!.getId()
@@ -224,16 +234,16 @@ public class DIDDocument: NSObject {
     }
 
     private override init() {
-        publicKeys = EntryMap<PublicKey>()
-        credentials = EntryMap<VerifiableCredential>()
-        services = EntryMap<Service>()
+        publicKeyMap = EntryMap<PublicKey>()
+        credentialMap = EntryMap<VerifiableCredential>()
+        serviceMap = EntryMap<Service>()
     }
 
     init(_ subject: DID) {
         self._subject = subject
-        publicKeys = EntryMap<PublicKey>()
-        credentials = EntryMap<VerifiableCredential>()
-        services = EntryMap<Service>()
+        publicKeyMap = EntryMap<PublicKey>()
+        credentialMap = EntryMap<VerifiableCredential>()
+        serviceMap = EntryMap<Service>()
     }
 
     init(_ doc: DIDDocument) {
@@ -241,17 +251,17 @@ public class DIDDocument: NSObject {
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
         _multisig = doc._multisig
-        publicKeys = doc.publicKeys
+        publicKeyMap = doc.publicKeyMap
         _publickeys = doc._publickeys
         _authentications = doc._authentications
         _authorizations = doc._authorizations
-        defaultPublicKey = doc.defaultPublicKey
-        credentials = doc.credentials
+        _defaultPublicKey = doc._defaultPublicKey
+        credentialMap = doc.credentialMap
         _credentials = doc._credentials
-        services = doc.services
+        serviceMap = doc.serviceMap
         _services = doc._services
         _expires = doc._expires
-        proofs = doc.proofs
+        _proofsDic = doc._proofsDic
         _metadata = doc._metadata
     }
 
@@ -271,7 +281,7 @@ public class DIDDocument: NSObject {
         return try DIDURL.valueOf(subject, id)
     }
     
-    private func canonicalId(_ id: DIDURL) throws -> DIDURL? {
+    private func canonicalId(_ id: DIDURL) throws -> DIDURL {
         if id.did != nil {
             return id
         }
@@ -280,15 +290,15 @@ public class DIDDocument: NSObject {
     }
     
     public func isCustomizedDid() -> Bool {
-        return defaultPublicKey == nil
+        return _defaultPublicKey == nil
     }
     
     /// Get contoller's DID.
     /// - Returns: the Controllers DID list or empty list if no controller
     public func controllers() -> [DID] {
         var ctrls: [DID] = []
-        if _controllers != nil {
-            ctrls = _controllers!
+        if !_controllers.isEmpty {
+            ctrls = _controllers
         }
         return ctrls
     }
@@ -296,31 +306,31 @@ public class DIDDocument: NSObject {
     /// Get controller count.
     /// - Returns: the controller count
     public func controllerCount() -> Int {
-        return _controllers == nil ? 0 : _controllers!.count
+        return _controllers.count
     }
     
     /// Get contoller's DID.
     /// - Returns: the Controller's DID if only has one controller, other wise nil
     var controller: DID? {
-        return _controllers != nil && _controllers!.count == 1 ? _controllers![0] : nil
+        return !_controllers.isEmpty && _controllers.count == 1 ? _controllers[0] : nil
     }
     
     /// Check if current DID has controller.
     /// - Returns: true if has, otherwise false
     public func hasController() -> Bool {
-        return _controllers != nil && !(_controllers!.isEmpty)
+        return !(_controllers.isEmpty)
     }
     
     /// Check if current DID has specific controller.
     /// - Returns: true if has, otherwise false
     public func hasController(_ did: DID) -> Bool {
-        return _controllers != nil && _controllers!.contains(did)
+        return !_controllers.isEmpty && _controllers.contains(did)
     }
     
     /// Get controller's DID document.
     /// - Returns: the DIDDocument object or null if no controller
     public func controllerDocument(_ did: DID) -> DIDDocument? {
-        return _controllerDocs?[did]
+        return _controllerDocs[did]
     }
     
     public var effectiveController: DID? {
@@ -349,297 +359,83 @@ public class DIDDocument: NSObject {
         // attach to the store if necessary
         let doc = controllerDocument(_effectiveController!)
         if !((doc?.getMetadata().attachedStore)!) {
-            
+            /// getMetadata().store!    !!!!!!!!
+            doc?.getMetadata().attachStore(getMetadata().store!)
         }
     }
-    /*
-     public void setEffectiveController(DID controller) {
-             if (!isCustomizedDid())
-                 throw new NotCustomizedDIDException(getSubject().toString());
+    
+    public var isMultiSignature: Bool {
+        return _multisig != nil
+    }
+    
+    public var multiSignature: MultiSignature? {
+        get {
+            return _multisig
+        }
+    }
 
-             if (controller == null) {
-                 effectiveController = controller;
-                 return;
-             } else {
-                 if (!hasController(controller))
-                     throw new NotControllerException("Not contoller for target DID");
-
-                 effectiveController = controller;
-
-                 // attach to the store if necessary
-                 DIDDocument doc = getControllerDocument(effectiveController);
-                 if (!doc.getMetadata().attachedStore())
-                     doc.getMetadata().attachStore(getMetadata().getStore());
-             }
-         }
-
-         public boolean isMultiSignature() {
-             return multisig != null;
-         }
-
-         public MultiSignature getMultiSignature() {
-             return multisig;
-         }
-
-         /**
-          * Get the count of public keys.
-          *
-          * @return the count
-          */
-         public int getPublicKeyCount() {
-             int count = publicKeys.size();
-
-             if (hasController()) {
-                 for (DIDDocument doc : controllerDocs.values())
-                     count += doc.getAuthenticationKeyCount();
-             }
-
-             return count;
-         }
-
-         /**
-          * Get the public keys array.
-          *
-          * @return the PublicKey array
-          */
-         public List<PublicKey> getPublicKeys() {
-             List<PublicKey> pks = new ArrayList<PublicKey>(publicKeys.values());
-
-             if (hasController()) {
-                 for (DIDDocument doc : controllerDocs.values())
-                     pks.addAll(doc.getAuthenticationKeys());
-             }
-
-             return Collections.unmodifiableList(pks);
-         }
-
-         /**
-          * Select public keys with the specified key id or key type.
-          *
-          * @param id the key id
-          * @param type the type string
-          * @return the matched PublicKey array
-          */
-         public List<PublicKey> selectPublicKeys(DIDURL id, String type) {
-             checkArgument(id != null || type != null, "Invalid select args");
-
-             id = canonicalId(id);
-
-             List<PublicKey> pks = new ArrayList<PublicKey>(publicKeys.size());
-             for (PublicKey pk : publicKeys.values()) {
-                 if (id != null && !pk.getId().equals(id))
-                     continue;
-
-                 if (type != null && !pk.getType().equals(type))
-                     continue;
-
-                 pks.add(pk);
-             }
-
-             if (hasController()) {
-                 for (DIDDocument doc : controllerDocs.values())
-                     pks.addAll(doc.selectAuthenticationKeys(id, type));
-             }
-
-             return Collections.unmodifiableList(pks);
-
-         }
-
-         /**
-          * Select public keys with the specified key id or key type.
-          *
-          * @param id the key id string
-          * @param type the type string
-          * @return the matched PublicKey array
-          */
-         public List<PublicKey> selectPublicKeys(String id, String type) {
-             return selectPublicKeys(canonicalId(id), type);
-         }
-
-         /**
-          * Get public key matched specified key id.
-          *
-          * @param id the key id string
-          * @return the PublicKey object
-          */
-         public PublicKey getPublicKey(String id) {
-             return getPublicKey(canonicalId(id));
-         }
-
-         /**
-          * Get public key matched specified key id.
-          *
-          * @param id the key id
-          * @return the PublicKey object
-          */
-         public PublicKey getPublicKey(DIDURL id) {
-             checkArgument(id != null, "Invalid publicKey id");
-
-             id = canonicalId(id);
-             PublicKey pk = publicKeys.get(id);
-             if (pk == null && hasController()) {
-                 DIDDocument doc = getControllerDocument(id.getDid());
-                 if (doc != null)
-                     pk = doc.getAuthenticationKey(id);
-             }
-
-             return pk;
-         }
-
-         /**
-          * Check if the specified public key exists.
-          *
-          * @param id the key id
-          * @return the key exists or not
-          */
-         public boolean hasPublicKey(DIDURL id) {
-             return getPublicKey(id) != null;
-         }
-
-         /**
-          * Check if the specified public key exists.
-          *
-          * @param id the key id string
-          * @return the key exists or not
-          */
-         public boolean hasPublicKey(String id) {
-             return hasPublicKey(canonicalId(id));
-         }
-
-         /**
-          * Check if the specified private key exists.
-          *
-          * @param id the key id
-          * @return the key exists or not
-          * @throws DIDStoreException there is no store
-          */
-         public boolean hasPrivateKey(DIDURL id) throws DIDStoreException {
-             checkArgument(id != null, "Invalid publicKey id");
-
-             if (hasPublicKey(id) && getMetadata().attachedStore())
-                 return getMetadata().getStore().containsPrivateKey(id);
-             else
-                 return false;
-         }
-
-         /**
-          * Check if the specified private key exists.
-          *
-          * @param id the key id string
-          * @return the key exists or not
-          * @throws DIDStoreException there is no store
-          */
-         public boolean hasPrivateKey(String id) throws DIDStoreException {
-             return hasPrivateKey(canonicalId(id));
-         }
-
-         /**
-          * Get default key id of did document.
-          *
-          * @return the default key id
-          */
-         public DIDURL getDefaultPublicKeyId() {
-             PublicKey pk = getDefaultPublicKey();
-             return pk != null ? pk.getId() : null;
-         }
-
-         /**
-          * Get default key of did document.
-          *
-          * @return the default key
-          */
-         public PublicKey getDefaultPublicKey() {
-             if (defaultPublicKey != null)
-                 return defaultPublicKey;
-
-             if (effectiveController != null)
-                 return getControllerDocument(effectiveController).getDefaultPublicKey();
-
-             return null;
-         }
-
-         /**
-          * Get KeyPair object according to the given key id.
-          *
-          * @param id the given key id
-          * @return the KeyPair object
-          * @throws InvalidKeyException there is no the matched key
-          */
-         public KeyPair getKeyPair(DIDURL id) {
-             PublicKey pk;
-
-             if (id == null) {
-                 pk = getDefaultPublicKey();
-                 if (pk == null)
-                     throw new NoEffectiveControllerException(getSubject().toString());
-             } else {
-                 pk = getPublicKey(id);
-                 if (pk == null)
-                     throw new InvalidKeyException(id.toString());
-             }
-
-             HDKey key = HDKey.deserialize(HDKey.paddingToExtendedPublicKey(
-                     pk.getPublicKeyBytes()));
-
-             return key.getJCEKeyPair();
-         }
-
-         /**
-          * Get KeyPair object according to the given key id.
-          *
-          * @param id the key id string
-          * @return the KeyPair object
-          * @throws InvalidKeyException there is no matched key
-          */
-         public KeyPair getKeyPair(String id) {
-             return getKeyPair(canonicalId(id));
-         }
-
-         /**
-          * Get KeyPair object according to the given key id.
-          *
-          * @return the KeyPair object
-          * @throws InvalidKeyException there is no the matched key
-          */
-         public KeyPair getKeyPair() {
-             return getKeyPair((DIDURL)null);
-         }
-
-     */
     /// Get the count of public keys.
     /// A DID Document must include a publicKey property.
     @objc
     public var publicKeyCount: Int {
-        return self.publicKeys.count() { value -> Bool in return true }
+        
+        var count = self.publicKeyMap.count() { value -> Bool in return true }
+        if hasController() {
+            _controllerDocs.values.forEach({ document in
+                count += document.authenticationKeyCount
+            })
+        }
+        return count
     }
 
-    /// Get the array of publicKeys.
-    /// - Returns: The array of publicKeys
+    /// Get the public keys array.
+    /// - Returns: the PublicKey array.
     @objc
     public func publicKeys() -> Array<PublicKey> {
-        return self.publicKeyMap.values() { value -> Bool in return true }
+//        return self._publicKeysDic.values() { value -> Bool in return true }
+        var pks = self.publicKeyMap.values() { value -> Bool in return true }
+        if hasController() {
+            _controllerDocs.values.forEach({ doc in
+                pks.append(contentsOf: doc.authenticationKeys())
+            })
+            
+            return pks
+        }
     }
 
-    /// Get public key conforming to type or identifier.
+    /// Select public keys with the specified key id or key type.
     /// - Parameters:
-    ///   - byId: An identifier of public key to be selected.
-    ///   - andType: The type of public key to be selected.
-    /// - Returns: Array of public keys selected.
+    ///   - byId: the key id
+    ///   - andType: the type string
+    /// - Returns: the matched PublicKey array
     @objc
-    public func selectPublicKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
-        return self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
+    public func selectPublicKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
+        let id = try canonicalId(byId)
+        var pks = self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
+        pks.forEach { pk in
+            if pk.getId() != id || pk.getType() != andType {
+                pks.append(pk)
+            }
+        }
+        if hasController() {
+           try _controllerDocs.values.forEach({ doc in
+               try pks.append(contentsOf: doc.selectAuthenticationKeys(byId: id, andType: andType))
+            })
+        }
+        
+        return pks
     }
 
-    /// Get public key conforming to type or identifier.
+    /// Select public keys with the specified key id or key type.
     /// - Parameters:
-    ///   - byId: An identifier of public key to be selected.
-    ///   - andType: The type of public key to be selected.
+    ///   - byId: the key id
+    ///   - andType: the type string
     /// - Throws: If an error occurred, throw error
-    /// - Returns: Array of public keys selected.
-    @objc
+    /// - Returns: the matched PublicKey array
+//    @objc
     public func selectPublicKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
-        return selectPublicKeys(byId: id, andType: andType)
+        return try selectPublicKeys(byId: id, andType: andType)
     }
 
     /// Get public key conforming to type or identifier.
@@ -647,15 +443,32 @@ public class DIDDocument: NSObject {
     /// - Returns: Array of public keys selected.
     @objc
     public func selectPublicKeys(byType: String) -> Array<PublicKey> {
-        return self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
+        var pks = self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
+        
+        pks.forEach { pk in
+            if pk.getType() != byType {
+                pks.append(pk)
+            }
+        }
+
+        return pks
     }
 
-    /// Get public key according to identifier of public key.
-    /// - Parameter ofId: An identifier of public key.
-    /// - Returns: The handle to public key
-    @objc
-    public func publicKey(ofId: DIDURL) -> PublicKey? {
-        return self.publicKeyMap.get(forKey: ofId) { value -> Bool in return true }
+    /// Get public key matched specified key id.
+    /// - Parameter ofId: the key id string
+    /// - Returns: the PublicKey object
+    //    @objc
+    public func publicKey(ofId: DIDURL) throws -> PublicKey? {
+        let id = try canonicalId(ofId)
+        var pk = self.publicKeyMap.get(forKey: id) { value -> Bool in return true }
+        if pk == nil && hasController() {
+            let doc = controllerDocument(id.did!)
+            if doc != nil {
+                pk = doc?.authenticationKey(ofId: id)
+            }
+        }
+        
+        return pk
     }
 
     /// Get public key according to identifier of public key.
@@ -663,7 +476,7 @@ public class DIDDocument: NSObject {
     /// - Throws: If an error occurred, throw error
     /// - Returns: The handle to public key
     public func publicKey(ofId: String) throws -> PublicKey? {
-        return publicKey(ofId: try DIDURL(subject, ofId))
+        return try publicKey(ofId: canonicalId(ofId)!)
     }
 
     /// Get public key according to identifier of public key.
@@ -673,25 +486,25 @@ public class DIDDocument: NSObject {
     @objc
     public func publicKey(ofId: String, error: NSErrorPointer) -> PublicKey? {
         do {
-            return publicKey(ofId: try DIDURL(subject, ofId))
+            return try publicKey(ofId: canonicalId(ofId)!)
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
         }
     }
 
-    /// Check key if public key or not.
-    /// - Parameter forId: An identifier of public key.
-    /// - Returns: True if has public key, or false.
-    @objc
-    public func containsPublicKey(forId: DIDURL) -> Bool {
-        return publicKey(ofId: forId) != nil
+    /// Check if the specified public key exists.
+    /// - Parameter forId: the key id
+    /// - Returns: the key exists or not
+//    @objc
+    public func containsPublicKey(forId: DIDURL) throws -> Bool {
+        return try publicKey(ofId: forId) != nil
     }
 
-    /// Check key if public key or not.
-    /// - Parameter forId: An identifier of public key.
+    /// Check if the specified public key exists.
+    /// - Parameter forId: the key id string
     /// - Throws: If an error occurred, throw error
-    /// - Returns: True if has public key, or false.
+    /// - Returns: the key exists or not
     public func containsPublicKey(forId: String) throws -> Bool {
         return try publicKey(ofId: forId) != nil
     }
@@ -710,28 +523,28 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Check key if private key or not.
-    /// - Parameter forId: An identifier of private key.
-    /// - Returns: True if has public key, or false.
-    @objc
-    public func containsPrivateKey(forId: DIDURL) -> Bool {
-        guard containsPublicKey(forId: forId) else {
+    /// Check if the specified private key exists.
+    /// - Parameter forId: the key id
+    /// - Returns: the key exists or not
+//    @objc
+    public func containsPrivateKey(forId: DIDURL) throws -> Bool {
+        guard try containsPublicKey(forId: forId) else {
             return false
         }
         guard let store = getMetadata().store else {
             return false
         }
 
-        return store.containsPrivateKey(for: self.subject, id: forId)
+        return try store.containsPrivateKeys(for: forId)
     }
-
-    /// Check key if private key or not.
-    /// - Parameter forId: An identifier of private key.
-    /// - Returns: True if has public key, or false.
+    
+    /// Check if the specified private key exists.
+    /// - Parameter forId: the key id string
+    /// - Returns: the key exists or not
     @objc(containsPrivateKey:)
     public func containsPrivateKey(forId: String) -> Bool {
         do {
-            return containsPrivateKey(forId: try DIDURL(self.subject, forId))
+            return try containsPrivateKey(forId: canonicalId(forId)!)
         } catch {
             return false
         }
@@ -750,66 +563,35 @@ public class DIDDocument: NSObject {
         }
         return nil
     }
+    
+    public func defaultPublicKeyId() -> DIDURL? {
+        let pk = defaultPublicKey()
 
-    /// Get primary public key, which is for creating method specific string.
-    @objc
-    public var defaultPublicKey: DIDURL {
-        return getDefaultPublicKey()!
+        return pk != nil ? pk?.getId() : nil
     }
-
-    private func mapToDerivePath(_ identifier: String, _ securityCode: Int) -> String {
-        let sha256 = SHA256Helper()
-        var bytes = [UInt8](identifier.data(using: .utf8)!)
-        sha256.update(&bytes)
-        let result = sha256.finalize()
-
-        var path: String = ""
-        let resultArr = stride(from: 0, to: 32, by: 4).map {
-            Array(result[$0...$0+3])
+    
+    /// Get default key of did document.
+    /// - Returns: the default key
+    public func defaultPublicKey() -> PublicKey? {
+        if _defaultPublicKey != nil {
+            return _defaultPublicKey!
         }
-
-        resultArr.forEach { buf in
-            let data = Data(buf)
-            let idx = data.buffer().getInt()
-
-            if idx >= 0 {
-                path.append("\(idx)")
-            }
-            else {
-                path.append("\(idx & 0x7FFFFFFF)")
-                path.append("H")
-            }
-            path.append("/")
+        
+        if effectiveController != nil {
+            return controllerDocument(effectiveController!)?.defaultPublicKey()
         }
-        if securityCode >= 0 {
-            path.append("\(securityCode)")
-        }
-        else {
-            path.append("\(securityCode & 0x7FFFFFFF)")
-            path.append("H")
-        }
-
-        return path
+        
+        return nil
     }
-
-    @objc
-    public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
-        if identifier.isEmpty || storepass.isEmpty {
-            throw DIDError.illegalArgument("param is empty.")
-        }
-
-        guard getMetadata().attachedStore else {
-            throw DIDError.illegalArgument("Not attached with a DID store.")
-        }
-
-        let key = DIDHDKey.deserialize(try getMetadata().store!.loadPrivateKey(subject, defaultPublicKey, storepass))
-        let path = mapToDerivePath(identifier, securityCode)
-
-        return try key.derive(path).serializeBase58()
-    }
-
+//
+//    /// Get primary public key, which is for creating method specific string.
+//    @objc
+//    public var defaultPublicKey: DIDURL {
+//        return getDefaultPublicKey()!
+//    }
+    
     func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
-        guard containsPublicKey(forId: ofId) else {
+        guard try containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
         }
         guard getMetadata().attachedStore else {
@@ -818,7 +600,7 @@ public class DIDDocument: NSObject {
         guard getMetadata().store!.containsPrivateKey(for: subject, id: ofId) else {
             throw DIDError.illegalArgument("Don't have private key")
         }
-        let pubKey = publicKey(ofId: ofId)
+        let pubKey = try publicKey(ofId: ofId)
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
         let publicKeyData = try DIDHDKey.PEM_ReadPublicKey(pubData)
@@ -827,7 +609,7 @@ public class DIDDocument: NSObject {
     }
 
     func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
-        guard containsPublicKey(forId: ofId) else {
+        guard try containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
         }
         guard getMetadata().attachedStore else {
@@ -837,7 +619,7 @@ public class DIDDocument: NSObject {
             throw DIDError.illegalArgument("Don't have private key")
         }
 
-        let pubKey = publicKey(ofId: ofId)
+        let pubKey = try publicKey(ofId: ofId)
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
         // 46 - 78
@@ -848,22 +630,95 @@ public class DIDDocument: NSObject {
         return privateKeyData.data(using: .utf8)!
     }
 
-    // The result is extended private key format, the real private key is
-    // 32 bytes long start from position 46.
-    @objc
+    /// The result is extended private key format, the real private key is 32 bytes long start from position 46.
+    /// - Parameters:
+    ///   - index: the index
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: the extended private key format. (the real private key is 32 bytes long start from position 46)
+    /// - Returns: there is no DID store to get root private key
     public func derive(index: Int, storePassword: String) throws -> String {
 
-        guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument("storePassword is empty.")
-        }
-        guard getMetadata().attachedStore else {
-            throw DIDError.didStoreError("Not attached with a DID store.")
-        }
-
+        try DIDError.checkArgument(!storePassword.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        try checkIsPrimitive()
         let key = DIDHDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
+        // TODO:
+        // HDKey key = HDKey.deserialize(getMetadata().getStore().loadPrivateKey(getDefaultPublicKeyId(), storepass));
         return key.derive(index).serializeBase58()
     }
+    
+        private func mapToDerivePath(_ identifier: String, _ securityCode: Int) -> String {
+            let sha256 = SHA256Helper()
+            var bytes = [UInt8](identifier.data(using: .utf8)!)
+            sha256.update(&bytes)
+            let result = sha256.finalize()
 
+            var path: String = ""
+            let resultArr = stride(from: 0, to: 32, by: 4).map {
+                Array(result[$0...$0+3])
+            }
+
+            resultArr.forEach { buf in
+                let data = Data(buf)
+                let idx = data.buffer().getInt()
+
+                if idx >= 0 {
+                    path.append("\(idx)")
+                }
+                else {
+                    path.append("\(idx & 0x7FFFFFFF)")
+                    path.append("H")
+                }
+                path.append("/")
+            }
+            if securityCode >= 0 {
+                path.append("\(securityCode)")
+            }
+            else {
+                path.append("\(securityCode & 0x7FFFFFFF)")
+                path.append("H")
+            }
+
+            return path
+        }
+
+    /// Derive the extended private key according to identifier string and security code.
+    /// - Parameters:
+    ///   - identifier: the identifier string
+    ///   - securityCode: the security code
+    ///   - storepass: the password for DID store
+    /// - Throws: DIDStoreError there is no DID store to get root private key
+    /// - Returns: the extended derived private key
+    public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
+        try DIDError.checkArgument(!identifier.isEmpty, "Invalid identifier")
+        try checkAttachedStore();
+        try checkIsPrimitive()
+        // TODO: check
+        let key = DIDHDKey.deserialize(try getMetadata().store!.loadPrivateKey(subject, defaultPublicKeyId()!, storepass))
+        let path = mapToDerivePath(identifier, securityCode)
+        
+        return try key.derive(path).serializeBase58()
+    }
+
+    private func checkAttachedStore() throws {
+        guard getMetadata().attachedStore else {
+            throw DIDError.UncheckedError.IllegalStateError.NotAttachedWithStoreError()
+        }
+    }
+    
+    private func checkIsPrimitive() throws {
+        guard !isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(subject.toString())
+        }
+    }
+
+    private func checkHasEffectiveController() throws {
+        guard effectiveController != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
+        }
+    }
+  
+    ///////////////////////////////////////////////    111 star =======
     /// Create a JwtBuilder instance.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
@@ -943,7 +798,7 @@ public class DIDDocument: NSObject {
     }
 
     func removePublicKey(_ id: DIDURL, _ force: Bool) throws -> Bool {
-        let key = publicKey(ofId: id)
+        let key = try publicKey(ofId: id)
         guard let _ = key else {
             return false
         }
@@ -952,31 +807,48 @@ public class DIDDocument: NSObject {
         guard self.getDefaultPublicKey() != id else {
             return false
         }
-
-        if !force && (key!.isAuthenticationKey || key!.isAthorizationKey) {
-            return  false
+        if !force && key!.isAuthenticationKey || key!.isAuthorizationKey {
+            return false
         }
-
+        
         _ = publicKeyMap.remove(id)
         _ = getMetadata().store?.deletePrivateKey(for: subject, id: id)
         return true
     }
-
+///////////////////////// 1111 = end ---------------------------
+    
+    ///
     /// Get the count of authentication keys.
     @objc
     public var authenticationKeyCount: Int {
-        return publicKeyMap.count() { value -> Bool in
+        var count = publicKeyMap.count() { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
+        
+        if hasController() {
+            _controllerDocs.values.forEach({ doc in
+                count += doc.authenticationKeyCount
+            })
+        }
+        
+        return count
     }
 
-    /// Get the array of authentication keys.
-    /// - Returns: The array of authentication keys.
+    /// Get the authentication key array.
+    /// - Returns: the matched authentication key array.
     @objc
     public func authenticationKeys() -> Array<PublicKey> {
-        return publicKeyMap.values() { value -> Bool in
+        var pks = publicKeyMap.values() { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
+        
+        if hasController() {
+            _controllerDocs.values.forEach({ doc in
+                pks.append(contentsOf: doc.authenticationKeys())
+            })
+        }
+        
+        return pks
     }
 
     /// Get authentication key conforming to type or identifier of key.
@@ -984,23 +856,33 @@ public class DIDDocument: NSObject {
     ///   - byId: An identifier of authentication key to be selected.
     ///   - andType: The type of authentication key to be selected.
     /// - Returns: The array of authentication keys.
-    @objc
-    public func selectAuthenticationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
-        return publicKeyMap.select(byId, andType) { value -> Bool in
+    
+    public func selectAuthenticationKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
+        let id = try canonicalId(byId)
+        
+        var pks =  publicKeyMap.select(byId, andType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
+        
+        if hasController() {
+           try _controllerDocs.values.forEach({ doc in
+               pks.append(contentsOf: try doc.selectAuthenticationKeys(byId: id, andType: andType))
+            })
+        }
+        
+        return pks
     }
 
-    /// Get authentication key conforming to type or identifier of key.
+    /// Select the authentication key matched the key id or the type.
     /// - Parameters:
     ///   - byId: An identifier of authentication key to be selected.
     ///   - andType: The type of authentication key to be selected.
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: The array of authentication keys.
+    /// - Returns: The matched authentication key array
     @objc
     public func selectAuthenticationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
-        let id = try DIDURL(subject, byId)
-        return selectAuthenticationKeys(byId: id, andType: andType)
+        let id = try canonicalId(byId)
+        return try selectAuthenticationKeys(byId: id!, andType: andType)
     }
 
     /// Get authentication key conforming to type or identifier of key.
@@ -1008,15 +890,22 @@ public class DIDDocument: NSObject {
     /// - Returns: The array of authentication keys.
     @objc
     public func selectAuthenticationKeys(byType: String) -> Array<PublicKey> {
-        return publicKeyMap.select(nil, byType) { value -> Bool in
+        var pks = publicKeyMap.select(nil, byType) { value -> Bool in
             return (value as PublicKey).isAuthenticationKey
         }
+        if hasController() {
+            _controllerDocs.values.forEach({ doc in
+               pks.append(contentsOf: doc.selectAuthenticationKeys(byType: byType))
+            })
+        }
+        
+        return pks
     }
 
-    /// Get authentication key according to identifier of authentication key.
+    /// Get authentication key with specified key id.
     /// A DID Document must include a authentication property.
-    /// - Parameter ofId: An identifier of authentication key.
-    /// - Returns: The handle to public key.
+    /// - Parameter ofId: the key id
+    /// - Returns: the matched authentication key object
     @objc
     public func authenticationKey(ofId: DIDURL) -> PublicKey? {
         return publicKeyMap.get(forKey: ofId) { value -> Bool in
@@ -1024,15 +913,15 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Get authentication key according to identifier of authentication key.
+    /// Get authentication key with specified key id.
     /// A DID Document must include a authentication property.
-    /// - Parameter ofId: An identifier of authentication key.
+    /// - Parameter ofId: the key id string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: The handle to public key.
+    /// - Returns: the matched authentication key object
     public func authenticationKey(ofId: String) throws -> PublicKey?  {
-        return authenticationKey(ofId: try DIDURL(subject, ofId))
+        return authenticationKey(ofId: try canonicalId(ofId)!)
     }
-
+    
     /// Get authentication key according to identifier of authentication key.
     /// A DID Document must include a authentication property.
     /// - Parameter ofId: An identifier of authentication key.
@@ -1053,7 +942,7 @@ public class DIDDocument: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: true if has authentication key, or false.
     public func containsAuthenticationKey(forId: String) throws -> Bool {
-        return try authenticationKey(ofId: forId) != nil
+        return try containsAuthenticationKey(forId: canonicalId(forId)!)
     }
 
     /// Check key if authentiacation key or not.
@@ -1083,8 +972,8 @@ public class DIDDocument: NSObject {
     ///  A DID Document must include an authentication property.
     /// - Parameter id: An identifier of public key.
     /// - Returns: true if append authentication key success, or false.
-    func appendAuthenticationKey(_ id: DIDURL) -> Bool {
-        let key = publicKey(ofId: id)
+    func appendAuthenticationKey(_ id: DIDURL) throws -> Bool {
+        let key = try publicKey(ofId: id)
         guard let _ = key else {
             return false
         }
@@ -1098,8 +987,8 @@ public class DIDDocument: NSObject {
         return true
     }
 
-    func removeAuthenticationKey(_ id: DIDURL) -> Bool {
-        let key = publicKey(ofId: id)
+    func removeAuthenticationKey(_ id: DIDURL) throws -> Bool {
+        let key = try publicKey(ofId: id)
         guard let _ = key else {
             return false
         }
@@ -1117,7 +1006,7 @@ public class DIDDocument: NSObject {
     @objc
     public var authorizationKeyCount: Int {
         return publicKeyMap.count() { value -> Bool in
-            return (value as PublicKey).isAthorizationKey
+            return (value as PublicKey).isAuthorizationKey
         }
     }
 
@@ -1126,19 +1015,20 @@ public class DIDDocument: NSObject {
     @objc
     public func authorizationKeys() -> Array<PublicKey> {
         return publicKeyMap.values() { value -> Bool in
-            return (value as PublicKey).isAthorizationKey
+            return (value as PublicKey).isAuthorizationKey
         }
     }
 
-    /// Get authorization key conforming to type or identifier of key.
+    /// Select the authorization key array matched the key id or the type.
     /// - Parameters:
     ///   - byId: An identifier of authorization key to be selected.
     ///   - andType: The type of authorization key to be selected.
-    /// - Returns: Array of authorization keys selected.
-    @objc
-    public func selectAuthorizationKeys(byId: DIDURL, andType: String?) -> Array<PublicKey> {
-        return publicKeyMap.select(byId, andType) { value -> Bool in
-            return (value as PublicKey).isAthorizationKey
+    /// - Returns: the matched authorization key array
+//    @objc
+    public func selectAuthorizationKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
+        let id = try canonicalId(byId)
+        return  publicKeyMap.select(id, andType) { value -> Bool in
+            return (value as PublicKey).isAuthorizationKey
         }
     }
 
@@ -1151,7 +1041,7 @@ public class DIDDocument: NSObject {
     @objc
     public func selectAuthorizationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
-        return selectAuthorizationKeys(byId: id, andType: andType)
+        return try selectAuthorizationKeys(byId: id, andType: andType)
     }
 
     /// Get authorization key conforming to type or identifier of key.
@@ -1160,7 +1050,7 @@ public class DIDDocument: NSObject {
     @objc
     public func selectAuthorizationKeys(byType: String) -> Array<PublicKey> {
         return publicKeyMap.select(nil, byType) { value -> Bool in
-            return (value as PublicKey).isAthorizationKey
+            return (value as PublicKey).isAuthorizationKey
         }
     }
 
@@ -1170,7 +1060,7 @@ public class DIDDocument: NSObject {
     @objc
     public func authorizationKey(ofId: DIDURL) -> PublicKey? {
         return publicKeyMap.get(forKey: ofId) { value -> Bool in
-            return (value as PublicKey).isAthorizationKey
+            return (value as PublicKey).isAuthorizationKey
         }
     }
 
@@ -1179,7 +1069,7 @@ public class DIDDocument: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
     public func authorizationKey(ofId: String) throws -> PublicKey?  {
-        return authorizationKey(ofId: try DIDURL(subject, ofId))
+        return try authorizationKey(ofId: canonicalId(ofId)!)
     }
 
     /// Get authorization key according to identifier of key.
@@ -1189,7 +1079,7 @@ public class DIDDocument: NSObject {
     @objc
     public func authorizationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
-            return authorizationKey(ofId: try DIDURL(subject, ofId))
+            return authorizationKey(ofId: try canonicalId(ofId)!)
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
@@ -1201,7 +1091,7 @@ public class DIDDocument: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: true if has authorization key, or false.
     public func containsAuthorizationKey(forId: String) throws -> Bool {
-        return try authorizationKey(ofId: forId) != nil
+        return try containsAuthorizationKey(forId: canonicalId(forId)!)
     }
 
     /// Check key if authorization key or not.
@@ -1211,7 +1101,7 @@ public class DIDDocument: NSObject {
     @objc
     public func containsAuthorizationKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
-            return try authorizationKey(ofId: forId) != nil
+            return try containsAuthorizationKey(forId: canonicalId(forId)!)
         } catch let aError as NSError {
             error?.pointee = aError
             return false
@@ -1226,8 +1116,8 @@ public class DIDDocument: NSObject {
         return authorizationKey(ofId: forId) != nil
     }
 
-    func appendAuthorizationKey(_ id: DIDURL) -> Bool {
-        let key = publicKey(ofId: id)
+    func appendAuthorizationKey(_ id: DIDURL) throws -> Bool {
+        let key = try publicKey(ofId: id)
         guard let _ = key else {
             return false
         }
@@ -1237,12 +1127,12 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAthorizationKey(true)
+        key!.setAuthorizationKey(true)
         return true
     }
 
-    func removeAuthorizationKey(_ id: DIDURL) -> Bool {
-        let key = publicKey(ofId: id)
+    func removeAuthorizationKey(_ id: DIDURL) throws -> Bool {
+        let key = try publicKey(ofId: id)
         guard let _ = key else {
             return false
         }
@@ -1252,7 +1142,7 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAthorizationKey(false)
+        key!.setAuthorizationKey(false)
         return true
     }
 
@@ -1269,14 +1159,15 @@ public class DIDDocument: NSObject {
         return credentialMap.values() { value -> Bool in return true }
     }
 
-    /// Get credential key conforming to type or identifier of key.
+    /// Select the Credential array matched the given credential id or the type.
     /// - Parameters:
     ///   - byId: An identifier of credential key to be selected.
     ///   - andType: The type of credential key to be selected.
-    /// - Returns: Array of credential keys selected.
+    /// - Returns: the matched Credential array
     @objc
-    public func selectCredentials(byId: DIDURL, andType: String?) -> Array<VerifiableCredential>  {
-        return credentialMap.select(byId, andType) { value -> Bool in return true }
+    public func selectCredentials(byId: DIDURL, andType: String?) throws -> Array<VerifiableCredential>  {
+        let id = try canonicalId(byId)
+        return credentialMap.select(id, andType) { value -> Bool in return true }
     }
 
     /// Get credential key conforming to type or identifier of key.
@@ -1285,10 +1176,10 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of credential key to be selected.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: Array of credential keys selected.
-    @objc
+//    @objc
     public func selectCredentials(byId: String, andType: String?) throws -> Array<VerifiableCredential>  {
-        let id = try DIDURL(subject, byId)
-        return selectCredentials(byId: id, andType: andType)
+        let id = try canonicalId(byId)
+        return try selectCredentials(byId: id!, andType: andType)
     }
 
     /// Get credential key conforming to type or identifier of key.
@@ -1437,29 +1328,394 @@ public class DIDDocument: NSObject {
     /// Get expire time about DID Document.
     @objc
     public var expirationDate: Date? {
-        return self._expirationDate
+        return self._expires
     }
 
     func setExpirationDate(_ expirationDate: Date) {
-        self._expirationDate = expirationDate
+        self._expires = expirationDate
     }
+    
+    /// Get last modified time.
+    public var lastModified: Date? {
+        return proof.createdDate
+    }
+    
+    /// Get last modified time.
+    public var signature: String? {
+        return proof.signature
+    }
+/*
+     /**
+      * Get all Proof objects.
+      *
+      * @return list of the Proof objects
+      */
+     public List<Proof> getProofs() {
+         return Collections.unmodifiableList(_proofs);
+     }
 
-    /// Get proof of DIDDocument.
-    @objc
-    public var proof: DIDDocumentProof {
+     */
+    /// Get Proof object from did document.
+    var proof: DIDDocumentProof {
         // Guaranteed that this field would not be nil because the object
         // was generated by "builder".
-        return _proof!
+        return _proofs[0]
     }
 
     // This type of getXXXX function would specifically be provided for
     // sdk internal when we can't be sure about it's validity/integrity.
-    func getProof() -> DIDDocumentProof? {
-        return self._proof
+    public func proofs() -> [DIDDocumentProof] {
+        return _proofs
     }
+    
+    /// Get current object's DID context.
+    var serializeContextDid: DID {
+        return subject
+    }
+    
+    /// Sanitize routine before sealing or after deserialization.
+    /// - Throws: DIDError
+    func sanitize() throws {
+        try sanitizeControllers()
+        try sanitizePublickKey()
+        try sanitizeCredential()
+        try sanitizeService()
+        guard _expires != nil else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError()
+        }
+        try sanitizeProof()
+    }
+    
+    private func sanitizeControllers() throws {
+        if _controllers.isEmpty {
+            _controllers = []
+            _controllerDocs = [: ]
+            
+            guard _multisig == nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig property")
+            }
+            
+            return
+        }
+        _controllerDocs = [: ]
+        do {
+           try _controllers.forEach({ did in
+                let doc = try did.resolve()
+            guard doc != nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve controller: \(did)")
+            }
+            _controllerDocs[did] = doc
+            })
+        } catch {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve the controller's DID")
+        }
+        
+        if _controllers.count == 1 {
+            guard _multisig != nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig property")
+            }
+        }
+        else {
+            guard _multisig != nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing multisig property")
+            }
+            
+            guard _multisig!.n == _controllers.count else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig property")
+            }
+        }
+//    TODO:    Collections.sort(controllers);
 
-    func setProof(_ proof: DIDDocumentProof) {
-        self._proof = proof
+        if _controllers.count == 1 {
+            _effectiveController = _controllers[0]
+        }
+    }
+    
+    func sanitizePublickKey() throws {
+        let pks = EntryMap<PublicKey>()
+        if  _publickeys.count > 0 {
+            try _publickeys.forEach { pk in
+                if pk.getId().did == nil {
+                    pk.getId().setDid(subject)
+                }
+                else {
+                    guard pk.getId().did == subject else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(pk.getId())")
+                    }
+                }
+                guard pks.get(forKey: pk.getId(), { vault -> Bool in
+                    return true
+                }) == nil else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk.getId())")
+                }
+                guard !pk.publicKeyBase58.isEmpty else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
+                }
+                if pk.getType() == nil {
+                    pk.setType(Constants.DEFAULT_PUBLICKEY_TYPE)
+                }
+                // TODO:
+//                if pk.controller == nil {
+//                    pk.controller = subject
+//                }
+                pks.append(pk)
+            }
+        }
+        
+        if _authentications.count > 0 {
+            var pk: PublicKey?
+            try _authentications.forEach({ keyRef in
+                if keyRef.isVirtual {
+                    if keyRef.id?.did == nil {
+                        keyRef.id?.setDid(subject)
+                    }
+                    else {
+                        guard keyRef.id?.did == subject else {
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                        }
+                    }
+                    pk = (pks.get(forKey: keyRef.id!, { (vault) -> Bool in
+                        return true
+                    }) as! PublicKey)
+                    guard pk != nil else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(keyRef.id)")
+                    }
+                    try keyRef.update(pk!)
+                }
+                else {
+                    pk = keyRef.publicKey
+                    if keyRef.id?.did == nil {
+                        keyRef.id?.setDid(subject)
+                    }
+                    else {
+                        guard keyRef.id?.did != nil else {
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                        }
+                    }
+                    guard pks.get(forKey: pk!.getId(), { vaule -> Bool in
+                        return true
+                    })  == nil else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk?.getId())")
+                    }
+                    guard pk?.publicKeyBase58 != nil || !pk!.publicKeyBase58.isEmpty else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
+                    }
+                    if pk?.getType() == nil {
+                        pk?.setType(Constants.DEFAULT_PUBLICKEY_TYPE)
+                    }
+                    if pk?.controller == nil {
+                        pk?.setController(subject)
+                    }
+                    pks.append(pk!)
+                }
+                pk?.setAuthenticationKey(true)
+            })
+//   TODO:         Collections.sort(_authentications)
+        }
+        else {
+            _authentications = [ ]
+        }
+        if _authorizations.count > 0 {
+            var pk: PublicKey?
+            
+            try _authorizations.forEach { keyRef in
+                if keyRef.isVirtual {
+                    if keyRef.id?.did == nil {
+                        keyRef.id?.setDid(subject)
+                    }
+                    else {
+                        guard keyRef.id?.did == subject else {
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                        }
+                    }
+                    pk = (pks.get(forKey: keyRef.id!, { vaule -> Bool in
+                        return true
+                    }) as! PublicKey)
+                    guard pk != nil else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(keyRef.id)")
+                    }
+                    try keyRef.update(pk!)
+                }
+                else {
+                    pk = keyRef.publicKey
+                    if keyRef.id?.did == nil {
+                        keyRef.id?.setDid(subject)
+                    }
+                    else {
+                        guard keyRef.id?.did == subject else {
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                        }
+                    }
+                    guard (pks.get(forKey: pk!.getId(), { vaule -> Bool in
+                        return true
+                    }) == nil) else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk?.getId())")
+                    }
+                    guard pk?.publicKeyBase58 == nil || pk!.publicKeyBase58.isEmpty else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
+                    }
+                    if pk?.getType() == nil {
+                        pk?.setType(Constants.DEFAULT_PUBLICKEY_TYPE)
+                    }
+                    guard pk?.controller != nil else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key missing controller: \(pk?.getId())")
+                    }
+                    if pk!.controller == subject {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Authorization key with wrong controller: \(pk?.getId())")
+                    }
+                    pks.append(pk!)
+                }
+                pk?.setAuthorizationKey(true)
+            }
+//      TODO:      Collections.sort(_authorizations)
+        }
+        else {
+            _authorizations = [ ]
+        }
+        // for customized DID with controller, could be no public keys
+        if pks.count({ vault -> Bool in return true }) > 0 {
+            self.publicKeyMap = pks
+            self._publickeys = [ ]
+        }
+        else {
+            self.publicKeyMap = EntryMap()
+            self._publickeys = [ ]
+        }
+        // Find default key
+        publicKeyMap.values { vaule -> Bool in return true }.forEach { pk in
+            if pk.controller == subject {
+                let address = DIDHDKey.toAddress(pk.publicKeyBytes)
+                if address == subject.methodSpecificId {
+                    _defaultPublicKey = pk
+                    if !pk.isAuthenticationKey {
+                        pk.setAuthenticationKey(true)
+                        if _authentications.isEmpty {
+                            _authentications.append(PublicKeyReference(pk))
+                        }
+                        else {
+                            _authentications.append(PublicKeyReference(pk))
+                            //  TODO: Collections.sort(_authentications)
+                        }
+                    }
+                }
+            }
+        }
+        guard !_controllers.isEmpty && _defaultPublicKey != nil else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing default public key.")
+        }
+    }
+    
+    private func sanitizeCredential() throws {
+        if _credentials.isEmpty {
+            _credentials = [ ]
+            credentialMap = EntryMap<VerifiableCredential>()
+            return
+        }
+        
+        var vcs = EntryMap<VerifiableCredential>()
+         try _credentials.forEach { vc in
+            guard vc.getId() == nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing credential id.")
+            }
+            if vc.getId().did == nil {
+                vc.getId().setDid(subject)
+            }
+            else {
+                guard vc.getId().did == subject else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(vc.getId())")
+                }
+            }
+            
+            guard vcs.get(forKey: vc.getId(), { vaule -> Bool in return true }) == nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Credential already exists: \(vc.getId())")
+            }
+            // TODO:
+            if vc.subject.did == nil {
+                vc.subject.setId(subject)
+            }
+            
+            do {
+               try vc.sanitize()
+            }
+            catch {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid credential: \(vc.getId())")
+            }
+            vcs.append(vc)
+        }
+        self.credentialMap = vcs
+        self._credentials = credentialMap.values({ vaule -> Bool in return true })
+    }
+    
+    private func sanitizeService() throws {
+        if _services.isEmpty {
+            return
+        }
+        let svcs = EntryMap<Service>()
+        try _services.forEach { svc in
+            if svc.getId().did == nil {
+                svc.getId().setDid(subject)
+            }
+            else {
+                guard svc.getId().did == subject else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(svc.getId())")
+                }
+            }
+            guard !svc.getType()!.isEmpty else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid service type.")
+            }
+            guard !svc.endpoint.isEmpty else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing service endpoint.")
+            }
+            guard svcs.get(forKey: svc.getId(), { value -> Bool in return true }) == nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Service already exists: \(svc.getId())")
+            }
+            svcs.append(svc)
+        }
+        self.serviceMap = svcs
+        self._services = svcs.values({ vaule -> Bool in return true })
+    }
+    
+    private func sanitizeProof() throws {
+        guard _proofs.isEmpty else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing document proof")
+        }
+        
+        try _proofs.forEach { proof in
+            // TODO:
+            if proof.creator == nil {
+                if defaultPublicKey() != nil {
+                    proof.setCreator(_defaultPublicKey!.getId())
+                }
+                else if _controllers.count == 1 {
+                    proof.setCreator(_controllerDocs[_controllers[0]]!.defaultPublicKeyId()!)
+                }
+                else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing creator key.")
+                }
+            }
+            else {
+                if proof.creator.did == nil {
+                    if _defaultPublicKey != nil {
+                        proof.creator.setDid(subject)
+                    }
+                    else if _controllers.count == 1 {
+                        proof.creator.setDid(_controllers[0])
+                    }
+                    else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid creator key.")
+                    }
+                }
+            }
+
+            if _proofsDic[proof.creator.did!] != nil {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Aleady exist proof from \(proof.creator.did)")
+            }
+            
+            _proofsDic[proof.creator.did!] = proof
+        }
+
+        self._proofs = _proofsDic.values
+        // TODO:  Collections.sort(this._proofs)
     }
 
     func setMetadata(_ metadata: DIDMetadata) {

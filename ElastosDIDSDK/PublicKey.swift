@@ -50,6 +50,10 @@ public class PublicKey: DIDObject {
     @objc public var controller: DID {
         return _controller
     }
+    
+    func setController(_ newVaule: DID) {
+        self._controller = newVaule
+    }
 
     /// Base58 encoded public key
     @objc public var publicKeyBase58: String {
@@ -75,11 +79,11 @@ public class PublicKey: DIDObject {
     }
 
     /// Check publickey is athorization key or not.
-    @objc public var isAthorizationKey: Bool {
+    @objc public var isAuthorizationKey: Bool {
         return authorizationKey
     }
 
-    func setAthorizationKey(_ newValue: Bool) {
+    func setAuthorizationKey(_ newValue: Bool) {
         self.authorizationKey = newValue
     }
 

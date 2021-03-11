@@ -48,8 +48,8 @@ public class DIDObject: NSObject {
     /// Get 'Type'
     /// - Returns: 'Type'
     @objc
-    public func getType() -> String {
-        return _type!
+    public func getType() -> String? {
+        return _type
     }
 
     func setType(_ type: String) {

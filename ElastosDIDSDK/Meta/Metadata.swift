@@ -196,7 +196,7 @@ public class Metadata: NSObject {
             } else if value is String {
                 generator.writeStringField(key, value as! String)
             } else if value is Date {
-                generator.writeStringField(key, DateHelper.formateDate(value as! Date))
+                generator.writeStringField(key, DateFormatter.convertToUTCStringFromDate(value as! Date))
             } else {
                 throw DIDError.malformedMeta("Can not serialize attribute: \(key)")
             }

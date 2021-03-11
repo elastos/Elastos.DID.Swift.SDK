@@ -245,7 +245,7 @@ public class VerifiableCredential: DIDObject {
     }
     
     private func checkExpired() throws -> Bool {
-        return _expirationDate != nil ? DateHelper.isExipired(_expirationDate!) : false
+        return _expirationDate != nil ? DateFormatter.isExipired(_expirationDate!) : false
     }
 
     /// Credential is expired or not.

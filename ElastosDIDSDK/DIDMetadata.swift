@@ -35,11 +35,12 @@ public class DIDMetadata: AbstractMetadata {
     private var _did: DID?
     
     /// The default constructor for JSON deserialize creator.
-    override init() { }
+    override init() { super.init() }
     
     /// Constructs the empty DIDMetadataImpl.
     init(_ did: DID) {
         self._did = did
+        super.init()
     }
     
     /// Constructs the empty DIDMetadataImpl with the given store.

@@ -1008,7 +1008,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        document!.setExpirationDate(DateHelper.maxExpirationDate())
+        document!.setExpirationDate(DateFormatter.maxExpirationDate())
         return self
     }
 
@@ -1022,8 +1022,8 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        let maxExpirationDate = DateHelper.maxExpirationDate()
-        guard !DateHelper.isExpired(expiresDate, maxExpirationDate) else {
+        let maxExpirationDate = DateFormatter.maxExpirationDate()
+        guard !DateFormatter.isExpired(expiresDate, maxExpirationDate) else {
             throw DIDError.illegalArgument()
         }
 
@@ -1044,7 +1044,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.illegalArgument()
         }
         if  document!.expirationDate == nil {
-            document!.setExpirationDate(DateHelper.maxExpirationDate())
+            document!.setExpirationDate(DateFormatter.maxExpirationDate())
         }
 
         let signKey = document!.defaultPublicKey

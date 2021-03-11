@@ -129,8 +129,8 @@ public class DIDURL: NSObject {
         return url.isEmpty ? nil : try DIDURL(DID.valueOf(baseRef)!, url)
     }
     
-    public class func valueOf(_ url: String) throws -> DIDURL? {
-        return url.isEmpty ? nil : try DIDURL(url)
+    public class func valueOf(_ url: String) throws -> DIDURL {
+        return try DIDURL(url)
     }
 
     // A valid didurl guaranteed containing valid did.

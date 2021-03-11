@@ -60,6 +60,10 @@ public class DIDDocumentProof: NSObject {
         return self._creator
     }
 
+    func setCreator(_ newValue: DIDURL) {
+        self._creator = newValue
+    }
+    
     /// The signed value, using Base64 encoding
     @objc
     public var signature: String {
@@ -108,7 +112,7 @@ public class DIDDocumentProof: NSObject {
 
         // createdDate
         generator.writeFieldName(Constants.CREATED)
-        generator.writeString(DateHelper.formateDate(self.createdDate))
+        generator.writeString(DateFormatter.formateDate(self.createdDate))
 
         // creator
         if normalized {

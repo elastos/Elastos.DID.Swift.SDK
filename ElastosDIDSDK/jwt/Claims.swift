@@ -142,7 +142,7 @@ public class Claims: NSObject {
     /// - Returns: If has, return jwt expiration Date. Otherwise, return nil.
     @objc
     public func getExpiration() -> Date? {
-        return DateHelper.getDateFromTimeStamp(claims[Claims.exp] as? Int)
+        return DateFormatter.getDateFromTimeStamp(claims[Claims.exp] as? Int)
     }
 
     /// Set expirate date.
@@ -150,7 +150,7 @@ public class Claims: NSObject {
     /// - Returns: JwtBuilder instance.
     @objc
     public func setExpiration(expiration: Date) -> Claims {
-        claims[Claims.exp] = DateHelper.getTimeStamp(expiration)
+        claims[Claims.exp] = DateFormatter.getTimeStamp(expiration)
         return self
     }
 
@@ -158,7 +158,7 @@ public class Claims: NSObject {
     /// - Returns: If has, return not before Date. Otherwise, return nil.
     @objc
     public func getNotBefore() -> Date? {
-        return DateHelper.getDateFromTimeStamp(claims[Claims.nbf] as? Int)
+        return DateFormatter.getDateFromTimeStamp(claims[Claims.nbf] as? Int)
     }
 
     /// Set JWT ‘nbf’ value.
@@ -166,7 +166,7 @@ public class Claims: NSObject {
     /// - Returns: Claims instance.
     @objc
     public func setNotBefore(notBefore: Date) -> Claims {
-        claims[Claims.nbf] = DateHelper.getTimeStamp(notBefore)
+        claims[Claims.nbf] = DateFormatter.getTimeStamp(notBefore)
         return self
     }
 
@@ -175,7 +175,7 @@ public class Claims: NSObject {
     @objc
     public func getIssuedAt() -> Date? {
         
-        return DateHelper.getDateFromTimeStamp(claims[Claims.iat] as? Int)
+        return DateFormatter.getDateFromTimeStamp(claims[Claims.iat] as? Int)
     }
 
     /// Set JWT issued time.
@@ -183,7 +183,7 @@ public class Claims: NSObject {
     /// - Returns: Claims instance.
     @objc
     public func setIssuedAt(issuedAt: Date) -> Claims {
-        claims[Claims.iat] = DateHelper.getTimeStamp(issuedAt)
+        claims[Claims.iat] = DateFormatter.getTimeStamp(issuedAt)
         return self
     }
 

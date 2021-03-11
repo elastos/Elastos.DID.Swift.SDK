@@ -32,7 +32,7 @@ public class VerifiablePresentation: NSObject {
     
     override init() {
         self._type = Constants.DEFAULT_PRESENTATION_TYPE
-        self._createdDate = DateHelper.currentDate()
+        self._createdDate = DateFormatter.currentDate()
         self._verifiableCredentials = Dictionary<DIDURL, VerifiableCredential>()
     }
 
@@ -343,7 +343,7 @@ public class VerifiablePresentation: NSObject {
         generator.writeStartObject()
 
         generator.writeStringField(Constants.TYPE, self.type)
-        generator.writeStringField(Constants.CREATED, DateHelper.formateDate(self.createdDate))
+        generator.writeStringField(Constants.CREATED, DateFormatter.formateDate(self.createdDate))
 
         // verifiable credentials
         generator.writeFieldName(Constants.VERIFIABLE_CREDENTIAL)

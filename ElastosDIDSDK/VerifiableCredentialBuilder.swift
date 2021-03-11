@@ -121,7 +121,7 @@ public class VerifiableCredentialBuilder: NSObject {
             throw DIDError.invalidState(Errors.CREDENTIAL_ALREADY_SEALED)
         }
 
-        guard !DateHelper.isExpired(expirationDate, maxExpirationDate()) else {
+        guard !DateFormatter.isExpired(expirationDate, maxExpirationDate()) else {
             throw DIDError.illegalArgument()
         }
 
@@ -212,7 +212,7 @@ public class VerifiableCredentialBuilder: NSObject {
             throw DIDError.malformedCredential("imcomplete credential")
         }
 
-        credential!.setIssuanceDate(DateHelper.currentDate())
+        credential!.setIssuanceDate(DateFormatter.currentDate())
         if credential!.getExpirationDate() == nil {
             _ = try withDefaultExpirationDate()
         }

@@ -83,4 +83,70 @@ extension DateFormatter {
 
         return useDate
     }
+    
+    class func getTimeStamp(_ date: Date) -> Int {
+
+        return Int(date.timeIntervalSince1970)
+    }
+
+    class func getTimeStampForString(_ date: Date) -> String {
+
+        let time = Int(date.timeIntervalSince1970)
+        return String(time)
+    }
+
+    class func getDateFromTimeStamp(_ timeStamp: Int?) -> Date? {
+        guard timeStamp != nil else {
+            return nil
+        }
+        let interval = TimeInterval.init(timeStamp!)
+
+        return Date(timeIntervalSince1970: interval)
+    }
+
+    class func getDateFromTimeStampWithString(_ timeStamp: String?) -> Date? {
+        guard timeStamp != nil else {
+            return nil
+        }
+        let intTimeStamp = Int(timeStamp!)
+        let interval = TimeInterval.init(intTimeStamp!)
+
+        return Date(timeIntervalSince1970: interval)
+    }
+
+    class func isExipired(_ date: Date) -> Bool {
+        return isExpired(DateFormatter.currentDate(), date)
+    }
+
+    class func isExpired(_ date: Date, _ expirateDate: Date) -> Bool {
+
+        return date > expirateDate
+    }
+
+    class func maxExpirationDate(_ date: Date) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone.current
+        var comps:DateComponents?
+
+        comps = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        comps?.year = 5
+        comps?.month = 0
+        comps?.day = 0
+        comps?.hour = 0
+        comps?.minute = 0
+        comps?.second = 0
+        comps?.nanosecond = 0
+        let realDate = calendar.date(byAdding: comps!, to: date) ?? Date()
+        let hour = calendar.component(.hour, from: realDate)
+        let minute = calendar.component(.minute, from: realDate)
+        let second = calendar.component(.second, from: realDate)
+
+        let useDate = calendar.date(bySettingHour: hour, minute: minute, second: second, of: realDate) ?? Date()
+
+        return useDate
+    }
+
+    class func maxExpirationDate() -> Date {
+        return maxExpirationDate(Date())
+    }
 }

@@ -36,6 +36,10 @@ public class VerifiableCredentialSubject: NSObject {
     public var did: DID {
         return self._id
     }
+    
+    func setId(_ newVaule: DID) {
+        self._id = newVaule
+    }
 
     /// Get count of subject properties in Credential.
     @objc

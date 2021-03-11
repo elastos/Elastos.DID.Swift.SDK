@@ -23,6 +23,35 @@
 import Foundation
 
 public enum DIDError: Error {
+    // remove ---------
+    case unknownFailure (_ des: String? = nil)
+    case illegalArgument(_ des: String? = nil)
+
+    case malformedMeta  (_ des: String? = nil)
+    case malformedDID   (_ des: String? = nil)
+    case malformedDIDURL(_ des: String? = nil)
+    case malformedDocument  (_ des: String? = nil)
+    case malformedCredential(_ des: String? = nil)
+    case malformedPresentation(_ des: String? = nil)
+
+    case didStoreError  (_ des: String? = nil)
+
+    case didResolveError(_ des: String? = nil)
+    case didDeactivated (_ des: String? = nil)
+    case didExpired     (_ des: String? = nil)
+    case didtransactionError(_ des: String? = nil)
+    case didNotFoundError(_ des: String? = nil)
+
+    case invalidState   (_ des: String? = nil)
+    case invalidKeyError(_ des: String? = nil)
+
+    case notFoundError (_ des: String? = nil)
+    case didMetaDateLocalFormatError (_ des: String? = nil)
+    case didNotUpToDate (_ des: String? = nil)
+    case didNotGenuine (_ des: String? = nil)
+    case IllegalArgumentError(_ des: String? = nil)
+// ------------------------------
+    
     public enum UncheckedError {
         public enum IllegalArgumentError {
             case MalformedDIDError(_ des: String?)
@@ -48,7 +77,7 @@ public enum DIDError: Error {
             case RootIdentityAlreadyExistError(_ des: String?)
             case NotCustomizedDIDError(_ des: String)
             case NoEffectiveControllerError(_ des: String?)
-            case NotAttachedWithStoreError(_ des: String?)
+            case NotAttachedWithStoreError(_ des: String? = nil)
             case NotPrimitiveDIDError(_ des: String?)
             case AlreadySignedError(_ des: String?)
             case AlreadySealedError(_ des: String?)
@@ -67,7 +96,7 @@ public enum DIDError: Error {
         }
         
         public enum DIDSyntaxError {
-            case MalformedDocumentError(_ des: String?)
+            case MalformedDocumentError(_ des: String? = nil)
             case MalformedCredentialError(_ des: String)
             case MalformedPresentationError(_ des: String?)
             case MalformedExportDataError(_ des: String?)
@@ -242,7 +271,15 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveError: LocalizedError 
     }
 }
 
-/*
+extension DIDError {
+    class func checkArgument(_ full: Bool, _ mesg: String) throws {
+        guard !full else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+        }
+    }
+}
+
+//////// remove --------------------
 extension DIDError {
     static func desription(_ error: DIDError) -> String {
         switch error {
@@ -297,4 +334,5 @@ extension DIDError {
         }
     }
 }
-*/
+//////////////////////////
+

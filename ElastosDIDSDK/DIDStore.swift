@@ -2176,6 +2176,45 @@ public class DIDStore: NSObject {
         return extendedKeyBytes!
     }
     
+    private func loadPrivateKey(_ id: DIDURL) throws -> String? {
+        // TODO:
+        return "TODO: "
+    }
+    
+    /// Load private key.
+    /// - Parameters:
+    ///   - id: the identifier of key
+    ///   - storepass: the password for DIDStore
+    /// - Throws: DIDStore error.
+    /// - Returns: the original private key
+    func loadPrivateKey(_ id: DIDURL, _ storepass: String) throws -> Data {
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        let encryptedKey = try loadPrivateKey(id)
+        if encryptedKey == nil {
+            // fail-back to lazy private key generation
+            return "TODO: ".data(using: .utf8)
+        }
+        else {
+            return "TODO: ".data(using: .utf8)
+        }
+    }
+
+    /// Judge that the specified key has private key in DIDStore.
+    /// - Parameter did: the identifier of key
+    /// - Returns: the returned value is true if there is private keys owned the specified key;
+    ///            the returned value is false if there is no private keys owned the specified key.
+    public func containsPrivateKeys(for id: DIDURL) throws -> Bool {
+        return try loadPrivateKey(id) != nil
+    }
+    
+    /// Judge that the specified key has private key in DIDStore.
+    /// - Parameter did: the identifier of key
+    /// - Returns: the returned value is true if there is private keys owned the specified key;
+    ///            the returned value is false if there is no private keys owned the specified key.
+    public func containsPrivateKeys(forId: String) throws -> Bool {
+        return try containsPrivateKeys(for: DIDURL.valueOf(forId))
+    }
+
     /// Check if contain any private key of specific DID.
     /// - Parameter did: The handle to DID.
     /// - Returns: true on success, false if an error occurred.
