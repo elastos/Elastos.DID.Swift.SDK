@@ -93,6 +93,9 @@
 		119B29A72578ED220084B859 /* ECSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299C2578ED210084B859 /* ECSignature.swift */; };
 		119B29A82578ED220084B859 /* ECEncryptable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299D2578ED210084B859 /* ECEncryptable.swift */; };
 		119B29AD2578ED8D0084B859 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29AC2578ED8D0084B859 /* ByteBuffer.swift */; };
+		119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
+		119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
+		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
 		11B096DA241930690065228B /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096D5241930690065228B /* SHA256Helper.swift */; };
 		11B096E324193E200065228B /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096E224193E200065228B /* OrderedDictionary.swift */; };
 		11C3EC6624765D0F00DF1B4F /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
@@ -457,6 +460,9 @@
 		119B299C2578ED210084B859 /* ECSignature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECSignature.swift; sourceTree = "<group>"; };
 		119B299D2578ED210084B859 /* ECEncryptable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECEncryptable.swift; sourceTree = "<group>"; };
 		119B29AC2578ED8D0084B859 /* ByteBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
+		119F0C9225FF07ED006D4F75 /* TransferTicket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicket.swift; sourceTree = "<group>"; };
+		119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicketProof.swift; sourceTree = "<group>"; };
+		119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransactionAdapter.swift; sourceTree = "<group>"; };
 		11A6B159238FD77E00D3C1F1 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Externals/HDKey/lib/-iphonesimulator/libcrypto.a"; sourceTree = "<group>"; };
 		11A6B15A238FD77E00D3C1F1 /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = "Externals/HDKey/lib/-iphonesimulator/libhdkey.a"; sourceTree = "<group>"; };
 		11B096D5241930690065228B /* SHA256Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256Helper.swift; sourceTree = "<group>"; };
@@ -1273,6 +1279,9 @@
 				A31ACDF823F199AD008EC032 /* PublicKey.swift */,
 				A31ACDFA23F199AE008EC032 /* Service.swift */,
 				A31ACE0223F199AE008EC032 /* DIDDocument.swift */,
+				119F0C9225FF07ED006D4F75 /* TransferTicket.swift */,
+				119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */,
+				119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */,
 				A31ACE0023F199AE008EC032 /* DIDDocumentProof.swift */,
 				A31ACDF923F199AE008EC032 /* DIDDocumentBuilder.swift */,
 				A31ACE1B23F199BA008EC032 /* VerifiableCredential.swift */,
@@ -1724,6 +1733,7 @@
 				11D1F748257F3A5400BC5A54 /* TokenStream.swift in Sources */,
 				A31ACE3F23F19A22008EC032 /* DateHelper.swift in Sources */,
 				1147721523F6976800C7C36F /* Mnemonic.swift in Sources */,
+				119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */,
 				11D1F75C257F3A5400BC5A54 /* EmptyPredictionContext.swift in Sources */,
 				11D1F72E257F3A5400BC5A54 /* ParseTreePattern.swift in Sources */,
 				11D1F75B257F3A5400BC5A54 /* ContextSensitivityInfo.swift in Sources */,
@@ -1771,6 +1781,7 @@
 				110830CF241FA0E4000FDD2B /* ResolverCache.swift in Sources */,
 				11C3ECE62477807300DF1B4F /* JWTError.swift in Sources */,
 				A31ACE3B23F19A22008EC032 /* DateFormatter.swift in Sources */,
+				119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */,
 				11D1F782257F3A5400BC5A54 /* ATNDeserializer.swift in Sources */,
 				A31801AB240281B00087E074 /* LRUCache.swift in Sources */,
 				119B29A12578ED210084B859 /* SSLPointerTricks.swift in Sources */,
@@ -1871,6 +1882,7 @@
 				A31ACE2123F199BA008EC032 /* VerifiableCredentialSubject.swift in Sources */,
 				11C3ECEB2477807300DF1B4F /* BlueHMAC.swift in Sources */,
 				11D1F74C257F3A5400BC5A54 /* TokenSource.swift in Sources */,
+				119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */,
 				11C3ECED2477807300DF1B4F /* VerifierAlgorithm.swift in Sources */,
 				11D1F768257F3A5400BC5A54 /* ActionTransition.swift in Sources */,
 				11D1F744257F3A5400BC5A54 /* RuleContext.swift in Sources */,

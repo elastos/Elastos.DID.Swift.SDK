@@ -133,8 +133,9 @@ public class DIDMetadata: AbstractMetadata {
         }
     }
     
-    public override func clone() {
+    public override func clone() -> DIDMetadata {
     // TODO:
+        return DIDMetadata()
     }
     
     override func save() {

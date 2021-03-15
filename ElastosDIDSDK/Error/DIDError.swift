@@ -50,44 +50,44 @@ public enum DIDError: Error {
     case didNotUpToDate (_ des: String? = nil)
     case didNotGenuine (_ des: String? = nil)
     case IllegalArgumentError(_ des: String? = nil)
-// ------------------------------
+// ------------------------------ end ---------
     
     public enum UncheckedError {
         public enum IllegalArgumentError {
-            case MalformedDIDError(_ des: String?)
-            case MalformedDIDURLError(_ des: String?)
-            case DIDObjectAlreadyExistError(_ des: String?)
-            case DIDObjectNotExistError(_ des: String?)
-            case InvalidKeyError(_ des: String?)
-            case NotControllerError(_ des: String?)
-            case IllegalUsageError(_ des: String?)
+            case MalformedDIDError(_ des: String? = nil)
+            case MalformedDIDURLError(_ des: String? = nil)
+            case DIDObjectAlreadyExistError(_ des: String? = nil)
+            case DIDObjectNotExistError(_ des: String? = nil)
+            case InvalidKeyError(_ des: String? = nil)
+            case NotControllerError(_ des: String? = nil)
+            case IllegalUsageError(_ des: String? = nil)
         }
         
         public enum IllegalStateError {
-            case DIDNotFoundError(_ des: String?)
-            case DIDDeactivatedError(_ des: String?)
-            case DIDAlreadyExistError(_ des: String?)
-            case DIDExpiredError(_ des: String?)
-            case DIDNotUpToDateError(_ des: String?)
-            case DIDNotGenuineError(_ des: String?)
-            case CredentialNotGenuineError(_ des: String?)
-            case CredentialExpiredError(_ des: String?)
-            case CredentialRevokedError(_ des: String?)
-            case CredentialAlreadyExistError(_ des: String?)
-            case RootIdentityAlreadyExistError(_ des: String?)
-            case NotCustomizedDIDError(_ des: String)
-            case NoEffectiveControllerError(_ des: String?)
+            case DIDNotFoundError(_ des: String? = nil)
+            case DIDDeactivatedError(_ des: String? = nil)
+            case DIDAlreadyExistError(_ des: String? = nil)
+            case DIDExpiredError(_ des: String? = nil)
+            case DIDNotUpToDateError(_ des: String? = nil)
+            case DIDNotGenuineError(_ des: String? = nil)
+            case CredentialNotGenuineError(_ des: String? = nil)
+            case CredentialExpiredError(_ des: String? = nil)
+            case CredentialRevokedError(_ des: String? = nil)
+            case CredentialAlreadyExistError(_ des: String? = nil)
+            case RootIdentityAlreadyExistError(_ des: String? = nil)
+            case NotCustomizedDIDError(_ des: String? = nil)
+            case NoEffectiveControllerError(_ des: String? = nil)
             case NotAttachedWithStoreError(_ des: String? = nil)
-            case NotPrimitiveDIDError(_ des: String?)
-            case AlreadySignedError(_ des: String?)
-            case AlreadySealedError(_ des: String?)
-            case UnknownInternalError(_ des: String?)
+            case NotPrimitiveDIDError(_ des: String? = nil)
+            case AlreadySignedError(_ des: String? = nil)
+            case AlreadySealedError(_ des: String? = nil)
+            case UnknownInternalError(_ des: String? = nil)
         }
         
         public enum UnsupportedOperationError {
-            case DIDObjectHasReferenceError(_ des: String?)
-            case CanNotRemoveEffectiveControllerError(_ des: String?)
-            case NotCustomizedDIDError(_ des: String?)
+            case DIDObjectHasReferenceError(_ des: String? = nil)
+            case CanNotRemoveEffectiveControllerError(_ des: String? = nil)
+            case NotCustomizedDIDError(_ des: String? = nil)
         }
     }
     
@@ -97,30 +97,30 @@ public enum DIDError: Error {
         
         public enum DIDSyntaxError {
             case MalformedDocumentError(_ des: String? = nil)
-            case MalformedCredentialError(_ des: String)
-            case MalformedPresentationError(_ des: String?)
-            case MalformedExportDataError(_ des: String?)
-            case MalformedIDChainRequestError(_ des: String?)
-            case MalformedIDChainTransactionError(_ des: String?)
-            case MalformedResolveRequestError(_ des: String?)
-            case MalformedResolveResponseError(_ des: String?)
-            case MalformedResolveResultError(_ des: String?)
-            case MalformedTransferTicketError(_ des: String?)
+            case MalformedCredentialError(_ des: String? = nil)
+            case MalformedPresentationError(_ des: String? = nil)
+            case MalformedExportDataError(_ des: String? = nil)
+            case MalformedIDChainRequestError(_ des: String? = nil)
+            case MalformedIDChainTransactionError(_ des: String? = nil)
+            case MalformedResolveRequestError(_ des: String? = nil)
+            case MalformedResolveResponseError(_ des: String? = nil)
+            case MalformedResolveResultError(_ des: String? = nil)
+            case MalformedTransferTicketError(_ des: String? = nil)
         }
         
         public enum DIDStoreError {
             public enum DIDStorageError {
-                case DIDStoreVersionMismatchError(_ des: String?)
+                case DIDStoreVersionMismatchError(_ des: String? = nil)
             }
-            case WrongPasswordError(_ des: String?)
-            case DIDStoreCryptoError(_ des: String?)
+            case WrongPasswordError(_ des: String? = nil)
+            case DIDStoreCryptoError(_ des: String? = nil)
         }
         
         public enum DIDBackendError {
             public enum DIDResolveError {
-                case NetworkError(_ des: String?)
+                case NetworkError(_ des: String? = nil)
             }
-            case DIDTransactionError(_ des: String?)
+            case DIDTransactionError(_ des: String? = nil)
         }
     }
 }

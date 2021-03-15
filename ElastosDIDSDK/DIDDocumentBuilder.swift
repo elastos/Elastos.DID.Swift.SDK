@@ -26,14 +26,42 @@ import Foundation
 @objc(DIDDocumentBuilder)
 public class DIDDocumentBuilder: NSObject {
     private var document: DIDDocument?
-
+    private var controllerDoc: DIDDocument
+    
+    /// Constructs DID Document Builder with given DID and DIDStore.
+    /// - Parameters:
+    ///   - did: the specified DID
+    ///   - store: the DIDStore object
     init(_ did: DID, _ store: DIDStore) {
         self.document = DIDDocument(did)
-        self.document!.getMetadata().setStore(store)
+        let metadata = DIDMetadata(did, store)
+        self.document!.setMetadata(metadata)
+    }
+    
+    /// Constructs DID Document Builder with given customizedDid and DIDStore.
+    /// - Parameters:
+    ///   - did: the specified DID
+    ///   - store: the DIDStore object
+    init(_ did: DID, _ controller: DIDDocument, _ store: DIDStore) {
+        self.document = DIDDocument(did)
+        self.document!._controllers = []
+        self.document!._controllerDocs = [: ]
+        self.document!._controllers.append(controller.subject)
+        self.document!._controllerDocs[controller.subject] = controller
+        self.document!._effectiveController = controller.subject
+        self.document!.setMetadata(DIDMetadata(did, store))
+        
+        self.controllerDoc = controller
+    }
+    
+    init(_ doc: DIDDocument) throws { // Make a copy
+        self.document = try doc.copy()
     }
 
-    init(_ doc: DIDDocument) { // Make a copy
-        self.document = DIDDocument(doc)
+    init(_ doc: DIDDocument, _ controller: DIDDocument) throws { // Make a copy
+        self.document = try doc.copy()
+        try self.document!.setEffectiveController(controller.subject)
+        self.controllerDoc = controller
     }
 
     private func getSubject() throws -> DID {
@@ -168,11 +196,11 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        let key = document!.publicKey(ofId: id)
+        let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.illegalArgument()
         }
-        guard document!.appendAuthenticationKey(id) else {
+        guard try document!.appendAuthenticationKey(id) else {
             throw DIDError.illegalArgument()
         }
 
@@ -256,7 +284,7 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
-        guard document!.removeAuthenticationKey(id) else {
+        guard try document!.removeAuthenticationKey(id) else {
             throw DIDError.illegalArgument()
         }
 
@@ -286,12 +314,12 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        let key = document!.publicKey(ofId: id)
+        let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.illegalArgument()
         }
         // use the ref "key" rather than parameter "id".
-        guard document!.appendAuthorizationKey(id) else {
+        guard try document!.appendAuthorizationKey(id) else {
             throw DIDError.illegalArgument()
         }
 
@@ -339,7 +367,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let key = PublicKey(id, controller, keyBase58)
-        key.setAthorizationKey(true)
+        key.setAuthorizationKey(true)
         _ = document!.appendPublicKey(key)
 
         return self
@@ -416,7 +444,7 @@ public class DIDDocumentBuilder: NSObject {
 
         var usedKey: DIDURL? = key
         if  usedKey == nil {
-            usedKey = controllerDoc!.defaultPublicKey
+            usedKey = controllerDoc!.defaultPublicKeyId()
         }
 
         // Check the key should be a authentication key
@@ -425,7 +453,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.illegalArgument()
         }
 
-        let pk = PublicKey(id, targetKey!.getType(), controller, targetKey!.publicKeyBase58)
+        let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
         pk.setAthorizationKey(true)
         _ = document!.appendPublicKey(pk)
 
@@ -502,7 +530,7 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
-        guard document!.removeAuthorizationKey(id) else {
+        guard try document!.removeAuthorizationKey(id) else {
             throw DIDError.illegalArgument()
         }
 
@@ -1047,16 +1075,106 @@ public class DIDDocumentBuilder: NSObject {
             document!.setExpirationDate(DateFormatter.maxExpirationDate())
         }
 
-        let signKey = document!.defaultPublicKey
+        let signKey = document!.defaultPublicKeyId()
         let data: Data = try document!.toJson(true, true)
-        let signature = try document!.sign(signKey, storePassword, [data])
-
-        document!.setProof(DIDDocumentProof(signKey, signature))
+        let signature = try document!.sign(signKey!, storePassword, [data])
+        
+        document!.setProof(DIDDocumentProof(signKey!, signature))
 
         // invalidate builder.
         let doc = self.document!
         self.document = nil
 
         return doc
+    }
+    
+    /// Add a new controller to the customized DID document.
+    /// - Parameter controller: the new controller's DID
+    /// - Throws: DIDResolveError if failed resolve the new controller's DID
+    /// - Returns: the Builder object
+    @objc(addController:error:)
+    public func appendController(with controller: DID) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        try checkIsCustomized()
+        try DIDError.checkArgument(document!._controllers.contains(controller), "Controller already exists.")
+        let controllerDoc = try controller.resolve(true)
+        guard (controllerDoc != nil) else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(controller.toString())
+        }
+        
+        guard !controllerDoc!.isDeactivated else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(controller.toString())
+        }
+        guard !controllerDoc!.isExpired else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDExpiredError(controller.toString())
+        }
+        
+        guard try controllerDoc!.isGenuine() else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(controller.toString())
+        }
+        guard !controllerDoc!.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(controller.toString())
+        }
+        document?._controllers.append(controller)
+        document?._controllerDocs[controller] = controllerDoc
+        document?._multisig = nil // invalidate multisig
+        
+        invalidateProof()
+        return self
+    }
+    
+    /// Add a new controller to the customized DID document.
+    /// - Parameter controller: the new controller's DID
+    /// - Throws: DIDResolveError if failed resolve the new controller's DID
+    /// - Returns: the Builder object
+    public func appendController(_ controller: String) throws -> DIDDocumentBuilder {
+        return try appendController(with: DID.valueOf(controller)!)
+    }
+    
+    /// Set multiple signature for multi-controllers DID document.
+    /// - Parameter m: the required signature count
+    /// - Returns: the Builder object
+    public func setMultiSignature(_ m: Int) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        try checkIsCustomized()
+        try DIDError.checkArgument(m >= 1, "Invalid signature count")
+        let n = document!.controllers().count
+        try DIDError.checkArgument(m <= n, "Signature count exceeds the upper limit")
+
+        var multisig: MultiSignature?
+        if n > 1 {
+            multisig = try MultiSignature(m, n)
+        }
+        
+        if document?._multisig == nil && multisig == nil {
+            return self
+        }
+        
+        if document?._multisig != nil && multisig != nil && document!._multisig == multisig {
+            return self
+        }
+        
+        document?._multisig = try MultiSignature(m, n)
+        invalidateProof()
+        
+        return self
+    }
+
+    private func invalidateProof() {
+        if !document!._proofsDic.isEmpty{
+            document!._proofsDic.removeAll()
+        }
+    }
+    
+    private func checkNotSealed() throws {
+        guard document != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySealedError()
+        }
+    }
+    
+    private func checkIsCustomized() throws {
+        guard document!.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(document!.subject.toString())
+        }
     }
 }

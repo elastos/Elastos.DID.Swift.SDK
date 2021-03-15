@@ -115,7 +115,7 @@ public class DID: NSObject {
     /// Check deactivated
     @objc
     public var isDeactivated: Bool {
-        return getMetadata().isDeactivated
+        return getMetadata().deactivated
     }
 
     /// Get the newest DID Document from chain.

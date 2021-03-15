@@ -33,7 +33,7 @@ public class MultiSignature: NSObject {
         try apply(m, n)
     }
     
-    private init(_ ms: MultiSignature) throws {
+    init(_ ms: MultiSignature) throws {
         _m = ms._m
         _n = ms._n
         super.init()

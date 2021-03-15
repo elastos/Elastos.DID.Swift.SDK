@@ -30,7 +30,8 @@ public class DIDBackend: NSObject {
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
     private static var resolveHandle: ResolveHandle? = nil
-
+    private static var instance: DIDBackend?
+    
     class TransactionResult: NSObject {
         private var _transactionId: String?
         private var _status: Int
@@ -231,7 +232,19 @@ public class DIDBackend: NSObject {
     public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
         return DIDBackend(adapter)
     }
-
+    
+    // TODO:
+    public class func getInstance() -> DIDBackend {
+        return instance!
+    }
+    
+    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        // TODO:
+//        let request = DIDRequest.transfer(doc, ticket, signKey, storepass)
+//        createTransaction(request, adapter)
+//        invalidDidCache(doc.getSubject())
+    }
+    
     class func getTtl() -> Int {
         return _ttl != 0 ? (_ttl / 60 / 1000) : 0
     }

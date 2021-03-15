@@ -21,6 +21,7 @@
 */
 
 import Foundation
+import PromiseKit
 
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
@@ -42,24 +43,24 @@ public class DIDDocument: NSObject {
     let CREATED = "created"
     let SIGNATURE_VALUE = "signatureValue"
 
-    private var _subject: DID?
-    private var _controllers: [DID] = [ ]
-    private var _controllerDocs: [DID: DIDDocument] = [: ]
-    private var _effectiveController: DID?
-    private var _multisig: MultiSignature?
-    private var publicKeyMap: EntryMap<PublicKey> = EntryMap()
-    private var _defaultPublicKey: PublicKey?
-    private var _publickeys: [PublicKey] = []
-    private var _authentications: [PublicKeyReference] = []
-    private var _authorizations: [PublicKeyReference] = []
-    private var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
-    private var _credentials: [VerifiableCredential] = []
-    private var serviceMap: EntryMap<Service> = EntryMap()
-    private var _services: [Service] = []
-    private var _expires: Date?
-    private var _proofsDic: [DID: DIDDocumentProof] = [: ]
-    private var _proofs: [DIDDocumentProof] = [ ]
-    private var _metadata: DIDMetadata?
+     var _subject: DID?
+     var _controllers: [DID] = [ ]
+     var _controllerDocs: [DID: DIDDocument] = [: ]
+     var _effectiveController: DID?
+     var _multisig: MultiSignature?
+     var publicKeyMap: EntryMap<PublicKey> = EntryMap()
+     var _defaultPublicKey: PublicKey?
+     var _publickeys: [PublicKey] = []
+     var _authentications: [PublicKeyReference] = []
+     var _authorizations: [PublicKeyReference] = []
+     var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
+     var _credentials: [VerifiableCredential] = []
+     var serviceMap: EntryMap<Service> = EntryMap()
+     var _services: [Service] = []
+     var _expires: Date?
+     var _proofsDic: [DID: DIDDocumentProof] = [: ]
+     var _proofs: [DIDDocumentProof] = [ ]
+     var _metadata: DIDMetadata?
 
     private var _capacity: Int = 0
 
@@ -246,7 +247,7 @@ public class DIDDocument: NSObject {
         serviceMap = EntryMap<Service>()
     }
 
-    init(_ doc: DIDDocument) {
+    init(_ doc: DIDDocument, _ withProof: Bool) {
         _subject = doc.subject
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
@@ -261,10 +262,12 @@ public class DIDDocument: NSObject {
         serviceMap = doc.serviceMap
         _services = doc._services
         _expires = doc._expires
-        _proofsDic = doc._proofsDic
+        if withProof {
+            self._proofsDic = doc._proofsDic
+            self._proofs = doc._proofs
+        }
         _metadata = doc._metadata
     }
-
 
     /// Get subject of DIDDocument.
     /// - return: the DID object
@@ -712,6 +715,12 @@ public class DIDDocument: NSObject {
         }
     }
 
+    private func checkIsCustomized() throws {
+        guard !isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(subject.toString())
+        }
+    }
+    
     private func checkHasEffectiveController() throws {
         guard effectiveController != nil else {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
@@ -1635,7 +1644,7 @@ public class DIDDocument: NSObject {
             }
             
             do {
-               try vc.sanitize()
+               try vc.sanitize() //TODO:
             }
             catch {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid credential: \(vc.getId())")
@@ -1714,27 +1723,41 @@ public class DIDDocument: NSObject {
             _proofsDic[proof.creator.did!] = proof
         }
 
-        self._proofs = _proofsDic.values
+        _proofsDic.values.forEach { proof in
+            self._proofs.append(proof)
+        }
         // TODO:  Collections.sort(this._proofs)
     }
-
+    
+    /// Set DID Metadata object for did document.
+    /// - Parameter metadata: the DIDMetadata object
     func setMetadata(_ metadata: DIDMetadata) {
         self._metadata = metadata
         subject.setMetadata(metadata)
     }
 
-    /// Get DIDMetaData from DID.
-    /// - Returns: Return the handle to DIDMetadata
+    /// Get DIDMetaData object from did document.
+    /// - Returns: the DIDMetadata object
     @objc
     public func getMetadata() -> DIDMetadata {
         if _metadata == nil {
-            _metadata = DIDMetadata()
-            subject.setMetadata(_metadata!)
+            /*
+            // This will cause resolve recursively
+            do {
+                let resolved = try subject.resolve()
+                _metadata = resolved != nil ? resolved!.getMetadata() : DIDMetadata(subject)
+//                subject.setMetadata(_metadata!)
+            } catch  {
+                _metadata = DIDMetadata(subject)
+            }
+            */
+            _metadata = DIDMetadata(subject)
         }
 
         return _metadata!
     }
 
+    ///////////////--------------2 star------------------
     /// Save DIDMetaData of document.
     /// - Throws: If no error occurs, throw error.
     @objc
@@ -1743,56 +1766,161 @@ public class DIDDocument: NSObject {
             try  _metadata!.store?.storeDidMetadata(subject, _metadata!)
         }
     }
+    
+    var store: DIDStore? {
+        return getMetadata().store
+    }
+    
+//////////////////////////-----------------2 end----------------------
 
+    ///
     /// Check that document is deactivated or not.
     /// true if document is deactivated, otherwise false.
     @objc
     public var isDeactivated: Bool {
-        return getMetadata().isDeactivated
+        return getMetadata().deactivated
     }
 
     /// Check that document is expired or not.
     /// true if document is expired, otherwise false.
     @objc
     public var isExpired: Bool {
-        return DateHelper.isExipired(self.expirationDate!)
+        return DateFormatter.isExipired(self.expirationDate!)
     }
 
     /// Check that document is genuine or not.
     /// true if document is genuine, otherwise false.
-    @objc
-    public var isGenuine: Bool {
-        // Document should be signed (only) by default public key.
-        guard proof.creator == defaultPublicKey else {
+    public func isGenuine() throws -> Bool {
+        // Proofs count should match with multisig
+        let expectedProofs = _multisig == nil ? 1 : _multisig!.m
+        if _proofsDic.count != expectedProofs {
             return false
         }
-        // Unsupported public key type;
-        guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+        let doc = DIDDocument(self, false)
+//        let json = try doc.serialize(true) // TODO:
+        let json = doc.toString()
+        let jsonData = json.data(using: .utf8)
+        let digest = sha256Digest([jsonData!])
+        
+        // Document should signed(only) by default public key.
+        if !isCustomizedDid() {
+            let proof = self.proof
+            // Unsupported public key type;
+            guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+                return false
+            }
+            
+            guard proof.creator == defaultPublicKeyId() else {
+                return false
+            }
+            return try verifyDigest(withId: proof.creator, using: proof.signature, for: digest)
+        }
+        else {
+            for proof in _proofs {
+                // Unsupported public key type;
+                guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+                    return false
+                }
+                let controllerDoc = controllerDocument(proof.creator.did!)
+                guard controllerDoc != nil else {
+                    return false
+                }
+                guard try controllerDoc!.isGenuine() else {
+                    return false
+                }
+                guard proof.creator == controllerDoc!.defaultPublicKeyId() else {
+                    return false
+                }
+                guard try controllerDoc!.verifyDigest(withId: proof.creator, using: proof.signature, for: digest) else {
+                    return false
+                }
+                
+                return true
+            }
+        }
+    }
+    
+    /// Check whether the ticket is qualified.
+    /// - Returns: true is the ticket is qualified else false
+    public func isQualified() -> Bool {
+        guard _proofs.count != 0 else {
             return false
         }
-
-        do {
-            let data: Data = try toJson(true, true)
-            return try verify(proof.creator, proof.signature, [data])
-        } catch {
-            return false
-        }
+        
+        return _proofs.count == (_multisig == nil ? 1 : _multisig!.m)
     }
 
     /// Check that document is valid or not.
     /// true if document is valid, otherwise false.
-    @objc
-    public var isValid: Bool {
-        return !isDeactivated && !isExpired && isGenuine
+    public func isValid() throws -> Bool {
+        if try isDeactivated || isExpired || isGenuine() {
+            return false
+        }
+        if hasController() {
+            for doc in _controllerDocs.values {
+                if try doc.isDeactivated || !doc.isGenuine() {
+                    return false
+                }
+            }
+        }
+        
+        return true
+    }
+    
+    func copy() throws -> DIDDocument {
+        let doc = DIDDocument(subject)
+        doc._controllers = _controllers
+        doc._controllerDocs = _controllerDocs
+        if self._multisig != nil {
+            doc._multisig = try MultiSignature(_multisig!)
+        }
+        doc.publicKeyMap = publicKeyMap
+        doc._defaultPublicKey = _defaultPublicKey
+        doc.credentialMap = credentialMap
+        doc.serviceMap = serviceMap
+        doc._expires = _expires
+        doc._proofsDic = _proofsDic
+        let metadata = getMetadata().clone()
+        doc.setMetadata(metadata)
+        
+        return doc
     }
 
     /// Get DIDDocument Builder to modify document.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
-    public func editing() -> DIDDocumentBuilder {
-        return DIDDocumentBuilder(self)
+    public func editing() throws -> DIDDocumentBuilder {
+        if !isCustomizedDid() {
+           try checkAttachedStore()
+            return try DIDDocumentBuilder(self)
+        }
+        else {
+            guard effectiveController != nil else {
+                throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError()
+            }
+            
+            return try editing(effectiveControllerDocument()!)
+        }
+       
     }
 
+    @objc
+    public func editing(_ controller: DIDDocument) throws -> DIDDocumentBuilder {
+        try checkIsCustomized()
+        if !getMetadata().attachedStore && !controller.getMetadata().attachedStore {
+            throw DIDError.UncheckedError.IllegalStateError.NotAttachedWithStoreError()
+        }
+        if controller.getMetadata().attachedStore {
+            controller.getMetadata().attachStore(getMetadata().store!)
+        }
+        
+        guard hasController(controller.subject) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(controller.subject.toString())
+        }
+        
+        return try DIDDocumentBuilder(self, controller)
+    }
+    
     /// Sign data by DID.
     /// SDK will get default key from DID
     /// - Parameters:
@@ -1801,7 +1929,7 @@ public class DIDDocument: NSObject {
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
     public func sign(using storePassword: String, for data: Data...) throws -> String {
-        return try sign(self.defaultPublicKey, storePassword, data)
+        return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
     /// Sign data by DID.
@@ -1813,7 +1941,7 @@ public class DIDDocument: NSObject {
     /// - Returns: The  string of signature data.
     @objc
     public func sign(using storePassword: String, for data: [Data]) throws -> String {
-        return try sign(self.defaultPublicKey, storePassword, data)
+        return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
     /// Sign data by DID.
@@ -1905,7 +2033,7 @@ public class DIDDocument: NSObject {
     /// - Returns: The  string of signature data.
     @objc
     public func signDigest(using storePassword: String, for digest: Data) throws -> String {
-        return try signDigest(withId: self.defaultPublicKey, using: storePassword, for: digest)
+        return try signDigest(withId: self.defaultPublicKeyId()!, using: storePassword, for: digest)
     }
 
     @objc
@@ -1942,7 +2070,7 @@ public class DIDDocument: NSObject {
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
     public func verify(signature: String, onto data: Data...) throws -> Bool {
-        return try verify(self.defaultPublicKey, signature, data)
+        return try verify(self.defaultPublicKeyId()!, signature, data)
     }
 
     /// verify data.
@@ -1955,7 +2083,7 @@ public class DIDDocument: NSObject {
     @objc
     public func verify(signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
-            return try verify(self.defaultPublicKey, signature, data)
+            return try verify(self.defaultPublicKeyId()!, signature, data)
         } catch let aError as NSError {
             error?.pointee = aError
             return false
@@ -2026,7 +2154,7 @@ public class DIDDocument: NSObject {
             throw DIDError.illegalArgument()
         }
 
-        let pubKey = publicKey(ofId: id)
+        let pubKey = try publicKey(ofId: id)
         guard let _ = pubKey else {
             throw DIDError.illegalArgument()
         }
@@ -2044,7 +2172,7 @@ public class DIDDocument: NSObject {
     /// - Returns: True on success, or false.
     public func verifyDigest(signature: String, for digest: Data) throws -> Bool {
 
-        return try verifyDigest(withId: self.defaultPublicKey, using: signature, for: digest)
+        return try verifyDigest(withId: self.defaultPublicKeyId()!, using: signature, for: digest)
     }
 
     /// verify digest.
@@ -2057,7 +2185,7 @@ public class DIDDocument: NSObject {
     @objc
     public func verifyDigest(signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
-            return try verifyDigest(withId: self.defaultPublicKey, using: signature, for: digest)
+            return try verifyDigest(withId: self.defaultPublicKeyId()!, using: signature, for: digest)
         } catch let aError as NSError {
             error?.pointee = aError
             return false
@@ -2076,7 +2204,7 @@ public class DIDDocument: NSObject {
             throw DIDError.illegalArgument()
         }
 
-        let pubKey = publicKey(ofId: withId)
+        let pubKey = try publicKey(ofId: withId)
         guard let _ = pubKey else {
             throw DIDError.illegalArgument()
         }
@@ -2141,6 +2269,618 @@ public class DIDDocument: NSObject {
         }
     }
 
+    public func newCustomizedDid(_ did: DID, _ force: Bool, _ storepass: String) throws -> DIDDocument {
+        return try newCustomizedDid(did, nil, 1, force, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: DID, _ storepass: String) throws -> DIDDocument {
+        return try newCustomizedDid(did, false, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: String, _ force: Bool, _ storepass: String) throws -> DIDDocument {
+        return try newCustomizedDid(DID.valueOf(did)!, nil, 1, force, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: String, _ storepass: String) throws -> DIDDocument {
+        return try newCustomizedDid(DID.valueOf(did)!, false, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: DID, _ controllers: [DID]?, _ multisig: Int, _ force: Bool, _ storepass: String) throws -> DIDDocument {
+        
+        try checkAttachedStore()
+        var ctrls: [DID] = []
+        if controllers != nil && controllers!.count > 0 {
+            controllers?.forEach({ ctrl in
+                if ctrl != subject && !ctrls.contains(ctrl) {
+                    ctrls.append(ctrl)
+                }
+            })
+        }
+        
+       try DIDError.checkArgument(multisig >= 0 && multisig <= ctrls.count + 1, "Invalid multisig")
+        // TODO: LOG
+        var doc: DIDDocument?
+        if !force {
+            doc = try did.resolve()
+            guard doc == nil else {
+                throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError(did.toString())
+            }
+        }
+        // TODO: LOG
+        let db = DIDDocumentBuilder(did, self, store!)
+        try ctrls.forEach { ctrl in
+            try db.appendController(with: ctrl)
+        }
+        try db.setMultiSignature(multisig)
+        do {
+            doc = try db.sealed(using: storepass)
+            try store!.storeDid(using: doc!)
+            return doc!
+        } catch {
+            // TODO:
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+        }
+    }
+    
+    public func newCustomizedDid(_ did: DID, _ controllers: [DID], _ multisig: Int, _ storepass: String) throws -> DIDDocument {
+        
+        return try newCustomizedDid(did, controllers, multisig, false, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: String, _ controllers: [String], _ multisig: Int, _ force: Bool, _ storepass: String) throws -> DIDDocument {
+        var _controllers: [DID] = []
+        try controllers.forEach { ctrl in
+           try _controllers.append(DID(ctrl))
+        }
+        
+        return try newCustomizedDid(DID.valueOf(did)!, _controllers, multisig, force, storepass)
+    }
+    
+    public func newCustomizedDid(_ did: String, _ controllers: [String], _ multisig: Int, _ storepass: String) throws -> DIDDocument {
+        
+        return try newCustomizedDid(did, controllers, multisig, false, storepass)
+    }
+    
+    public func createTransferTicket(to did: DID, _ storepass: String) throws -> TransferTicket {
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkIsCustomized()
+        try checkAttachedStore()
+        try checkHasEffectiveController()
+        let ticket = try TransferTicket(self, did)
+        try ticket.seal(effectiveControllerDocument()!, storepass)
+        
+        return ticket
+    }
+    
+    public func createTransferTicket(_ did: DID, _ to: DID, _ storepass: String) throws -> TransferTicket {
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkIsPrimitive()
+        try checkAttachedStore()
+        
+        let target = try did.resolve()
+        guard target != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(did.toString())
+        }
+        guard !target!.isDeactivated else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+        }
+        guard target!.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(did.toString())
+        }
+        guard target!.hasController(subject) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(did.toString())
+        }
+        let ticket = try TransferTicket(target!, to)
+        try ticket.seal(self, storepass)
+        return ticket
+    }
+    
+    public func sign(_ ticket: TransferTicket, _ storepass: String) throws -> TransferTicket {
+        
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        try ticket.seal(self, storepass)
+        
+        return ticket
+    }
+    
+    public func sign(_ doc: DIDDocument, _ storepass: String) throws -> DIDDocument {
+        
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        guard doc.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(doc.subject.toString())
+        }
+        guard doc.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(doc.subject.toString())
+        }
+        
+        guard doc.hasController(subject) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(subject.toString())
+        }
+        guard doc._proofsDic[subject] == nil else {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(subject.toString())
+        }
+        let builder = try doc.editing(self)
+        do {
+            return try builder.sealed(using: storepass)
+        } catch {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(subject.toString())
+        }
+    }
+    
+    public func publish(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        var sigK = signKey
+        try DIDError.checkArgument(ticket.isValid(), "Invalid ticket")
+        try DIDError.checkArgument(ticket.subject == subject, "Ticket mismatch with current DID")
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkIsCustomized()
+        try DIDError.checkArgument(_proofsDic[ticket.to] != nil, "Document not signed by: \(ticket.to)")
+        try checkAttachedStore()
+        guard defaultPublicKeyId() != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
+        }
+        
+        let did = subject
+        let targetDoc = try did.resolve(true)
+        guard targetDoc != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(did.toString())
+        }
+        guard !targetDoc!.isDeactivated else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+        }
+        if sigK == nil {
+            sigK = defaultPublicKeyId()
+        }
+        else {
+            guard authenticationKey(ofId: sigK!) != nil else {
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(sigK!.toString())
+            }
+        }
+        
+        try DIDBackend.getInstance().transferDid(self, ticket, sigK!, storepass, adapter)
+    }     
+    
+    public func publish(_ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String) throws {
+        try publish(ticket, signKey, storepass, nil)
+    }
+    
+    public func publish(_ ticket: TransferTicket, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try publish(ticket, canonicalId(signKey), storepass, adapter)
+    }
+    
+    public func publish(_ ticket: TransferTicket, _ signKey: String, _ storepass: String) throws {
+        try publish(ticket, canonicalId(signKey), storepass, nil)
+    }
+    
+    public func publish(_ ticket: TransferTicket, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try publish(ticket, nil, storepass, adapter)
+    }
+    
+    public func publish(_ ticket: TransferTicket, _ storepass: String) throws {
+        try publish(ticket, nil, storepass, nil)
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try publish(ticket, signKey, storepass, adapter) }
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String) throws -> Promise<Void> {
+        return try publishAsync(ticket, signKey, storepass, nil)
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) throws -> Promise<Void> {
+        return try publishAsync(ticket, canonicalId(signKey), storepass, adapter)
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ signKey: String, _ storepass: String) throws -> Promise<Void> {
+        return try publishAsync(ticket, canonicalId(signKey), storepass, nil)
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ storepass: String, _ adapter: DIDTransactionAdapter) throws -> Promise<Void> {
+        return try publishAsync(ticket, nil, storepass, adapter)
+    }
+    
+    public func publishAsync(_ ticket: TransferTicket, _ storepass: String) throws -> Promise<Void> {
+        return try publishAsync(ticket, nil, storepass, nil)
+    }
+
+//    MARK: ---- PUBLISH
+    private func publishDid(_ did: DID,
+                            _ signKey: DIDURL?,
+                            _ storePassword: String,
+                            _ force: Bool) throws {
+        guard !storePassword.isEmpty else {
+            throw DIDError.illegalArgument("Invalid storepass")
+        }
+        Log.i(DIDDocument.TAG, "Publishing ...", did.toString(), force ? " in force mode" : "" )
+        let  doc = try loadDid(did)
+        if doc == nil {
+            Log.e(DIDDocument.TAG, "No document for ", did.toString())
+            throw DIDError.didNotFoundError("Can not find the document for \(did)")
+        }
+
+        guard doc!.isGenuine else {
+            Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
+            throw DIDError.didNotGenuine(did.toString())
+        }
+
+        guard !doc!.isDeactivated else {
+            Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+            throw DIDError.didDeactivated(did.toString())
+        }
+
+        if doc!.isExpired && !force {
+            Log.e(DIDDocument.TAG, "Publish failed because document is expired.")
+            Log.i(DIDDocument.TAG, "You can publish the expired document using force mode.")
+            throw DIDError.didExpired(did.toString())
+        }
+        var lastTxid: String? = nil
+        var reolvedSignautre: String? = nil
+        let resolvedDoc = try did.resolve(true)
+
+        if resolvedDoc != nil {
+            guard !resolvedDoc!.isDeactivated else {
+                doc!.getMetadata().setDeactivated(true)
+                try storage.storeDidMetadata(doc!.subject, doc!.getMetadata())
+                Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+                throw  DIDError.didDeactivated(did.toString())
+            }
+            reolvedSignautre = resolvedDoc?.proof.signature
+            if !force {
+                let localPrevSignature = doc!.getMetadata().previousSignature
+                let localSignature = doc!.getMetadata().signature
+
+                if localPrevSignature == nil && localSignature == nil {
+                    Log.e(DIDDocument.TAG ,"Missing signatures information, DID SDK dosen't know how to handle it, use force mode to ignore checks.")
+                    throw DIDError.didNotUpToDate(did.toString())
+                }
+
+                else if localPrevSignature == nil || localSignature == nil {
+                    let ls = localPrevSignature != nil ? localPrevSignature : localSignature
+                    if ls != reolvedSignautre {
+                        Log.e(DIDDocument.TAG ,"Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.didNotUpToDate(did.toString())
+                    }
+                }
+                else {
+                    if localSignature != reolvedSignautre && localPrevSignature != reolvedSignautre {
+                        Log.e(DIDDocument.TAG ,"Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.didNotUpToDate(did.toString())
+                    }
+                }
+            }
+
+            lastTxid = resolvedDoc!.getMetadata().transactionId!
+        }
+
+        var usedSignKey = signKey
+        if  usedSignKey == nil {
+            usedSignKey = doc?.defaultPublicKey
+        }
+
+        if  lastTxid == nil || lastTxid!.isEmpty {
+            Log.i(DIDDocument.TAG ,"Try to publish[create] \(did.toString()...)")
+            try backend.create(doc!, usedSignKey!, storePassword)
+        } else {
+            Log.i(DIDDocument.TAG ,"Try to publish[update] \(did.toString()...)")
+            try backend.update(doc!, lastTxid!, usedSignKey!, storePassword)
+        }
+
+        doc!.getMetadata().setPreviousSignature(reolvedSignautre)
+        doc!.getMetadata().setSignature(doc!.getProof()!.signature)
+        try storage.storeDidMetadata(doc!.subject, doc!.getMetadata())
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Throws: If error occurs, throw error.
+    @objc
+    public func publishDid(for did: DID,
+                     using signKey: DIDURL,
+                     storePassword: String,
+                           _ force: Bool) throws {
+
+        return try publishDid(did, signKey, storePassword, force)
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    @objc
+    public func publishDid(for did: DID,
+                     using signKey: DIDURL,
+                     storePassword: String) throws {
+
+        return try publishDid(did, signKey, storePassword, false)
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Throws: If error occurs, throw error.
+    @objc(publishDid:signKey:storePassword:force:error:)
+    public func publishDid(for did: String,
+                     using signKey: String,
+                     storePassword: String,
+                           _ force: Bool) throws {
+
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return try publishDid(_did, _key, storePassword, force)
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    @objc(publishDid:signKey:storePassword:error:)
+    public func publishDid(for did: String,
+                     using signKey: String,
+                     storePassword: String) throws {
+
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return try publishDid(_did, _key, storePassword, false)
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    @objc
+    public func publishDid(for did: DID,
+               using storePassword: String) throws {
+
+        do {
+            return try publishDid(did, nil, storePassword, false)
+        } catch {
+            // Dead code.
+            let e: DIDError = error as! DIDError
+            switch e {
+            case .invalidKeyError(_): break
+            default:
+                throw error
+            }
+        }
+    }
+
+    /// Create or update DID.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    @objc(publishDid:storePassword:error:)
+    public func publishDid(for did: String,
+               using storePassword: String) throws {
+
+        return try publishDid(DID(did), nil, storePassword, false)
+    }
+
+    private func publishDidAsync(_ did: DID,
+                                 _ signKey: DIDURL?,
+                                 _ storePassword: String,
+                                 _ force: Bool) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try publishDid(did, signKey, storePassword, force) }
+    }
+
+    private func publishDidAsync_oc(_ did: DID,
+                                 _ signKey: DIDURL?,
+                                 _ storePassword: String,
+                                 _ force: Bool) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            DispatchQueue.global().async{
+                do {
+                    resolver(try self.publishDid(did, signKey, storePassword, force))
+                } catch let error  {
+                    resolver(error)
+                }
+            }
+        })
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Returns: Void
+    public func publishDidAsync(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String,
+                                _ force: Bool) -> Promise<Void> {
+
+        return publishDidAsync(did, signKey, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String,
+                                _ force: Bool) -> AnyPromise {
+
+        return publishDidAsync_oc(did, signKey, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+    public func publishDidAsync(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String) -> Promise<Void> {
+
+        return publishDidAsync(did, signKey, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: DID,
+                          using signKey: DIDURL,
+                          storePassword: String) -> AnyPromise {
+
+        return publishDidAsync_oc(did, signKey, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    public func publishDidAsync(for did: String,
+                          using signKey: String,
+                          storePassword: String,
+                                _ force: Bool) throws -> Promise<Void> {
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync(_did, _key, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    ///   - force: documnet context is normalized or not.
+    /// true represents normalized, false represents not compact.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: String,
+                          using signKey: String,
+                          storePassword: String,
+                                _ force: Bool) throws -> AnyPromise {
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync_oc(_did, _key, storePassword, force)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    public func publishDidAsync(for did: String,
+                          using signKey: String,
+                          storePassword: String) throws -> Promise<Void> {
+
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync(_did, _key, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - signKey: The public key is used to sign.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: String,
+                          using signKey: String,
+                          storePassword: String) throws -> AnyPromise {
+
+        let _did = try DID(did)
+        let _key = try DIDURL(_did, signKey)
+
+        return publishDidAsync_oc(_did, _key, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+    public func publishDidAsync(for did: DID,
+                    using storePassword: String) -> Promise<Void> {
+
+        return publishDidAsync(did, nil, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: DID,
+                    using storePassword: String) -> AnyPromise{
+
+        return publishDidAsync_oc(did, nil, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    public func publishDidAsync(for did: String,
+                    using storePassword: String) throws -> Promise<Void> {
+
+        return publishDidAsync(try DID(did), nil, storePassword, false)
+    }
+
+    /// Create or update DID asynchronously.
+    /// - Parameters:
+    ///   - did: Get the payload by did.
+    ///   - storePassword: Password for DIDStore.
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: Void
+    @objc
+    public func publishDidAsyncUsingObjectC(for did: String,
+                    using storePassword: String) throws -> AnyPromise {
+
+        return publishDidAsync_oc(try DID(did), nil, storePassword, false)
+    }
+
+    /*
+
+     */
     private func parse(_ doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options
@@ -2170,7 +2910,7 @@ public class DIDDocument: NSObject {
         }
 
         if !containsAuthenticationKey(forId: defaultKey!) {
-            _ = appendAuthenticationKey(defaultKey!)
+            _ = try appendAuthenticationKey(defaultKey!)
         }
 
         node = doc.get(forKey: Constants.AUTHORIZATION)
@@ -2198,8 +2938,8 @@ public class DIDDocument: NSObject {
         guard let _ = node else {
             throw DIDError.malformedDocument("missing document proof")
         }
-
-        setProof(try DIDDocumentProof.fromJson(node!, defaultKey!))
+        
+//        setProof(try DIDDocumentProof.fromJson(node!, defaultKey!))
     }
 
     private func parsePublicKeys(_ arrayNode: JsonNode) throws {
@@ -2236,9 +2976,9 @@ public class DIDDocument: NSObject {
                     options = JsonSerializer.Options()
                                             .withRef(subject)
                     let didUrl = try serializer.getDIDURL(options)
-                    pk = publicKey(ofId: didUrl!)!
+                    pk = try publicKey(ofId: didUrl!)!
                 }
-                _ = appendAuthenticationKey(pk.getId())
+                _ = try appendAuthenticationKey(pk.getId())
             } catch {
                 throw DIDError.malformedDocument()
             }
@@ -2263,9 +3003,9 @@ public class DIDDocument: NSObject {
                     options = JsonSerializer.Options()
                                             .withRef(subject)
                     let didUrl = try serializer.getDIDURL(options)
-                    pk = publicKey(ofId: didUrl!)!
+                    pk = try publicKey(ofId: didUrl!)!
                 }
-                _ = appendAuthorizationKey(pk.getId())
+                _ = try appendAuthorizationKey(pk.getId())
             } catch {
                 throw DIDError.malformedDocument()
             }

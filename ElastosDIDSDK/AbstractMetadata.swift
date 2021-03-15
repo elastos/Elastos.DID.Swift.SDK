@@ -233,8 +233,9 @@ public class AbstractMetadata: NSObject {
         }
     }
     
-    public func clone() throws {
+    public func clone() throws -> DIDMetadata {
         // TODO:
+        return DIDMetadata()
     }
     
     func save() { }
