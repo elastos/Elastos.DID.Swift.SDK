@@ -234,11 +234,7 @@ public class DIDDocument: NSObject {
         // TODO: Serializer Deserializer
     }
 
-    private override init() {
-        publicKeyMap = EntryMap<PublicKey>()
-        credentialMap = EntryMap<VerifiableCredential>()
-        serviceMap = EntryMap<Service>()
-    }
+    override init() { }
 
     init(_ subject: DID) {
         self._subject = subject
@@ -248,6 +244,9 @@ public class DIDDocument: NSObject {
     }
 
     init(_ doc: DIDDocument, _ withProof: Bool) {
+        publicKeyMap = EntryMap<PublicKey>()
+        credentialMap = EntryMap<VerifiableCredential>()
+        serviceMap = EntryMap<Service>()
         _subject = doc.subject
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
@@ -2438,7 +2437,7 @@ public class DIDDocument: NSObject {
             }
         }
         
-        try DIDBackend.getInstance().transferDid(self, ticket, sigK!, storepass, adapter)
+        try DIDBackend.getInstance().transferDid(self, ticket, sigK!, storepass, adapter as! DIDAdapter)
     }     
     
     public func publish(_ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String) throws {
@@ -2484,6 +2483,651 @@ public class DIDDocument: NSObject {
     public func publishAsync(_ ticket: TransferTicket, _ storepass: String) throws -> Promise<Void> {
         return try publishAsync(ticket, nil, storepass, nil)
     }
+    
+    /// Publish DID Document to the ID chain.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: DIDURL?, _ force: Bool, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        guard defaultPublicKeyId() != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
+        }
+        Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
+        guard try isGenuine() else {
+            Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
+        }
+        guard !isDeactivated else {
+            Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
+        }
+        
+        if isExpired && !force {
+            Log.e(DIDDocument.TAG, "Publish failed because document is expired.")
+            Log.e(DIDDocument.TAG, "You can publish the expired document using force mode.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDExpiredError(subject.toString())
+        }
+        
+        var signK: DIDURL? = signKey
+        var lastTxid: String?
+        var reolvedSignautre: String
+        let resolvedDoc = try subject.resolve(true)
+        if resolvedDoc != nil {
+            guard !resolvedDoc!.isDeactivated else {
+                getMetadata().deactivated = true
+                Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+                throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
+            }
+            reolvedSignautre = resolvedDoc!.proof.signature
+            if !force {
+                let localPrevSignature = getMetadata().previousSignature
+                let localSignature = getMetadata().signature
+                if localPrevSignature == nil && localSignature == nil {
+                    Log.e(DIDDocument.TAG, "Missing signatures information, ", "DID SDK dosen't know how to handle it, ", "use force mode to ignore checks.")
+                    throw DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError(subject.toString())
+                }
+                else if (localPrevSignature == nil || localSignature == nil) {
+                    let ls = localPrevSignature != nil ? localPrevSignature : localSignature
+                    guard ls == reolvedSignautre else {
+                        Log.e(DIDDocument.TAG, "Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError(subject.toString())
+                    }
+                }
+                else {
+                    if localSignature != reolvedSignautre && localPrevSignature != reolvedSignautre {
+                        Log.e(DIDDocument.TAG, "Current copy not based on the lastest on-chain copy, signature mismatch.")
+                        throw DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError(subject.toString())
+                    }
+                }
+            }
+            lastTxid = resolvedDoc!.getMetadata().transactionId
+        }
+        
+        if signK == nil {
+            signK = defaultPublicKeyId()
+        }
+        else {
+            guard authenticationKey(ofId: signK!) != nil else {
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signK?.toString())
+            }
+        }
+        
+        if lastTxid == nil || lastTxid!.isEmpty {
+            Log.i(DIDDocument.TAG, "Try to publish[create] ", subject, " ...")
+            try DIDBackend.getInstance().createDid(self, signK!, storepass, adapter)
+        }
+        else {
+            Log.i(DIDDocument.TAG, "Try to publish[update] ", subject, " ...")
+            try DIDBackend.getInstance().updateDid(self, lastTxid!, signK!, storepass, adapter)
+        }
+        
+        getMetadata().previousSignature = reolvedSignautre
+        getMetadata().signature = proof.signature
+    }
+    
+    /// Publish DID Document to the ID chain.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: DIDURL, _ force: Bool, _ storepass: String) throws {
+        try publish(signKey, force, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        try publish(signKey, false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: DIDURL, _ storepass: String) throws {
+        try publish(signKey, false, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: String, _ force: Bool, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        try publish(signKey == nil ? nil : canonicalId(signKey), force, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: String, _ force: Bool, _ storepass: String) throws {
+        try publish(canonicalId(signKey), force, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: String, _ storepass: String, _ adapter: DIDAdapter) throws {
+        try publish(canonicalId(signKey), false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publish(_ signKey: String, _ storepass: String) throws {
+        try publish(canonicalId(signKey), false, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    public func publish(_ storepass: String, _ adapter: DIDAdapter) throws {
+        try publish(nil, false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    public func publish(_ storepass: String) throws {
+        try publish(nil, false, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: DIDURL?, _ force: Bool, _ storepass: String, _ adapter: DIDAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try publish(signKey, force, storepass, adapter) }
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: signKey the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: DIDURL, _ force: Bool, _ storepass: String) -> Promise<Void> {
+        return publishAsync(signKey, force, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: signKey the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///              force = false, must not be publish if the local document is not the lastest one,
+    ///              and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: String, _ force: Bool, _ storepass: String, _ adapter: DIDAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try publish(signKey, force, storepass, adapter) }
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - force: force = true, must be publish whether the local document is lastest one or not;
+    ///            force = false, must not be publish if the local document is not the lastest one,
+    ///            and must resolve at first.
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: String, _ force: Bool, _ storepass: String) -> Promise<Void> {
+        return publishAsync(signKey, force, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) -> Promise<Void> {
+        return publishAsync(signKey, false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: DIDURL, _ storepass: String) -> Promise<Void> {
+        return publishAsync(signKey, false, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: String, _ storepass: String, _ adapter: DIDAdapter) -> Promise<Void> {
+        return publishAsync(signKey, false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ signKey: String, _ storepass: String) -> Promise<Void> {
+        return publishAsync(signKey, false, storepass, nil)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode and specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    public func publishAsync(_ storepass: String, _ adapter: DIDAdapter) -> Promise<Void> {
+        return publishAsync(nil, false, storepass, adapter)
+    }
+    
+    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Also this method is defined without force mode and specify the default key to sign.
+    /// - Parameter storepass: the password for DIDStore
+    public func publishAsync(_ storepass: String) -> Promise<Void> {
+        return publishAsync(nil, false, storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ signKey: DIDURL?, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        try checkAttachedStore()
+        if signKey == nil && defaultPublicKeyId() == nil {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
+        }
+        var sigK = signKey
+        // Document should use the IDChain's copy
+        let doc = try subject.resolve(true)
+        if doc == nil {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject.toString())
+        }
+        else if doc!.isDeactivated {
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
+        }
+        else {
+            doc!.getMetadata().attachStore(store!)
+        }
+        if sigK == nil {
+            sigK = doc!.defaultPublicKeyId()
+        }
+        else {
+           if !doc!.containsAuthenticationKey(forId: sigK!) {
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+            }
+        }
+        
+        if signature != doc!.signature {
+            try store?.storeDid(using: doc!)
+        }
+    }
+    
+    /// Deactivate self use authentication key.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ signKey: DIDURL, _ storepass: String) throws {
+        try deactivate(signKey, storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ signKey: String, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        try deactivate(canonicalId(signKey), storepass, adapter)
+    }
+    
+    /// Deactivate self use authentication key.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ signKey: String, _ storepass: String) throws {
+        try deactivate(canonicalId(signKey), storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ storepass: String, _ adapter: DIDAdapter) throws {
+        try deactivate(nil, storepass, adapter)
+    }
+    
+    /// Deactivate self use authentication key.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    public func deactivate(_ storepass: String) throws {
+        try deactivate(nil, storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ signKey: DIDURL?,_ storepass: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try deactivate(signKey, storepass, adapter) }
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ signKey: DIDURL,_ storepass: String) throws -> Promise<Void> {
+        return try deactivateAsync(signKey, storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ signKey: String,_ storepass: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try deactivate(signKey, storepass, adapter) }
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ signKey: String, _ storepass: String) throws -> Promise<Void> {
+        return try deactivateAsync(signKey, storepass, nil)
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ storepass: String, _ adapter: DIDAdapter) throws -> Promise<Void> {
+        return try deactivateAsync(nil, storepass, adapter)
+    }
+    
+    /// Deactivate self use authentication key with asynchronous mode.
+    /// Specify the default key to sign.
+    /// - Parameters:
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new Promise, no result.
+    public func deactivateAsync(_ storepass: String) throws -> Promise<Void> {
+        return try deactivateAsync(nil, storepass, nil)
+    }
+    
+    
+    /*
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(DID target, DIDURL signKey, String storepass, DIDTransactionAdapter adapter)
+                 throws DIDStoreException, DIDBackendException {
+             checkArgument(target != null, "Invalid target DID");
+             checkArgument(storepass != null && !storepass.isEmpty(), "Invalid storepass");
+             checkAttachedStore();
+
+             if (signKey == null && getDefaultPublicKeyId() == null)
+                 throw new NoEffectiveControllerException(getSubject().toString());
+
+             DIDDocument targetDoc = target.resolve(true);
+             if (targetDoc == null)
+                 throw new DIDNotFoundException(target.toString());
+             else if (targetDoc.isDeactivated())
+                 throw new DIDDeactivatedException(target.toString());
+
+             targetDoc.getMetadata().attachStore(getStore());
+
+             if (!targetDoc.isCustomizedDid()) {
+                 if (targetDoc.getAuthorizationKeyCount() == 0)
+                     throw new InvalidKeyException("No authorization key from: " + target);
+
+                 List<PublicKey> candidatePks = null;
+                 if (signKey == null) {
+                     candidatePks = this.getAuthenticationKeys();
+                 } else {
+                     PublicKey pk = getAuthenticationKey(signKey);
+                     if (pk == null)
+                         throw new InvalidKeyException(signKey.toString());
+                     candidatePks = new ArrayList<PublicKey>(1);
+                     candidatePks.add(pk);
+                 }
+
+                 // Lookup the authorization key id in the target doc
+                 DIDURL realSignKey = null;
+                 DIDURL targetSignKey = null;
+                 lookup: for (PublicKey candidatePk : candidatePks) {
+                     for (PublicKey pk : targetDoc.getAuthorizationKeys()) {
+                         if (!pk.getController().equals(getSubject()))
+                             continue;
+
+                         if (pk.getPublicKeyBase58().equals(candidatePk.getPublicKeyBase58())) {
+                             realSignKey = candidatePk.getId();
+                             targetSignKey = pk.getId();
+                             break lookup;
+                         }
+                     }
+                 }
+
+                 if (realSignKey == null || targetSignKey == null)
+                     throw new InvalidKeyException("No matched authorization key.");
+
+                 DIDBackend.getInstance().deactivateDid(targetDoc, targetSignKey,
+                         this, realSignKey, storepass, adapter);
+             } else {
+                 if (!targetDoc.hasController(getSubject()))
+                     throw new NotControllerException(getSubject().toString());
+
+                 if (signKey == null) {
+                     signKey = getDefaultPublicKeyId();
+                 } else {
+                     if (!signKey.equals(getDefaultPublicKeyId()))
+                         throw new InvalidKeyException(signKey.toString());
+                 }
+
+                 DIDBackend.getInstance().deactivateDid(targetDoc, signKey, storepass, adapter);
+
+                 if (getStore().containsDid(target))
+                     getStore().storeDid(targetDoc);
+             }
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(DID target, DIDURL signKey, String storepass)
+                 throws DIDStoreException, DIDBackendException {
+             deactivate(target, signKey, storepass, null);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID string
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(String target, String signKey, String storepass, DIDTransactionAdapter adapter)
+                 throws DIDStoreException, DIDBackendException {
+             deactivate(DID.valueOf(target), canonicalId(signKey), storepass, adapter);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID string
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(String target, String signKey, String storepass)
+                 throws DIDStoreException, DIDBackendException {
+             deactivate(DID.valueOf(target), canonicalId(signKey), storepass, null);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID string
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(DID target, String storepass, DIDTransactionAdapter adapter)
+                 throws DIDStoreException, DIDBackendException {
+             deactivate(target, null, storepass, adapter);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID.
+          *
+          * @param target the target DID string
+          * @param storepass the password for DIDStore
+          * @throws InvalidKeyException there is no an authentication key.
+          * @throws DIDStoreException deactivate did failed because of did store error.
+          * @throws DIDBackendException deactivate did failed because of did backend error.
+          */
+         public void deactivate(DID target, String storepass)
+                 throws DIDStoreException, DIDBackendException {
+             deactivate(target, null, storepass, null);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(DID target,
+                 DIDURL signKey, String storepass, DIDTransactionAdapter adapter) {
+             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                 try {
+                     deactivate(target, signKey, storepass, adapter);
+                 } catch (DIDException e) {
+                     throw new CompletionException(e);
+                 }
+             });
+
+             return future;
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(DID target,
+                 DIDURL signKey, String storepass) {
+             return deactivateAsync(target, signKey, storepass, null);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param did the authorizor's DID.
+          * @param confirms the count of confirms
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(String target,
+                 String signKey, String storepass, DIDTransactionAdapter adapter) {
+             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                 try {
+                     deactivate(target, signKey, storepass, adapter);
+                 } catch (DIDException e) {
+                     throw new CompletionException(e);
+                 }
+             });
+
+             return future;
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param did the authorizor's DID.
+          * @param confirms the count of confirms
+          * @param signKey the authorizor's key to sign
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(String target,
+                 String signKey, String storepass) {
+             return deactivateAsync(target, signKey, storepass, null);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param did the authorizor's DID, use the default key to sign.
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(DID target, String storepass,
+                 DIDTransactionAdapter adapter) {
+             return deactivateAsync(target, null, storepass, adapter);
+         }
+
+         /**
+          * Deactivate target DID by authorizor's DID with asynchronous mode.
+          *
+          * @param target the target DID
+          * @param did the authorizor's DID, use the default key to sign.
+          * @param storepass the password for DIDStore
+          * @return the new CompletableStage, no result.
+          */
+         public CompletableFuture<Void> deactivateAsync(DID target, String storepass) {
+             return deactivateAsync(target, null, storepass, null);
+         }
+
+     */
 
 //    MARK: ---- PUBLISH
     private func publishDid(_ did: DID,

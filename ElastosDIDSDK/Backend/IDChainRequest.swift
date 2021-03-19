@@ -28,7 +28,14 @@ public class IDChainRequest: NSObject {
 
     /// The specification string of IDChain Request
     @objc public static let CURRENT_SPECIFICATION = "elastos/did/1.0"
+    public static let DID_SPECIFICATION = "elastos/did/1.0"
+    public static let CREDENTIAL_SPECIFICATION = "elastos/credential/1.0"
 
+    var _header: IDChainHeader
+    var _payload: String?
+    var _proof: IDChainProof?
+    
+    /*
     // header
     private var _specification: String                // must have value
     private var _operation: IDChainRequestOperation   // must have value
@@ -43,12 +50,140 @@ public class IDChainRequest: NSObject {
     private var _keyType: String?
     private var _signKey: DIDURL?
     private var _signature: String?
-
-    private init(_ operation: IDChainRequestOperation) {
-        self._specification = IDChainRequest.CURRENT_SPECIFICATION
-        self._operation = operation
+    */
+    
+    /// Create a ID chain request with given operation.
+    /// - Parameter operation: the operation
+    init(_ operation: IDChainRequestOperation) {
+        self._header = IDChainHeader(operation)
     }
+    
+    /// Create a DID update request with given previous transaction id.
+    /// - Parameters:
+    ///   - operation: should be UPDATE operation
+    ///   - previousTxid: the previous transaction id of target DID
+    init(_ operation: IDChainRequestOperation, _ previousTxid: String) {
+        self._header = IDChainHeader(operation, previousTxid)
+    }
+    
+    /// Create a DID transfer request with given ticket.
+    /// - Parameters:
+    ///   - operation: should be TRANSFER operation
+    ///   - ticket: the transfer ticket object
+    init(_ operation: IDChainRequestOperation, _ ticket: TransferTicket) {
+        self._header = IDChainHeader(operation, ticket)
+    }
+    
+    /// Copy constructor.
+    /// - Parameter request: another ID chain request object
+    init(_ request: IDChainRequest) {
+        self._header = request.header
+        self._payload = request.payload
+        self._proof = request.proof
+    }
+    
+    /// Get the request header object.
+    public var header: IDChainHeader {
+        return _header
+    }
+    
+    /// Get the operation of this request.
+    public var operation: IDChainRequestOperation? {
+        return _header.operation
+    }
+    
+    /// Get the payload of this ID chain request.
+    public var payload: String? {
+        return _payload
+    }
+    
+    /// Set the payload for this ID chain request.
+    /// - Parameter payload: the string format payload
+    func setPayload(_ payload: String) {
+        self._payload = payload
+    }
+    
+    /// Get the proof object of this ID chain request.
+    public var proof: IDChainProof? {
+        return _proof
+    }
+    
+    /// Set the proof object for the ID chain request.
+    /// - Parameter proof: the proof object
+    func setProof(_ proof: IDChainProof) {
+        self._proof = proof
+    }
+    
+    /// Get the signing inputs for generating the proof signature.
+    /// - Returns: the array object of input Data arrays
+    func getSigningInputs() -> [Data] {
+        let prevTxid = operation == .UPDATE ? header.previousTxid! : ""
+        let ticket = operation == .TRANSFER ? header.ticket! : ""
 
+        var inputs: [Data] = []
+
+        if let spec = header.specification, let data = spec.data(using: .utf8) {
+            inputs.append(data)
+        }
+        if let oper = operation, let data = oper.description.data(using: .utf8)  {
+            inputs.append(data)
+        }
+        if let data = prevTxid.description.data(using: .utf8)  {
+            inputs.append(data)
+        }
+        if let data = ticket.description.data(using: .utf8)  {
+            inputs.append(data)
+        }
+        if let pay = _payload,let data = pay.data(using: .utf8)  {
+            inputs.append(data)
+        }
+
+        return inputs
+    }
+    
+    /// Abstract method to get the DIDDocument of the request signer.
+    /// - Returns: the signer's DIDDocument object
+    func getSignerDocument() throws -> DIDDocument? {
+        return DIDDocument()
+    }
+    
+    /// Return whether this ID chain request is valid or not.
+    /// - Returns: true if valid, otherwise false
+    public func isValid() throws -> Bool {
+        let signKey = proof!.verificationMethod
+        let doc = try getSignerDocument()
+        guard doc != nil else {
+            return false
+        }
+        
+        guard try doc!.isValid() else {
+            return false
+        }
+        
+        if operation != IDChainRequestOperation.DEACTIVATE {
+            if !doc!.containsAuthenticationKey(forId: signKey) && !doc!.containsAuthorizationKey(forId: signKey) {
+                return false
+            }
+        }
+        else {
+            if (!doc!.containsAuthenticationKey(forId: signKey) && !doc!.containsAuthorizationKey(forId: signKey)) {
+                return false
+            }
+        }
+        
+        return try doc!.verify(proof!.verificationMethod, proof!.signature, getSigningInputs())
+    }
+    
+    func serialize(_ force: Bool) -> String {
+        
+        return "TODO:"
+    }
+    
+    func sanitize() throws {
+        
+    }
+    
+/*
     /// Constructs the 'create' IDChain Request.
     /// - Parameters:
     ///   - doc: the DID Document be packed into Request
@@ -492,4 +627,5 @@ public class IDChainRequest: NSObject {
         toJson(generator, normalized)
         return generator.toString()
     }
+ */
 }

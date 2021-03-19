@@ -158,7 +158,123 @@ public class DIDBackend: NSObject {
     init(_ adapter: DIDAdapter) {
         self._adapter = adapter
     }
-
+    
+    /// Initialize the DIDBackend with the adapter and the cache specification.
+    /// - Parameter adapter: the DIDAdapter object
+    public class func initialize(_ adapter: DIDAdapter) {
+        instance = DIDBackend(adapter)
+    }
+    // TODO: cache
+    
+    /// Publish 'create' id transaction for the new did.
+    /// - Parameters:
+    ///   - doc: the DIDDocument object
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    func createDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        let request = try DIDRequest.create(doc, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidDidCache(doc.subject)
+    }
+    
+    /// Publish 'Update' id transaction for the existed did.
+    /// - Parameters:
+    ///   - doc: the DIDDocument object
+    ///   - previousTxid: the previous transaction id string
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+        let request = try DIDRequest.update(doc, previousTxid, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidDidCache(doc.subject)
+    }
+    
+    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try DIDRequest.transfer(doc, ticket, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidDidCache(doc.subject)
+    }
+    
+    /// Publish id transaction to deactivate the existed did.
+    /// - Parameters:
+    ///   - doc: the DIDDocument object
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try DIDRequest.deactivate(doc, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidDidCache(doc.subject)
+    }
+    
+    /// Publish id transaction to deactivate the existed did.
+    /// - Parameters:
+    ///   - target: the DID to be deactivated
+    ///   - targetSignKey: the key to sign of specified DID
+    ///   - signer: the signer's DIDDocument object
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try DIDRequest.deactivate(target, targetSignKey, signer, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidDidCache(target.subject)
+    }
+    
+    func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try CredentialRequest.declare(vc, signer, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidCredentialCache(vc.getId(), vc.getIssuer())
+    }
+    
+    func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidCredentialCache(vc.getId(), vc.getIssuer())
+    }
+    
+    func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
+        try createTransaction(request, adapter)
+        invalidCredentialCache(vc, signer.subject)
+    }
+    
+    func createTransaction(_ request: IDChainRequest, _ adapter: DIDAdapter?) throws {
+        // TODO: LOG
+        let payload = request.serialize(true)
+        var ad = adapter
+        if ad == nil {
+            ad = _adapter
+        }
+        try ad!.createIdTransaction(payload, payload)
+    }
+    
+    func invalidDidCache(_ did: DID) {
+        // TODO:
+    }
+    
+    func invalidCredentialCache(_ id: DIDURL, _ signer: DID?) {
+        // TODO:
+    }
+    
+    /// Get DIDBackend instance.
+    /// - Parameter adapter: A handle to DIDAdapter.
+    /// - Returns: DIDBackend instance.
+    @objc
+    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
+        return DIDBackend(adapter)
+    }
+    
+    // TODO:
+    public class func getInstance() -> DIDBackend {
+        return instance!
+    }
+    
+    public var adapter: DIDAdapter {
+        return _adapter
+    }
+    
+    
+    /////////////----------- remove start ---------
+    /*
     /// Initialize DIDBackend to resolve by url.
     /// - Parameters:
     ///   - resolverURL: The URL string.
@@ -172,7 +288,7 @@ public class DIDBackend: NSObject {
 
         try initializeInstance(DefaultResolver(resolverURL), cacheDir)
     }
-
+    
     /// Initialize DIDBackend to resolve by url.
     /// - Parameters:
     ///   - resolverURL: The URL string.
@@ -225,26 +341,6 @@ public class DIDBackend: NSObject {
         }
     }
 
-    /// Get DIDBackend instance.
-    /// - Parameter adapter: A handle to DIDAdapter.
-    /// - Returns: DIDBackend instance.
-    @objc
-    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
-        return DIDBackend(adapter)
-    }
-    
-    // TODO:
-    public class func getInstance() -> DIDBackend {
-        return instance!
-    }
-    
-    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
-        // TODO:
-//        let request = DIDRequest.transfer(doc, ticket, signKey, storepass)
-//        createTransaction(request, adapter)
-//        invalidDidCache(doc.getSubject())
-    }
-    
     class func getTtl() -> Int {
         return _ttl != 0 ? (_ttl / 60 / 1000) : 0
     }
@@ -362,10 +458,10 @@ public class DIDBackend: NSObject {
             let doc = transactionInfo?.request.document
             let meta = DIDMetadata()
 
-            meta.setTransactionId(transactionInfo!.transactionId)
-            meta.setSignature(doc!.proof.signature)
-            meta.setPublished(transactionInfo!.getTimestamp())
-            meta.setLastModified(transactionInfo!.getTimestamp())
+//            meta.setTransactionId(transactionInfo!.transactionId)
+//            meta.setSignature(doc!.proof.signature)
+//            meta.setPublished(transactionInfo!.getTimestamp())
+//            meta.setLastModified(transactionInfo!.getTimestamp())
             doc!.setMetadata(meta)
             return doc
         }
@@ -393,6 +489,18 @@ public class DIDBackend: NSObject {
 
         let request = try IDChainRequest.create(doc, signKey, storePassword)
         return try createTransaction(request.toJson(true), nil)
+    }
+    
+    /// Publish 'Update' id transaction for the existed did.
+    /// - Parameters:
+    ///   - doc: the DIDDocument object
+    ///   - previousTxid: the previous transaction id string
+    ///   - signKey: the key to sign
+    ///   - storepass: the password for DIDStore
+    func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+        let request = DIDRequest.update(doc, previousTxid, signKey, storepass)
+        createTransaction(request, adapter)
+//        invalidDidCache(doc.subject)
     }
 
     func update(_ doc: DIDDocument,
@@ -424,4 +532,5 @@ public class DIDBackend: NSObject {
         try createTransaction(request.toJson(true), nil)
         try ResolverCache.invalidate(doc.subject)
     }
+    */
 }

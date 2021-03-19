@@ -261,7 +261,7 @@ extension DIDURL {
     func toString() -> String {
         var builder: String = ""
 
-        builder.append(did.toString())
+        builder.append(did!.toString())
         if (parameters() != nil) {
             builder.append(";")
             builder.append(parameters()!)

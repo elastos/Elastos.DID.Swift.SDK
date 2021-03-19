@@ -24,9 +24,12 @@ import Foundation
 
 @objc(IDChainRequestOperation)
 public enum IDChainRequestOperation: Int, CustomStringConvertible {
-    case CREATE = 0
-    case UPDATE = 1
-    case DEACTIVATE
+    case CREATE = 0 // Create a new DID
+    case UPDATE = 1 // Update an exist DID
+    case TRANSFER // Deactivate a DID
+    case DEACTIVATE // Transfer the DID' ownership
+    case DECLARE // Declare a credential
+    case REVOKE // Revoke a credential
 
     func toString() -> String {
         let desc: String
@@ -35,8 +38,14 @@ public enum IDChainRequestOperation: Int, CustomStringConvertible {
             desc = "create"
         case 1:
             desc = "update"
-        default:
+        case 2:
+            desc = "transfer"
+        case 3:
             desc = "deactivate"
+        case 4:
+            desc = "declare"
+        default:
+            desc = "revoke"
         }
         return desc;
     }
@@ -51,11 +60,17 @@ public enum IDChainRequestOperation: Int, CustomStringConvertible {
         case "UPDATE":
             operation = .UPDATE
 
+        case "TRANSFER":
+            operation = .TRANSFER
+            
         case "DEACTIVATE":
             operation = .DEACTIVATE
+            
+        case "DECLARE":
+            operation = .DECLARE
 
         default:
-            operation = .DEACTIVATE
+            operation = .REVOKE
         }
         return operation
     }
