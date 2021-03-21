@@ -26,7 +26,7 @@ import Foundation
 @objc(DIDDocumentBuilder)
 public class DIDDocumentBuilder: NSObject {
     private var document: DIDDocument?
-    private var controllerDoc: DIDDocument
+    private var controllerDoc: DIDDocument?
     
     /// Constructs DID Document Builder with given DID and DIDStore.
     /// - Parameters:
@@ -63,11 +63,17 @@ public class DIDDocumentBuilder: NSObject {
         try self.document!.setEffectiveController(controller.subject)
         self.controllerDoc = controller
     }
+    
+    private func canonicalId(_ id: String) throws -> DIDURL? {
+        return try DIDURL.valueOf(getSubject(), id)
+    }
+    
+    private func canonicalId(_ id: DIDURL) throws -> DIDURL? {
+        return try DIDURL(getSubject(), id)
+    }
 
-    private func getSubject() throws -> DID {
-        guard let _ = document else {
-            throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
-        }
+    public func getSubject() throws -> DID {
+        try checkNotSealed()
         return document!.subject
     }
 
@@ -98,6 +104,26 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         return self
+    }
+    
+    private func appendPublicKey(_ key: PublicKey) throws {
+        for pk in document!.publicKeyMap.values({ value -> Bool in return true }) {
+            if pk.getId() == key.getId() {
+                throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("PublicKey id '\(key.getId())' already exist.")
+            }
+            if pk.publicKeyBase58 == key.publicKeyBase58 {
+                throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("PublicKey '\(key.publicKeyBase58)' already exist.")
+            }
+        }
+        
+        if document?.defaultPublicKey() == nil {
+            let address = DIDHDKey.toAddress(key.publicKeyBytes)
+            if try (address == getSubject().methodSpecificId) {
+                document?._defaultPublicKey = key
+                key.setAuthenticationKey(true)
+            }
+        }
+        invalidateProof()
     }
 
     /// Add public key to DID Document.
@@ -454,7 +480,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
-        pk.setAthorizationKey(true)
+        pk.setAuthorizationKey(true)
         _ = document!.appendPublicKey(pk)
 
         return self
@@ -1059,33 +1085,39 @@ public class DIDDocumentBuilder: NSObject {
         return self
     }
 
-    /// Finish modiy document.
-    /// - Parameter storePassword: Pass word to sign.
+    /// Seal the document object, attach the generated proof to the document.
+    /// - Parameter storePassword: the password for DIDStore
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to DIDDocument
     @objc
     public func sealed(using storePassword: String) throws -> DIDDocument {
-        guard let _ = document else {
-            throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
-        }
-        guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-        if  document!.expirationDate == nil {
-            document!.setExpirationDate(DateFormatter.maxExpirationDate())
-        }
-
-        let signKey = document!.defaultPublicKeyId()
-        let data: Data = try document!.toJson(true, true)
-        let signature = try document!.sign(signKey!, storePassword, [data])
+        try checkNotSealed()
+        try DIDError.checkArgument(!storePassword.isEmpty, "Invalid storepass")
         
-        document!.setProof(DIDDocumentProof(signKey!, signature))
-
-        // invalidate builder.
-        let doc = self.document!
+        try sanitize()
+        let signerDoc = document!.isCustomizedDid() ? controllerDoc : document
+        let signKey = signerDoc?.defaultPublicKeyId()
+        
+        if (document!._proofsDic.contains(where: { (k, v) -> Bool in
+            k == signerDoc?.subject
+        })) {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(signerDoc?.subject.toString())
+        }
+        let json = document?.toString(true)
+        let sig = try document?.sign(withId: signKey!, using: storePassword, for: [json!.data(using: .utf8)!])
+        let proof = DIDDocumentProof(signKey!, sig!)
+        document!._proofsDic[proof.creator.did!] = proof
+        let values = document!._proofsDic.values
+        values.forEach { df in
+            document!._proofs.append(df)
+        }
+//        Collections.sort(document._proofs) TODO:
+        
+        // Invalidate builder
+        let doc = document
         self.document = nil
 
-        return doc
+        return doc!
     }
     
     /// Add a new controller to the customized DID document.
@@ -1131,6 +1163,34 @@ public class DIDDocumentBuilder: NSObject {
         return try appendController(with: DID.valueOf(controller)!)
     }
     
+    /// Remove controller from the customized DID document.
+    /// - Parameter controller: the controller's DID to be remove
+    public func removeController(_ controller: DID) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        try checkIsCustomized()
+        guard controller != controllerDoc?.subject else {
+            throw DIDError.UncheckedError.UnsupportedOperationError.CanNotRemoveEffectiveControllerError(controller.toString())
+        }
+        if document != nil && document!._controllers.contains(controller) {
+            invalidateProof()
+        }
+        document?._controllers = document!._controllers.filter { c -> Bool in
+            !c.isEqual(controller)
+        }
+        
+        document?._controllerDocs.removeValue(forKey: controller)
+        
+        return self
+    }
+    
+    /// Remove controller from the customized DID document.
+    /// - Parameter controller: the controller's DID to be remove
+    /// - Returns: the Builder object
+    public func removeController(_ controller: String) throws -> DIDDocumentBuilder {
+
+        return try removeController(DID.valueOf(controller)!)
+    }
+
     /// Set multiple signature for multi-controllers DID document.
     /// - Parameter m: the required signature count
     /// - Returns: the Builder object
@@ -1176,5 +1236,102 @@ public class DIDDocumentBuilder: NSObject {
         guard document!.isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(document!.subject.toString())
         }
+    }
+    
+    private func getMaxExpires() -> Date {
+       
+        return  DateFormatter.convertToWantDate(DateFormatter.currentDate(), Constants.MAX_VALID_YEARS)
+    }
+    
+    /// Set the current time to be expires time for DID Document Builder.
+    /// - Returns: the DID Document Builder
+    public func setDefaultExpires() throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        document?._expires = getMaxExpires()
+        invalidateProof()
+        
+        return self
+    }
+    
+    /// Set the specified time to be expires time for DID Document Builder.
+    /// - Parameter expires: the specified time
+    /// - Returns: the DID Document Builder
+    public func setExpires(_ expires: Date) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+
+        if expires > getMaxExpires() {
+            // Error
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidExpires("Invalid expires, out of range.")
+        }
+        document?._expires = expires
+        invalidateProof()
+        return self
+    }
+    
+    /// Remove the proof that created by the specific controller.
+    /// - Parameter controller: the controller's DID
+    /// - Returns: the DID Document Builder
+    public func removeProof(_ controller: DID) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        if document!._proofsDic.count == 0  {
+            return self
+        }
+        
+        if document!._proofsDic.removeValue(forKey: controller) == nil {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError("No proof signed by: \(controller)")
+        }
+        return self
+    }
+    
+    func sanitize() throws {
+        if (document!.isCustomizedDid()) {
+            if (document!.controllers().isEmpty){
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing controllers")
+            }
+            
+            if (document!.controllers().count > 1) {
+                if (document!._multisig == nil) {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing multisig")
+                }
+                
+                if (document!._multisig!.n != document!.controllers().count) {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig, not matched with controllers")
+                }
+            } else {
+                if (document!._multisig != nil) {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig")
+                }
+            }
+        }
+        
+        let sigs = document!._multisig == nil ? 1 : document!._multisig!.m
+        if (document!._proofsDic.count == sigs) {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySealedError(try getSubject().toString())
+        }
+        
+        //        Collections.sort(document.controllers) // TODO:
+        document!._publickeys = document!.publicKeyMap.values({ pk -> Bool in return true })
+        
+        for pk in document!._publickeys {
+            if (pk.isAuthenticationKey) {
+                document!._authentications.append(PublicKeyReference(pk))
+            }
+            
+            if (pk.isAuthorizationKey) {
+                document!._authorizations.append(PublicKeyReference(pk))
+            }
+        }
+        
+        document?._credentials = document!.credentialMap.values({ (vc) -> Bool in return true })
+        document!._services = document!.serviceMap.values({ (vc) -> Bool in return true })
+        
+        
+        if (document!._proofsDic.isEmpty) {
+            if (document?._expires == nil) {
+               _ = try setDefaultExpires()
+            }
+        }
+        
+        document!._proofs.removeAll()
     }
 }

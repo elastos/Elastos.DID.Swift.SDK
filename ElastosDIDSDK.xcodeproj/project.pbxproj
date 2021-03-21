@@ -102,6 +102,7 @@
 		11BE33A026043BBB00DEBD00 /* IDChainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */; };
 		11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
 		11BE33A826045D8B00DEBD00 /* CredentialRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */; };
+		11BE33B82607796300DEBD00 /* PublicKeyReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33B72607796300DEBD00 /* PublicKeyReference.swift */; };
 		11C3EC6624765D0F00DF1B4F /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
 		11C3EC6724765D0F00DF1B4F /* JwtParserBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */; };
 		11C3EC712476734B00DF1B4F /* JwtTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC702476734B00DF1B4F /* JwtTest.swift */; };
@@ -475,6 +476,7 @@
 		11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainHeader.swift; sourceTree = "<group>"; };
 		11BE33A32604403100DEBD00 /* IDChainProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainProof.swift; sourceTree = "<group>"; };
 		11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialRequest.swift; sourceTree = "<group>"; };
+		11BE33B72607796300DEBD00 /* PublicKeyReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicKeyReference.swift; sourceTree = "<group>"; };
 		11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtBuilder.swift; sourceTree = "<group>"; };
 		11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtParserBuilder.swift; sourceTree = "<group>"; };
 		11C3EC702476734B00DF1B4F /* JwtTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JwtTest.swift; sourceTree = "<group>"; };
@@ -1287,6 +1289,7 @@
 				A31ACDF823F199AD008EC032 /* PublicKey.swift */,
 				A31ACDFA23F199AE008EC032 /* Service.swift */,
 				A31ACE0223F199AE008EC032 /* DIDDocument.swift */,
+				11BE33B72607796300DEBD00 /* PublicKeyReference.swift */,
 				119F0C9225FF07ED006D4F75 /* TransferTicket.swift */,
 				119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */,
 				119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */,
@@ -1834,6 +1837,7 @@
 				110AD2FF234E44C8006578D6 /* Base58.swift in Sources */,
 				11D1F732257F3A5400BC5A54 /* RuleNode.swift in Sources */,
 				11D1F73D257F3A5400BC5A54 /* VocabularySingle.swift in Sources */,
+				11BE33B82607796300DEBD00 /* PublicKeyReference.swift in Sources */,
 				11782ACF242130C4009A1F5A /* DIDURLParser.swift in Sources */,
 				11D1F73A257F3A5400BC5A54 /* BailErrorStrategy.swift in Sources */,
 				11D1F796257F3A5400BC5A54 /* ATN.swift in Sources */,

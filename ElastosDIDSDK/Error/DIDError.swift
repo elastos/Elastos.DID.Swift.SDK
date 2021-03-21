@@ -61,6 +61,7 @@ public enum DIDError: Error {
             case InvalidKeyError(_ des: String? = nil)
             case NotControllerError(_ des: String? = nil)
             case IllegalUsageError(_ des: String? = nil)
+            case InvalidExpires(_ des: String? = nil)
         }
         
         public enum IllegalStateError {
