@@ -53,7 +53,7 @@ public class CredentialRequest: IDChainRequest {
         request.setPayload(vc)
         request.setSigner(signer)
         do {
-            request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storepass)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }
@@ -74,7 +74,7 @@ public class CredentialRequest: IDChainRequest {
         request.setPayload(vc)
         request.setSigner(signer)
         do {
-            request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storepass)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }
@@ -95,7 +95,7 @@ public class CredentialRequest: IDChainRequest {
         request.setPayload(id)
         request.setSigner(signer)
         do {
-            request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storepass)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }

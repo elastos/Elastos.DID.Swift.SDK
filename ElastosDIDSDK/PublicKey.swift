@@ -122,7 +122,7 @@ public class PublicKey: DIDObject {
 
         // type
         if normalized || !isDefType() {
-            generator.writeStringField(Constants.TYPE, getType())
+            generator.writeStringField(Constants.TYPE, getType()!)
         }
 
         // controller

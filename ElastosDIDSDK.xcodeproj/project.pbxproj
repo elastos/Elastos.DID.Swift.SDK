@@ -103,6 +103,9 @@
 		11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
 		11BE33A826045D8B00DEBD00 /* CredentialRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */; };
 		11BE33B82607796300DEBD00 /* PublicKeyReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33B72607796300DEBD00 /* PublicKeyReference.swift */; };
+		11BE33BE260842CE00DEBD00 /* DIDMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */; };
+		11BE33D22608513A00DEBD00 /* RootIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D12608513A00DEBD00 /* RootIdentity.swift */; };
+		11BE33D62608527100DEBD00 /* RootIdentityMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */; };
 		11C3EC6624765D0F00DF1B4F /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
 		11C3EC6724765D0F00DF1B4F /* JwtParserBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */; };
 		11C3EC712476734B00DF1B4F /* JwtTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC702476734B00DF1B4F /* JwtTest.swift */; };
@@ -329,9 +332,8 @@
 		A31ACE3F23F19A22008EC032 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3323F19A22008EC032 /* DateHelper.swift */; };
 		A31ACE4123F19A22008EC032 /* PathExtracter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3523F19A22008EC032 /* PathExtracter.swift */; };
 		A31ACE5723F19A3A008EC032 /* DIDURL.g4 in Resources */ = {isa = PBXBuildFile; fileRef = A31ACE4B23F19A39008EC032 /* DIDURL.g4 */; };
-		A31ACE5F23F19A4E008EC032 /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5C23F19A4E008EC032 /* Metadata.swift */; };
-		A31ACE6023F19A4E008EC032 /* CredentialMeta.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */; };
-		A31ACE6123F19A4E008EC032 /* DIDMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */; };
+		A31ACE5F23F19A4E008EC032 /* DIDStoreMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */; };
+		A31ACE6023F19A4E008EC032 /* CredentialMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */; };
 		A31ACE6823F19A66008EC032 /* ResolveResultStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6323F19A66008EC032 /* ResolveResultStatus.swift */; };
 		A31ACE6923F19A66008EC032 /* IDTransactionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */; };
 		A31ACE6A23F19A66008EC032 /* ResolveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6523F19A66008EC032 /* ResolveResult.swift */; };
@@ -477,6 +479,9 @@
 		11BE33A32604403100DEBD00 /* IDChainProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainProof.swift; sourceTree = "<group>"; };
 		11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialRequest.swift; sourceTree = "<group>"; };
 		11BE33B72607796300DEBD00 /* PublicKeyReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicKeyReference.swift; sourceTree = "<group>"; };
+		11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDMetadata.swift; sourceTree = "<group>"; };
+		11BE33D12608513A00DEBD00 /* RootIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentity.swift; sourceTree = "<group>"; };
+		11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityMetadata.swift; sourceTree = "<group>"; };
 		11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtBuilder.swift; sourceTree = "<group>"; };
 		11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtParserBuilder.swift; sourceTree = "<group>"; };
 		11C3EC702476734B00DF1B4F /* JwtTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JwtTest.swift; sourceTree = "<group>"; };
@@ -738,9 +743,8 @@
 		A31ACE3323F19A22008EC032 /* DateHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DateHelper.swift; path = Util/DateHelper.swift; sourceTree = "<group>"; };
 		A31ACE3523F19A22008EC032 /* PathExtracter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PathExtracter.swift; path = Util/PathExtracter.swift; sourceTree = "<group>"; };
 		A31ACE4B23F19A39008EC032 /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURL.g4; path = Parser/DIDURL.g4; sourceTree = "<group>"; };
-		A31ACE5C23F19A4E008EC032 /* Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Metadata.swift; path = Meta/Metadata.swift; sourceTree = "<group>"; };
-		A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialMeta.swift; path = Meta/CredentialMeta.swift; sourceTree = "<group>"; };
-		A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDMetadata.swift; sourceTree = "<group>"; };
+		A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDStoreMetadata.swift; path = Meta/DIDStoreMetadata.swift; sourceTree = "<group>"; };
+		A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialMetadata.swift; path = Meta/CredentialMetadata.swift; sourceTree = "<group>"; };
 		A31ACE6323F19A66008EC032 /* ResolveResultStatus.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResultStatus.swift; path = Backend/ResolveResultStatus.swift; sourceTree = "<group>"; };
 		A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IDTransactionInfo.swift; path = Backend/IDTransactionInfo.swift; sourceTree = "<group>"; };
 		A31ACE6523F19A66008EC032 /* ResolveResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResolveResult.swift; path = Backend/ResolveResult.swift; sourceTree = "<group>"; };
@@ -1277,8 +1281,6 @@
 				A31ACE2423F199F7008EC032 /* Error */,
 				A31ACE5B23F19A3F008EC032 /* Meta */,
 				A31ACE6223F19A58008EC032 /* Backend */,
-				116F719F25F1D5F20041D983 /* AbstractMetadata.swift */,
-				A31ACE5E23F19A4E008EC032 /* DIDMetadata.swift */,
 				A31ACDFE23F199AE008EC032 /* Constants.swift */,
 				A31801A8240277180087E074 /* JsonNode.swift */,
 				1147721023F6976800C7C36F /* Mnemonic.swift */,
@@ -1307,6 +1309,7 @@
 				A31801A224015EA30087E074 /* DIDResolver.swift */,
 				A31ACE0423F199AE008EC032 /* DIDBackend.swift */,
 				A31ACDFD23F199AE008EC032 /* DIDStore.swift */,
+				11BE33D12608513A00DEBD00 /* RootIdentity.swift */,
 				A31ACDFB23F199AE008EC032 /* DIDStorage.swift */,
 				A31ACDFF23F199AE008EC032 /* FileSystemStorage.swift */,
 				11F262AD23260CF40009C103 /* ElastosDIDSDK.h */,
@@ -1376,8 +1379,11 @@
 		A31ACE5B23F19A3F008EC032 /* Meta */ = {
 			isa = PBXGroup;
 			children = (
-				A31ACE5C23F19A4E008EC032 /* Metadata.swift */,
-				A31ACE5D23F19A4E008EC032 /* CredentialMeta.swift */,
+				A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */,
+				116F719F25F1D5F20041D983 /* AbstractMetadata.swift */,
+				11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */,
+				A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */,
+				11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */,
 			);
 			name = Meta;
 			sourceTree = "<group>";
@@ -1704,7 +1710,6 @@
 				11D1F7A3257F3A5400BC5A54 /* ParserRuleContext.swift in Sources */,
 				11D1F76A257F3A5400BC5A54 /* PredictionMode.swift in Sources */,
 				11D1F70F257F3A5400BC5A54 /* UUIDExtension.swift in Sources */,
-				A31ACE6123F19A4E008EC032 /* DIDMetadata.swift in Sources */,
 				11BE33A026043BBB00DEBD00 /* IDChainHeader.swift in Sources */,
 				11D1F79A257F3A5400BC5A54 /* PlusBlockStartState.swift in Sources */,
 				11D1F785257F3A5400BC5A54 /* PlusLoopbackState.swift in Sources */,
@@ -1755,6 +1760,7 @@
 				11D1F75B257F3A5400BC5A54 /* ContextSensitivityInfo.swift in Sources */,
 				11D1F721257F3A5400BC5A54 /* TerminalNode.swift in Sources */,
 				11D1F726257F3A5400BC5A54 /* SyntaxTree.swift in Sources */,
+				11BE33BE260842CE00DEBD00 /* DIDMetadata.swift in Sources */,
 				11782ACA242130C4009A1F5A /* DIDURLParserATN.swift in Sources */,
 				11D1F775257F3A5400BC5A54 /* LookupATNConfig.swift in Sources */,
 				11C3ECE32477807300DF1B4F /* JWTVerifier.swift in Sources */,
@@ -1762,7 +1768,7 @@
 				A31ACE0823F199AE008EC032 /* Service.swift in Sources */,
 				11D1F76C257F3A5400BC5A54 /* SetTransition.swift in Sources */,
 				11D1F792257F3A5400BC5A54 /* PrecedencePredicateTransition.swift in Sources */,
-				A31ACE6023F19A4E008EC032 /* CredentialMeta.swift in Sources */,
+				A31ACE6023F19A4E008EC032 /* CredentialMetadata.swift in Sources */,
 				11D1F79D257F3A5400BC5A54 /* ATNSimulator.swift in Sources */,
 				11D1F786257F3A5400BC5A54 /* LookupDictionary.swift in Sources */,
 				11D1F722257F3A5400BC5A54 /* ParseTreeVisitor.swift in Sources */,
@@ -1821,7 +1827,7 @@
 				11D1F794257F3A5400BC5A54 /* PredicateTransition.swift in Sources */,
 				11C3ECF02477807300DF1B4F /* NoneAlgorithm.swift in Sources */,
 				11D1F72D257F3A5400BC5A54 /* ParseTreePatternMatcher.swift in Sources */,
-				A31ACE5F23F19A4E008EC032 /* Metadata.swift in Sources */,
+				A31ACE5F23F19A4E008EC032 /* DIDStoreMetadata.swift in Sources */,
 				A31ACE6B23F19A66008EC032 /* IDChainRequestOperation.swift in Sources */,
 				A31ACE6A23F19A66008EC032 /* ResolveResult.swift in Sources */,
 				11D1F747257F3A5400BC5A54 /* ANTLRErrorStrategy.swift in Sources */,
@@ -1829,6 +1835,7 @@
 				A31ACE0723F199AE008EC032 /* DIDDocumentBuilder.swift in Sources */,
 				11C3ECE12477807300DF1B4F /* RSAKeyType.swift in Sources */,
 				11D1F72A257F3A5400BC5A54 /* TokenTagToken.swift in Sources */,
+				11BE33D62608527100DEBD00 /* RootIdentityMetadata.swift in Sources */,
 				11D1F787257F3A5400BC5A54 /* DefaultATNConfig.swift in Sources */,
 				11D1F78E257F3A5400BC5A54 /* Transition.swift in Sources */,
 				11D1F716257F3A5400BC5A54 /* Stack.swift in Sources */,
@@ -1844,6 +1851,7 @@
 				11D1F76D257F3A5400BC5A54 /* DecisionInfo.swift in Sources */,
 				11C3ECEF2477807300DF1B4F /* JWTDecoder.swift in Sources */,
 				11D1F763257F3A5400BC5A54 /* StarLoopbackState.swift in Sources */,
+				11BE33D22608513A00DEBD00 /* RootIdentity.swift in Sources */,
 				A31ACE6C23F19A66008EC032 /* IDChainRequest.swift in Sources */,
 				A31ACE1D23F199BA008EC032 /* VerifiablePresentationProof.swift in Sources */,
 				11D1F711257F3A5400BC5A54 /* CharacterExtension.swift in Sources */,

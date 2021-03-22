@@ -112,7 +112,7 @@ public class VerifiablePresentation: NSObject {
     /// Get the DID for signing the Presentation.
     @objc
     public var signer: DID {
-        return proof.verificationMethod.did
+        return proof.verificationMethod.did!
     }
 
     func getSigner() -> DID? {
@@ -134,7 +134,7 @@ public class VerifiablePresentation: NSObject {
         }
         
         // Check the integrity of signer's document.
-        guard doc!.isGenuine else {
+        guard try doc!.isGenuine() else {
             return false
         }
         // Unsupported public key type
@@ -195,7 +195,7 @@ public class VerifiablePresentation: NSObject {
         }
 
         // Check the validity of signer's document.
-        guard doc!.isValid else {
+        guard doc!.isValid() else {
             return false
         }
         // Unsupported public key type.
@@ -343,7 +343,7 @@ public class VerifiablePresentation: NSObject {
         generator.writeStartObject()
 
         generator.writeStringField(Constants.TYPE, self.type)
-        generator.writeStringField(Constants.CREATED, DateFormatter.formateDate(self.createdDate))
+        generator.writeStringField(Constants.CREATED, DateFormatter.convertToUTCStringFromDate(self.createdDate))
 
         // verifiable credentials
         generator.writeFieldName(Constants.VERIFIABLE_CREDENTIAL)

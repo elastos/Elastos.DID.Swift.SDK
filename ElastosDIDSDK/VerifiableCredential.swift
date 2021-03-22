@@ -201,11 +201,11 @@ public class VerifiableCredential: DIDObject {
                 return true
             }
         case RULE_GENUINE:
-            if !controllerDoc!.isGenuine {
+            if try !controllerDoc!.isGenuine() {
                 return false
             }
         case RULE_VALID:
-            if !controllerDoc!.isValid {
+            if try !controllerDoc!.isValid() {
                 return false
             }
         default:
@@ -229,11 +229,11 @@ public class VerifiableCredential: DIDObject {
                     return true
                 }
             case RULE_GENUINE:
-                if !issuerDoc!.isGenuine {
+                if try !issuerDoc!.isGenuine() {
                     return false
                 }
             case RULE_VALID:
-                if !issuerDoc!.isValid {
+                if try !issuerDoc!.isValid() {
                     return false
                 }
             default:

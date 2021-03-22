@@ -20,51 +20,74 @@
 * SOFTWARE.
 */
 
-protocol DIDStorage {
-    // Root private identity
-    func containsPrivateIdentity() -> Bool
-    func storePrivateIdentity(_ key: String) throws
-    func loadPrivateIdentity() throws -> String
-
-    func containsPublicIdentity() -> Bool
-    func storePublicIdentity(_ key: String) throws
-    func loadPublicIdentity() throws -> String
-
-    func storePrivateIdentityIndex(_ index: Int) throws
-    func loadPrivateIdentityIndex() throws -> Int
-
-    func containsMnemonic() -> Bool
-    func storeMnemonic(_ mnemonic: String) throws
-    func loadMnemonic() throws -> String
+/// The inferface to change password.
+protocol ReEncryptor {
     
-    // DIDs
+    /// Reencrypt in the changing password.
+    /// - Parameter data: the data need to reencrypted
+    /// - Return: the reencrypted data
+    func containsPrivateIdentity(_ data: String) -> String
+}
+
+/// The interface for DIDStorage to support different file system.
+protocol DIDStorage {
+    
+    func getLocation() -> String
+    
+    /// Store private identity.
+    func storeRootIdentity(_ id: String, _ mnemonic: String, _ privateKey: String, _ publicKey: String, _ index: Int) throws
+    
+    /// Load private identity.
+    func loadRootIdentity(_ id: String) throws -> RootIdentity
+    func loadRootIdentityPrivateKey(_ id: String) throws -> String
+    /// Load mnemonic.
+    func loadRootIdentityMnemonic(_ id: String) throws -> String
+    func updateRootIdentityIndex(_ id: String, _ index: Int) throws
+    func deleteRootIdentity(_ id: String) throws -> Bool
+    func listRootIdentities() throws -> [RootIdentity]
+    func containsRootIdenities() throws -> Bool
+
+    // Metadata
+    func storeMetadata(_ metadata: DIDMetadata) throws
+    func loadMetadata() throws -> DIDMetadata
+    func storeRootIdentityMetadata(_ id: String, _ metadata: DIDMetadata)
+    /// Load DID Metadata.
+    /// - Parameter id: the owner of Metadata.
+    /// - Return: the meta data
+    func loadRootIdentityMetadata(_ id: String) throws -> DIDMetadata
+    
     func storeDidMetadata(_ did: DID, _ meta: DIDMetadata) throws
     func loadDidMetadata(_ did: DID) throws -> DIDMetadata
 
+    // DIDS
     func storeDid(_ doc: DIDDocument) throws
     func loadDid(_ did: DID) throws -> DIDDocument?
-    func containsDid(_ did: DID) -> Bool
     func deleteDid(_ did: DID) -> Bool
-    func listDids(_ filter: Int) throws -> Array<DID>
+    func listDids() throws -> Array<DID>
+    func listPrivateKeys(_ did: DID) throws -> Array<DIDURL>
 
     // Credentials
-    func storeCredentialMetadata(_ did: DID, _ id: DIDURL, _ meta: CredentialMeta) throws
-    func loadCredentialMetadata(_ did: DID, _ id: DIDURL) throws -> CredentialMeta
+    func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws
+    func loadCredentialMetadata(_ id: DIDURL) throws -> CredentialMetadata
 
     func storeCredential(_ credential: VerifiableCredential) throws
-    func loadCredential(_ did: DID, _ id: DIDURL) throws -> VerifiableCredential
+
+    func loadCredential(_ id: DIDURL) throws -> VerifiableCredential
+
     func containsCredentials(_ did: DID) -> Bool
-    func containsCredential(_ did: DID, _ id: DIDURL) -> Bool
-    func deleteCredential(_ did: DID, _ id: DIDURL) -> Bool
+    func deleteCredential(_ id: DIDURL) -> Bool
+
     func listCredentials(_ did: DID) throws -> Array<DIDURL>
-    func selectCredentials(_ did: DID, _ id: DIDURL?, _ type: Array<Any>?) throws -> Array<DIDURL>
 
     // Private keys
-    func storePrivateKey(_ did: DID, _ id: DIDURL, _ privateKey: String) throws
-    func loadPrivateKey(_ did: DID, _ id: DIDURL) throws -> String
-    func containsPrivateKeys(_ did: DID) -> Bool
-    func containsPrivateKey(_ did: DID, _ id: DIDURL) -> Bool
-    func deletePrivateKey(_ did: DID, _ id: DIDURL) -> Bool
+    func storePrivateKey(_ id: DIDURL, _ privateKey: String) throws
 
-    func changePassword(_  callback: (String) throws -> String) throws
+    func loadPrivateKey(_ id: DIDURL) throws -> String
+
+    func containsPrivateKeys(_ did: DID) -> Bool
+    func deletePrivateKey(_ id: DIDURL) -> Bool
+
+//    func changePassword(_  callback: (String) throws -> String) throws// 0
+    func changePassword(_  reEncryptor: ReEncryptor) throws
+
 }

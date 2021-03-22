@@ -60,7 +60,7 @@ public class Service: DIDObject {
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
         generator.writeStartObject()
         generator.writeStringField(Constants.ID, IDGetter(getId(), ref).value(normalized))
-        generator.writeStringField(Constants.TYPE, getType())
+        generator.writeStringField(Constants.TYPE, getType()!)
         generator.writeStringField(Constants.SERVICE_ENDPOINT, endpoint)
         generator.writeEndObject()
     }

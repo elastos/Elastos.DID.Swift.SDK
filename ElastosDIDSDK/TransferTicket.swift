@@ -65,7 +65,21 @@ public class TransferTicket: NSObject {
         self.txid = target.getMetadata().transactionId!
         super.init()
     }
-    
+    /*
+     protected TransferTicket(DIDDocument target, DID to) throws DIDResolveException {
+
+         if (!target.isCustomizedDid())
+             throw new NotCustomizedDIDException(target.getSubject().toString());
+
+         target.getMetadata().setTransactionId(target.getSubject().resolve().getMetadata().getTransactionId());
+
+         this.id = target.getSubject();
+         this.doc = target;
+
+         this.to = to;
+         this.txid = target.getMetadata().getTransactionId();
+     }
+     */
     init(_ did: DID, _ to: DID, _ txid: String) throws {
         self.id  = did
         self.to = to

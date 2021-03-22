@@ -28,30 +28,29 @@ public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDo
 /// DIDStore is local store for specified DID.
 @objc(DIDStore)
 public class DIDStore: NSObject {
-    private static let TAG = "DIDStore"
+    private let TAG = NSStringFromClass(DIDStore.self)
+    static let DID_STORE_TYPE = "did:elastos:store"
+    static let DID_STORE_VERSION = 3
     @objc public static let CACHE_INITIAL_CAPACITY = 16
-    @objc public static let CACHE_MAX_CAPACITY = 32
-    
-    @objc public static let DID_HAS_PRIVATEKEY = 0
-    @objc public static let DID_NO_PRIVATEKEY = 1
-    @objc public static let DID_ALL = 2
-
+    @objc public static let CACHE_MAX_CAPACITY = 32 // 128
     private var documentCache: LRUCache<DID, DIDDocument>?
     private var credentialCache: LRUCache<DIDURL, VerifiableCredential>?
-    private let DID_EXPORT = "did.elastos.export/1.0"
+    private let DID_EXPORT = "did.elastos.export/2.0"
 
-    private var storage: DIDStorage
-    private var backend: DIDBackend
+    var storage: DIDStorage
+    private var metadata: DIDStoreMetadata
     private static var storePath: String = ""
 
-    private init(_ initialCapacity: Int, _ maxCapacity: Int, _ adapter: DIDAdapter, _ storage: DIDStorage) {
-        if maxCapacity > 0 {
-            documentCache = LRUCache<DID, DIDDocument>(initialCapacity, maxCapacity)
-            credentialCache = LRUCache<DIDURL, VerifiableCredential>(initialCapacity, maxCapacity)
+    private init(_ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ storage: DIDStorage) {
+        if maxCacheCapacity > 0 {
+            documentCache = LRUCache<DID, DIDDocument>(initialCacheCapacity, maxCacheCapacity)
+            credentialCache = LRUCache<DIDURL, VerifiableCredential>(initialCacheCapacity, maxCacheCapacity)
         }
 
-        self.backend = DIDBackend.getInstance(adapter)
         self.storage = storage
+        self.metadata = storage.loadMetadata()
+        self.metadata.attachStore(self)
+        Log.i(TAG, "DID store opened: , cache(init:\(initialCacheCapacity), max:\(maxCacheCapacity)")
     }
 
     private class func openStore(_ path: String,
@@ -614,7 +613,7 @@ public class DIDStore: NSObject {
         let builder = DIDDocumentBuilder(did, self)
         doc = try builder.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             .sealed(using: storePassword)
-        doc?.getMetadata().setAlias(alias)
+        doc?.getMetadata().setAlias(alias!)
         try storeDid(using: doc!)
 
         return doc!
@@ -1801,10 +1800,10 @@ public class DIDStore: NSObject {
         let encryptedKey = try loadPrivateKey(id)
         if encryptedKey == nil {
             // fail-back to lazy private key generation
-            return "TODO: ".data(using: .utf8)
+            return "TODO: ".data(using: .utf8)!
         }
         else {
-            return "TODO: ".data(using: .utf8)
+            return "TODO: ".data(using: .utf8)!
         }
     }
 
@@ -2222,7 +2221,7 @@ public class DIDStore: NSObject {
         } catch  {
             throw DIDError.didStoreError("Invalid export data.\(error)")
         }
-        guard doc!.subject == did || doc!.isGenuine else {
+        guard try (doc!.subject == did || doc!.isGenuine()) else {
             throw DIDError.didStoreError("Invalid DID document in the export data.")
         }
         value = doc!.toString(true)

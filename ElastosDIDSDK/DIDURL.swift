@@ -252,7 +252,7 @@ public class DIDURL: NSObject {
     @objc
     public func saveMetadata() throws {
         if (_metadata != nil && _metadata!.attachedStore) {
-            try _metadata?.store?.storeCredentialMetadata(did, self, _metadata!)
+            try _metadata?.store?.storeCredentialMetadata(did!, self, _metadata!)
         }
     }
 }
@@ -347,12 +347,12 @@ extension DIDURL {
             if  method != Constants.METHOD {
                 print("Unknown method: \(method)")
             }
-            self.didURL?.did.setMethod(Constants.METHOD)
+            self.didURL?.did!.setMethod(Constants.METHOD)
         }
 
         override func exitMethodSpecificString(
                             _ ctx: DIDURLParser.MethodSpecificStringContext) {
-            self.didURL?.did.setMethodSpecificId(ctx.getText())
+            self.didURL?.did!.setMethodSpecificId(ctx.getText())
         }
 
         override func enterParams(_ ctx: DIDURLParser.ParamsContext) {
@@ -364,7 +364,7 @@ extension DIDURL {
             if  method != Constants.METHOD {
                 Log.e(DIDURL.TAG, "Unknown parameter method: \(method)")
             }
-            self.didURL?.did.setMethod(method)
+            self.didURL?.did!.setMethod(method)
         }
 
         override func exitParamQName(_ ctx: DIDURLParser.ParamQNameContext) {

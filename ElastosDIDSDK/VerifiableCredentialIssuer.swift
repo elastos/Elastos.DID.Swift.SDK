@@ -31,7 +31,7 @@ public class VerifiableCredentialIssuer: NSObject {
         // use the default public key if no signKey provided.
         var key = signKey
         if  key == nil {
-            key = doc.defaultPublicKey
+            key = doc.defaultPublicKeyId()
         }
 
         // The key would be used to sign verifiable crendetial when using
@@ -41,7 +41,7 @@ public class VerifiableCredentialIssuer: NSObject {
         guard doc.containsAuthenticationKey(forId: key!) else {
             throw DIDError.illegalArgument()
         }
-        guard doc.containsPrivateKey(forId: key!) else {
+        guard try doc.containsPrivateKey(forId: key!) else {
             throw DIDError.illegalArgument(Errors.NO_PRIVATE_KEY_EXIST)
         }
 

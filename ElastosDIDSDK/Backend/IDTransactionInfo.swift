@@ -65,7 +65,7 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
     /// - Returns: The handle of operation.
     @objc
     public func getOperation() -> IDChainRequestOperation {
-        return request.operation
+        return request.operation!
     }
 
     /// Get DID Document.
@@ -94,7 +94,7 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
     /// The handle of operation.
     @objc
     public var operation: IDChainRequestOperation {
-        return self._request.operation
+        return self._request.operation!
     }
 
     /// The payload string.

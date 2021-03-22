@@ -22,8 +22,10 @@
 
 import Foundation
 
-/// The class defines the implement of DID Metadata.
+/// The object contains the information about the DID object.
+/// the information may include the DID transaction information and user defined information.
 public class DIDMetadata: AbstractMetadata {
+    private let TAG = NSStringFromClass(DIDMetadata.self)
     private let ROOT_IDENTITY = "rootIdentity"
     private let INDEX = "index"
     private let TXID = "txid"
@@ -32,226 +34,146 @@ public class DIDMetadata: AbstractMetadata {
     private let PUBLISHED = "published"
     private let DEACTIVATED = "deactivated"
     
-    private var _did: DID?
+    private var did: DID?
     
-    /// The default constructor for JSON deserialize creator.
-    override init() { super.init() }
-    
-    /// Constructs the empty DIDMetadataImpl.
-    init(_ did: DID) {
-        self._did = did
+    /// Default constructor.
+    override init() {
         super.init()
     }
     
-    /// Constructs the empty DIDMetadataImpl with the given store.
+    /// Constructs a CredentialMetadata with given did.
+    /// - Parameter did: a DID object
+    init(_ did: DID) {
+        self.did = did
+        super.init()
+    }
+    
+    /// Constructs a DIDMetadata with given did and attach with a DID store.
     /// - Parameters:
-    ///   - store: the specified DIDStore
+    ///   - did: a DID object
+    ///   - store: a DIDStore object
     init(_ did: DID, _ store: DIDStore) {
-        self._did = did
+        self.did = did
         super.init(store)
     }
     
-    var did: DID? {
-        get {
-            return _did
-        }
-        set{
-            _did  = newValue
-        }
+    /// Set the DID of this metadata object.
+    /// - Parameter did: a credential id
+    func setDid(_ did: DID) {
+        self.did = did
     }
     
-    var rootIdentityId: String? {
-        get {
-            return get(ROOT_IDENTITY)
-        }
-        set{
-            put(ROOT_IDENTITY, newValue)
-        }
+    /// Set the root identity id that the DID derived from, if the DID
+    /// is derived from a root identity.
+    /// - Parameter id: a root identity id
+    func setRootIdentityId(_ id: String) {
+        put(ROOT_IDENTITY, id)
     }
     
-    var index: Int? {
-        get {
-            return getInteger(INDEX)
-        }
-        set{
-            put(INDEX, newValue)
-        }
+    /// Get the root identity id that the DID derived from.
+    /// nil if the DID is not derived from a root identity.
+    /// - Returns: the root identity id
+    func getRootIdentityId() -> String? {
+        return get(ROOT_IDENTITY)
     }
     
-    /// Set transaction id into DIDMetadata.
-    /// Get the last transaction id.
-    var transactionId: String? {
-        get {
-            return get(TXID)
-        }
-        set{
-            put(TXID, newValue)
-        }
+    /// Set the derived index if the DID is derived from a root identity.
+    /// - Parameter index: a derive index
+    func setIndex(_ index: Int) {
+        put(INDEX, index)
     }
     
-    /// Set previous signature into DIDMetadata.
-    /// Get the document signature from the previous transaction.
-    var previousSignature: String? {
-        get {
-            return get(PREV_SIGNATURE)
-        }
-        set{
-            put(PREV_SIGNATURE, newValue)
-        }
+    /// Get the derived index only if the DID is derived from a root identity.
+    /// - Returns: a derive index
+    func getIndex() -> Int {
+        return getInteger(INDEX)!
     }
     
-    /// Set signature into DIDMetadata.
-    /// Get the document signature from the lastest transaction.
-    var signature: String? {
-        get {
-            return get(SIGNATURE)
-        }
-        set{
-            put(SIGNATURE, newValue)
-        }
+    /// Set the last transaction id of the DID that associated with
+    /// this metadata object.
+    /// - Parameter txid: a transaction id
+    func setTransactionId(_ txid: String) {
+        put(TXID, txid)
     }
     
-    /// Set published time into DIDMetadata.
-    /// Get the time of the lastest published transaction.
-    var published: Date? {
-        get {
-            return getDate(PUBLISHED)
-        }
-        set{
-            put(PUBLISHED, newValue)
-        }
+    /// Get the last transaction id of the DID that kept in this metadata
+    /// object.
+    /// - Returns: the transaction id
+    func getTransactionId() -> String {
+        return get(TXID)!
     }
     
-    /// Set deactivate status into DIDMetadata.
-    /// Get the DID deactivated status.
-    var deactivated: Bool {
-        get {
-            return getBoolean(DEACTIVATED)
-        }
-        set{
-            put(DEACTIVATED, newValue)
-        }
+    /// Set the previous signature of the DID document that associated with this
+    /// metadata object.
+    /// - Parameter signature: the signature string
+    func setPreviousSignature(_ signature: String) {
+        put(PREV_SIGNATURE, signature)
     }
     
-    public override func clone() -> DIDMetadata {
-    // TODO:
-        return DIDMetadata()
+    /// Get the previous document signature from the previous transaction.
+    /// - Returns: the signature string
+    func getPreviousSignature() -> String {
+        return get(PREV_SIGNATURE)!
     }
     
-    override func save() {
-        // TODO:
+    /// Set the latest signature of the DID document that associated with this
+    /// metadata object.
+    /// - Parameter signature: the signature string
+    func setSignature(_ signature: String) {
+        put(SIGNATURE, signature)
     }
-}
-
-/*
-@objc(DIDMetadata)
-public class DIDMetadata: Metadata {
-    private var _deactivated: Bool = false
-    private var _transactionId: String?
-    private var _aliasName: String?
-    private var _prevSignature: String?
-    private var _signature: String?
-    private var _published: Int?
-    private let TXID = RESERVED_PREFIX + "txid"
-    private let PREV_SIGNATURE = RESERVED_PREFIX + "prevSignature"
-    private let SIGNATURE = RESERVED_PREFIX + "signature"
-    private let PUBLISHED = RESERVED_PREFIX + "published"
-    private let ALIAS = RESERVED_PREFIX + "alias"
-    private let DEACTIVATED = RESERVED_PREFIX + "deactivated"
-
-    @objc
-    public required init() {
-        super.init()
+    
+    /// Get the signature of the DID document that kept in this metadata object.
+    /// - Returns: the signature string
+    func getSignature() -> String {
+        return get(SIGNATURE)!
     }
-
-    /// The name of alias.
-    @objc
-    public var aliasName: String? {
-        return self.get(key: ALIAS) as? String
+    
+    /// Set the publish time of the DID that associated with this
+    /// metadata object.
+    /// - Parameter timestamp: the publish time
+    func setPublishTime(_ timestamp: Date) {
+        put(PUBLISHED, timestamp)
     }
-
-    /// Set alias for did.
-    /// - Parameter alias: The ailas string.
-    @objc
-    public func setAlias(_ alias: String?) {
-        put(key: ALIAS, value: alias as Any)
+    
+    /// Get the publish time of the DID that kept in this metadata
+    /// object.
+    /// - Returns: the published time
+    func getPublishTime() -> Date? {
+        return getDate(PUBLISHED)
     }
-
-    /// Get transactionId.
-    @objc
-    public var transactionId: String? {
-        return self.get(key: TXID) as? String
+    
+    /// Set the deactivated status of the DID that associated with this
+    /// metadata object.
+    /// - Parameter deactivated: the deactivated status
+    func setDeactivated(_ deactivated: Bool) {
+        put(DEACTIVATED, deactivated)
     }
-
-    /// Set transactionId.
-    /// - Parameter newValue: The transactionId string.
-    @objc
-    public func setTransactionId(_ newValue: String?) {
-        put(key: TXID, value: newValue as Any)
-    }
-
-    /// Get the time of previous signature for did.
-    @objc
-    public var previousSignature: String? {
-       return self.get(key: PREV_SIGNATURE) as? String
-    }
-
-    /// Set the time of previous signature for did.
-    /// - Parameter newValue: The time of previous signature.
-    @objc
-    public func setPreviousSignature(_ newValue: String?) {
-         put(key: PREV_SIGNATURE, value: newValue as Any)
-    }
-
-    /// Get signature.
-    @objc
-    public var signature: String? {
-        return self.get(key: SIGNATURE) as? String
-    }
-
-    /// Set signature.
-    /// - Parameter newValue: The signature string.
-    @objc
-    public func setSignature(_ newValue: String?) {
-        put(key: SIGNATURE, value: newValue as Any)
-    }
-
-    /// Get the time of transaction id for did.
-    /// - Returns: The time of transaction.
-    @objc
-    public func getPublished() -> Date? {
-        if let time = self.get(key: PUBLISHED) as? String {
-           return DateFormatter.convertToUTCDateFromString(time)
-        }
-
-        return nil
-    }
-
-    /// Set the time of transaction id for did.
-    /// - Parameter timestamp: The time of transaction.
-    @objc
-    public func setPublished(_ timestamp: Date) {
-        let timestampDate = DateFormatter.convertToUTCStringFromDate(timestamp)
-        put(key: PUBLISHED, value: timestampDate as Any)
-    }
-
-    /// Get did status, deactived or not.
-    @objc
+    
+    /// Get the deactivated status of the DID that kept in this metadata
+    /// object.
+    /// true if DID is deactivated, otherwise false
     public var isDeactivated: Bool {
-        let v =  self.get(key: DEACTIVATED)
-        if case Optional<Any>.none = v {
-            return false
-        }
-        else {
-            return v as! Bool
-        }
+        return getBoolean(DEACTIVATED)
     }
-
-    /// Set  did status, deactived or not.
-    /// - Parameter newValue: Did status.
-    @objc
-    public func setDeactivated(_ newValue: Bool) {
-        put(key: DEACTIVATED, value: newValue as Any)
+    
+    /// Returns a shallow copy of this instance: the property names and values
+    /// themselves are not cloned.
+    /// - Returns: a shallow copy of this object
+    public override func clone() throws -> DIDMetadata {
+        // TODO:
+        return try super.clone()
+    }
+    
+    /// Save this metadata object to the attached store if this metadata
+    /// attached with a store.
+    override func save() {
+        if attachedStore {
+            do {
+                try store?.storeDidMetadata(did!, self)
+            } catch {
+                Log.e(TAG, "INTERNAL - error store metadata for DIDStore")
+            }
+        }
     }
 }
-*/

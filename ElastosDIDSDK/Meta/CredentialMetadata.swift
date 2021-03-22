@@ -22,8 +22,8 @@
 
 import Foundation
 
-@objc(CredentialMeta)
-public class CredentialMeta: Metadata {
+@objc(CredentialMetadata)
+public class CredentialMetadata: Metadata {
     private let ALIAS = RESERVED_PREFIX + "alias"
 
     override init(store: DIDStore) {

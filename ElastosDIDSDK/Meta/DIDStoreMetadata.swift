@@ -19,9 +19,66 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-
 import Foundation
 
+/// The class defines the implement of DID Metadata.
+public class DIDStoreMetadata: AbstractMetadata {
+    private let TAG = NSStringFromClass(DIDStoreMetadata.self)
+    private let TYPE = "type"
+    private let VERSION = "version"
+    private let FINGERPRINT = "fingerprint"
+    private let DEFAULT_ROOT_IDENTITY = "defaultRootIdentity"
+    
+    /// The default constructor for JSON deserialize creator.
+    override init() { super.init() }
+    
+    /// Constructs the empty DIDMetadataImpl.
+    override init(_ store: DIDStore) {
+        super.init(store)
+        put(TYPE, DIDStore.DID_STORE_TYPE)
+        put(VERSION, 1)
+    }
+    
+    public func getType() -> String {
+        return get(TYPE)!
+    }
+    
+    public func getVersion() -> Int {
+        return getInteger(VERSION)!
+    }
+    
+    func setFingerprint(_ fingerprint: String) throws {
+        try DIDError.checkArgument(!fingerprint.isEmpty, "Invalid fingerprint")
+        put(FINGERPRINT, fingerprint)
+    }
+    
+    public func getFingerprint() -> String {
+       
+        return get(FINGERPRINT)!
+    }
+    
+    func setDefaultRootIdentity(_ id: String) throws {
+        try DIDError.checkArgument(!id.isEmpty, "Invalid fingerprint")
+        put(DEFAULT_ROOT_IDENTITY, id)
+    }
+    
+    public func getDefaultRootIdentity() -> String {
+       
+        return get(DEFAULT_ROOT_IDENTITY)!
+    }
+    
+    override func save() {
+       
+        if attachedStore {
+            do {
+                store?.storage.storeMetadata(self)
+            } catch {
+                Log.e(TAG, "INTERNAL - error store metadata for DIDStore")
+            }
+        }
+    }
+}
+/*
 @objc(Metadata)
 public class Metadata: NSObject {
     static let RESERVED_PREFIX = "DX-"
@@ -247,3 +304,4 @@ extension Metadata {
         return try toJson()
     }
 }
+*/

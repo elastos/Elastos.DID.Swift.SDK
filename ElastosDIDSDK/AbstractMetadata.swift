@@ -26,7 +26,7 @@ import Foundation
 public class AbstractMetadata: NSObject {
     let ALIAS = "alias"
     let USER_EXTRA_PREFIX = "UX-"
-    private var _props: [String: String] = [: ]
+    var _props: [String: String] = [: ]
     private var _store: DIDStore?
     
     /// Constructs the AbstractMetadata and attach with the store.

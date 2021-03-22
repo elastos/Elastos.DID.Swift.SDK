@@ -75,7 +75,7 @@ public class ResolveResult: NSObject, DIDHistory{
 
     func transactionInfo(_ index: Int) throws -> IDTransactionInfo? {
         let tx = self._idtransactionInfos[index]
-        guard tx.request.isValid else {
+        guard try tx.request.isValid() else {
             throw DIDError.didtransactionError("Invalid ID transaction, can not verify the signature.")
         }
 

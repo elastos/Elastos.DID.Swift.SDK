@@ -115,6 +115,10 @@ public enum DIDError: Error {
             }
             case WrongPasswordError(_ des: String? = nil)
             case DIDStoreCryptoError(_ des: String? = nil)
+            case MissingDocumentError(_ des: String? = nil)
+            case InvalidPublickeyError(_ des: String? = nil)
+            case InvalidDIDMetadataError(_ des: String? = nil)
+            case ConflictMergeError(_ des: String? = nil)
         }
         
         public enum DIDBackendError {
@@ -144,6 +148,8 @@ extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
         case .NotControllerError(let des):
             return des
         case .IllegalUsageError(let des):
+            return des
+        case .InvalidExpires(let des):
             return des
         }
     }
@@ -273,7 +279,7 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveError: LocalizedError 
 }
 
 extension DIDError {
-    class func checkArgument(_ full: Bool, _ mesg: String) throws {
+    static func checkArgument(_ full: Bool, _ mesg: String) throws {
         guard !full else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
