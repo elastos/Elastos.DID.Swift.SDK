@@ -48,7 +48,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     }
     
     func setFingerprint(_ fingerprint: String) throws {
-        try DIDError.checkArgument(!fingerprint.isEmpty, "Invalid fingerprint")
+        try checkArgument(!fingerprint.isEmpty, "Invalid fingerprint")
         put(FINGERPRINT, fingerprint)
     }
     
@@ -58,7 +58,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     }
     
     func setDefaultRootIdentity(_ id: String) throws {
-        try DIDError.checkArgument(!id.isEmpty, "Invalid fingerprint")
+        try checkArgument(!id.isEmpty, "Invalid fingerprint")
         put(DEFAULT_ROOT_IDENTITY, id)
     }
     
@@ -71,11 +71,19 @@ public class DIDStoreMetadata: AbstractMetadata {
        
         if attachedStore {
             do {
-                store?.storage.storeMetadata(self)
+                try store?.storage.storeMetadata(self)
             } catch {
                 Log.e(TAG, "INTERNAL - error store metadata for DIDStore")
             }
         }
+    }
+    func serialize(_ path: String) {
+        // TODO:
+    }
+    
+    class func parse(_ path: String) -> DIDStoreMetadata {
+        // TODO:
+        return DIDStoreMetadata()
     }
 }
 /*

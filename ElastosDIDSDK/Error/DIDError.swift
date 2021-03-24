@@ -278,13 +278,6 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveError: LocalizedError 
     }
 }
 
-extension DIDError {
-    static func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard !full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
-        }
-    }
-}
 
 //////// remove --------------------
 extension DIDError {

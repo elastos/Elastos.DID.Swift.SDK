@@ -22,30 +22,99 @@
 
 import Foundation
 
+/// The object contains the information about the VerifiableCredential object.
+/// the information may include the credential transaction information and user
+/// defined information.
 @objc(CredentialMetadata)
-public class CredentialMetadata: Metadata {
-    private let ALIAS = RESERVED_PREFIX + "alias"
-
-    override init(store: DIDStore) {
-        super.init(store: store)
-    }
-
-    /// init
-    @objc
-    public required init() {
+public class CredentialMetadata: AbstractMetadata {
+    private let TXID = "txid"
+    private let PUBLISHED = "published"
+    private let REVOKED = "revoked"
+    var id: DIDURL?
+    
+    /// Default constructor.
+    override init() {
         super.init()
     }
-
-    /// The name of alias.
-    @objc
-    public var aliasName: String? {
-        return self.get(key: ALIAS) as? String
+    
+    /// Constructs a CredentialMetadata with given id.
+    /// - Parameter id: a credential id
+    init(_ id: DIDURL) {
+        self.id = id
+    }
+    
+    /// Constructs a CredentialMetadata with given id and attach with
+    /// a DID store.
+    /// - Parameters:
+    ///   - id: a credential id
+    ///   - store: a DIDStore object
+    init(_ id: DIDURL, _ store: DIDStore) {
+        self.id = id
+        super.init(store)
     }
 
-    /// Set alias for did.
-    /// - Parameter alias: The ailas string.
-    @objc
-    public func setAlias(_ alias: String?) {
-        self.put(key: ALIAS, value: alias as Any)
+    /// Set the last transaction id of the credential that associated with
+    /// this metadata object.
+    /// - Parameter txid: a transaction id
+    func setTransactionId(_ txid: String) {
+        put(TXID, txid)
+    }
+    
+    /// Get the last transaction id of the credential that kept in this metadata
+    /// object.
+    /// - Returns: the transaction id
+    public func getTransactionId() -> String? {
+       return get(TXID)
+    }
+    
+    /// Set the publish time of the credential that associated with this
+    /// metadata object.
+    /// - Parameter timestamp: the publish time
+    func setPublishTime(_ timestamp: Date) {
+        put(PUBLISHED, timestamp)
+    }
+    
+    /// Get the publish time of the credential that kept in this metadata
+    /// object.
+    /// - Returns: the published time
+    public func getPublishTime() -> Date? {
+       return getDate(PUBLISHED)
+    }
+    
+    /// Set the revocation status of the credential that associated with this
+    /// metadata object.
+    /// - Parameter revoked: the revocation status
+    func setRevoked(_ revoked: Bool) {
+        put(REVOKED, revoked)
+    }
+    
+    /// Get the revocation status of the credential that kept in this metadata
+    /// object.
+    /// - Returns: true if credential is revoked, otherwise false
+    public func isRevoked() -> Bool {
+       return getBoolean(REVOKED)
+    }
+    
+    /// Returns a shallow copy of this instance: the property names and values
+    /// themselves are not cloned.
+    /// - Returns: a shallow copy of this object
+    public override func clone() throws -> DIDMetadata {
+        //TODO:
+        return try super.clone()
+    }
+    
+    override func save() {
+        if attachedStore {
+            try store?.storeCredentialMetadata(id, self)
+        }
+    }
+    
+    class func parse(_ path: String) -> CredentialMetadata {
+        // TODO:
+        return DIDMetadata()
+    }
+    
+    func serialize(_ path: String) {
+        // TODO:
     }
 }

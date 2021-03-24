@@ -57,10 +57,10 @@ public class RootIdentity: NSObject {
     ///   - passphrase: the password for mnemonic to generate seed
     ///   - storepass: the password for DIDStore
     public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
-        try DIDError.checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         var _passphrase = passphrase == nil ? "" : passphrase
-        try DIDError.checkArgument(Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
+        try checkArgument(Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
         let identity = try RootIdentity(mnemonic, passphrase!)
         if store.containsRootIdentity(identity.id) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
@@ -78,8 +78,8 @@ public class RootIdentity: NSObject {
     }
     
     public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
-        try DIDError.checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
         let identity = try RootIdentity(rootPrivateKey)
         
@@ -204,8 +204,8 @@ public class RootIdentity: NSObject {
     ///   - storepass: the password for DIDStore
     /// - Returns: the DIDDocument content related to the new DID
     public func newDid(_ index: Int, _ overwrite: Bool, _ storepass: String) throws -> DIDDocument {
-        try DIDError.checkArgument(index >= 0, "Invalid index")
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(index >= 0, "Invalid index")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         let did = try getDid(index)
         var doc = try store?.loadDid(did)
         if doc != nil  {
@@ -272,7 +272,7 @@ public class RootIdentity: NSObject {
     }
     
     public func synchronize(_ index: Int, _ handle: ConflictHandler?) throws -> Bool {
-        try DIDError.checkArgument(index >= 0, "Invalid index")
+        try checkArgument(index >= 0, "Invalid index")
         if handle == nil {
             handle = DIDStore.defaultConflictHandle
         }

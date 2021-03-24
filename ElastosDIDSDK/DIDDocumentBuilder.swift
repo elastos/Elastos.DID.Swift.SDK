@@ -1092,7 +1092,7 @@ public class DIDDocumentBuilder: NSObject {
     @objc
     public func sealed(using storePassword: String) throws -> DIDDocument {
         try checkNotSealed()
-        try DIDError.checkArgument(!storePassword.isEmpty, "Invalid storepass")
+        try checkArgument(!storePassword.isEmpty, "Invalid storepass")
         
         try sanitize()
         let signerDoc = document!.isCustomizedDid() ? controllerDoc : document
@@ -1128,7 +1128,7 @@ public class DIDDocumentBuilder: NSObject {
     public func appendController(with controller: DID) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         try checkIsCustomized()
-        try DIDError.checkArgument(document!._controllers.contains(controller), "Controller already exists.")
+        try checkArgument(document!._controllers.contains(controller), "Controller already exists.")
         let controllerDoc = try controller.resolve(true)
         guard (controllerDoc != nil) else {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(controller.toString())
@@ -1197,9 +1197,9 @@ public class DIDDocumentBuilder: NSObject {
     public func setMultiSignature(_ m: Int) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         try checkIsCustomized()
-        try DIDError.checkArgument(m >= 1, "Invalid signature count")
+        try checkArgument(m >= 1, "Invalid signature count")
         let n = document!.controllers().count
-        try DIDError.checkArgument(m <= n, "Signature count exceeds the upper limit")
+        try checkArgument(m <= n, "Signature count exceeds the upper limit")
 
         var multisig: MultiSignature?
         if n > 1 {

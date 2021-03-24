@@ -176,4 +176,13 @@ public class DIDMetadata: AbstractMetadata {
             }
         }
     }
+    
+    class func parse(_ path: String) -> DIDMetadata {
+        // TODO:
+        return DIDMetadata()
+    }
+    
+    func serialize(_ path: String) {
+        // TODO:
+    }
 }

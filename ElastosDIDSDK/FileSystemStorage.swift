@@ -26,67 +26,61 @@ import Foundation
  * FileSystem DID Store: storage layout
  *
  *  + DIDStore root
- *    - .meta                            [Store meta file, include magic and version]
- *    + private                            [Personal root private key for HD identity]
- *      - key                            [HD root private key]
- *      - index                            [Last derive index]
- *    + ids
- *      + ixxxxxxxxxxxxxxx0             [DID root, named by id specific string]
- *        - .meta                        [Meta for DID, alias only, OPTIONAL]
- *        - document                    [DID document, json format]
- *        + credentials                    [Credentials root, OPTIONAL]
- *          + credential-id-0           [Credential root, named by id' fragment]
- *            - .meta                    [Meta for credential, alias only, OPTONAL]
- *            - credential                [Credential, json format]
- *          + ...
- *          + credential-id-N
- *            - .meta
- *            - credential
- *        + privatekeys                    [Private keys root, OPTIONAL]
- *          - privatekey-id-0            [Encrypted private key, named by pk' id]
- *          - ...
- *          - privatekey-id-N
- *
- *      ......
- *
- *      + ixxxxxxxxxxxxxxxN
- *
+ *    + data                             [Current data root folder]
+ *      - .metadata                        [DIDStore metadata]
+ *      + roots                            [Root identities folder]
+ *        + xxxxxxx0                    [Root identity folder named by id]
+ *          - .metadata                    [RootIdentity metadata]
+ *          - mnemonic                    [Encrypted mnemonic file, OPTIONAL]
+ *          - private                    [Encrypted root private key file]
+ *          - public                    [Pre-derived public key file]
+ *          - index                        [Last derive index]
+ *        + ...
+ *        + xxxxxxxN
+ *      + ids                            [DIDs folder]
+ *        + ixxxxxxxxxxxxxxx0             [DID root, named by id specific string]
+ *          - .metadata                    [Meta for DID, json format, OPTIONAL]
+ *          - document                    [DID document, json format]
+ *          + credentials                [Credentials root, OPTIONAL]
+ *            + credential-id-0         [Credential root, named by id' fragment]
+ *              - .metadata                [Meta for credential, json format, OPTONAL]
+ *              - credential            [Credential, json format]
+ *            + ...
+ *            + credential-id-N
+ *          + privatekeys                [Private keys root, OPTIONAL]
+ *            - privatekey-id-0            [Encrypted private key, named by pk' id]
+ *            - ...
+ *            - privatekey-id-N
+ *        + ...
+ *        + ixxxxxxxxxxxxxxxN
  */
 public class FileSystemStorage: DIDStorage {
-
+    private let TAG = NSStringFromClass(FileSystemStorage.self)
     typealias ReEncryptor = (String) throws -> String
-
-    private static let STORE_MAGIC:   [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
-    private static let STORE_VERSION = 2
-    private static let STORE_META_SIZE = 8
-    private static let PRIVATE_DIR = "private"
-    private static let HDKEY_FILE = "key"
-    private static let HDPUBKEY_FILE = "key.pub"
-    private static let INDEX_FILE = "index"
-    private static let MNEMONIC_FILE = "mnemonic"
-
-    private static let DID_DIR = "ids"
-    private static let DOCUMENT_FILE = "document"
-    private static let CREDENTIALS_DIR = "credentials"
-    private static let CREDENTIAL_FILE = "credential"
-    private static let PRIVATEKEYS_DIR = "privatekeys"
-
-    private static let META_FILE = ".meta"
-
-    private static let JOURNAL_SUFFIX = ".journal"
-    private static let DEPRECATED_SUFFIX = ".deprecated"
-
-    private static let DEFAULT_CHARSET = "UTF-8"
+    let DATA_DIR = "data"
+    let ROOT_IDENTITIES_DIR = "roots"
+    let ROOT_IDENTITY_MNEMONIC_FILE = "mnemonic"
+    let ROOT_IDENTITY_PRIVATEKEY_FILE = "private"
+    let ROOT_IDENTITY_PUBLICKEY_FILE = "public"
+    let ROOT_IDENTITY_INDEX_FILE = "index"
+    let DID_DIR = "ids"
+    let DOCUMENT_FILE = "document"
+    let CREDENTIALS_DIR = "credentials"
+    let CREDENTIAL_FILE = "credential"
+    let PRIVATEKEYS_DIR = "privatekeys"
+    let METADATA = ".metadata"
+    let JOURNAL_SUFFIX = ".journal"
+    private var storeRoot: String
+    private var currentDataDir: String
+    private let MAGIC:   [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
     
-    private var _rootPath: String
     
     init(_ dir: String) throws {
-        guard !dir.isEmpty else {
-            throw DIDError.didStoreError("Invalid DIDStore root directory.")
-        }
+        try checkArgument(dir.isEmpty, "Invalid DIDStore root directory.")
 
-        self._rootPath = dir
-        if FileManager.default.fileExists(atPath: dir) {
+        self.storeRoot = dir
+        currentDataDir = DATA_DIR
+        if FileManager.default.fileExists(atPath: storeRoot) {
             try checkStore()
         } else {
             try initializeStore()
@@ -95,101 +89,113 @@ public class FileSystemStorage: DIDStorage {
 
     private func initializeStore() throws {
         do {
-            try FileManager.default.createDirectory(atPath: self._rootPath,
+            Log.d(TAG, "Initializing DID store at ", storeRoot)
+            try FileManager.default.createDirectory(atPath: self.storeRoot,
                                                     withIntermediateDirectories: true,
                                                     attributes: nil)
-
-            var data = Data(capacity: 8)
-            data.append(contentsOf: FileSystemStorage.STORE_MAGIC)
-            
-            // TODO: do with version
-            data.append(contentsOf: intToByteArray(i: FileSystemStorage.STORE_VERSION))
-
-            let file = try openFileHandle(true, Constants.META_FILE)
-            file.write(data)
-            file.closeFile()
+            let path = try getFile(true, currentDataDir + "/" + METADATA)
+            let metadata = DIDStoreMetadata()
+            metadata.serialize(path)
+//            var data = Data(capacity: 8)
+//            data.append(contentsOf: FileSystemStorage.STORE_MAGIC)
+//
+//            // TODO: do with version
+//            data.append(contentsOf: intToByteArray(i: FileSystemStorage.STORE_VERSION))
+//
+//            let file = try openFileHandle(true, Constants.META_FILE)
+//            file.write(data)
+//            file.closeFile()
         } catch {
-            throw DIDError.didStoreError("Initialize DIDStore \(_rootPath) error")
+            Log.i(TAG, "Initialize DID store error ", storeRoot)
+            throw DIDError.didStoreError("Initialize DIDStore \(storeRoot) error.")
         }
     }
 
     private func checkStore() throws {
         var isDir: ObjCBool = false
+        Log.d(TAG, "Checking DID store at ", storeRoot)
 
         // Further to check the '_rootPath' is not a file path.
-        guard FileManager.default.fileExists(atPath: self._rootPath, isDirectory: &isDir) && isDir.boolValue else {
-            throw DIDError.didStoreError("Store root \(_rootPath) is a file path")
+        guard FileManager.default.fileExists(atPath: self.storeRoot, isDirectory: &isDir) && isDir.boolValue else {
+            Log.i(TAG, "Path ", storeRoot, " not a directory")
+            throw DIDError.didStoreError("Invalid DIDStore ' \(storeRoot) '.")
         }
-
-        // Check 'META_FILE' file exists or not.
-        let file: FileHandle
-        do {
-            file = try openFileHandle(false, Constants.META_FILE)
-        } catch {
-            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore directory")
+        try postOperations()
+        let path = try getFile(true, currentDataDir + "/" + METADATA)
+        if !FileManager.default.fileExists(atPath: path) {
+            let oldMetadata = try getFile(".meta")
+            if FileManager.default.fileExists(atPath: oldMetadata!) {
+               
+                try upgradeFromV2()
+            }
+            else {
+               let list = try? FileManager.default.contentsOfDirectory(atPath: storeRoot)
+                if list == nil || list!.count == 0 {
+                    // if an empty folder
+                    try initializeStore()
+                    return
+                }
+                else {
+                    Log.e(TAG, "Path ", storeRoot, "not a DID store")
+                    throw DIDError.didStoreError("Invalid DIDStore ' \(storeRoot) '.")
+                }
+            }
         }
-
-        // Check 'META_FILE' file size is equal to STORE_META_FILE.
-        let data = file.readDataToEndOfFile()
-        guard data.count == FileSystemStorage.STORE_META_SIZE else {
-            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore directory")
-        }
-
-        // Check MAGIC & VERSION
-        guard data[0...3].elementsEqual(FileSystemStorage.STORE_MAGIC) else {
-            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore file")
-        }
-
-
-        let array : [UInt8] = [UInt8](data[4...7])
-        var value : UInt32 = 0
-        let storeVersion = NSData(bytes: array, length: 4)
-        storeVersion.getBytes(&value, length: 4)
-        value = UInt32(bigEndian: value)
-
-        guard value == FileSystemStorage.STORE_VERSION else {
-            throw DIDError.didStoreError("Directory \(_rootPath) unsupported version.")
-        }
-
-        try postChangePassword()
+        
+        let metadata = DIDStoreMetadata.parse(path)
+        // TODO:
+        
+//        let file: FileHandle
+//        file = try openFileHandle(false, oldMetadata!)
+//        let data = file.readDataToEndOfFile()
+//        guard data.count == FileSystemStorage.STORE_META_SIZE else {
+//            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore directory")
+//        }
+//        // Check MAGIC & VERSION
+//        guard data[0...3].elementsEqual(FileSystemStorage.STORE_MAGIC) else {
+//            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore file")
+//        }
+//
+//
+//        let array : [UInt8] = [UInt8](data[4...7])
+//        var value : UInt32 = 0
+//        let storeVersion = NSData(bytes: array, length: 4)
+//        storeVersion.getBytes(&value, length: 4)
+//        value = UInt32(bigEndian: value)
+//
+//        guard value == FileSystemStorage.STORE_VERSION else {
+//            throw DIDError.didStoreError("Directory \(_rootPath) unsupported version.")
+//        }
+//
+//        try postChangePassword()
     }
     
-    private func postChangePassword() throws {
-        let privateDir: String = _rootPath + "/" + FileSystemStorage.PRIVATE_DIR
-        let privateDeprecated = _rootPath + "/" + FileSystemStorage.PRIVATE_DIR + FileSystemStorage.DEPRECATED_SUFFIX
-        let privateJournal = _rootPath + "/" + FileSystemStorage.PRIVATE_DIR + FileSystemStorage.JOURNAL_SUFFIX
-        
-        let didDir = _rootPath + "/" + FileSystemStorage.DID_DIR
-        let didDeprecated = _rootPath + "/" + FileSystemStorage.DID_DIR + FileSystemStorage.DEPRECATED_SUFFIX
-        let didJournal = _rootPath + "/" + FileSystemStorage.DID_DIR + FileSystemStorage.JOURNAL_SUFFIX
-        let stageFile = _rootPath +  "/postChangePassword"
-
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: stageFile) {
-            if try dirExists(privateJournal) {
-                if try dirExists(privateDir) {
-                    try fileManager.moveItem(atPath: privateDir, toPath: privateDeprecated)
-                }
-                try fileManager.moveItem(atPath: privateJournal, toPath: privateDir)
-            }
-            if try dirExists(didJournal) {
-                if try dirExists(didDir) {
-                    try fileManager.moveItem(atPath: didDir, toPath: didDeprecated)
-                }
-                try fileManager.moveItem(atPath: didJournal, toPath: didDir)
-            }
+    private class func toPath(_ id: DIDURL) -> String {
+        let path = id.toString(id.did)
+        return path.replacingOccurrences(of: ";", with: ".").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "?", with: "-")
+    }
+    
+    private class func toDIDURL(_ did: DID, _ path: String) throws -> DIDURL {
+       let p = path.replacingOccurrences(of: ".", with: ";").replacingOccurrences(of: "_", with: "/").replacingOccurrences(of: "-", with: "?")
+        return try DIDURL(did, path)
+    }
+    
+    private class func copyFile(_ src: String, _ dest: String) throws {
+        if isDirectory(src) {
+            try createDir(true, dest) // dest create if not
             
-            _ = try deleteFile(privateDeprecated)
-            _ = try deleteFile(didDeprecated)
-            _ = try deleteFile(stageFile)
+            let fileManager = FileManager.default
+            let enumerator = try fileManager.contentsOfDirectory(atPath: src)
+            for element: String in enumerator  {
+                // if !element.hasSuffix(".meta")
+                let srcFile = src + "/" + element
+                let destFile = dest + "/" + element
+                try copyFile(srcFile, destFile)
+            }
         }
         else {
-            if try dirExists(privateJournal) {
-                _ = try deleteFile(privateJournal)
-            }
-            if try dirExists(didJournal) {
-                _ = try deleteFile(didJournal)
-            }
+            let fileManager = FileManager.default
+            try fileManager.copyItem(atPath: src, toPath: dest)
         }
     }
     
@@ -224,7 +230,7 @@ public class FileSystemStorage: DIDStorage {
     }
 
     private func filePath( _ pathArgs: String...) -> String {
-        var path: String = _rootPath
+        var path: String = storeRoot
         for item in pathArgs {
             path.append("/")
             path.append(item)
@@ -233,7 +239,7 @@ public class FileSystemStorage: DIDStorage {
     }
 
     private func openFileHandle(_ forWrite: Bool, _ pathArgs: String...) throws -> FileHandle {
-        var path: String = _rootPath
+        var path: String = storeRoot
         for item in pathArgs {
             path.append("/")
             path.append(item)
@@ -267,204 +273,203 @@ public class FileSystemStorage: DIDStorage {
         return handle!
     }
 
-    private func openPrivateIdentityFile(_ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.HDKEY_FILE)
+//    private func openPrivateIdentityFile(_ forWrite: Bool) throws -> FileHandle {
+//        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.HDKEY_FILE)
+//    }
+//
+//    private func openPublicIdentityFile() throws -> FileHandle {
+//        return try openPublicIdentityFile(false)
+//    }
+//
+//    private func openMnemonicFile() throws -> FileHandle {
+//        return try openMnemonicFile(false)
+//    }
+//
+//    private func openMnemonicFile(_ forWrite: Bool) throws -> FileHandle {
+//        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.MNEMONIC_FILE)
+//    }
+//
+//    private func openPublicIdentityFile(_ forWrite: Bool) throws -> FileHandle {
+//        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.HDPUBKEY_FILE)
+//    }
+//
+//    private func openPrivateIdentityFile() throws -> FileHandle {
+//        return try openPrivateIdentityFile(false)
+//    }
+
+    func getLocation() -> String {
+        
+        return storeRoot
     }
 
-    private func openPublicIdentityFile() throws -> FileHandle {
-        return try openPublicIdentityFile(false)
+    func storeMetadata(_ metadata: DIDStoreMetadata) throws {
+        let path = try getFile(true, currentDataDir + "/" + METADATA)
+        if metadata.isEmpty() {
+            try deleteFile(path)
+        }
+        else {
+            metadata.serialize(path)
+        }
     }
 
-    private func openMnemonicFile() throws -> FileHandle {
-        return try openMnemonicFile(false)
+    func loadMetadata() throws -> DIDStoreMetadata? {
+        let path = try getFile(currentDataDir + "/" + METADATA)
+        var metadata: DIDStoreMetadata?
+        if try fileExists(path!) {
+            metadata = DIDStoreMetadata.parse(path!)
+        }
+        
+        return metadata
     }
 
-    private func openMnemonicFile(_ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.MNEMONIC_FILE)
+    private func getRootIdentityFile(_ id: String, _ file: String, _ create: Bool) throws -> String {
+        return try getFile(create, currentDataDir + "/" + ROOT_IDENTITIES_DIR + "/" + id + "/" + file)
     }
 
-    private func openPublicIdentityFile(_ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.HDPUBKEY_FILE)
+    private func getRootIdentityDir(_ id: String) throws -> String {
+        return try getFile(currentDataDir + "/" + ROOT_IDENTITIES_DIR + "/" + id)!
     }
 
-    private func openPrivateIdentityFile() throws -> FileHandle {
-        return try openPrivateIdentityFile(false)
-    }
-
-    func containsPrivateIdentity() -> Bool {
+    func storeRootIdentityMetadata(_ id: String, _ metadata: RootIdentityMetadata) throws {
         do {
-            let handle = try openPrivateIdentityFile()
-            defer {
-                handle.closeFile()
+            let file = try getRootIdentityFile(id, METADATA, true)
+            if metadata.isEmpty() {
+                try deleteFile(file)
+            }
+            else {
+                metadata.serialize(file)
+            }
+        } catch {
+            throw DIDError.didStoreError("Store root identity metadata error: \(id)")
+        }
+    }
+
+    func loadRootIdentityMetadata(_ id: String) throws -> RootIdentityMetadata? {
+        do {
+            let file = try getRootIdentityFile(id, METADATA, false)
+            var metadata: RootIdentityMetadata?
+            if try fileExists(file) {
+                metadata = RootIdentityMetadata.parse(file)
             }
 
-            return handle.readDataToEndOfFile().count > 0
+            return metadata
         } catch {
+            throw DIDError.didStoreError("Load root identity metadata error: \(id)")
+        }
+    }
+
+    func storeRootIdentity(_ id: String, _ mnemonic: String?, _ privateKey: String?, _ publicKey: String?, _ index: Int) throws {
+        if mnemonic != nil {
+            let file = try getRootIdentityFile(id, ROOT_IDENTITY_MNEMONIC_FILE, true)
+            try writeTextToPath(file, mnemonic!)
+        }
+        if privateKey != nil {
+            let file = try! getRootIdentityFile(id, ROOT_IDENTITY_PRIVATEKEY_FILE, true)
+            try writeTextToPath(file, privateKey!)
+        }
+        
+        if publicKey != nil {
+            let file = try getRootIdentityFile(id, ROOT_IDENTITY_PUBLICKEY_FILE, true)
+            try writeTextToPath(file, publicKey!)
+        }
+    }
+    
+    func loadRootIdentity(_ id: String) throws -> RootIdentity? {
+        var file = try getRootIdentityFile(id, ROOT_IDENTITY_PUBLICKEY_FILE, false)
+        if try !fileExists(file) {
+            return nil
+        }
+        let publicKey = try readTextFromPath(file)
+        file = try getRootIdentityFile(id, ROOT_IDENTITY_INDEX_FILE, false)
+        let index = try Int(value: readTextFromPath(file))
+        
+        return try RootIdentity.create(publicKey, index)
+    }
+    
+    func updateRootIdentityIndex(_ id: String, _ index: Int) throws {
+        let file = try getRootIdentityFile(id, ROOT_IDENTITY_INDEX_FILE, false)
+        try writeTextToPath(file, "\(index)")
+    }
+    
+    func loadRootIdentityPrivateKey(_ id: String) throws -> String? {
+        let file = try getRootIdentityFile(id, ROOT_IDENTITY_PRIVATEKEY_FILE, false)
+        if try !fileExists(file) {
+            return nil
+        }
+        
+        return try readTextFromPath(file)
+    }
+    
+    func deleteRootIdentity(_ id: String) throws -> Bool {
+        let dir = try getRootIdentityDir(id)
+        if try dirExists(dir) {
+            try deleteFile(dir)
+            return true
+        }
+        else {
             return false
         }
     }
-
-    func storePrivateIdentity(_ key: String) throws {
-        do {
-            let handle = try openPrivateIdentityFile(true)
-            defer {
-                handle.closeFile()
-            }
-
-            handle.write(key.data(using: .utf8)!)
-        } catch {
-            throw DIDError.didStoreError("store private key identity error")
+    
+    func listRootIdentities() throws -> [RootIdentity] {
+        let dir = try getFile(currentDataDir + "/" + ROOT_IDENTITIES_DIR)
+        
+        if try !dirExists(dir!) {
+            return [ ]
         }
-    }
-
-    func loadPrivateIdentity() throws -> String {
-        do {
-            let handle = try openPrivateIdentityFile()
-            defer {
-                handle.closeFile()
-            }
-
-            let data = handle.readDataToEndOfFile()
-            return String(data: data, encoding: .utf8)!
-        } catch {
-            throw DIDError.didStoreError("load private key identity error")
+        
+        var ids: [RootIdentity] = []
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: dir!)
+        for element: String in enumerator {
+            let identity = try loadRootIdentity(element)
+            ids.append(identity!)
         }
+        
+        return ids
     }
-
-    func containsPublicIdentity() -> Bool {
-        do {
-            let handle = try openPublicIdentityFile()
-            defer {
-                handle.closeFile()
-            }
-
-            return handle.readDataToEndOfFile().count > 0
-        } catch {
+    
+    func containsRootIdenities() throws -> Bool {
+        let dir = try getFile(currentDataDir + "/" + ROOT_IDENTITIES_DIR)
+        if try !dirExists(dir!) {
             return false
         }
-    }
-
-    func storePublicIdentity(_ key: String) throws {
-        do {
-            let handle = try openPublicIdentityFile(true)
-            defer {
-                handle.closeFile()
-            }
-            handle.write(key.data(using: .utf8)!)
-        } catch {
-            throw DIDError.didStoreError("store public key identity error")
+        var ids: [String] = []
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: dir!)
+        for element: String in enumerator {
+            ids.append(element)
         }
+        
+        return ids.count > 0
     }
-
-    func loadPublicIdentity() throws -> String {
+    
+    func loadRootIdentityMnemonic(_ id: String) throws -> String {
+        let file = try getRootIdentityFile(id, ROOT_IDENTITY_MNEMONIC_FILE, false)
+        return try readTextFromPath(file)
+    }
+    
+    private func getDidFile(_ did: DID, _ create: Bool) throws -> String {
+        let path = currentDataDir + "/" + DID_DIR + "/" + did.methodSpecificId + "/" + DOCUMENT_FILE
+        return try getFile(create, path)
+    }
+    
+    private func getDidMetadataFile(_ did: DID, _ create: Bool) throws -> String {
+        let path = currentDataDir + "/" + DID_DIR + "/" + did.methodSpecificId + "/" + METADATA
+        return try getFile(create, path)
+    }
+    
+    private func getDidDir(_ did: DID) throws -> String {
+        storeRoot + "/" + Constants.DID_DIR + "/" + did.methodSpecificId
+        return try getFile(currentDataDir + "/" + DID_DIR + "/" + did.methodSpecificId)!
+    }
+    
+    func storeDidMetadata(_ did: DID, _ metadata: DIDMetadata) throws {
         do {
-            let handle = try openPublicIdentityFile()
-            defer {
-                handle.closeFile()
-            }
-            let data = handle.readDataToEndOfFile()
-            return String(data: data, encoding: .utf8)!
-        } catch {
-            throw DIDError.didStoreError("load public key identity error")
-        }
-    }
+            let file = try getDidMetadataFile(did, true)
 
-    private func openPrivateIdentityIndexFile(_ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.INDEX_FILE)
-    }
-
-    private func openPrivateIdentityIndexFile() throws -> FileHandle {
-        return try openPrivateIdentityIndexFile(false)
-    }
-
-    func storePrivateIdentityIndex(_ index: Int) throws {
-        do {
-            let handle = try openPrivateIdentityIndexFile(true)
-            defer {
-                handle.closeFile()
-            }
-            let data = withUnsafeBytes(of: index) { ptr in
-                Data(ptr)
-            }
-            handle.write(data)
-        } catch {
-            throw DIDError.didStoreError("store private identity index error")
-        }
-    }
-
-    func loadPrivateIdentityIndex() throws -> Int {
-        do {
-            let handle = try openPrivateIdentityIndexFile()
-            defer {
-                handle.closeFile()
-            }
-
-            let data = handle.readDataToEndOfFile()
-            return data.withUnsafeBytes { (pointer: UnsafePointer<Int32>) -> Int in
-                return Int(pointer.pointee)
-            }
-        } catch {
-            throw DIDError.didStoreError("load private identity index error")
-        }
-    }
-
-    func containsMnemonic() -> Bool {
-        do {
-            let handle = try openMnemonicFile()
-            defer {
-                handle.closeFile()
-            }
-
-            return handle.readDataToEndOfFile().count > 0
-        } catch {
-            return false
-        }
-    }
-
-    func storeMnemonic(_ mnemonic: String) throws {
-        do {
-            let handle = try openMnemonicFile(true)
-            defer {
-                handle.closeFile()
-            }
-
-            handle.write(mnemonic.data(using: .utf8)!)
-        } catch {
-            throw DIDError.didStoreError("store mnemonic error")
-        }
-    }
-
-    func loadMnemonic() throws -> String {
-        do {
-            let handle = try openMnemonicFile()
-            defer {
-                handle.closeFile()
-            }
-
-            let data = handle.readDataToEndOfFile()
-            return String(data: data, encoding: .utf8)!
-        } catch {
-            throw DIDError.didStoreError("load mnemonic error")
-        }
-    }
-
-    private func openDidMetaFile(_ did: DID, _ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId, Constants.META_FILE)
-    }
-
-    private func openDidMetaFile(_ did: DID) throws -> FileHandle {
-        return try openDidMetaFile(did, false)
-    }
-
-    func storeDidMetadata(_ did: DID, _ meta: DIDMetadata) throws {
-        do {
-            let handle = try openDidMetaFile(did, true)
-            defer {
-                handle.closeFile()
-            }
-
-            if meta.isEmpty() {
-                var path: String = _rootPath
+            if metadata.isEmpty() {
+                var path: String = storeRoot
                 path.append("/")
                 path.append(Constants.DID_DIR)
                 path.append("/")
@@ -474,73 +479,26 @@ public class FileSystemStorage: DIDStorage {
 
                 try FileManager.default.removeItem(atPath: path)
             } else {
-                try meta.save(path: handle)
+                try metadata.serialize(file)
             }
         } catch {
             throw DIDError.didStoreError("store DID metadata error")
         }
     }
-
-    func loadDidMetadata(_ did: DID) throws -> DIDMetadata {
-        let metadata = DIDMetadata()
-        do {
-            let handle = try openDidMetaFile(did)
-            try metadata.load(reader: handle)
-            let path = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.DOCUMENT_FILE
-            let modificationDate = try! getLastModificationDate(path)
-
-            metadata.setLastModified(modificationDate)
-        } catch {
-            if error is DIDError {
-                switch error as! DIDError {
-                case .didMetaDateLocalFormatError("Loading metadata format error."):
-                    throw error
-                default: break
-                }
-            }
-//            print("Ignore")
+    
+    func loadDidMetadata(_ did: DID) throws -> DIDMetadata? {
+    let file = try getDidMetadataFile(did, false)
+        var metadata: DIDMetadata?
+        if try dirExists(file) {
+            metadata = DIDMetadata.parse(file)
         }
 
         return metadata
     }
 
-    private func openDocumentFile(_ did: DID, _ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId, Constants.DOCUMENT_FILE)
-    }
-
-    private func openDocumentFile(_ did: DID) throws -> FileHandle {
-        return try openDocumentFile(did, false)
-    }
-
-    private func getLastModificationDate(_ path: String) throws -> Date {
-        let fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
-        let modificationDate = fileAttributes[FileAttributeKey.modificationDate] as! Date
-        return modificationDate
-    }
-
     func storeDid(_ doc: DIDDocument) throws {
-        do {
-            let handle = try openDocumentFile(doc.subject, true)
-            defer {
-                handle.closeFile()
-            }
-
-            let data: Data = try doc.toJson(true, false)
-            handle.write(data)
-            let path = filePath(Constants.DID_DIR, doc.subject.methodSpecificId, Constants.DOCUMENT_FILE)
-            if doc.getMetadata().getLastModified() != nil {
-                var fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
-                fileAttributes[FileAttributeKey.modificationDate] = doc.getMetadata().getLastModified()
-                try FileManager.default.setAttributes(fileAttributes, ofItemAtPath: path)
-            }
-            else {
-                let modificationDate = try! getLastModificationDate(path)
-                doc.getMetadata().setLastModified(modificationDate)
-                try storeDidMetadata(doc.subject, doc.getMetadata())
-            }
-        } catch {
-            throw DIDError.didStoreError("store DIDDocument error")
-        }
+        let file = try getDidFile(doc.subject, true)
+        try doc.serialize(file, true)
     }
 
     func loadDid(_ did: DID) throws -> DIDDocument? {
@@ -561,21 +519,9 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func containsDid(_ did: DID) -> Bool {
-        do {
-            let handle = try openDocumentFile(did)
-            defer {
-                handle.closeFile()
-            }
-            return true
-        } catch {
-            return false
-        }
-    }
-
     func deleteDid(_ did: DID) -> Bool {
         do {
-            let path = _rootPath + "/" + Constants.DID_DIR + "/" + did.methodSpecificId
+            let path = storeRoot + "/" + Constants.DID_DIR + "/" + did.methodSpecificId
             try FileManager.default.removeItem(atPath: path)
             return true
         } catch {
@@ -583,143 +529,82 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func listDids(_ filter: Int) throws -> Array<DID> {
+    func listDids() throws -> Array<DID> {
         var dids: Array<DID> = []
-        let path = _rootPath + "/" + FileSystemStorage.DID_DIR
-        let re = try dirExists(path)
+//        let path = storeRoot + "/" + FileSystemStorage.DID_DIR
+        let path = try getFile(currentDataDir + "/" + DID_DIR)
+        let re = try dirExists(path!)
         guard re else {
             return []
         }
 
         let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: path)
+        let enumerator = try fileManager.contentsOfDirectory(atPath: path!)
         for element: String in enumerator {
-            var hasPrivateKey: Bool = false
             let did = DID(DID.METHOD, element)
-            hasPrivateKey = containsPrivateKeys(did)
-            
-            if filter == DIDStore.DID_HAS_PRIVATEKEY {
-                
-            }
-            else if filter == DIDStore.DID_NO_PRIVATEKEY {
-                hasPrivateKey = !hasPrivateKey
-            }
-            else if filter == DIDStore.DID_ALL {
-                hasPrivateKey = true
-            }
-         
-            if hasPrivateKey {
-                let did: DID = DID(DID.METHOD, element)
-                dids.append(did)
-            }
+            dids.append(did)
         }
         return dids
     }
 
-    private func openCredentialMetaFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
-                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.META_FILE)
+    private func getCredentialFile(_ id: DIDURL, _ create: Bool) throws -> String {
+        
+        return try getFile(create, currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
+                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id) + "/" + CREDENTIAL_FILE)
+    }
+    
+    private func getCredentialMetadataFile(_ id: DIDURL, _ create: Bool) throws -> String {
+        
+        return try getFile(create, currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
+                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id) + "/" + METADATA)
     }
 
-    private func openCredentialMetaFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
-        return try openCredentialMetaFile(did, id, false)
+    private func getCredentialDir(_ id: DIDURL) throws -> String {
+        
+        return try getFile(currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
+                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id))!
     }
-
-    func storeCredentialMetadata(_ did: DID, _ id: DIDURL, _ metadata: CredentialMeta) throws {
+    
+    private func getCredentialsDir(_ id: DID) throws -> String {
+        let path = currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
+            CREDENTIALS_DIR
+        return try getFile(path)
+    }
+    
+    func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
         do {
-            let handle = try openCredentialMetaFile(did, id, true)
+            let file = try getCredentialMetadataFile(id, true)
+//            let handle = try openCredentialMetaFile(did, id, true)
             if metadata.isEmpty() {
-                var path: String = _rootPath
-                path.append("/")
-                path.append(Constants.DID_DIR)
-                path.append("/")
-                path.append(did.methodSpecificId)
-                path.append("/")
-                path.append(Constants.CREDENTIALS_DIR)
-                path.append("/")
-                path.append(id.fragment!)
-                path.append("/")
-                path.append(Constants.META_FILE)
-
-                try FileManager.default.removeItem(atPath: path)
+                try FileManager.default.removeItem(atPath: file)
             } else {
-                try metadata.save(path: handle)
+                try metadata.serialize(file)
             }
         } catch {
             throw DIDError.didStoreError("store credential meta error")
         }
     }
 
-    func loadCredentialMetadata(_ did: DID, _ id: DIDURL) throws -> CredentialMeta {
-        do {
-            let handle = try openCredentialMetaFile(did, id)
-            let metadata = CredentialMeta()
-            try metadata.load(reader: handle)
-            let path = filePath(FileSystemStorage.DID_DIR, did.methodSpecificId, FileSystemStorage.CREDENTIALS_DIR, id.fragment!, FileSystemStorage.CREDENTIAL_FILE)
-            let modificationDate = try getLastModificationDate(path)
-            metadata.setLastModified(modificationDate)
-
-            return metadata
-        } catch {
-            if error is DIDError {
-                switch error as! DIDError {
-                case .didMetaDateLocalFormatError("Loading metadata format error."):
-                    throw error
-                default:
-                    throw DIDError.didStoreError("load credential meta error")
-                }
-            }
-            else {
-                throw DIDError.didStoreError("load credential meta error")
-            }
-//            print("Ignore")
+    func loadCredentialMetadata(_ id: DIDURL) throws -> CredentialMetadata? {
+        let file = try getCredentialMetadataFile(id, false)
+        if try !fileExists(file) {
+            return nil
         }
-    }
-
-    private func openCredentialFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
-                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.CREDENTIAL_FILE)
-    }
-
-    private func openCredentialFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
-        return try openCredentialFile(did, id, false)
+        return CredentialMetadata.parse(file)
     }
 
     func storeCredential(_ credential: VerifiableCredential) throws {
-        do {
-            let handle = try openCredentialFile(credential.subject.did, credential.getId(), true)
-            defer {
-                handle.closeFile()
-            }
-
-            let data = credential.toJson(true, false)
-            handle.write(data.data(using: .utf8)!)
-
-            let path = filePath(Constants.DID_DIR, credential.subject.did.methodSpecificId, Constants.CREDENTIALS_DIR, credential.getId().fragment!, Constants.CREDENTIAL_FILE)
-            if credential.getMetadata().getLastModified() != nil {
-                var fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
-                fileAttributes[FileAttributeKey.modificationDate] = credential.getMetadata().getLastModified()
-                try FileManager.default.setAttributes(fileAttributes, ofItemAtPath: path)
-            }
-            else {
-                let modificationDate = try getLastModificationDate(path)
-                credential.getMetadata().setLastModified(modificationDate)
-                try storeCredentialMetadata(credential.subject.did, credential.getId(), credential.getMetadata())
-            }
-        } catch {
-            throw DIDError.didStoreError("store credential error")
-        }
+        let file = try getCredentialFile(credential.getId(), true)
+        credential.serialize(file, true)
     }
 
-    func loadCredential(_ did: DID, _ id: DIDURL) throws -> VerifiableCredential {
+    func loadCredential(_ id: DIDURL) throws -> VerifiableCredential? {
         do {
-            let handle = try openCredentialFile(did, id)
-            defer {
-                handle.closeFile()
+            let file = try getCredentialFile(id, false)
+            if try !fileExists(file) {
+                return nil
             }
-
-            let data = handle.readDataToEndOfFile()
-            return try VerifiableCredential.fromJson(data)
+            return VerifiableCredential.parse(file)
         } catch {
             throw DIDError.didStoreError("load credential error")
         }
@@ -727,8 +612,8 @@ public class FileSystemStorage: DIDStorage {
 
     func containsCredentials(_ did: DID) -> Bool {
         do {
-            let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
-            let exit = try dirExists(targetPath)
+            let dir = try getCredentialsDir(did)
+            let exit = try dirExists(dir)
             guard exit else {
                 return false
             }
@@ -742,25 +627,12 @@ public class FileSystemStorage: DIDStorage {
         }
     }
 
-    func containsCredential(_ did: DID, _ id: DIDURL) -> Bool {
+    func deleteCredential(_ id: DIDURL) -> Bool {
         do {
-            let handle = try openCredentialFile(did, id)
-            defer {
-                handle.closeFile()
-            }
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    func deleteCredential(_ did: DID, _ id: DIDURL) -> Bool {
-        do {
-            let targetPath = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR + "/" + id.fragment!
-            let path = try getFile(targetPath)
-            if try dirExists(path!) {
-                _ = try deleteFile(path!)
-                let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
+            var dir = try getCredentialDir(id)
+            if try dirExists(dir) {
+                try FileManager.default.removeItem(atPath: dir)
+                dir = getCredentialsDir(id.getDid())
                 
                 let fileManager = FileManager.default
                 let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
@@ -775,32 +647,8 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
-    private func getFile(_ create: Bool, _ path: String) throws -> String {
-        let relPath = path
-        let fileManager = FileManager.default
-        if create {
-            var isDirectory = ObjCBool.init(false)
-            let fileExists = FileManager.default.fileExists(atPath: relPath, isDirectory: &isDirectory)
-            if !isDirectory.boolValue && fileExists {
-                _ = try deleteFile(relPath)
-            }
-        }
-        if create {
-            let dirPath: String = PathExtracter(relPath).dirname()
-            if try !dirExists(dirPath) {
-                try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
-            }
-            fileManager.createFile(atPath: relPath, contents: nil, attributes: nil)
-        }
-        return relPath
-    }
-    
-    private func getFile(_ path: String) throws -> String? {
-        return try getFile(false, path)
-    }
-
     func listCredentials(_ did: DID) throws -> Array<DIDURL> {
-        let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.CREDENTIALS_DIR
+        let dir = try getCredentialsDir(did)
         guard try dirExists(dir) else {
             return []
         }
@@ -815,65 +663,50 @@ public class FileSystemStorage: DIDStorage {
         }
         return didurls
     }
-
-    func selectCredentials(_ did: DID, _ id: DIDURL?, _ type: Array<Any>?) throws -> Array<DIDURL> {
-        // TODO:
-        return Array<DIDURL>()
+    
+    private func getPrivateKeyFile(_ id: DIDURL, _ create: Bool) throws -> String {
+        let path = currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
+            PRIVATEKEYS_DIR + "/" + FileSystemStorage.toPath(id)
+        return try getFile(create, path)
     }
 
-    private func openPrivateKeyFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
-        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
-                                  Constants.PRIVATEKEYS_DIR, id.fragment!)
+    private func getPrivateKeysDir(_ did: DID) throws -> String {
+        
+        return try getFile(currentDataDir + "/" + DID_DIR + "/" + did.methodSpecificId + "/" + PRIVATEKEYS_DIR)!
     }
 
-    private func openPrivateKeyFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
-        return try openPrivateKeyFile(did, id, false)
-    }
-
-    func storePrivateKey(_ did: DID, _ id: DIDURL, _ privateKey: String) throws {
+    func storePrivateKey(_ id: DIDURL, _ privateKey: String) throws {
         do {
-            let handle = try openPrivateKeyFile(did, id, true)
-            defer {
-                handle.closeFile()
-            }
-
-            handle.write(privateKey.data(using: .utf8)!)
+            let file = try getPrivateKeyFile(id, true)
+            try writeTextToPath(file, privateKey)
         } catch {
             throw DIDError.didStoreError("store private key error.")
         }
     }
 
-    func loadPrivateKey(_ did: DID, _ id: DIDURL) throws -> String {
+    func loadPrivateKey(_ id: DIDURL) throws -> String {
         do {
-            let handle = try openPrivateKeyFile(did, id)
-            defer {
-                handle.closeFile()
-            }
-
-            let data = handle.readDataToEndOfFile()
-            return String(data: data, encoding: .utf8)!
+            let file = try getPrivateKeyFile(id, false)
+            return try readTextFromPath(file)
         } catch {
             throw DIDError.didStoreError("load private key error.")
         }
     }
 
-    func containsPrivateKeys(_ did: DID) -> Bool {
-        let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR
-        var path = ""
-        do {
-            path = try getFile(dir)!
-        } catch {
+    func containsPrivateKeys(_ did: DID) throws -> Bool {
+        let dir = try getPrivateKeysDir(did)
+        if try !dirExists(dir) {
             return false
         }
         let fileManager: FileManager = FileManager.default
         var isDir = ObjCBool.init(false)
-        _ = fileManager.fileExists(atPath: path, isDirectory: &isDir)
+        _ = fileManager.fileExists(atPath: dir, isDirectory: &isDir)
         guard isDir.boolValue else {
             return false
         }
         
         var keys: [String] = []
-        if let dirContents = fileManager.enumerator(atPath: path) {
+        if let dirContents = fileManager.enumerator(atPath: dir) {
             // determine whether files are hidden or not
             while let url = dirContents.nextObject() as? String  {
                 // Not hiding files
@@ -885,24 +718,14 @@ public class FileSystemStorage: DIDStorage {
         return keys.count > 0
     }
     
-    func containsPrivateKey(_ did: DID, _ id: DIDURL) -> Bool {
-        let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "/" + id.fragment!
+    func deletePrivateKey(_ id: DIDURL) -> Bool {
         do {
-            let path = try getFile(dir)!
-            return try fileExists(path)
-        } catch {
-            return false
-        }
-    }
-
-    func deletePrivateKey(_ did: DID, _ id: DIDURL) -> Bool {
-        do {
-            let path = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "/" + id.fragment!
-            if try fileExists(path) {
-                _ = try deleteFile(path)
+            let file = try getPrivateKeyFile(id, false)
+            if try fileExists(file) {
+                _ = try deleteFile(file)
                 
                 // Remove the privatekeys directory is no privatekey exists.
-                let dir = _rootPath + "/" + FileSystemStorage.DID_DIR + "/" + did.methodSpecificId
+                let dir = try getPrivateKeysDir(id.did!)
                 let fileManager = FileManager.default
                 let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
                 if enumerator.count == 0 {
@@ -914,22 +737,38 @@ public class FileSystemStorage: DIDStorage {
             return false
         }
     }
-
-    func changePassword(_ callback: (String) throws -> String) throws {
-        let privateDir = _rootPath + "/" + FileSystemStorage.PRIVATE_DIR
-        let privateJournal = _rootPath + "/" + FileSystemStorage.PRIVATE_DIR + FileSystemStorage.JOURNAL_SUFFIX
-
-        let didDir = _rootPath + "/" + FileSystemStorage.DID_DIR
-        let didJournal = _rootPath + "/" + FileSystemStorage.DID_DIR + FileSystemStorage.JOURNAL_SUFFIX
-        do {
-            try copy(privateDir, privateJournal, callback)
-            try copy(didDir, didJournal, callback)
+    
+    func listPrivateKeys(_ did: DID) throws -> Array<DIDURL> {
+        let dir = try getPrivateKeysDir(did)
+        if try !dirExists(dir) {
+            return []
         }
-        catch {
-            throw DIDError.didStoreError("Change store password failed.")
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+        if  enumerator.isEmpty {
+            return []
         }
-        _ = try getFile(true, "\(_rootPath)/postChangePassword")
-        try postChangePassword()
+        var sks: [DIDURL] = []
+        for key in enumerator {
+            try sks.append(FileSystemStorage.toDIDURL(did, key))
+        }
+
+        return sks
+    }
+    
+    private func needReencrypt(_ path: String) throws -> Bool {
+        let patterns: Array<String> = [
+            "(.+)\\" + "/" + DATA_DIR + "\\" + "/" + ROOT_IDENTITIES_DIR + "\\" + "/" + "(.+)\\" + "/" + "ROOT_IDENTITY_PRIVATEKEY_FILE",
+            "(.+)\\" + "/" + DATA_DIR + "\\" + "/" + ROOT_IDENTITIES_DIR + "\\" + "/" + "(.+)\\" + "/" + "ROOT_IDENTITY_MNEMONIC_FILE",
+            "(.+)\\" + "/" + DATA_DIR + "\\" + "/" + DID_DIR + "\\" + "/" + "(.+)" + "\\" + "/" + PRIVATEKEYS_DIR + "\\" + "/" + "(.+)"]
+        for pattern in patterns {
+            let matcher: RegexHelper = try RegexHelper(pattern)
+            
+            if matcher.match(input: path)  { // if (path.matches(pattern))
+                return true
+            }
+        }
+        return false
     }
     
     private func copy(_ src: String, _ dest: String, _ callback: ReEncryptor) throws {
@@ -957,7 +796,380 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
+    private func postChangePassword() throws {
+        let dataDir = try getFile(DATA_DIR)
+        let dataJournal = try getFile(DATA_DIR + "/" + JOURNAL_SUFFIX)
+        let timestamp = DateFormatter.getTimeStampForString(DateFormatter.currentDate())
+        let dataDeprecated = try getFile(DATA_DIR + "_" + timestamp)
+        let stageFile = try getFile("postChangePassword")
+        
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: stageFile!) {
+            if try dirExists(dataJournal!) {
+                if try dirExists(dataDir!) {
+                    try fileManager.moveItem(atPath: dataDir!, toPath: dataDeprecated!)
+                }
+                try fileManager.moveItem(atPath: dataJournal!, toPath: dataDir!)
+            }
+            _ = try deleteFile(stageFile!)
+        }
+        else {
+            if try dirExists(dataJournal!) {
+                _ = try deleteFile(dataJournal!)
+            }
+        }
+    }
+    
+    func changePassword(_ callback: ReEncryptor) throws {
+        let dataDir = try getFile(DATA_DIR)
+        let dataJournal = try getFile(DATA_DIR + "/" + JOURNAL_SUFFIX)
+
+        do {
+            try copy(dataDir!, dataJournal!, callback)
+        }
+        catch {
+            throw DIDError.didStoreError("Change store password failed.")
+        }
+        let stageFile = try getFile(true, "postChangePassword")
+        // create new file ?
+        try postChangePassword()
+    }
+    
+    // Dirty upgrade implementation
+    /* V2 store layout:
+     *  + DIDStore root
+     *    - .meta                            [Store meta file, include magic and version]
+     *    + private                            [Personal root private key for HD identity]
+     *      - key                            [HD root private key]
+     *      - index                            [Last derive index]
+     *    + ids
+     *      + ixxxxxxxxxxxxxxx0             [DID root, named by id specific string]
+     *        - .meta                        [Meta for DID, json format, OPTIONAL]
+     *        - document                    [DID document, json format]
+     *        + credentials                    [Credentials root, OPTIONAL]
+     *          + credential-id-0           [Credential root, named by id' fragment]
+     *            - .meta                    [Meta for credential, json format, OPTONAL]
+     *            - credential                [Credential, json format]
+     *          + ...
+     *          + credential-id-N
+     *            - .meta
+     *            - credential
+     *        + privatekeys                    [Private keys root, OPTIONAL]
+     *          - privatekey-id-0            [Encrypted private key, named by pk' id]
+     *          - ...
+     *          - privatekey-id-N
+     *
+     *      ......
+     *
+     *      + ixxxxxxxxxxxxxxxN
+     */
+    
+    func upgradeFromV2() throws {
+        Log.i(TAG, "Try to upgrading DID store to the latest version...")
+        var file = try getFile(".meta")
+        if try !fileExists(file!) {
+            Log.e(TAG, "Abort upgrade DID store, invalid DID store metadata file")
+            throw DIDError.didStoreError("Directory '\(storeRoot)' is not a DIDStore.")
+        }
+        let data = FileHandle(forReadingAtPath: file!)!.readDataToEndOfFile()
+        guard data.count == 8 else {
+            throw DIDError.didStoreError("Directory \(storeRoot) is not DIDStore directory")
+        }
+        let versionArray : [UInt8] = [UInt8](data[4...7])
+        var version : UInt32 = 0
+        let storeVersion = NSData(bytes: versionArray, length: 4)
+        storeVersion.getBytes(&version, length: 4)
+        version = UInt32(bigEndian: version)
+        
+        let magicArray : [UInt8] = [UInt8](data[0...3])
+        var magic : UInt32 = 0
+        let storeMagic = NSData(bytes: magicArray, length: 4)
+        storeMagic.getBytes(&magic, length: 4)
+        magic = UInt32(bigEndian: magic)
+        
+        guard data[0...3].elementsEqual(MAGIC) else {
+            Log.e(TAG, "Abort upgrade DID store, failed load DID store metadata file")
+            throw DIDError.didStoreError("Check DIDStore '\(storeRoot)' error.")
+        }
+        guard version == 2 else {
+            Log.e(TAG, "Abort upgrade DID store, invalid DID store version")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError.DIDStoreVersionMismatchError("Version: \(version)")
+        }
+            // upgrade to data journal directory
+            currentDataDir = DATA_DIR + JOURNAL_SUFFIX
+            var dir = try getFile(currentDataDir)
+            if try dirExists(dir!) {
+                try deleteFile(dir!)
+            }
+            try createDir(true, dir!)
+            var id: String
+            dir = try getFile("private")
+            if try !dirExists(dir!) {
+                Log.e(TAG, "Abort upgrade DID store, invalid root identity folder")
+                throw DIDError.didStoreError("Invalid root identity folder")
+            }
+            // Root identity
+            file = try getFile("private" + "/" + "key")
+            var privateKey: String?
+            if try fileExists(file!) {
+                privateKey = try readTextFromPath(file!)
+            }
+            if privateKey == nil || privateKey!.isEmpty {
+                Log.e(TAG, "Abort upgrade DID store, invalid root private key")
+                throw DIDError.didStoreError("Invalid root private key")
+            }
+            file = try getFile("private" + "/" + "key.pub")
+            var publicKey: String?
+            if try fileExists(file!) {
+                publicKey = try readTextFromPath(file!)
+            }
+            if publicKey == nil || publicKey!.isEmpty {
+                Log.e(TAG, "Abort upgrade DID store, invalid root public key")
+                throw DIDError.didStoreError("Invalid root public key")
+            }
+            file = try getFile("private" + "/" + "mnemonic")
+            var mnemonic: String?
+            if try fileExists(file!) {
+                mnemonic = try readTextFromPath(file!)
+            }
+            file = try getFile("private" + "/" + "index")
+            var index = 0
+            if try fileExists(file!) {
+                index = try Int(value: readTextFromPath(file!))
+            }
+            let pk = DIDHDKey.deserializeBase58(publicKey!)
+            id = try RootIdentity.getId(pk.serializePublicKey())
+            try storeRootIdentity(id, mnemonic, privateKey, publicKey, index)
+            
+        // Create store metadata with default root identity
+        var metadata = DIDStoreMetadata()
+        try metadata.setDefaultRootIdentity(id)
+        try storeMetadata(metadata)
+        
+        // DIDs
+        dir = try getFile("ids")
+        if try !dirExists(dir!) {
+            return
+        }
+        var ids: [DID] = []
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: dir!)
+        if enumerator.count == 0 {
+            return
+        }
+        for element: String in enumerator  {
+            let did = DID(DID.METHOD, element)
+            // DID document and metadata
+            file = try getFile("\(element)/document")
+            if try !fileExists(file!) {
+                Log.e(TAG, "Abort upgrade DID store, invalid DID document: \(element)")
+                throw DIDError.didStoreError("Invalid DID document: \(element)")
+            }
+            let doc = DIDDocument.parse(file)
+            storeDid(doc)
+            file = try getFile("\(element)/.meta")
+            if try fileExists(file!) {
+                let dm = upgradeMetadataV2(file!, DIDMetadata.self)
+                storeDidMetadata(doc.subject, dm)
+            }
+            
+            // Credentials
+            dir = try getFile(element + "/" + "credentials")
+            guard try dirExists(dir!) else {
+                Log.e(TAG, "Abort upgrade DID store, invalid credential directory: \(element)")
+                throw DIDError.didStoreError("Invalid credential directory: \(element)")
+            }
+            let fileManager = FileManager.default
+            let vcs = try fileManager.contentsOfDirectory(atPath: dir!)
+            if vcs.count == 0 {
+                return
+            }
+            for vcDir in vcs {
+                file = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
+                                vcDir + "/" + "credential")
+                if try !fileExists(file!) {
+                    continue
+                }
+               let vc = VerifiableCredential.parse(file)
+                storeCredential(vc)
+                file = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
+                        vcDir + "/" + ".meta")
+                let cm = upgradeMetadataV2(file!, CredentialMetadata.self)
+                storeCredentialMetadata(vc.getId(), cm)
+            }
+   
+            // Private keys
+            dir = try getFile("ids" + "/" + element + "/" + "privatekeys")
+            guard try dirExists(dir!) else {
+                Log.e(TAG, "Abort upgrade DID store, invalid private keys directory: \(element)")
+                throw DIDError.didStoreError("Invalid private keys directory:  \(element)")
+            }
+            let sks = try fileManager.contentsOfDirectory(atPath: dir!)
+            if sks.count == 0 {
+                return
+            }
+            if sks == nil || sks.isEmpty {
+                break
+            }
+        // For each credential
+            for skFile in sks {
+                // Credential and metadata
+                let sk = try readTextFromPath(skFile)
+                if sk == nil || sk.isEmpty {
+                    continue
+                }
+                let keyId = try DIDURL(did, "#" + skFile)
+                try storePrivateKey(keyId, sk)
+            }
+        }
+        
+        currentDataDir = DATA_DIR
+        let stageFile = try getFile("postUpgrade")
+        let timestamp = DateFormatter.getTimeStampForString(DateFormatter.currentDate())
+        try writeTextToPath(stageFile!, DATA_DIR + "_" + timestamp)
+        try postUpgrade()
+    }
+    
+    private func postUpgrade() throws {
+        let dataDir = try getFile(DATA_DIR)
+        let dataJournal = try getFile(DATA_DIR + "/" + JOURNAL_SUFFIX)
+        let stageFile = try getFile("postUpgrade")
+        // The fail-back file name
+        let timestamp = DateFormatter.getTimeStampForString(DateFormatter.currentDate())
+        var fileName = DATA_DIR + "_" + timestamp
+        fileName = try readTextFromPath(stageFile!)
+        let dataDeprecated = try getFile(fileName)
+        if try fileExists(stageFile!) {
+            if try fileExists(dataJournal!) {
+                if try dirExists(dataDir!) {
+                    throw DIDError.didStoreError("Data conflict when upgrade")
+                }
+                try createDir(true, dataDir!)
+                try FileManager.default.moveItem(atPath: dataJournal!, toPath: dataDir!)
+                _ = try deleteFile(dataJournal!)
+            }
+            try createDir(true, dataDeprecated!)
+            let file = try getFile(".meta")
+            if try fileExists(file!) {
+                try FileManager.default.moveItem(atPath: file!, toPath: dataDeprecated! + ".meta")
+            }
+            //TODO: private ids
+        }
+    }
+    
+    private func upgradeMetadataV2<T>(_ filePath: String, _ clazz: T) -> T {
+        // TODO:
+        return T.Type as! T
+    }
+    
+    private func postOperations(){
+        // TODO:
+    }
+    /*
+     private void postOperations() throws DIDStorageException {
+         File stageFile = getFile("postUpgrade");
+         if (stageFile.exists()) {
+             postUpgrade();
+             return;
+         }
+
+         stageFile = getFile("postChangePassword");
+         if (stageFile.exists()) {
+             postChangePassword();
+             return;
+         }
+     }
+     */
+    
+    private func openPrivateIdentityIndexFile(_ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.PRIVATE_DIR, Constants.INDEX_FILE)
+    }
+
+    private func openPrivateIdentityIndexFile() throws -> FileHandle {
+        return try openPrivateIdentityIndexFile(false)
+    }
+
+    private func openDidMetaFile(_ did: DID, _ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId, Constants.META_FILE)
+    }
+
+    private func openDidMetaFile(_ did: DID) throws -> FileHandle {
+        return try openDidMetaFile(did, false)
+    }
+
+    private func openDocumentFile(_ did: DID, _ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId, Constants.DOCUMENT_FILE)
+    }
+
+    private func openDocumentFile(_ did: DID) throws -> FileHandle {
+        return try openDocumentFile(did, false)
+    }
+
+    private func getLastModificationDate(_ path: String) throws -> Date {
+        let fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
+        let modificationDate = fileAttributes[FileAttributeKey.modificationDate] as! Date
+        return modificationDate
+    }
+    
+    private func openCredentialMetaFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
+                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.META_FILE)
+    }
+
+    private func openCredentialMetaFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
+        return try openCredentialMetaFile(did, id, false)
+    }
+    
+    private func openCredentialFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
+                                  Constants.CREDENTIALS_DIR, id.fragment!, Constants.CREDENTIAL_FILE)
+    }
+
+    private func openCredentialFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
+        return try openCredentialFile(did, id, false)
+    }
+    
+    private func getFile(_ create: Bool, _ path: String) throws -> String {
+        let relPath = path
+        let fileManager = FileManager.default
+        if create {
+            var isDirectory = ObjCBool.init(false)
+            let fileExists = FileManager.default.fileExists(atPath: relPath, isDirectory: &isDirectory)
+            if !isDirectory.boolValue && fileExists {
+                _ = try deleteFile(relPath)
+            }
+        }
+        if create {
+            let dirPath: String = PathExtracter(relPath).dirname()
+            if try !dirExists(dirPath) {
+                try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            fileManager.createFile(atPath: relPath, contents: nil, attributes: nil)
+        }
+        return relPath
+    }
+    
+    private func getFile(_ path: String) throws -> String? {
+        return try getFile(false, path)
+    }
+
+    private func openPrivateKeyFile(_ did: DID, _ id: DIDURL, _ forWrite: Bool) throws -> FileHandle {
+        return try openFileHandle(forWrite, Constants.DID_DIR, did.methodSpecificId,
+                                  Constants.PRIVATEKEYS_DIR, id.fragment!)
+    }
+
+    private func openPrivateKeyFile(_ did: DID, _ id: DIDURL) throws -> FileHandle {
+        return try openPrivateKeyFile(did, id, false)
+    }
+
     private func isDirectory(_ path: String) -> Bool {
+        let fileManager = FileManager.default
+        var isDir : ObjCBool = false
+        _ = fileManager.fileExists(atPath: path, isDirectory:&isDir)
+        return isDir.boolValue
+    }
+    
+    private class func isDirectory(_ path: String) -> Bool {
         let fileManager = FileManager.default
         var isDir : ObjCBool = false
         _ = fileManager.fileExists(atPath: path, isDirectory:&isDir)
@@ -975,19 +1187,15 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
-    private func needReencrypt(_ path: String) throws -> Bool {
-        let patterns: Array<String> = [
-            "(.+)\\" + "/" + FileSystemStorage.PRIVATE_DIR + "\\" + "/" + FileSystemStorage.HDKEY_FILE + "$",
-            "(.+)\\" + "/" + FileSystemStorage.PRIVATE_DIR + "\\" + "/" + FileSystemStorage.MNEMONIC_FILE + "$",
-            "(.+)\\" + "/" + FileSystemStorage.DID_DIR + "\\" + "/" + "(.+)" + "\\" + "/" + FileSystemStorage.PRIVATEKEYS_DIR + "\\" + "/" + "(.+)"]
-        for pattern in patterns {
-            let matcher: RegexHelper = try RegexHelper(pattern)
-            
-            if matcher.match(input: path)  { // if (path.matches(pattern))
-                return true
+    private class func createDir(_ create: Bool, _ path: String) throws {
+        let fileManager = FileManager.default
+        if create {
+            var isDirectory = ObjCBool.init(false)
+            let fileExists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+            if !fileExists {
+                try fileManager.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
             }
         }
-        return false
     }
     
     private func readTextFromPath(_ path: String) throws -> String {

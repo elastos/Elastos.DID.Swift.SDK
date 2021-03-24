@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021 Elastos Foundation
+* Copyright (c) 2020 Elastos Foundation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -22,46 +22,25 @@
 
 import Foundation
 
-public class PublicKeyReference: NSObject {
-     private var _id: DIDURL?
-     private var _key: PublicKey?
-     
-     init(_ id: DIDURL) {
-         _id = id
-     }
-     
-     init(_ key: PublicKey) {
-         _key = key
-     }
-     
-     public var isReference: Bool {
-         return _id != nil
-     }
-     
-     public var id: DIDURL? {
-         return _id
-     }
-     
-     public var publicKey: PublicKey? {
-         return _key
-     }
-     
-     public var isVirtual: Bool {
-         return _key != nil
-     }
-     
-     func update(_ key: PublicKey) throws {
-         try checkArgument(key.getId() == id, "")
-         self._id = key.getId()
-         self._key = key
-     }
+extension NSObject {
+    static func checkArgument(_ full: Bool, _ mesg: String) throws {
+        guard !full else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+        }
+    }
+    
+    func checkArgument(_ full: Bool, _ mesg: String) throws {
+        guard !full else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+        }
+    }
+}
 
-     public func weaken() {
-         if _key != nil {
-             self._id = _key!.getId()
-             self._key = nil
-         }
-     }
-     
-     // TODO: Serializer Deserializer
- }
+extension FileSystemStorage {
+    func checkArgument(_ full: Bool, _ mesg: String) throws {
+        guard !full else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+        }
+    }
+}
+

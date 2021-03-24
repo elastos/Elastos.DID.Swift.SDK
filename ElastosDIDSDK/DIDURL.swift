@@ -57,7 +57,7 @@ public class DIDURL: NSObject {
     private var _parameters: OrderedDictionary<String, String>?
     private var _path: String?
     private var _queryParameters: OrderedDictionary<String, String>?
-    private var _metadata: CredentialMeta?
+    private var _metadata: CredentialMetadata?
 
     ///  Constructs the DIDURl with the given value.
     /// - Parameters:
@@ -233,16 +233,16 @@ public class DIDURL: NSObject {
         self._queryParameters![forKey] = value
     }
 
-    func setMetadata(_ metadata: CredentialMeta) {
+    func setMetadata(_ metadata: CredentialMetadata) {
         self._metadata = metadata
     }
 
     /// Get CredentialMetaData from Credential.
     /// - Returns: Return the handle to CredentialMetaData
     @objc
-    public func getMetadata() -> CredentialMeta {
+    public func getMetadata() -> CredentialMetadata {
         if  self._metadata == nil {
-            self._metadata = CredentialMeta()
+            self._metadata = CredentialMetadata()
         }
         return self._metadata!
     }

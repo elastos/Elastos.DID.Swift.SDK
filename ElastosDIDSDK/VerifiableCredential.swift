@@ -33,7 +33,7 @@ public class VerifiableCredential: DIDObject {
     private var _expirationDate: Date?
     private var _subject: VerifiableCredentialSubject?
     private var _proof: VerifiableCredentialProof?
-    private var _metadata: CredentialMeta?
+    private var _metadata: CredentialMetadata?
 
     private let RULE_EXPIRE : Int = 1
     private let RULE_GENUINE: Int = 2
@@ -146,16 +146,16 @@ public class VerifiableCredential: DIDObject {
         self._expirationDate = expirationDate
     }
 
-    func getMeta() -> CredentialMeta {
+    func getMeta() -> CredentialMetadata {
         if  self._metadata == nil {
-            self._metadata = CredentialMeta()
+            self._metadata = CredentialMetadata()
 
             getId().setMetadata(_metadata!)
         }
         return self._metadata!
     }
 
-    func setMetadata(_ newValue: CredentialMeta) {
+    func setMetadata(_ newValue: CredentialMetadata) {
         self._metadata = newValue
         getId().setMetadata(newValue)
     }
@@ -163,7 +163,7 @@ public class VerifiableCredential: DIDObject {
     /// Get credential alias.
     /// - Returns: CredentialMeta instance.
     @objc
-    public func getMetadata() -> CredentialMeta {
+    public func getMetadata() -> CredentialMetadata {
         return getMeta()
     }
 

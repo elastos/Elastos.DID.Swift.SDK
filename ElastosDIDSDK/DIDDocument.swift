@@ -596,7 +596,7 @@ public class DIDDocument: NSObject {
     /// - Returns: there is no DID store to get root private key
     public func derive(index: Int, storePassword: String) throws -> String {
 
-        try DIDError.checkArgument(!storePassword.isEmpty, "Invalid storepass")
+        try checkArgument(!storePassword.isEmpty, "Invalid storepass")
         try checkAttachedStore()
         try checkIsPrimitive()
         let key = DIDHDKey.deserialize((try getMetadata().store?.loadPrivateKey(subject, getDefaultPublicKey()!, storePassword))!)
@@ -648,7 +648,7 @@ public class DIDDocument: NSObject {
     /// - Throws: DIDStoreError there is no DID store to get root private key
     /// - Returns: the extended derived private key
     public func derive(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> String {
-        try DIDError.checkArgument(!identifier.isEmpty, "Invalid identifier")
+        try checkArgument(!identifier.isEmpty, "Invalid identifier")
         try checkAttachedStore();
         try checkIsPrimitive()
         // TODO: check
@@ -2252,7 +2252,7 @@ public class DIDDocument: NSObject {
             })
         }
         
-       try DIDError.checkArgument(multisig >= 0 && multisig <= ctrls.count + 1, "Invalid multisig")
+       try checkArgument(multisig >= 0 && multisig <= ctrls.count + 1, "Invalid multisig")
         // TODO: LOG
         var doc: DIDDocument?
         if !force {
@@ -2297,7 +2297,7 @@ public class DIDDocument: NSObject {
     }
     
     public func createTransferTicket(to did: DID, _ storepass: String) throws -> TransferTicket {
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkIsCustomized()
         try checkAttachedStore()
         try checkHasEffectiveController()
@@ -2308,7 +2308,7 @@ public class DIDDocument: NSObject {
     }
     
     public func createTransferTicket(_ did: DID, _ to: DID, _ storepass: String) throws -> TransferTicket {
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkIsPrimitive()
         try checkAttachedStore()
         
@@ -2332,7 +2332,7 @@ public class DIDDocument: NSObject {
     
     public func sign(_ ticket: TransferTicket, _ storepass: String) throws -> TransferTicket {
         
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkAttachedStore()
         try ticket.seal(self, storepass)
         
@@ -2341,7 +2341,7 @@ public class DIDDocument: NSObject {
     
     public func sign(_ doc: DIDDocument, _ storepass: String) throws -> DIDDocument {
         
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkAttachedStore()
         guard doc.isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(doc.subject.toString())
@@ -2366,11 +2366,11 @@ public class DIDDocument: NSObject {
     
     public func publish(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         var sigK = signKey
-        try DIDError.checkArgument(ticket.isValid(), "Invalid ticket")
-        try DIDError.checkArgument(ticket.subject == subject, "Ticket mismatch with current DID")
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(ticket.isValid(), "Invalid ticket")
+        try checkArgument(ticket.subject == subject, "Ticket mismatch with current DID")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkIsCustomized()
-        try DIDError.checkArgument(_proofsDic[ticket.to] != nil, "Document not signed by: \(ticket.to)")
+        try checkArgument(_proofsDic[ticket.to] != nil, "Document not signed by: \(ticket.to)")
         try checkAttachedStore()
         guard defaultPublicKeyId() != nil else {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
@@ -2447,7 +2447,7 @@ public class DIDDocument: NSObject {
     ///            force = false, must not be publish if the local document is not the lastest one,
     ///   - storepass: the password for DIDStore
     public func publish(_ signKey: DIDURL?, _ force: Bool, _ storepass: String, _ adapter: DIDAdapter?) throws {
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkAttachedStore()
         guard defaultPublicKeyId() != nil else {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
@@ -2836,7 +2836,7 @@ public class DIDDocument: NSObject {
     ///   - signKey: signKey the authorizor's key to sign
     ///   - storepass: the password for DIDStore
     public func deactivate(_ target: DID, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDAdapter?) throws {
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         try checkAttachedStore()
         if signKey == nil && defaultPublicKeyId() == nil {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
@@ -3006,6 +3006,10 @@ public class DIDDocument: NSObject {
         return try deactivateAsync(target, nil, storepass, nil)
     }
 
+    func parse(_ path: String) throws {
+        // TODO:
+    }
+    
     private func parse(_ doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options

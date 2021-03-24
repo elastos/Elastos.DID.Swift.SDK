@@ -35,11 +35,11 @@ protocol DIDStorage {
     func getLocation() -> String
     
     /// Store private identity.
-    func storeRootIdentity(_ id: String, _ mnemonic: String, _ privateKey: String, _ publicKey: String, _ index: Int) throws
+    func storeRootIdentity(_ id: String, _ mnemonic: String?, _ privateKey: String?, _ publicKey: String?, _ index: Int) throws
     
     /// Load private identity.
     func loadRootIdentity(_ id: String) throws -> RootIdentity
-    func loadRootIdentityPrivateKey(_ id: String) throws -> String
+    func loadRootIdentityPrivateKey(_ id: String) throws -> String?
     /// Load mnemonic.
     func loadRootIdentityMnemonic(_ id: String) throws -> String
     func updateRootIdentityIndex(_ id: String, _ index: Int) throws
@@ -48,16 +48,16 @@ protocol DIDStorage {
     func containsRootIdenities() throws -> Bool
 
     // Metadata
-    func storeMetadata(_ metadata: DIDMetadata) throws
-    func loadMetadata() throws -> DIDMetadata
-    func storeRootIdentityMetadata(_ id: String, _ metadata: DIDMetadata)
+    func storeMetadata(_ metadata: DIDStoreMetadata) throws
+    func loadMetadata() throws -> DIDStoreMetadata?
+    func storeRootIdentityMetadata(_ id: String, _ metadata: RootIdentityMetadata) throws
     /// Load DID Metadata.
     /// - Parameter id: the owner of Metadata.
     /// - Return: the meta data
-    func loadRootIdentityMetadata(_ id: String) throws -> DIDMetadata
+    func loadRootIdentityMetadata(_ id: String) throws -> RootIdentityMetadata?
     
     func storeDidMetadata(_ did: DID, _ meta: DIDMetadata) throws
-    func loadDidMetadata(_ did: DID) throws -> DIDMetadata
+    func loadDidMetadata(_ did: DID) throws -> DIDMetadata?
 
     // DIDS
     func storeDid(_ doc: DIDDocument) throws
@@ -68,11 +68,11 @@ protocol DIDStorage {
 
     // Credentials
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws
-    func loadCredentialMetadata(_ id: DIDURL) throws -> CredentialMetadata
+    func loadCredentialMetadata(_ id: DIDURL) throws -> CredentialMetadata?
 
     func storeCredential(_ credential: VerifiableCredential) throws
 
-    func loadCredential(_ id: DIDURL) throws -> VerifiableCredential
+    func loadCredential(_ id: DIDURL) throws -> VerifiableCredential?
 
     func containsCredentials(_ did: DID) -> Bool
     func deleteCredential(_ id: DIDURL) -> Bool
@@ -84,7 +84,7 @@ protocol DIDStorage {
 
     func loadPrivateKey(_ id: DIDURL) throws -> String
 
-    func containsPrivateKeys(_ did: DID) -> Bool
+    func containsPrivateKeys(_ did: DID) throws -> Bool
     func deletePrivateKey(_ id: DIDURL) -> Bool
 
 //    func changePassword(_  callback: (String) throws -> String) throws// 0

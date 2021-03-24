@@ -63,4 +63,13 @@ public class RootIdentityMetadata: AbstractMetadata {
             }
         }
     }
+    
+    class func parse(_ path: String) -> RootIdentityMetadata {
+        // TODO:
+        return RootIdentityMetadata()
+    }
+    
+    func serialize(_ path: String) {
+        // TODO:
+    }
 }

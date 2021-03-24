@@ -41,14 +41,20 @@ public class DIDStore: NSObject {
     private var metadata: DIDStoreMetadata
     private static var storePath: String = ""
 
-    private init(_ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ storage: DIDStorage) {
+    let defaultConflictHandle: ConflictHandler = { (c, l) -> DIDDocument in
+        l.getMetadata().setPublishTime(c.getMetadata().getPublishTime()!)
+        l.getMetadata().setSignature(c.getMetadata().getSignature())
+        return l
+    }
+    
+    private init(_ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ storage: DIDStorage) throws {
         if maxCacheCapacity > 0 {
             documentCache = LRUCache<DID, DIDDocument>(initialCacheCapacity, maxCacheCapacity)
             credentialCache = LRUCache<DIDURL, VerifiableCredential>(initialCacheCapacity, maxCacheCapacity)
         }
 
         self.storage = storage
-        self.metadata = storage.loadMetadata()
+        self.metadata = try storage.loadMetadata()
         self.metadata.attachStore(self)
         Log.i(TAG, "DID store opened: , cache(init:\(initialCacheCapacity), max:\(maxCacheCapacity)")
     }
@@ -58,6 +64,10 @@ public class DIDStore: NSObject {
                                  _ initialCacheCapacity: Int,
                                  _ maxCacheCapacity: Int,
                                  _ adapter: DIDAdapter) throws -> DIDStore {
+        
+        try checkArgument(path.isEmpty, "Invalid store location");
+        try checkArgument(maxCacheCapacity >= initialCacheCapacity, "Invalid cache capacity spec")
+        
         guard !type.isEmpty else {
             throw DIDError.illegalArgument("type is empty")
         }
@@ -78,7 +88,33 @@ public class DIDStore: NSObject {
         storePath = path
         return DIDStore(initialCacheCapacity, maxCacheCapacity, adapter, storage)
     }
+/*
+     public static DIDStore open(File location,
+             int initialCacheCapacity, int maxCacheCapacity) throws DIDStoreException {
+         checkArgument(location != null, "Invalid store location");
+         checkArgument(maxCacheCapacity >= initialCacheCapacity, "Invalid cache capacity spec");
 
+         try {
+             location = location.getCanonicalFile();
+         } catch (IOException e) {
+             throw new IllegalArgumentException("Invalid store location", e);
+         }
+
+         DIDStorage storage = new FileSystemStorage(location);
+         return new DIDStore(initialCacheCapacity, maxCacheCapacity, storage);
+     }
+
+     public static DIDStore open(String location,
+             int initialCacheCapacity, int maxCacheCapacity) throws DIDStoreException {
+         checkArgument(location != null && !location.isEmpty(), "Invalid store location");
+
+         return open(new File(location), initialCacheCapacity, maxCacheCapacity);
+     }
+
+     public static DIDStore open(File location) throws DIDStoreException {
+         return open(location, CACHE_INITIAL_CAPACITY, CACHE_MAX_CAPACITY);
+     }
+     */
     /// Initialize or check the DIDStore.
     /// - Parameters:
     ///   - atPath: The path of DIDStore’s root.
@@ -1796,7 +1832,7 @@ public class DIDStore: NSObject {
     /// - Throws: DIDStore error.
     /// - Returns: the original private key
     func loadPrivateKey(_ id: DIDURL, _ storepass: String) throws -> Data {
-        try DIDError.checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
         let encryptedKey = try loadPrivateKey(id)
         if encryptedKey == nil {
             // fail-back to lazy private key generation
