@@ -38,7 +38,7 @@ protocol DIDStorage {
     func storeRootIdentity(_ id: String, _ mnemonic: String?, _ privateKey: String?, _ publicKey: String?, _ index: Int) throws
     
     /// Load private identity.
-    func loadRootIdentity(_ id: String) throws -> RootIdentity
+    func loadRootIdentity(_ id: String) throws -> RootIdentity?
     func loadRootIdentityPrivateKey(_ id: String) throws -> String?
     /// Load mnemonic.
     func loadRootIdentityMnemonic(_ id: String) throws -> String

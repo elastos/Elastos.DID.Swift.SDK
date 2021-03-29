@@ -566,9 +566,9 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private func getCredentialsDir(_ id: DID) throws -> String {
-        let path = currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
-            CREDENTIALS_DIR
-        return try getFile(path)
+        let path = currentDataDir + "/" + DID_DIR + "/" + id.methodSpecificId + "/" + CREDENTIALS_DIR
+            
+        return try getFile(path)!
     }
     
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
@@ -632,7 +632,7 @@ public class FileSystemStorage: DIDStorage {
             var dir = try getCredentialDir(id)
             if try dirExists(dir) {
                 try FileManager.default.removeItem(atPath: dir)
-                dir = getCredentialsDir(id.getDid())
+                dir = getCredentialsDir(id.did!)
                 
                 let fileManager = FileManager.default
                 let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
@@ -820,12 +820,12 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
-    func changePassword(_ callback: ReEncryptor) throws {
+    func changePassword(_ reEncryptor: ReEncryptor) throws {
         let dataDir = try getFile(DATA_DIR)
         let dataJournal = try getFile(DATA_DIR + "/" + JOURNAL_SUFFIX)
 
         do {
-            try copy(dataDir!, dataJournal!, callback)
+            try copy(dataDir!, dataJournal!, reEncryptor)
         }
         catch {
             throw DIDError.didStoreError("Change store password failed.")
@@ -1059,7 +1059,7 @@ public class FileSystemStorage: DIDStorage {
     
     private func upgradeMetadataV2<T>(_ filePath: String, _ clazz: T) -> T {
         // TODO:
-        return T.Type as! T
+        return T.Type.self as! T
     }
     
     private func postOperations(){

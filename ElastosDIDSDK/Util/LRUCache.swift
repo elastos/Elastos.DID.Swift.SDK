@@ -68,6 +68,11 @@ final class LRUCache<Key: Hashable, Value> {
         }
     }
 
+    func keys() -> [Key] {
+        
+        return nodesDict.keys
+    }
+    
     func getValue(for key: Key) -> Value? {
         lock.acquireReadLock {
             guard let node = nodesDict[key] else {
@@ -79,6 +84,24 @@ final class LRUCache<Key: Hashable, Value> {
         }
     }
     
+    func getValue(for key: Key, _ filter: () throws -> Value?) throws -> Value? {
+        try lock.acquireReadLock {
+            var node = nodesDict[key]
+            var value = node?.payload.value
+            if node == nil || value == nil {
+                value = try filter()
+                guard let _ = value else {
+                    return nil
+                }
+                setValue(value!, for: key)
+                node = nodesDict[key]
+            }
+            
+            list.moveToHead(node!)
+            return node!.payload.value
+        }
+    }
+
     func containsKey(for key: Key) -> Bool {
         let value = nodesDict[key]
         return value != nil

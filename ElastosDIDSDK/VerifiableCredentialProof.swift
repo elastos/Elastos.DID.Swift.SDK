@@ -27,10 +27,11 @@ public class VerifiableCredentialProof: NSObject {
     private var _type: String
     private var _verificationMethod: DIDURL
     private var _signature: String
-    
-    init(_ type: String, _ method: DIDURL, _ signature: String) {
+    private var _created: Date
+    init(_ type: String, _ method: DIDURL, _ created: Date, _ signature: String) {
         self._type = type
         self._verificationMethod = method
+        self._created = created
         self._signature = signature
     }
 
@@ -40,6 +41,10 @@ public class VerifiableCredentialProof: NSObject {
         return _type
     }
 
+    public var created: Date {
+        return _created
+    }
+    
     /// The public key identifier that created the signature
     @objc
     public var verificationMethod: DIDURL {

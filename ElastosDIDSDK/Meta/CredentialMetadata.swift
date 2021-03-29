@@ -103,15 +103,15 @@ public class CredentialMetadata: AbstractMetadata {
         return try super.clone()
     }
     
-    override func save() {
+    override func save() throws {
         if attachedStore {
-            try store?.storeCredentialMetadata(id, self)
+            try store?.storeCredentialMetadata(id!, self)
         }
     }
     
     class func parse(_ path: String) -> CredentialMetadata {
         // TODO:
-        return DIDMetadata()
+        return CredentialMetadata()
     }
     
     func serialize(_ path: String) {

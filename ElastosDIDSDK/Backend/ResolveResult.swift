@@ -24,12 +24,14 @@ import Foundation
 
 @objc(ResolveResult)
 public class ResolveResult: NSObject, DIDHistory{
-    var _did: DID!
+    var _did: DID?
     var _status: ResolveResultStatus
     var _idtransactionInfos: [IDTransactionInfo] = []
+    var _id: DIDURL?
 
-    init(_ did: DID, _ status: Int) {
+    init(_ id: DIDURL?, _ did: DID?, _ status: Int) {
         self._did = did
+        self._id = id
         self._status = ResolveResultStatus(rawValue: status)!
     }
 
@@ -37,7 +39,7 @@ public class ResolveResult: NSObject, DIDHistory{
     /// - Returns: The handle of did.
     @objc
     public func getDid() -> DID {
-        return _did
+        return _did!
     }
 
     /// Get resolve result status.
@@ -62,7 +64,7 @@ public class ResolveResult: NSObject, DIDHistory{
     }
 
     var did: DID {
-        return self._did
+        return self._did!
     }
 
     var status: ResolveResultStatus {
@@ -108,7 +110,7 @@ public class ResolveResult: NSObject, DIDHistory{
                                 .withError(error)
         let status = try serializer.getInteger(Constants.STATUS, options)
 
-        let result = ResolveResult(did, status)
+        let result = ResolveResult(nil, did, status)
         if status != ResolveResultStatus.STATUS_NOT_FOUND.rawValue {
             let transactions = node.get(forKey: Constants.TRANSACTION)?.asArray()
             guard transactions?.count ?? 0 > 0 else {

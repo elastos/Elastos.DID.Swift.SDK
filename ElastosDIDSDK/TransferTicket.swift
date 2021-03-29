@@ -58,28 +58,14 @@ public class TransferTicket: NSObject {
         guard target.isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(target.subject.toString())
         }
-        target.getMetadata().transactionId = try target.subject.resolve()?.getMetadata().transactionId
+        try target.getMetadata().setTransactionId(target.subject.resolve()!.getMetadata().getTransactionId())
         self.id = target.subject
         self.doc = target
         self.to = to
-        self.txid = target.getMetadata().transactionId!
+        self.txid = target.getMetadata().getTransactionId()
         super.init()
     }
-    /*
-     protected TransferTicket(DIDDocument target, DID to) throws DIDResolveException {
 
-         if (!target.isCustomizedDid())
-             throw new NotCustomizedDIDException(target.getSubject().toString());
-
-         target.getMetadata().setTransactionId(target.getSubject().resolve().getMetadata().getTransactionId());
-
-         this.id = target.getSubject();
-         this.doc = target;
-
-         this.to = to;
-         this.txid = target.getMetadata().getTransactionId();
-     }
-     */
     init(_ did: DID, _ to: DID, _ txid: String) throws {
         self.id  = did
         self.to = to

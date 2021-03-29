@@ -247,6 +247,14 @@ extension DIDError.CheckedError.DIDStoreError: LocalizedError {
             return des
         case .DIDStoreCryptoError(let des):
             return des
+        case .ConflictMergeError(let des):
+            return des
+        case .InvalidDIDMetadataError(let des):
+            return des
+        case .InvalidPublickeyError(let des):
+            return des
+        case .MissingDocumentError(let des):
+            return des
         }
     }
 }

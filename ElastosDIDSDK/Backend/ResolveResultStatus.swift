@@ -39,11 +39,11 @@ public enum ResolveResultStatus: Int, CustomStringConvertible {
         case 2:
             desc = "deactivated"
         case 3:
-            desc = "notfound"
+            desc = "not_found"
         default:
-            desc = "notfound"
+            desc = "not_found"
         }
-        return desc;
+        return desc
     }
 
     /// ResolveResultStatus string.

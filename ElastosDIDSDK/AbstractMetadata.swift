@@ -238,5 +238,5 @@ public class AbstractMetadata: NSObject {
         return DIDMetadata()
     }
     
-    func save() { }
+    func save() throws { }
 }

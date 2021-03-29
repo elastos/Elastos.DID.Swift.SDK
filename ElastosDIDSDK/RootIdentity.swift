@@ -62,11 +62,11 @@ public class RootIdentity: NSObject {
         var _passphrase = passphrase == nil ? "" : passphrase
         try checkArgument(Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
         let identity = try RootIdentity(mnemonic, passphrase!)
-        if store.containsRootIdentity(identity.id) && !overwrite {
+        if try store.containsRootIdentity(identity.id!) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
         identity.metadata = RootIdentityMetadata(identity.id!, store)
-        store.storeRootIdentity(identity, storepass)
+        try store.storeRootIdentity(identity, storepass)
         try identity.wipe()
         
         return identity
@@ -83,11 +83,11 @@ public class RootIdentity: NSObject {
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
         let identity = try RootIdentity(rootPrivateKey)
         
-        if store.containsRootIdentity(identity.id) && !overwrite {
+        if try store.containsRootIdentity(identity.id!) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
         identity.metadata = RootIdentityMetadata(identity.id!, store)
-        store.storeRootIdentity(identity, storepass)
+        try! store.storeRootIdentity(identity, storepass)
         try identity.wipe()
         
         return identity
@@ -138,27 +138,34 @@ public class RootIdentity: NSObject {
         }
     }
     
-    public var setAsDefault: String? {
-        set{
-            store.setDefaultRootIdentity(self)
-        }
-        get{
-            metadata?.getDefaultDid()
-        }
+    public func defaultDid() throws -> DID {
+        return metadata!.getDefaultDid()
+    }
+    
+    public func setAsDefault() throws {
+        try store!.setDefaultRootIdentity(self)
+    }
+    
+    public func setDefaultDid(_ did: DID) throws {
+        metadata!.setDefaultDid(did)
+    }
+    
+    public func setDefaultDid(_ did: String) throws {
+        try metadata!.setDefaultDid(DID.valueOf(did)!)
     }
     
     public func setDefaultDid(_ index: Int) throws {
         try metadata!.setDefaultDid(getDid(index))
     }
     
-    public func setIndex(_ idx: Int) {
+    public func setIndex(_ idx: Int) throws {
         index = idx
-        store.storeRootIdentity(self)
+        try store!.storeRootIdentity(self)
     }
     
-    public func incrementIndex() -> Int {
+    public func incrementIndex() throws -> Int {
         
-        store.storeRootIdentity(self)
+        try store!.storeRootIdentity(self)
         
         return index
     }
@@ -183,7 +190,7 @@ public class RootIdentity: NSObject {
         guard let _ = identity else {
             return nil
         }
-        let key: DIDHDKey? = store.derive(identity, DIDHDKey.DID_DERIVE_PATH_PREFIX + (doc?.getMetadata().getIndex())!, storepass)
+        let key: DIDHDKey? = try store.derive(identity!, DIDHDKey.DID_DERIVE_PATH_PREFIX + (doc?.getMetadata().getIndex())!, storepass)
         let pk = try doc?.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.CheckedError.DIDStoreError.InvalidPublickeyError("Invalid public key: \(id)")
@@ -191,7 +198,7 @@ public class RootIdentity: NSObject {
         guard key!.getPublicKeyBase58() == pk?.publicKeyBase58 else {
             throw DIDError.CheckedError.DIDStoreError.InvalidDIDMetadataError("Invalid DID metadata: \(id.did)")
         }
-        try store.storep(id, key?.serialize(), storepass)
+        try store.storePrivateKey(for: id, privateKey: key!.serialize(), using: storepass)
         let sk = try key!.serialize()
         key!.wipe()
         

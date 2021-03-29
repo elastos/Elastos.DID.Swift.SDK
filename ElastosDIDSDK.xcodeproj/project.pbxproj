@@ -127,6 +127,7 @@
 		11C3ECEE2477807300DF1B4F /* SignerAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDD2477807300DF1B4F /* SignerAlgorithm.swift */; };
 		11C3ECEF2477807300DF1B4F /* JWTDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */; };
 		11C3ECF02477807300DF1B4F /* NoneAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */; };
+		11CACA9126120D65004145CB /* CredentialBiography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA9026120D65004145CB /* CredentialBiography.swift */; };
 		11CBBBD423AFB39300730D7E /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A6B159238FD77E00D3C1F1 /* libcrypto.a */; };
 		11CBBBD523AFB39300730D7E /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A6B15A238FD77E00D3C1F1 /* libhdkey.a */; };
 		11D03AD423A9D05600549296 /* VerifiableCredentialTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D03AD323A9D05600549296 /* VerifiableCredentialTest.swift */; };
@@ -505,6 +506,7 @@
 		11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWTDecoder.swift; sourceTree = "<group>"; };
 		11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoneAlgorithm.swift; sourceTree = "<group>"; };
 		11CA74B1235E06B7006E66F7 /* Base64.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base64.swift; sourceTree = "<group>"; };
+		11CACA9026120D65004145CB /* CredentialBiography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBiography.swift; sourceTree = "<group>"; };
 		11D03AD323A9D05600549296 /* VerifiableCredentialTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiableCredentialTest.swift; sourceTree = "<group>"; };
 		11D03AD923A9D50200549296 /* VerifiablePresentationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiablePresentationTest.swift; sourceTree = "<group>"; };
 		11D1D5412435D2C700A78617 /* DIDHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDHistory.swift; sourceTree = "<group>"; };
@@ -1395,6 +1397,7 @@
 			isa = PBXGroup;
 			children = (
 				11BE33982604383700DEBD00 /* DIDRequest.swift */,
+				11CACA9026120D65004145CB /* CredentialBiography.swift */,
 				110830CA241FA0E4000FDD2B /* ResolverCache.swift */,
 				A31ACE6723F19A66008EC032 /* IDChainRequest.swift */,
 				11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */,
@@ -1816,6 +1819,7 @@
 				119B299E2578ED210084B859 /* EllipticCurve.swift in Sources */,
 				A31ACE6923F19A66008EC032 /* IDTransactionInfo.swift in Sources */,
 				11D1F71E257F3A5400BC5A54 /* ANTLRError.swift in Sources */,
+				11CACA9126120D65004145CB /* CredentialBiography.swift in Sources */,
 				11782ACC242130C4009A1F5A /* DIDURLListener.swift in Sources */,
 				11D1F778257F3A5400BC5A54 /* SingletonPredictionContext.swift in Sources */,
 				A31ACE1F23F199BA008EC032 /* VerifiablePresentation.swift in Sources */,
