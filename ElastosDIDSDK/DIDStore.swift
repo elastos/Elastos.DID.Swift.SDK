@@ -43,7 +43,7 @@ public class DIDStore: NSObject {
     private var metadata: DIDStoreMetadata?
     private static var storePath: String = ""
 
-    let defaultConflictHandle: ConflictHandler = { (c, l) -> DIDDocument in
+    public static let defaultConflictHandle: ConflictHandler = { (c, l) -> DIDDocument in
         l.getMetadata().setPublishTime(c.getMetadata().getPublishTime()!)
         l.getMetadata().setSignature(c.getMetadata().getSignature())
         return l

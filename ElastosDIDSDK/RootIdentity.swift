@@ -139,7 +139,7 @@ public class RootIdentity: NSObject {
     }
     
     public func defaultDid() throws -> DID {
-        return metadata!.getDefaultDid()
+        return try metadata!.getDefaultDid()!
     }
     
     public func setAsDefault() throws {
@@ -233,12 +233,12 @@ public class RootIdentity: NSObject {
         }
         Log.d(TAG, "Creating new DID ", did.toString(), " at index ", index)
         
-        let key = store.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + index, storepass)
+        let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + index, storepass)
         
         let id = try DIDURL(did, "#primary")
-        store?.storePrivateKey(id, key.serialize(), storepass)
+        try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storepass)
         let db = DIDDocumentBuilder(did, store!)
-        db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+        try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
         try db.sealed(using: storepass)
         try store?.storeDid(using: doc!)
         
@@ -257,7 +257,7 @@ public class RootIdentity: NSObject {
     public func newDid(_ overwrite: Bool, _ storepass: String) throws -> DIDDocument {
         
         let doc = try newDid(index, overwrite, storepass)
-        incrementIndex()
+        try incrementIndex()
         
         return doc
     }
@@ -267,21 +267,22 @@ public class RootIdentity: NSObject {
         return try newDid(false, storepass)
     }
     
-    public func hasMnemonic() -> Bool {
+    public func hasMnemonic() throws -> Bool {
         return try store!.containsRootIdentityMnemonic(getId())
     }
     
     /// Export mnemonic from DIDStore
     /// - Parameter storepass: the password for DIDStore
     /// - Returns: the mnemonic string
-    public func exportMnemonic(_ storepass: String) -> String {
-        return store!.exportRootIdentityMnemonic(getId(), storepass)
+    public func exportMnemonic(_ storepass: String) throws -> String {
+        return try store!.exportRootIdentityMnemonic(getId(), storepass)!
     }
     
     public func synchronize(_ index: Int, _ handle: ConflictHandler?) throws -> Bool {
         try checkArgument(index >= 0, "Invalid index")
-        if handle == nil {
-            handle = DIDStore.defaultConflictHandle
+        var h = handle
+        if h == nil {
+            h = DIDStore.defaultConflictHandle
         }
         let did = try getDid(index)
         Log.i(TAG, "Synchronize ", did.toString(), "/", index, "...")
@@ -303,7 +304,7 @@ public class RootIdentity: NSObject {
             else {
                 Log.d(TAG, did.toString(), " on-chain copy conflict with local copy.")
                 // Local copy was modified
-                finalDoc = handle!(resolvedDoc!, localDoc!) // TODO: handle.merge(resolvedDoc, localDoc)
+                finalDoc = h!(resolvedDoc!, localDoc!) // TODO: handle.merge(resolvedDoc, localDoc)
                 guard finalDoc != nil, finalDoc!.subject == did else {
                     Log.i(TAG, "Conflict handle merge the DIDDocument error.")
                     throw DIDError.CheckedError.DIDStoreError.ConflictMergeError("deal with local modification error.")
@@ -313,7 +314,7 @@ public class RootIdentity: NSObject {
         let metadata = finalDoc!.getMetadata()
         metadata.setRootIdentityId(try getId())
         metadata.setIndex(index)
-        store!.storeDid(using: finalDoc!)
+        try store!.storeDid(using: finalDoc!)
         
         return true
     }
@@ -354,7 +355,7 @@ public class RootIdentity: NSObject {
            i = i + 1
         }
         if (lastIndex >= index) {
-            setIndex(lastIndex + 1)
+            try setIndex(lastIndex + 1)
         }
     }
     
