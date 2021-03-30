@@ -23,7 +23,12 @@
 import Foundation
 
 @objc(IDTransactionInfo)
-public class IDTransactionInfo: NSObject, DIDTransaction {
+public class IDTransactionInfo: NSObject {
+
+    private let TXID = "txid"
+    private let TIMESTAMP = "timestamp"
+    private let OPERATION = "operation"
+
     private var _transactionId: String
     private var _timestamp: Date
     private var _request: IDChainRequest
@@ -40,13 +45,6 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
         self._request = request;
     }
 
-    /// Get did.
-    /// - Returns: The handle of did.
-    @objc
-    public func getDid() -> DID {
-        return request.did!
-    }
-
     /// Get transaction id.
     /// - Returns: The handle of transaction id.
     @objc
@@ -61,20 +59,6 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
         return self.timestamp
     }
 
-    /// Get IDChain request operation.
-    /// - Returns: The handle of operation.
-    @objc
-    public func getOperation() -> IDChainRequestOperation {
-        return request.operation!
-    }
-
-    /// Get DID Document.
-    /// - Returns: The handle of DID Document.
-    @objc
-    public func getDocument() -> DIDDocument {
-        return request.document!
-    }
-
     @objc
     public var transactionId: String {
         return self._transactionId
@@ -85,72 +69,65 @@ public class IDTransactionInfo: NSObject, DIDTransaction {
         return self._timestamp
     }
 
-    /// The handle of did.
-    @objc
-    public var did: DID? {
-        return self._request.did
-    }
-
-    /// The handle of operation.
-    @objc
-    public var operation: IDChainRequestOperation {
-        return self._request.operation!
-    }
-
-    /// The payload string.
-    @objc
-    public var payload: String {
-        return self._request.toJson(false)
-    }
-
     /// The IDChainRequest object.
     @objc
     public var request: IDChainRequest {
         return self._request
     }
 
-    /// Get IDChainTransaction from json content.
-    /// - Parameter node: the JsonNode content
-    /// - Throws: DIDTransaction error.
-    /// - Returns:The IDChainTransaction object.
-    @objc
-    public class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
-        let error = { (des: String) -> DIDError in
-            return DIDError.didResolveError(des)
+    func sanitize() throws {
+        guard !transactionId.isEmpty else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedResolveResponseError("Missing txid")
         }
-
-        let serializer = JsonSerializer(node)
-        var options: JsonSerializer.Options
-
-        options = JsonSerializer.Options()
-                                .withHint("transaction id")
-                                .withError(error)
-        let transactionId = try serializer.getString(Constants.TXID, options)
-
-        options = JsonSerializer.Options()
-                                .withHint("transaction timestamp")
-                                .withError(error)
-        let timestamp = try serializer.getDate(Constants.TIMESTAMP, options)
-
-        let subNode = node.get(forKey: Constants.OPERATION)
-        guard let _ = subNode else {
-            throw DIDError.didResolveError("missing ID operation")
+        do {
+           try request.sanitize()
+        } catch {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedResolveResponseError("Invalid request")
         }
-
-        let request = try IDChainRequest.fromJson(subNode!)
-        return IDTransactionInfo(transactionId, timestamp, request)
     }
-
-    /// Get json string with input content.
-    /// - Parameter generator: the JsonGenerator handle.
-    @objc
-    public func toJson(_ generator: JsonGenerator) {
-        generator.writeStartObject()
-        generator.writeStringField(Constants.TXID, self.transactionId)
-        generator.writeStringField(Constants.TIMESTAMP, self.timestamp.description)
-
-        generator.writeFieldName(Constants.OPERATION)
-        self._request.toJson(generator, false)
-        generator.writeEndObject()
-    }
+    
+//    /// Get IDChainTransaction from json content.
+//    /// - Parameter node: the JsonNode content
+//    /// - Throws: DIDTransaction error.
+//    /// - Returns:The IDChainTransaction object.
+//    @objc
+//    public class func fromJson(_ node: JsonNode) throws -> IDTransactionInfo {
+//        let error = { (des: String) -> DIDError in
+//            return DIDError.didResolveError(des)
+//        }
+//
+//        let serializer = JsonSerializer(node)
+//        var options: JsonSerializer.Options
+//
+//        options = JsonSerializer.Options()
+//                                .withHint("transaction id")
+//                                .withError(error)
+//        let transactionId = try serializer.getString(Constants.TXID, options)
+//
+//        options = JsonSerializer.Options()
+//                                .withHint("transaction timestamp")
+//                                .withError(error)
+//        let timestamp = try serializer.getDate(Constants.TIMESTAMP, options)
+//
+//        let subNode = node.get(forKey: Constants.OPERATION)
+//        guard let _ = subNode else {
+//            throw DIDError.didResolveError("missing ID operation")
+//        }
+//
+//        let request = try IDChainRequest.fromJson(subNode!)
+//        return IDTransactionInfo(transactionId, timestamp, request)
+//    }
+//
+//    /// Get json string with input content.
+//    /// - Parameter generator: the JsonGenerator handle.
+//    @objc
+//    public func toJson(_ generator: JsonGenerator) {
+//        generator.writeStartObject()
+//        generator.writeStringField(Constants.TXID, self.transactionId)
+//        generator.writeStringField(Constants.TIMESTAMP, self.timestamp.description)
+//
+//        generator.writeFieldName(Constants.OPERATION)
+//        self._request.toJson(generator, false)
+//        generator.writeEndObject()
+//    }
 }

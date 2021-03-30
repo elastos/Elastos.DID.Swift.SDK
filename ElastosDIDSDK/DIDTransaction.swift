@@ -22,21 +22,21 @@
 
 import Foundation
 
-@objc(DIDTransaction)
-public protocol DIDTransaction {
+public class DIDTransaction: IDTransactionInfo {
 
-    /// Get did.
-    func getDid() -> DID
-
-    /// Get transaction id.
-    func getTransactionId() -> String
-
-    /// Get timestamp.
-    func getTimestamp() -> Date
-
-    /// Get IDChain request operation.
-    func getOperation() -> IDChainRequestOperation
-
-    /// Get DIDDocument.
-    func getDocument() -> DIDDocument
+    init() {}
+    private var _request: DIDRequest
+    
+    init(_ txid: String, _ timestamp: Date, _ request: DIDRequest) {
+        self._request = request
+        super.init(txid, timestamp, request)
+    }
+    
+    public override var request: DIDRequest {
+        return _request
+    }
+    
+    public var did: DID? {
+        return request.did
+    }
 }

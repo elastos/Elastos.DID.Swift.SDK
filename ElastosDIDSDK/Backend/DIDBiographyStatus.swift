@@ -22,19 +22,32 @@
 
 import Foundation
 
-@objc(DIDHistory)
-public protocol DIDHistory {
+@objc(DIDBiographyStatus)
+public enum DIDBiographyStatus: Int, CustomStringConvertible {
+    case STATUS_VALID = 0
+    case STATUS_EXPIRED = 1
+    case STATUS_DEACTIVATED = 2
+    case STATUS_NOT_FOUND = 3
 
-    /// Get did.
-    func getDid() -> DID
+    func toString() -> String {
+        let desc: String
+        switch self.rawValue {
+        case 0:
+            desc = "valid"
+        case 1:
+            desc = "expired"
+        case 2:
+            desc = "deactivated"
+        case 3:
+            desc = "not_found"
+        default:
+            desc = "not_found"
+        }
+        return desc
+    }
 
-    /// Get resolve result status.
-    func getsStatus() -> ResolveResultStatus
-
-    /// Get all DIDTransaction.
-    func getAllTransactions() -> [DIDTransaction]
-
-    /// The count of transaction.
-    func getTransactionCount() -> Int
-
+    /// ResolveResultStatus string.
+    public var description: String {
+        return toString()
+    }
 }

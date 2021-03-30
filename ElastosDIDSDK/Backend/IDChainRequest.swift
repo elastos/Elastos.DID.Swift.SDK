@@ -31,10 +31,23 @@ public class IDChainRequest: NSObject {
     public static let DID_SPECIFICATION = "elastos/did/1.0"
     public static let CREDENTIAL_SPECIFICATION = "elastos/credential/1.0"
 
-    var _header: IDChainHeader
+    var _header: IDChainHeader?
     var _payload: String?
     var _proof: IDChainProof?
-    
+
+    private let HEADER = "header"
+    private let PAYLOAD = "payload"
+    private let PROOF = "proof"
+
+    private let SPECIFICATION = "specification"
+    private let OPERATION = "operation"
+    private let PREVIOUS_TXID = "previousTxid"
+    private let TICKET = "ticket"
+
+    private let TYPE = "type"
+    private let VERIFICATION_METHOD = "verificationMethod"
+    private let SIGNATURE = "signature"
+
     /*
     // header
     private var _specification: String                // must have value
@@ -51,6 +64,10 @@ public class IDChainRequest: NSObject {
     private var _signKey: DIDURL?
     private var _signature: String?
     */
+    
+    override init() {
+        
+    }
     
     /// Create a ID chain request with given operation.
     /// - Parameter operation: the operation
@@ -83,13 +100,13 @@ public class IDChainRequest: NSObject {
     }
     
     /// Get the request header object.
-    public var header: IDChainHeader {
+    public var header: IDChainHeader? {
         return _header
     }
-    
+
     /// Get the operation of this request.
     public var operation: IDChainRequestOperation? {
-        return _header.operation
+        return _header?.operation
     }
     
     /// Get the payload of this ID chain request.
@@ -117,21 +134,21 @@ public class IDChainRequest: NSObject {
     /// Get the signing inputs for generating the proof signature.
     /// - Returns: the array object of input Data arrays
     func getSigningInputs() -> [Data] {
-        let prevTxid = operation == .UPDATE ? header.previousTxid! : ""
-        let ticket = operation == .TRANSFER ? header.ticket! : ""
+        let prevTxid = operation == .UPDATE ? header?.previousTxid! : ""
+        let ticket = operation == .TRANSFER ? header?.ticket! : ""
 
         var inputs: [Data] = []
 
-        if let spec = header.specification, let data = spec.data(using: .utf8) {
+        if let spec = header?.specification, let data = spec.data(using: .utf8) {
             inputs.append(data)
         }
         if let oper = operation, let data = oper.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = prevTxid.description.data(using: .utf8)  {
+        if let data = prevTxid?.description.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = ticket.description.data(using: .utf8)  {
+        if let data = ticket?.description.data(using: .utf8)  {
             inputs.append(data)
         }
         if let pay = _payload,let data = pay.data(using: .utf8)  {
@@ -183,6 +200,10 @@ public class IDChainRequest: NSObject {
         
     }
     
+    class func parse(_ content: JsonNode) -> IDChainRequest {
+        // TODO:
+        return IDChainRequest()
+    }
 /*
     /// Constructs the 'create' IDChain Request.
     /// - Parameters:

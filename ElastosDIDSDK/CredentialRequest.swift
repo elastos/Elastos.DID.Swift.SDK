@@ -120,7 +120,7 @@ public class CredentialRequest: IDChainRequest {
     func setPayload(_ vc: VerifiableCredential) {
         self.id = vc.getId()
         self.vc = vc
-        if header.operation == .DECLARE {
+        if header?.operation == .DECLARE {
             let json = vc.toString()
             let capacity = json.count * 3
 
@@ -143,20 +143,20 @@ public class CredentialRequest: IDChainRequest {
     /// Check the validity of the object and normalize the object after
     /// deserialized the CredentialRequest object from JSON.
     override func sanitize() throws {
-        guard header.specification != nil else {
+        guard header?.specification != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing specification")
         }
-        guard header.specification == IDChainRequest.CREDENTIAL_SPECIFICATION else {
+        guard header?.specification == IDChainRequest.CREDENTIAL_SPECIFICATION else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Unsupported specification")
         }
         
-        switch header.operation {
+        switch header?.operation {
         case .DECLARE:
             break
         case .REVOKE:
             break
         default:
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header.operation?.description)")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header?.operation?.description)")
         }
         
         guard payload == nil, payload!.isEmpty else {
@@ -167,7 +167,7 @@ public class CredentialRequest: IDChainRequest {
         }
         
         do {
-            if self.header.operation == .DECLARE {
+            if self.header?.operation == .DECLARE {
                 let capacity = payload!.count * 3
                 let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
                 let cp = payload!.toUnsafePointerInt8()

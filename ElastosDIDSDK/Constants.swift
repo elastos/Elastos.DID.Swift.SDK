@@ -97,6 +97,7 @@ class Constants {
 
     // ResolveResult
     static let DID = "did"
+//    static let ID = "id"
     static let STATUS = "status"
     static let TRANSACTION = "transaction"
 

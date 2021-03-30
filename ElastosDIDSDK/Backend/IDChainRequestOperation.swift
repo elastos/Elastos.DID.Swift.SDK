@@ -23,6 +23,7 @@
 import Foundation
 
 @objc(IDChainRequestOperation)
+/// The IDChain Request Operations.
 public enum IDChainRequestOperation: Int, CustomStringConvertible {
     case CREATE = 0 // Create a new DID
     case UPDATE = 1 // Update an exist DID

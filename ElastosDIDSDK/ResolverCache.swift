@@ -71,56 +71,6 @@ public class ResolverCache: NSObject {
         deleteFile(try getCacheDir())
     }
 
-    /// Store resolve result in DID Store.
-    /// - Parameter rr: The handle of ResolveResult.
-    /// - Throws: if an error occurred, throw error.
-    @objc
-    public class func store(_ rr: ResolveResult) throws {
-        let id = rr.did.methodSpecificId
-        let path = try getFile(id)
-        let json: String = rr.toJson()
-        let data: Data = json.data(using: .utf8)!
-        let handle = FileHandle(forWritingAtPath:path)
-        handle?.write(data)
-        
-        cache.setValue(rr, for: rr.did)
-    }
-
-    /// Load resolve result.
-    /// - Parameters:
-    ///   - did: The identify of resolve result.
-    ///   - ttl: The timestamp of load resolve result.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: If no error occurs, return the handle to ResolveResult. Otherwise, return nil.
-    public class func load(_ did: DID, _ ttl: Int) throws -> ResolveResult? {
-        let path = try getFile(did.methodSpecificId)
-        
-        if try exists(path) {
-            return nil
-        }
-        
-        do {
-            let attr = try FileManager.default.attributesOfItem(atPath: path)
-            let lastModifiedTime = attr[FileAttributeKey.modificationDate] as? Date
-            let systemTime = Date()
-            let interval = systemTime.timeIntervalSince(lastModifiedTime!)
-            if Int(interval) > ttl {
-                return nil
-            }
-        } catch {
-            return nil
-        }
-
-        if cache.containsKey(for: did.methodSpecificId) {
-            return cache.getValue(for: did.methodSpecificId) as? ResolveResult
-        }
-        
-        let jsonString = try readTextFromPath(path)
-        let result = try ResolveResult.fromJson(jsonString)
-        cache.setValue(result, for: did.methodSpecificId)
-        return result
-    }
-
     /// Load resolve result.
     /// - Parameters:
     ///   - did: The identify of resolve result.

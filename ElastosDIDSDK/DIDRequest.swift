@@ -27,6 +27,10 @@ public class DIDRequest: IDChainRequest {
     var _did: DID?
     var _doc: DIDDocument?
     
+    override init() {
+        super.init()
+    }
+    
     override init(_ operation: IDChainRequestOperation) {
         super.init(operation)
     }
@@ -46,7 +50,7 @@ public class DIDRequest: IDChainRequest {
         self._doc = request.document
         super.init(request)
     }
-    
+
     /// Constructs a DID 'create' Request.
     /// - Parameters:
     ///   - doc: the DID Document be publishing
@@ -64,7 +68,7 @@ public class DIDRequest: IDChainRequest {
         
         return request
     }
-    
+
     /// Constructs a DID 'update' request.
     /// - Parameters:
     ///   - doc: the DID Document be publishing
@@ -84,7 +88,7 @@ public class DIDRequest: IDChainRequest {
         
         return request
     }
-    
+
     /// Constructs a DID 'transfer' request.
     /// - Parameters:
     ///   - doc: the DID Document be publishing
@@ -147,12 +151,12 @@ public class DIDRequest: IDChainRequest {
     
     /// Get previous transaction id string.
     public var previousTxid: String? {
-        return header.previousTxid
+        return header?.previousTxid
     }
     
     /// Get transfer ticket object.
     public var transferTicket: TransferTicket? {
-        return header.transferTicket
+        return header?.transferTicket
     }
     
     /// Get target DID of this request.
@@ -169,7 +173,7 @@ public class DIDRequest: IDChainRequest {
         self._did = doc.subject
         self._doc = doc
         
-        if header.operation != .DEACTIVATE {
+        if header?.operation != .DEACTIVATE {
             let json = doc.toString()
             let capacity = json.count * 3
 
@@ -188,29 +192,29 @@ public class DIDRequest: IDChainRequest {
     /// - Throws: MalformedIDChainTransactionError if the object is invalid
     override func sanitize() throws {
         // TODO:
-        guard header.specification != nil else {
+        guard header?.specification != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing specification")
         }
-        guard header.specification == IDChainRequest.DID_SPECIFICATION else {
+        guard header?.specification == IDChainRequest.DID_SPECIFICATION else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Unsupported specification")
         }
         
-        switch header.operation {
+        switch header?.operation {
         case .CREATE:
             break
         case .UPDATE:
-            if header.previousTxid == nil || header.previousTxid!.isEmpty {
+            if header?.previousTxid == nil || header!.previousTxid!.isEmpty {
                 break
             }
             
         case .TRANSFER:
-            if header.ticket == nil || header.ticket!.isEmpty {
+            if header?.ticket == nil || header!.ticket!.isEmpty {
                 break
             }
         case .DEACTIVATE:
             break
         default:
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header.operation?.description)")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header?.operation?.description)")
         }
         
         guard payload == nil, payload!.isEmpty else {
@@ -221,7 +225,7 @@ public class DIDRequest: IDChainRequest {
         }
         
         do {
-            if self.header.operation != .DEACTIVATE {
+            if self.header?.operation != .DEACTIVATE {
                 let capacity = payload!.count * 3
                 let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
                 let cp = payload!.toUnsafePointerInt8()

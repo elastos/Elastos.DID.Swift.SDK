@@ -24,61 +24,61 @@ import Foundation
 
 /// Header class for the ID transaction request.
 public class IDChainHeader: NSObject {
-    var specification: String?
-    var operation: IDChainRequestOperation?
-    var previousTxid: String?
-    var ticket: String?
-    var transferTicket: TransferTicket?
+    private var _specification: String?
+    private var _operation: IDChainRequestOperation?
+    private var _previousTxid: String?
+    private var _ticket: String?
+    private var _transferTicket: TransferTicket?
     
     init(_ spec: String) {
-        self.specification = spec
+        self._specification = spec
     }
     
     init(_ operation: IDChainRequestOperation, _ previousTxid: String) {
-        self.operation = operation
-        self.previousTxid = previousTxid
+        self._operation = operation
+        self._previousTxid = previousTxid
     }
     
     init(_ operation: IDChainRequestOperation, _ ticket: TransferTicket) {
-        self.operation = operation
-//        let json = ticket
+        self._operation = operation
+//        let json = ticket.toString(true)
         // TODO:
 //        self.ticket =
-        self.transferTicket = ticket
+        self._transferTicket = ticket
     }
-    
+   
     init(_ operation: IDChainRequestOperation) {
-        self.operation = operation
+        self._operation = operation
     }
     
     /// Get the specification of this request.
-    public var getSpecification: String? {
-        return specification
+    public var specification: String? {
+        return _specification
     }
     
     /// Get the operation.
-    public var getOperation: IDChainRequestOperation? {
+    public var operation: IDChainRequestOperation? {
         
-        return operation
+        return _operation
     }
     
     /// Get the previous transaction id header.
-    public var getPreviousTxid: String? {
-        return previousTxid
+    public var previousTxid: String? {
+        return _previousTxid
     }
     
     /// Get the transfer ticket header.
-    public var getTicket: String? {
-        return ticket
+    public var ticket: String? {
+        return _ticket
     }
     
     func setTicket(_ ticket: String) {
         /// TODO:
-        self.ticket = ticket
+        self._ticket = ticket
     }
     
-    public var getTransferTicket: TransferTicket? {
+    public var transferTicket: TransferTicket? {
         
-        return transferTicket
+        return _transferTicket
     }
 }
