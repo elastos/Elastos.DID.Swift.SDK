@@ -228,7 +228,7 @@ public class VerifiableCredential: DIDObject {
         return _proof
     }
 
-    func setProof(_ newProof: VerifiableCredentialProof) {
+    func setProof(_ newProof: VerifiableCredentialProof?) {
         self._proof = newProof
     }
     
@@ -275,30 +275,11 @@ public class VerifiableCredential: DIDObject {
     public var isSelfProclaimed: Bool {
         return issuer == subject?.did
     }
-    
-/*
 
-     */
-    /// Set Credential from DID Store.
-    /// - Throws: if an error occurred, throw error.
-    @objc
-    public func saveMetadata() throws {
-        if _metadata != nil && _metadata!.attachedStore {
-            try _metadata?.store?.storeCredentialMetadata(subject.did, getId(), _metadata!)
-        }
-    }
-
-    /// Credential is self proclaimed or not.
-    /// - Returns: true if is self proclaimed, or  false.
-    @objc
-    public func isSelfProclaimed() -> Bool {
-        return issuer == subject.did
-    }
-    
     private func traceCheck(_ rule: Int) throws -> Bool {
         var controllerDoc: DIDDocument?
         do {
-            controllerDoc = try issuer.resolve()
+            controllerDoc = try issuer!.resolve()
         } catch {
             controllerDoc = nil
         }
@@ -324,10 +305,10 @@ public class VerifiableCredential: DIDObject {
             break
         }
 
-        if !isSelfProclaimed() {
+        if !isSelfProclaimed {
             let issuerDoc: DIDDocument?
             do {
-                issuerDoc = try issuer.resolve()
+                issuerDoc = try issuer!.resolve()
             } catch {
                 issuerDoc = nil
             }
@@ -360,7 +341,7 @@ public class VerifiableCredential: DIDObject {
         return _expirationDate != nil ? DateFormatter.isExipired(_expirationDate!) : false
     }
 
-    /// Credential is expired or not.
+    /// Check if the Credential is expired or not.
     /// Issuance always occurs before any other actions involving a credential.
     @objc
     public var isExpired: Bool {
@@ -478,35 +459,524 @@ public class VerifiableCredential: DIDObject {
         guard !getMetadata().isRevoked() else {
             return true
         }
-        let result = DIDBackend.getInstance()
+        let bio = DIDBackend.getInstance().resolveCredentialBiography(id, issuer)
+        let revoked = bio.status == CredentialBiographyStatus.STATUS_REVOKED
+        if revoked {
+            metadata.setRevoked(revoked)
+        }
+        
+        return revoked
     }
-    /*
-         public boolean isRevoked() throws DIDResolveException {
-             if (getMetadata().isRevoked())
-                 return true;
+    
+    /// Credential is expired or not asynchronous.
+    /// - Returns: flase if not genuine, true if genuine.
+    public func isRevokedAsync() -> Promise<Bool> {
+       return DispatchQueue.global().async(.promise){ [self] in try isRevoked() }
+    }
+    
+    public func wasDeclared() throws -> Bool {
+        let bio = DIDBackend.getInstance().resolveCredentialBiography(id, issuer)
+        guard bio.status != CredentialBiographyStatus.STATUS_NOT_FOUND else {
+            return false
+        }
+        for tx in bio.getAllTransactions() {
+            if tx.request.operation == IDChainRequestOperation.DECLARE {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func declare(_ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        guard try isGenuine() else {
+            Log.e(TAG, "Publish failed because the credential is not genuine.")
+            throw DIDError.UncheckedError.IllegalStateError.CredentialNotGenuineError(id?.toString())
+        }
+        guard !isExpired else {
+            Log.e(TAG, "Publish failed because the credential is expired.")
+            throw DIDError.UncheckedError.IllegalStateError.CredentialRevokedError(id?.toString())
+        }
+        guard try !isRevoked() else {
+            Log.e(TAG, "Publish failed because the credential is revoked.")
+            throw DIDError.UncheckedError.IllegalStateError.CredentialRevokedError(id?.toString())
+        }
+        guard try !wasDeclared() else {
+            Log.e(TAG, "Publish failed because the credential already declared.")
+            throw DIDError.UncheckedError.IllegalStateError.CredentialAlreadyExistError(id?.toString())
+        }
+        var owner = try store!.loadDid(subject!.did)
+        if owner == nil {
+            // Fail-back: resolve the owner's document
+            owner = try subject?.did.resolve()
+            guard let _ = owner else {
+                throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject!.did.toString())
+            }
+            owner?.getMetadata().attachStore(store!)
+        }
+        
+        if signKey == nil && owner?.defaultPublicKeyId() == nil {
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key.")
+        }
+        var sk = signKey
+        if (signKey != nil) {
+            if (!owner!.containsAuthenticationKey(forId: signKey!)) {
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+            }
+        } else {
+            sk = owner!.defaultPublicKeyId()
+        }
+        try DIDBackend.getInstance().declareCredential(self, owner!, sk!, storepass, adapter as? DIDAdapter)
+    }
+    
+    public func declare(_ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try declare(signKey, storepass, adapter)
+    }
+    
+    public func declare(_ signKey: DIDURL, _ storepass: String) throws {
+        try declare(signKey, storepass, nil)
+    }
+    
+    public func declare(_ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try declare(DIDURL.valueOf(subject!.did, signKey), storepass, adapter)
+    }
+    
+    public func declare(_ signKey: String, _ storepass: String) throws {
+        try declare(DIDURL.valueOf(subject!.did, signKey), storepass, nil)
+    }
+    
+    public func declare(_ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try declare(nil, storepass, adapter)
+    }
+    
+    public func declare(_ storepass: String) throws {
+        try declare(nil, storepass, nil)
+    }
+    
+    public func declareAsync(_ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storepass, adapter) }
+    }
+    
+    public func declareAsync(_ signKey: DIDURL?, _ storepass: String) -> Promise<Void> {
+        return declareAsync(signKey, storepass, nil)
+    }
+    
+    public func declareAsync(_ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storepass, adapter) }
+    }
+    
+    public func declareAsync(_ signKey: String, _ storepass: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storepass) }
+    }
+    
+    public func declareAsync(_ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try declare(storepass, adapter) }
+    }
+    
+    public func declareAsync(_ storepass: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try declare(storepass) }
+    }
+    
+    private func revoke(_ signer: DIDDocument?, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkAttachedStore()
+        let owner = try subject?.did.resolve()
+        guard let _ = owner else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject?.did.toString())
+        }
+        owner?.getMetadata().attachStore(store!)
+        let issuerDoc = try issuer!.resolve()
+        guard let _ = issuerDoc else {
+            Log.e(TAG, "Publish failed because the credential issuer is not published.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(issuer?.toString())
+        }
+        issuerDoc?.getMetadata().attachStore(store!)
+        guard try !isRevoked() else {
+            Log.e(TAG, "Publish failed because the credential is revoked.")
+            throw DIDError.UncheckedError.IllegalStateError.CredentialRevokedError(id?.toString())
+        }
+        var sg = signer
+        if signer == nil {
+            let signerDid = (signKey != nil && signKey!.did != nil) ?
+                    signKey!.did : subject!.did
+            sg = try store!.loadDid(signerDid!)
+            if sg == nil {
+                // Fail-back: resolve the owner's document
+                sg = try subject!.did.resolve()
+                guard let _ = sg else {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject?.did.toString())
+                }
+                sg?.getMetadata().attachStore(store!)
+            }
+        }
+        if sg!.subject != subject?.did && sg!.subject != issuer && !owner!.hasController(sg!.subject) && !issuerDoc!.hasController(sg!.subject) {
+            Log.e(TAG, "Publish failed because the invalid signer or signkey.")
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not owner or issuer: \(sg!.subject)")
+        }
+        
+        if signKey == nil && sg!.defaultPublicKeyId() == nil {
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key")
+        }
+        var sk = signKey
+        if signKey != nil{
+            guard sg!.containsAuthenticationKey(forId: signKey!) else {
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+            }
+        }
+        else {
+            sk = sg!.defaultPublicKeyId()
+        }
+        try DIDBackend.getInstance().revokeCredential(self, sg!, sk!, storepass, adapter as? DIDAdapter)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(signer, signKey, storepass, adapter)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws {
+        try revoke(signer, signKey, storepass, nil)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(signer, nil, storepass, adapter)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ storepass: String) throws {
+        try revoke(signer, nil, storepass, nil)
+    }
+    
+    public func revoke(_ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(nil, signKey, storepass, adapter)
+    }
+    
+    public func revoke(_ signKey: DIDURL, _ storepass: String) throws {
+        try revoke(nil, signKey, storepass, nil)
+    }
+    
+    private func revoke(_ signer: DIDDocument?, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try revoke(signer, DIDURL.valueOf(subject!.did, signKey), storepass, adapter)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(signer, signKey, storepass, adapter)
+    }
+    
+    public func revoke(_ signer: DIDDocument, _ signKey: String, _ storepass: String) throws {
+        try revoke(signer, signKey, storepass, nil)
+    }
+    
+    public func revoke(_ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(nil, signKey, storepass, adapter)
+    }
+    
+    public func revoke(_ signKey: String, _ storepass: String) throws {
+        try revoke(nil, signKey, storepass, nil)
+    }
+    
+    public func revoke(_ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(nil, nil, storepass, adapter)
+    }
+    
+    public func revoke(_ storepass: String) throws {
+        try revoke(nil, nil, storepass, nil)
+    }
+    
+    private func revokeAsync(_ signer: DIDDocument?, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer, signKey, storepass, adapter) }
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(signer, signKey, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(signer, signKey, storepass, nil)
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(signer, nil, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(signer, nil, storepass, nil)
+    }
+    
+    public func revokeAsync(_ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(nil, signKey, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ signKey: DIDURL, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(nil, signKey, storepass, nil)
+    }
+    
+    private func revokeAsync(_ signer: DIDDocument?, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer, DIDURL.valueOf(subject!.did, signKey), storepass, adapter) }
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(signer, signKey, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(signer, signKey, storepass, nil)
+    }
+    
+    public func revokeAsync(_ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(nil, signKey, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ signKey: String, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(nil, signKey, storepass, nil)
+    }
+    
+    public func revokeAsync(_ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(nil, nil, storepass, adapter)
+    }
+    
+    public func revokeAsync(_ storepass: String) -> Promise<Void> {
+        return revokeAsync(nil, nil, storepass, nil)
+    }
+    
+    private class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        guard signer.getMetadata().attachedStore else {
+            throw DIDError.UncheckedError.IllegalStateError.NotAttachedWithStoreError(signer.subject.toString())
+        }
+        let bio = DIDBackend.getInstance().resolveCredentialBiography(id, signer.subject)
+        guard bio.status != CredentialBiographyStatus.STATUS_REVOKED else {
+            throw DIDError.UncheckedError.IllegalStateError.CredentialRevokedError(id.toString())
+        }
+        if bio.status == CredentialBiographyStatus.STATUS_VALID {
+            let vc = bio.getTransaction(0).request.credential
+            guard signer == vc.subject.did else {
+                Log.e(NSStringFromClass(VerifiableCredential.self), "Publish failed because the invalid signer or signkey.")
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not owner or issuer: \(signer.subject)")
+            }
+        }
+        
+        if signKey == nil && signer.defaultPublicKeyId() == nil {
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key")
+        }
+        var sk = signKey
+        if signKey != nil {
+            guard signer.containsAuthenticationKey(forId: signKey!) else {
+                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+            }
+        }
+        else {
+            sk = signer.defaultPublicKeyId()
+        }
+        try DIDBackend.getInstance().revokeCredential(id, signer, sk!, storepass, adapter as? DIDAdapter)
+    }
+    
+    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id, issuer, signKey, storepass, adapter)
+    }
+    
+    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws {
+        try revoke(id, issuer, signKey, storepass, nil)
+    }
+    
+    public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(DIDURL.valueOf(id), issuer, DIDURL.valueOf(issuer.subject, signKey), storepass, adapter)
+    }
+   
+    public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storepass: String) throws {
+        try revoke(DIDURL.valueOf(id), issuer, DIDURL.valueOf(issuer.subject, signKey), storepass, nil)
+    }
+    
+    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id, issuer, nil, storepass, adapter)
+    }
+    
+    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storepass: String) throws {
+        try revoke(id, issuer, nil, storepass, nil)
+    }
+    
+    public class func revoke(_ id: String, _ issuer: DIDDocument, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(DIDURL.valueOf(id), issuer, nil, storepass, adapter)
+    }
+   
+    public class func revoke(_ id: String, _ issuer: DIDDocument, _ storepass: String) throws {
+        try revoke(DIDURL.valueOf(id), issuer, nil, storepass, nil)
+    }
+    
+    private class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storepass, adapter) }
+    }
+    
+    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(id, issuer, signKey, storepass, adapter)
+    }
+    
+    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storepass: String) -> Promise<Void> {
+        return revokeAsync(id, issuer, signKey, storepass, nil)
+    }
+    
+    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storepass, adapter) }
+    }
+    
+    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storepass: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storepass) }
+    }
 
-             CredentialBiography bio = DIDBackend.getInstance().resolveCredentialBiography(
-                     getId(), getIssuer());
-             boolean revoked = bio.getStatus() == CredentialBiography.Status.REVOKED;
+    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ storepass: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storepass, adapter) }
+    }
+    
+    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ storepass: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storepass) }
+    }
+    
+    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ storepass: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storepass) }
+    }
+    
+    private class func resolve(_ id: DIDURL, _ issuer: DID?, _ force: Bool) -> VerifiableCredential {
+        let vc = DIDBackend.getInstance().resolveCredential(
+            id, issuer, force)
+        if vc != nil {
+            id.setMetadata(vc.getMetadata())
+        }
+        
+        return vc
+    }
+    
+    public class func resolve(_ id: DIDURL, _ issuer: DID, _ force: Bool) -> VerifiableCredential {
+        return resolve(id, issuer, force)
+    }
+    
+    private class func resolve(_ id: String, _ issuer: String?, _ force: Bool) throws -> VerifiableCredential {
+        return try resolve(DIDURL.valueOf(id), issuer != nil ? DID.valueOf(issuer!) : nil, force)
+    }
+    
+    public class func resolve(_ id: String, _ issuer: String, _ force: Bool) throws -> VerifiableCredential {
+        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), force)
+    }
+    
+    public class func resolve(_ id: DIDURL, _ issuer: DID) -> VerifiableCredential {
+        return resolve(id, issuer, false)
+    }
+    
+    public class func resolve(_ id: String, _ issuer: String) throws -> VerifiableCredential {
+        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), false)
+    }
+    
+    public class func resolve(_ id: DIDURL, _ force: Bool) -> VerifiableCredential {
+        return resolve(id, nil, force)
+    }
+    
+    public class func resolve(_ id: String, _ force: Bool) throws -> VerifiableCredential {
+        return try resolve(DIDURL.valueOf(id), nil, force)
+    }
+    
+    public class func resolve(_ id: DIDURL) -> VerifiableCredential {
+        return resolve(id, nil, false)
+    }
+    
+    public class func resolve(_ id: String) throws -> VerifiableCredential {
+        return try resolve(DIDURL.valueOf(id), nil, false)
+    }
+    
+    private class func resolveAsync(_ id: DIDURL, _ issuer: DID?, _ force: Bool) -> Promise<VerifiableCredential> {
+        return DispatchQueue.global().async(.promise){ [self] in resolve(id, issuer, force) }
+    }
+    
+    public class func resolveAsync(_ id: DIDURL, _ issuer: DID, _ force: Bool) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, issuer, force)
+    }
+    
+    private class func resolveAsync(_ id: String, _ issuer: String?, _ force: Bool) -> Promise<VerifiableCredential> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolve(id, issuer, force) }
+    }
+    
+    public class func resolveAsync(_ id: String, _ issuer: String, _ force: Bool) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, issuer, force)
+    }
+    
+    public class func resolveAsync(_ id: DIDURL, _ issuer: DID) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, issuer, false)
+    }
+    
+    public class func resolveAsync(_ id: String, _ issuer: String) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, issuer, false)
+    }
+    
+    public class func resolveAsync(_ id: DIDURL, _ force: Bool) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, nil, force)
+    }
+    
+    public class func resolveAsync(_ id: String, _ force: Bool) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, nil, force)
+    }
+    
+    public class func resolveAsync(_ id: DIDURL) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, nil, false)
+    }
+    
+    public class func resolveAsync(_ id: String) -> Promise<VerifiableCredential> {
+        return resolveAsync(id, nil, false)
+    }
+    
+    public class func resolveBiography(_ id: DIDURL, _ issuer: DID) throws -> CredentialBiography {
+        return try DIDBackend.getInstance().resolveCredentialBiography(id, issuer)
+    }
+    
+    public class func resolveBiography(_ id: DIDURL) throws -> CredentialBiography {
+        return try DIDBackend.getInstance().resolveCredentialBiography(id)
+    }
+    
+    public class func resolveBiography(_ id: String, _ issuer: String) throws -> CredentialBiography {
+        return try DIDBackend.getInstance().resolveCredentialBiography(DIDURL.valueOf(id), DID.valueOf(issuer))
+    }
+    
+    public class func resolveBiography(_ id: String) throws -> CredentialBiography {
+        return try DIDBackend.getInstance().resolveCredentialBiography(DIDURL.valueOf(id))
+    }
+    
+    public class func resolveBiographyAsync(_ id: DIDURL, _ issuer: DID) -> Promise<CredentialBiography> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
+    }
+    
+    public class func resolveBiographyAsync(_ id: DIDURL) -> Promise<CredentialBiography> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id) }
+    }
+    
+    public class func resolveBiographyAsync(_ id: String, _ issuer: String) -> Promise<CredentialBiography> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
+    }
+    
+    public class func resolveBiographyAsync(_ id: String) -> Promise<CredentialBiography> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id) }
+    }
+    
+    public class func list(_ did: DID, _ skip: Int, _ limit: Int) throws -> [DIDURL] {
+        return DIDBackend.getInstance().listCredentials(did, skip, limit)
+    }
+    
+    public class func list(_ did: DID, _ limit: Int) throws -> [DIDURL] {
+        return try list(did, 0, limit)
+    }
+    
+    public class func list(_ did: DID) throws -> [DIDURL] {
+        return try list(did, 0, 0)
+    }
+    
+    public class func listAsync(_ did: DID, _ skip: Int, _ limit: Int) -> Promise<[DIDURL]> {
+        return DispatchQueue.global().async(.promise){ [self] in try list(did, skip, limit) }
+    }
+    
+    public class func listAsync(_ did: DID, _ limit: Int) -> Promise<[DIDURL]> {
+        return listAsync(did, 0, limit)
+    }
+    
+    public class func listAsync(_ did: DID) -> Promise<[DIDURL]> {
+        return listAsync(did, 0, 0)
+    }
 
-             if (revoked)
-                 getMetadata().setRevoked(revoked);
-
-             return revoked;
-         }
-
-         public CompletableFuture<Boolean> isRevokedAsync() {
-             CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
-                 try {
-                     return isRevoked();
-                 } catch (DIDResolveException e) {
-                     throw new CompletionException(e);
-                 }
-             });
-
-             return future;
-         }
-         */
     func checkIntegrity() -> Bool {
         return (!getTypes().isEmpty && _subject != nil)
     }
@@ -575,7 +1045,7 @@ public class VerifiableCredential: DIDObject {
         setProof(proof)
 
         guard let _ = getIssuer() else {
-            setIssuer(self.subject.did)
+            setIssuer(self.subject!.did)
             return
         }
     }
@@ -670,28 +1140,28 @@ public class VerifiableCredential: DIDObject {
         generator.writeEndArray()
 
         // issuer
-        if normalized || issuer != subject.did {
-            generator.writeStringField(Constants.ISSUER, issuer.toString())
+        if normalized || issuer != subject?.did {
+            generator.writeStringField(Constants.ISSUER, issuer!.toString())
         }
 
         // issuanceDate
         generator.writeFieldName(Constants.ISSUANCE_DATE)
-        generator.writeString(DateFormatter.convertToUTCStringFromDate(issuanceDate))
+        generator.writeString(DateFormatter.convertToUTCStringFromDate(issuanceDate!))
 
-        // expirationDate
-        if let _ = getExpirationDate() {
+        // expirationDate // TODO:
+        if let e = try! expirationDate() {
             generator.writeFieldName(Constants.EXPIRATION_DATE)
-            generator.writeString(DateFormatter.convertToUTCStringFromDate(expirationDate))
+            generator.writeString(DateFormatter.convertToUTCStringFromDate(e))
         }
 
         // credenitalSubject
         generator.writeFieldName(Constants.CREDENTIAL_SUBJECT)
-        subject.toJson(generator, ref, normalized)
+        subject!.toJson(generator, ref, normalized)
 
         // proof
         if !forSign {
             generator.writeFieldName(Constants.PROOF)
-            proof.toJson(generator, issuer, normalized)
+            proof!.toJson(generator, issuer, normalized)
         }
 
         generator.writeEndObject()

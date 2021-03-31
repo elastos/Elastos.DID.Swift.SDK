@@ -24,13 +24,20 @@ import Foundation
 
 @objc(DIDBackend)
 public class DIDBackend: NSObject {
-    private static let TAG = "DIDBackend"
-    private static var resolver: DIDResolver?
-    private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
+    private let DEFAULT_CACHE_INITIAL_CAPACITY = 16
+    private let DEFAULT_CACHE_MAX_CAPACITY = 64
+    private let DEFAULT_CACHE_TTL = 10 * 60 * 1000
+    private var _random: Int
+    
+    private static let TAG = NSStringFromClass(DIDBackend.self)
+//    private static var resolver: DIDResolver?
+//    private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
     private static var resolveHandle: ResolveHandle? = nil
     private static var instance: DIDBackend?
+    private var cache: [ResolveRequest: ResolveResult] = [: ]
+    
     
     class TransactionResult: NSObject {
         private var _transactionId: String?
@@ -219,19 +226,19 @@ public class DIDBackend: NSObject {
         invalidDidCache(target.subject)
     }
     
-    func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
         let request = try CredentialRequest.declare(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
         invalidCredentialCache(vc.getId(), vc.getIssuer())
     }
     
-    func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
         invalidCredentialCache(vc.getId(), vc.getIssuer())
     }
     
-    func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
         invalidCredentialCache(vc, signer.subject)

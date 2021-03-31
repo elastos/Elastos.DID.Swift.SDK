@@ -25,9 +25,11 @@ import Foundation
 @objc(VerifiableCredentialSubject)
 /// The object keeps the credential subject contents.
 public class VerifiableCredentialSubject: NSObject {
+    private let TAG = NSStringFromClass(VerifiableCredentialSubject.self)
     private var _id: DID
     private var _properties: JsonNode = JsonNode()
-    
+    private let ID = "id"
+
     init(_ id: DID) {
         self._id = id
     }
@@ -61,6 +63,14 @@ public class VerifiableCredentialSubject: NSObject {
     public func getProperties() -> JsonNode? {
         return self._properties.deepCopy()
     }
+    
+    
+    /// Get array of subject properties in Credential.
+    /// - Returns: Array of credential
+    @objc
+    public func properties() -> [String: Any]? {
+        return self._properties.deepCopy()?.asDictionary()
+    }
 
     /// Get specified subject property according to the key of property.
     /// - Parameter ofName: The key of property.
@@ -77,11 +87,27 @@ public class VerifiableCredentialSubject: NSObject {
     public func getProperty(ofName: String) -> JsonNode? {
         return self._properties.get(forKey: ofName)
     }
-
+    
+    /// Get specified subject property according to the key of property.
+    /// - Parameter ofName: The key of property.
+    /// - Returns: properties as string.
+    @objc
+    public func property(ofName: String) -> [String: Any]? {
+        return self._properties.get(forKey: ofName)?.asDictionary()
+    }
+    
     func setProperties(_ properties: JsonNode) {
         self._properties = properties.deepCopy()!
         // remote ID field, avoid conflict with subject's id property.
         self._properties.remove("id")
+    }
+    
+    func setProperties(_ name: String, _ value: Any) {
+        
+        guard name != ID else {
+            return
+        }
+        _properties.setValue(value, forKey: name)
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialSubject {

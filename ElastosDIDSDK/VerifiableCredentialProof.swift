@@ -23,40 +23,56 @@
 import Foundation
 
 @objc(VerifiableCredentialProof)
+/// The proof information for verifiable credential.
+/// The default proof type is ECDSAsecp256r1.
 public class VerifiableCredentialProof: NSObject {
     private var _type: String
     private var _verificationMethod: DIDURL
     private var _signature: String
     private var _created: Date
-    init(_ type: String, _ method: DIDURL, _ created: Date, _ signature: String) {
-        self._type = type
+    
+    /// Constructs the Proof object with the given values.
+    /// - Parameters:
+    ///   - type: the verification method type
+    ///   - method: the verification method, normally it's a public key
+    ///   - signature: the signature encoded in base64 URL safe format
+    init(_ type: String, _ method: DIDURL, _ signature: String) {
+        self._type = Constants.DEFAULT_PUBLICKEY_TYPE
         self._verificationMethod = method
-        self._created = created
+        self._created = DateFormatter.currentDate()
+        self._signature = signature
+    }
+    
+    init(_ method: DIDURL, _ created: Date?, _ signature: String) {
+        self._type = Constants.DEFAULT_PUBLICKEY_TYPE
+        self._verificationMethod = method
+        self._created = created != nil ? created! : DateFormatter.currentDate()
         self._signature = signature
     }
 
-    /// The cryptographic signature suite that was used to generate the signature
+    /// TGet the verification method type.
     @objc
     public var type: String {
         return _type
     }
-
+    
+    /// Get the created.
     public var created: Date {
         return _created
     }
     
-    /// The public key identifier that created the signature
+    /// Get the verification method, normally it's a public key id.
     @objc
     public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
-    /// The signed value, using Base64 encoding
+    /// the signature encoded in URL safe base64 string
     @objc
     public var signature: String {
         return _signature
     }
-    
+
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialProof {
         let error = { (des) -> DIDError in
             return DIDError.malformedCredential(des)
