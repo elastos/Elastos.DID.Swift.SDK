@@ -22,21 +22,25 @@
 
 import Foundation
 
+/**
+ * The interface to indicate how to get local did document, if this did is not published to chain.
+ */
 @objc(DIDBackend)
 public class DIDBackend: NSObject {
-    private let DEFAULT_CACHE_INITIAL_CAPACITY = 16
-    private let DEFAULT_CACHE_MAX_CAPACITY = 64
-    private let DEFAULT_CACHE_TTL = 10 * 60 * 1000
-    private var _random: Int
+    private let TAG = NSStringFromClass(DIDBackend.self)
+    private static let DEFAULT_CACHE_INITIAL_CAPACITY = 16
+    private static let DEFAULT_CACHE_MAX_CAPACITY = 64
+    private static let DEFAULT_CACHE_TTL = 10 * 60 * 1000
+    private var _random: String = ""
     
     private static let TAG = NSStringFromClass(DIDBackend.self)
 //    private static var resolver: DIDResolver?
 //    private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
-    private static var resolveHandle: ResolveHandle? = nil
+    private var resolveHandle: ResolveHandle?
     private static var instance: DIDBackend?
-    private var cache: [ResolveRequest: ResolveResult] = [: ]
+    private var cache: LRUCache<ResolveRequest, ResolveResult>
     
     
     class TransactionResult: NSObject {
@@ -161,24 +165,359 @@ public class DIDBackend: NSObject {
             return result!
         }
     }
-
-    init(_ adapter: DIDAdapter) {
+    
+    /// Create a DIDBackend with the adapter and the cache specification.
+    /// - Parameters:
+    ///   - adapter: the DIDAdapter object
+    ///   - initialCacheCapacity: the initial cache size, 0 for default size
+    ///   - maxCacheCapacity: the maximum cache capacity, 0 for default capacity
+    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    init(_ adapter: DIDAdapter, _ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ cacheTtl: Int) {
         self._adapter = adapter
+        cache = LRUCache<ResolveRequest, ResolveResult>(initialCacheCapacity, maxCacheCapacity)
+    }
+
+    /// Initialize the DIDBackend with the adapter and the cache specification.
+    /// - Parameter adapter: the DIDAdapter object
+    public class func initialize(_ adapter: DIDAdapter, _ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ cacheTtl: Int) throws {
+        try checkArgument(initialCacheCapacity <= maxCacheCapacity, "Invalid cache capacity")
+        let c = initialCacheCapacity < maxCacheCapacity ? initialCacheCapacity : maxCacheCapacity
+        instance = DIDBackend(adapter, c, maxCacheCapacity, cacheTtl)
     }
     
     /// Initialize the DIDBackend with the adapter and the cache specification.
-    /// - Parameter adapter: the DIDAdapter object
-    public class func initialize(_ adapter: DIDAdapter) {
-        instance = DIDBackend(adapter)
+    /// - Parameters:
+    ///   - adapter: the DIDAdapter object
+    ///   - maxCacheCapacity: the maximum cache capacity, 0 for default capacity
+    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    public class func initialize(_ adapter: DIDAdapter, _ maxCacheCapacity: Int, _ cacheTtl: Int) throws {
+        instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, maxCacheCapacity, cacheTtl)
     }
-    // TODO: cache
+    
+    /// Initialize the DIDBackend with the adapter and the cache specification.
+    /// - Parameters:
+    ///   - adapter: the DIDAdapter object
+    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    public class func initialize(_ adapter: DIDAdapter, _ cacheTtl: Int) throws {
+        instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, DEFAULT_CACHE_MAX_CAPACITY, cacheTtl)
+    }
+    
+    /// Initialize the DIDBackend with the adapter and the cache specification.
+    /// - Parameters:
+    ///   - adapter: the DIDAdapter object
+    public class func initialize(_ adapter: DIDAdapter) throws {
+        instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, DEFAULT_CACHE_MAX_CAPACITY, DEFAULT_CACHE_TTL)
+    }
+    
+    /// Get DIDBackend instance.
+    /// - Parameter adapter: A handle to DIDAdapter.
+    /// - Returns: DIDBackend instance.
+    @objc
+    public class func sharedInstance() -> DIDBackend {
+        return instance!
+    }
+    
+    private func generateRequestId() -> String {
+        var requestId = ""
+        while requestId.count < 16 {
+            let randomStr = Int.decTohex(number: Int.randomCustom(min: 0, max: 16))
+            requestId.append(randomStr)
+        }
+        return requestId
+    }
+
+    var adapter: DIDAdapter {
+        
+        return _adapter
+    }
+    
+    private func resolve(_ request: ResolveRequest) throws -> ResolveResult{
+        Log.d(TAG, "Resolving request ", request, "...")
+        
+        let requestJson = try request.serialize(true)
+        let re = try adapter.resolve(requestJson)
+        var response: ResolveResponse
+        switch request.method {
+        case DIDResolveRequest.METHOD_NAME: do {
+            response = DIDResolveResponse.parse(re)
+            break
+        }
+        case CredentialResolveRequest.METHOD_NAME: do {
+            response = CredentialResolveResponse.parse(re)
+            break
+        }
+        case CredentialListRequest.METHOD_NAME: do {
+            response = CredentialListResponse.parse(re)
+            break
+        }
+        default:
+            Log.e(TAG, "INTERNAL - unknown resolve method ", request.method)
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Unknown resolve method: \(request.method)")
+        }
+        
+        if response.responseId != request.requestId {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Mismatched resolve result with request.")
+        }
+        
+        if response.result != nil {
+            return response.result!
+        }
+        else {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Server error: \(response.errorCode): \(response.errorMessage)")
+        }
+    }
+
+    private func resolveDidBiography(_ did: DID, _ all: Bool, _ force: Bool) throws -> DIDBiography {
+        Log.i(TAG, "Resolving DID \(did.toString())", all, "=...")
+        let request = DIDResolveRequest(generateRequestId())
+        request.setParameters(did, all)
+        if force {
+            cache.removeValue(for: request)
+        }
+        return try cache.getValue(for: request) { () -> ResolveResult? in
+            return try resolve(request)
+        } as! DIDBiography
+    }
+    
+    ///  Resolve all DID transactions.
+    /// - Parameter did: the specified DID object
+    /// - Returns: the DIDBiography object
+    func resolveDidBiography(_ did: DID) throws -> DIDBiography? {
+        let biography = try resolveDidBiography(did, true, false)
+        if biography.status == DIDBiographyStatus.STATUS_NOT_FOUND {
+            return nil
+        }
+        return biography
+    }
+    
+    /// Resolve DID content(DIDDocument).
+    /// - Parameters:
+    ///   - did: the DID object
+    ///   - force: force = true, DID content must be from chain.
+    ///            force = false, DID content could be from chain or local cache.
+    /// - Returns: the DIDDocument object
+    func resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
+        Log.d(TAG, "Resolving DID ", did.toString(), "...")
+        if resolveHandle != nil {
+            let doc = resolveHandle!(did)
+            guard doc == nil else {
+                return doc
+            }
+        }
+        let bio = try resolveDidBiography(did, false, force)
+        var tx: DIDTransaction?
+        switch bio.status {
+        case .STATUS_VALID:
+            tx = bio.getTransaction(0)
+            break
+        case .STATUS_DEACTIVATED:
+            guard bio.count == 2 else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong transaction count.")
+            }
+            tx = bio.getTransaction(0)
+            guard tx?.request.operation == IDChainRequestOperation.DECLARE else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong status.")
+            }
+            let doc = bio.getTransaction(1).request.document
+            guard doc != nil else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, invalid trancations.")
+            }
+            // Avoid resolve current DID recursively
+            tx!.request._doc = tx!.request.document == nil ? doc : tx!.request.document!
+            let request = DIDRequest(tx!.request)
+            guard try request.isValid() else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, transaction signature mismatch.")
+            }
+            tx = bio.getTransaction(1)
+            break
+        case .STATUS_NOT_FOUND:
+            return nil
+        
+        default:
+            return nil
+        }
+        
+        if tx?.request.operation != IDChainRequestOperation.CREATE && tx?.request.operation != IDChainRequestOperation.UPDATE && tx?.request.operation != IDChainRequestOperation.TRANSFER {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, unknown operation.")
+        }
+        
+        if try (tx == nil ||  tx!.request.isValid()) {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, signature mismatch.")
+        }
+        let doc = tx!.request.document
+        let metadata = DIDMetadata(doc!.subject)
+        metadata.setTransactionId(tx!.getTransactionId())
+        metadata.setSignature(doc!.proof.signature)
+        metadata.setPublishTime(tx!.getTimestamp())
+        if bio.status == DIDBiographyStatus.STATUS_DEACTIVATED {
+            metadata.setDeactivated(true)
+        }
+        doc?.setMetadata(metadata)
+        
+        return doc
+    }
+    
+    /// Resolve DID content(DIDDocument).
+    /// - Parameter did: the DID object
+    /// - Returns: the DIDDocument object
+    func resolveDid(_ did: DID) throws -> DIDDocument? {
+        return try resolveDid(did, false)
+    }
+    
+    private func resolveCredentialBiography(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> CredentialBiography {
+        Log.i(TAG, "Resolving credential ", id, ", issuer=\(issuer)")
+        let request = CredentialResolveRequest(generateRequestId())
+        if issuer == nil {
+            request.setParameters(id)
+        }
+        else {
+            request.setParameters(id, issuer!)
+        }
+        if force {
+            cache.removeValue(for: request)
+        }
+        return try cache.getValue(for: request) { () -> ResolveResult? in
+            return try resolve(request)
+        } as! CredentialBiography
+    }
+    
+    func resolveCredentialBiography(_ id: DIDURL, _ issuer: DID) throws -> CredentialBiography? {
+        return try resolveCredentialBiography(id, issuer, false)
+    }
+    
+    func resolveCredentialBiography(_ id: DIDURL) throws -> CredentialBiography? {
+        return try resolveCredentialBiography(id, nil, false)
+    }
+    
+    private func resolveCredential(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> VerifiableCredential? {
+        Log.d(TAG, "Resolving credential ", id)
+        let bio = try resolveCredentialBiography(id, issuer, force)
+        var tx: CredentialTransaction?
+        switch bio.status {
+        case .STATUS_VALID:
+            tx = bio.getTransaction(0)
+            break
+        case .STATUS_REVOKED:
+            tx = bio.getTransaction(0)
+            guard tx?.request.operation == IDChainRequestOperation.REVOKE else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, wrong status.")
+            }
+            guard bio.count >= 1, bio.count < 2 else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, transaction signature mismatch.")
+            }
+            guard bio.count != 1 else {
+                guard try tx!.request.isValid() else {
+                    throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, transaction signature mismatch.")
+                }
+                return nil
+            }
+            let vc = bio.getTransaction(1).request.credential
+            // Avoid resolve current credential recursively
+            tx!.request.vc = tx!.request.credential == nil ? vc : tx!.request.credential!
+            let request = CredentialRequest(tx!.request)
+            guard try request.isValid() else {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, transaction signature mismatch.")
+            }
+            tx = bio.getTransaction(1)
+            break
+        case .STATUS_NOT_FOUND:
+            return nil
+        default:
+            return nil
+        }
+        
+        guard tx!.request.operation == IDChainRequestOperation.DECLARE else {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential transaction, unknown operation.")
+        }
+        
+        if try (tx!.request.isValid()) {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential transaction, signature mismatch.")
+        }
+        let vc = tx!.request.credential
+        let metadata = CredentialMetadata(vc!.id!)
+        metadata.setTransactionId(tx!.getTransactionId())
+        metadata.setPublishTime(tx!.getTimestamp())
+        if (bio.status == CredentialBiographyStatus.STATUS_REVOKED) {
+            metadata.setRevoked(true)
+        }
+        vc!.setMetadata(metadata)
+        
+        return vc
+    }
+    
+    func resolveCredential(_ id: DIDURL, _ issuer: DID, _ force: Bool) throws -> VerifiableCredential? {
+        try resolveCredential(id, issuer, force)
+    }
+    
+    func resolveCredential(_ id: DIDURL, _ issuer: DID) throws -> VerifiableCredential? {
+        
+        return try resolveCredential(id, issuer, false)
+    }
+    
+    func resolveCredential(_ id: DIDURL, _ force: Bool) throws -> VerifiableCredential? {
+        
+        return try resolveCredential(id, nil, force)
+    }
+    
+    func resolveCredential(_ id: DIDURL) throws -> VerifiableCredential? {
+        
+        return try resolveCredential(id, nil, false)
+    }
+    
+    func listCredentials(_ did: DID, _ skip: Int, _ limit: Int) throws -> [DIDURL] {
+        Log.i(TAG, "List credentials for ", did)
+        let request = CredentialListRequest(generateRequestId())
+        request.setParameters(did, skip, limit)
+        let list = try resolve(request) as? CredentialList
+        guard let _ = list, list!.count != 0 else {
+            return [ ]
+        }
+        
+        return list!.credentialIds
+    }
+    
+    private func createTransaction(_ request: IDChainRequest, _ adapter: DIDTransactionAdapter?) throws {
+        Log.i(TAG, "Create ID transaction...")
+        let payload = request.serialize(true)
+        Log.i(TAG, "Transaction paload: '", payload, "', memo: ")
+        var _adapter = adapter
+        if _adapter == nil {
+            _adapter = self.adapter
+        }
+        _adapter.createIdTransaction(payload, payload)
+        Log.i(TAG, "ID transaction complete.")
+    }
+    
+    private func invalidDidCache(_ did: DID) {
+        let request = DIDResolveRequest(generateRequestId())
+        request.setParameters(did, true)
+        cache.removeValue(for: request)
+
+        request.setParameters(did, false)
+        cache.removeValue(for: request)
+    }
+    
+    private func invalidCredentialCache(_ id: DIDURL, _ signer: DID?) {
+        let request = CredentialResolveRequest(generateRequestId())
+        if signer != nil {
+            request.setParameters(id, signer!)
+            cache.removeValue(for: request)
+        }
+        
+        request.setParameters(id)
+        cache.removeValue(for: request)
+    }
+    
+    public func clearCache() {
+        cache.clear()
+    }
     
     /// Publish 'create' id transaction for the new did.
     /// - Parameters:
     ///   - doc: the DIDDocument object
     ///   - signKey: the key to sign
     ///   - storepass: the password for DIDStore
-    func createDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+    func createDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.create(doc, signKey, storepass)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
@@ -190,13 +529,13 @@ public class DIDBackend: NSObject {
     ///   - previousTxid: the previous transaction id string
     ///   - signKey: the key to sign
     ///   - storepass: the password for DIDStore
-    func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+    func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.update(doc, previousTxid, signKey, storepass)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
     }
     
-    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
         let request = try DIDRequest.transfer(doc, ticket, signKey, storepass)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
@@ -207,7 +546,7 @@ public class DIDBackend: NSObject {
     ///   - doc: the DIDDocument object
     ///   - signKey: the key to sign
     ///   - storepass: the password for DIDStore
-    func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
         let request = try DIDRequest.deactivate(doc, signKey, storepass)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
@@ -220,324 +559,30 @@ public class DIDBackend: NSObject {
     ///   - signer: the signer's DIDDocument object
     ///   - signKey: the key to sign
     ///   - storepass: the password for DIDStore
-    func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
+    func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter) throws {
         let request = try DIDRequest.deactivate(target, targetSignKey, signer, signKey, storepass)
         try createTransaction(request, adapter)
         invalidDidCache(target.subject)
     }
     
-    func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+    func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.declare(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
+        invalidCredentialCache(vc.getId(), nil)
         invalidCredentialCache(vc.getId(), vc.getIssuer())
     }
     
-    func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+    func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
+        invalidCredentialCache(vc.getId(), nil)
         invalidCredentialCache(vc.getId(), vc.getIssuer())
     }
     
-    func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter?) throws {
+    func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storepass)
         try createTransaction(request, adapter)
+        invalidCredentialCache(vc, nil)
         invalidCredentialCache(vc, signer.subject)
     }
-    
-    func createTransaction(_ request: IDChainRequest, _ adapter: DIDAdapter?) throws {
-        // TODO: LOG
-        let payload = request.serialize(true)
-        var ad = adapter
-        if ad == nil {
-            ad = _adapter
-        }
-        try ad!.createIdTransaction(payload, payload)
-    }
-    
-    func invalidDidCache(_ did: DID) {
-        // TODO:
-    }
-    
-    func invalidCredentialCache(_ id: DIDURL, _ signer: DID?) {
-        // TODO:
-    }
-    
-    /// Get DIDBackend instance.
-    /// - Parameter adapter: A handle to DIDAdapter.
-    /// - Returns: DIDBackend instance.
-    @objc
-    public class func getInstance(_ adapter: DIDAdapter) -> DIDBackend {
-        return DIDBackend(adapter)
-    }
-    
-    // TODO:
-    public class func getInstance() -> DIDBackend {
-        return instance!
-    }
-    
-    public var adapter: DIDAdapter {
-        return _adapter
-    }
-    
-    
-    /////////////----------- remove start ---------
-    /*
-    /// Initialize DIDBackend to resolve by url.
-    /// - Parameters:
-    ///   - resolverURL: The URL string.
-    ///   - cacheDir: The directory for cache.
-    /// - Throws:  if an error occurred, throw error.
-    @objc
-    public class func initializeInstance(_ resolverURL: String, _ cacheDir: String) throws {
-        guard !resolverURL.isEmpty, !cacheDir.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-
-        try initializeInstance(DefaultResolver(resolverURL), cacheDir)
-    }
-    
-    /// Initialize DIDBackend to resolve by url.
-    /// - Parameters:
-    ///   - resolverURL: The URL string.
-    ///   - cacheDir: The directory for cache.
-    /// - Throws: if an error occurred, throw error.
-    @objc(initializeInstance:cacheDir:error:)
-    public class func initializeInstance(_ resolverURL: String, _ cacheDir: URL) throws {
-        guard !resolverURL.isEmpty, !cacheDir.isFileURL else {
-            throw DIDError.illegalArgument()
-        }
-
-        try initializeInstance(DefaultResolver(resolverURL), cacheDir)
-    }
-
-    /// Initialize DIDBackend to resolve by DIDResolver.
-    /// - Parameters:
-    ///   - resolver: The handle to DIDResolver.
-    ///   - cacheDir: The directory for cache.
-    /// - Throws: if an error occurred, throw error.
-    @objc(initializeInstanceWith:cacheDir:error:)
-    public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: String) throws {
-        guard !cacheDir.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-
-        do {
-            DIDBackend.resolver = resolver
-            try ResolverCache.setCacheDir(cacheDir)
-        } catch {
-            throw DIDError.illegalArgument()
-        }
-    }
-
-    /// Initialize DIDBackend to resolve by DIDResolver.
-    /// - Parameters:
-    ///   - resolver: The handle to DIDResolver.
-    ///   - cacheDir: The directory for cache.
-    /// - Throws: if an error occurred, throw error.
-    @objc(initializeInstanceWithResolver:cacheDir:error:)
-    public class func initializeInstance(_ resolver: DIDResolver, _ cacheDir: URL) throws {
-        guard !cacheDir.isFileURL else {
-            throw DIDError.illegalArgument()
-        }
-
-        do {
-            DIDBackend.resolver = resolver
-            try ResolverCache.setCacheDir(cacheDir)
-        } catch {
-            throw DIDError.illegalArgument()
-        }
-    }
-
-    class func getTtl() -> Int {
-        return _ttl != 0 ? (_ttl / 60 / 1000) : 0
-    }
-
-    class func setTtl(_ newValue: Int) {
-        self._ttl = newValue > 0 ? (newValue * 60 * 1000) : 0
-    }
-
-    private class func generateRequestId() -> String {
-        var requestId = ""
-        while requestId.count < 16 {
-            let randomStr = Int.decTohex(number: Int.randomCustom(min: 0, max: 16))
-            requestId.append(randomStr)
-        }
-        return requestId
-    }
-
-    private class func resolveFromBackend(_ did: DID, _ all: Bool) throws -> ResolveResult {
-        let requestId = generateRequestId()
-
-        guard let _ = resolver else {
-            throw DIDError.didResolveError("DID resolver not initialized")
-        }
-
-        let data = try resolver!.resolve(requestId, did.toString(), all)
-        let dict: [String: Any]?
-        do {
-            dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-        } catch {
-            throw DIDError.didResolveError("parse resolved json error.")
-        }
-
-        guard let _ = dict else {
-            throw DIDError.didResolveError("invalid json format")
-        }
-
-        let node = JsonNode(dict!)
-        let id = node.get(forKey: Constants.ID)?.asString()
-        guard let _ = id else {
-            throw DIDError.didResolveError("missing resolved result id")
-        }
-        guard id! == requestId else {
-            throw DIDError.didResolveError("mismatched request Id for resolved result")
-        }
-
-        let resultNode = node.get(forKey: Constants.RESULT)
-        guard let _ = resultNode, !resultNode!.isEmpty else {
-            let errorNode = node.get(forKey: Constants.ERROR)
-            let errorCode = errorNode?.get(forKey: Constants.ERROR_CODE)?.asString() ?? "<null>"
-            let errorMsg  = errorNode?.get(forKey: Constants.ERROR_MESSAGE)? .asString() ?? "<null>"
-
-            throw DIDError.didResolveError("resolve DID error(\(errorCode)):\(errorMsg)")
-        }
-
-        let result = try ResolveResult.fromJson(resultNode!)
-        if result.status != ResolveResultStatus.STATUS_NOT_FOUND {
-            do {
-                try ResolverCache.store(result)
-            } catch {
-                NSLog("!!! cache resolved result error: \(DIDError.desription(error as! DIDError))")
-            }
-        }
-
-        return result
-    }
-
-     class func resolveHistory(_ did: DID) throws -> DIDHistory {
-        Log.i(TAG, "Resolving {}...\(did.toString())")
-        let rr = try resolveFromBackend(did, true)
-        guard rr.status != ResolveResultStatus.STATUS_NOT_FOUND else {
-            throw DIDError.didResolveError()
-        }
-        return rr
-     }
-
-    ///  User set DID Local Resolve handle in order to give which did document to verify.
-    ///  If handle != NULL, set DID Local Resolve Handle.
-    /// - Parameter handle: A handle to ResolveHandle.
-    @objc
-    public class func setResolveHandle(_ handle: @escaping ResolveHandle) {
-        DIDBackend.resolveHandle = handle
-    }
-
-    class func resolve(_ did: DID, _ force: Bool) throws -> DIDDocument? {
-        Log.i(TAG, "Resolving {\(did.toString())} ...")
-
-        guard DIDBackend.resolveHandle == nil else {
-           return resolveHandle!(did)
-        }
-
-        var result: ResolveResult?
-        if (!force) {
-            result = try ResolverCache.load(did, _ttl)
-            Log.d(TAG, "Try load {\(did.toString())} from resolver cache");
-        }
-
-        if  result == nil {
-            result = try resolveFromBackend(did, false)
-        }
-
-        switch result!.status {
-            // When DID expired, we should also return the document.
-            // case .STATUS_EXPIRED:
-            //     throw DIDError.didExpired()
-
-        case .STATUS_DEACTIVATED:
-            throw DIDError.didDeactivated()
-
-        case .STATUS_NOT_FOUND:
-            return nil
-
-        default:
-
-            let transactionInfo = try result!.transactionInfo(0)
-            let doc = transactionInfo?.request.document
-            let meta = DIDMetadata()
-
-//            meta.setTransactionId(transactionInfo!.transactionId)
-//            meta.setSignature(doc!.proof.signature)
-//            meta.setPublished(transactionInfo!.getTimestamp())
-//            meta.setLastModified(transactionInfo!.getTimestamp())
-            doc!.setMetadata(meta)
-            return doc
-        }
-    }
-
-    class func resolve(_ did: DID) throws -> DIDDocument? {
-        return try resolve(did, false)
-    }
-
-    func getAdapter() -> DIDAdapter {
-        return _adapter
-    }
-
-    private func createTransaction(_ payload: String, _ memo: String?) throws {
-        Log.i(DIDBackend.TAG, "Create ID transaction...")
-        Log.d(DIDBackend.TAG, "Transaction paload: '{\(payload)}', memo: {\(memo ?? "none")}}")
-
-        try _adapter.createIdTransaction(payload, memo)
-        Log.d(DIDBackend.TAG, "ID transaction complete.")
-    }
-
-    func create(_ doc: DIDDocument,
-                _ signKey: DIDURL,
-                _ storePassword: String) throws {
-
-        let request = try IDChainRequest.create(doc, signKey, storePassword)
-        return try createTransaction(request.toJson(true), nil)
-    }
-    
-    /// Publish 'Update' id transaction for the existed did.
-    /// - Parameters:
-    ///   - doc: the DIDDocument object
-    ///   - previousTxid: the previous transaction id string
-    ///   - signKey: the key to sign
-    ///   - storepass: the password for DIDStore
-    func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String, _ adapter: DIDAdapter) throws {
-        let request = DIDRequest.update(doc, previousTxid, signKey, storepass)
-        createTransaction(request, adapter)
-//        invalidDidCache(doc.subject)
-    }
-
-    func update(_ doc: DIDDocument,
-                _ previousTransactionId: String,
-                _ signKey: DIDURL,
-                _ storePassword: String) throws {
-
-        let request = try IDChainRequest.update(doc, previousTransactionId, signKey, storePassword)
-        try createTransaction(request.toJson(true), nil)
-        try ResolverCache.invalidate(doc.subject)
-    }
-
-    func deactivate(_ doc: DIDDocument,
-                    _ signKey: DIDURL,
-                    _ storePassword: String) throws {
-
-        let request = try IDChainRequest.deactivate(doc, signKey, storePassword)
-        try createTransaction(request.toJson(true), nil)
-        try ResolverCache.invalidate(doc.subject)
-    }
-
-    func deactivate(_ target: DID,
-                    _ targetSignKey: DIDURL,
-                    _ doc: DIDDocument,
-                    _ signKey: DIDURL,
-                    _ storePassword: String) throws {
-
-        let request = try IDChainRequest.deactivate(target, targetSignKey, doc, signKey, storePassword)
-        try createTransaction(request.toJson(true), nil)
-        try ResolverCache.invalidate(doc.subject)
-    }
-    */
 }

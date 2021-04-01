@@ -23,7 +23,6 @@
 import Foundation
 
 public class CredentialListResponse: ResolveResponse{
-    init() {}
     
     init(_ responseId: String, _ result: CredentialList) {
         super.init(responseId, result)

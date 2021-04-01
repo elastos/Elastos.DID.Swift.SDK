@@ -57,15 +57,19 @@ public class CredentialBiography: ResolveResult{
         return _txs.count
     }
     
-    func getTransaction(_ index: Int) -> CredentialTransaction {
+    public func getTransaction(_ index: Int) -> CredentialTransaction {
         return _txs[index]
     }
     
-    func getAllTransactions() -> [CredentialTransaction] {
+    public func getAllTransactions() -> [CredentialTransaction] {
         return _txs
     }
     
-    func appendTransaction(_ tx: CredentialTransaction) {
+    func removeTransaction(_ index: Int) -> CredentialTransaction? {
+        return _txs.remove(at: index)
+    }
+    
+    public func appendTransaction(_ tx: CredentialTransaction) {
         _txs.append(tx)
     }
     

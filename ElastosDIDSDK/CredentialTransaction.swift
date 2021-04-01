@@ -23,7 +23,7 @@
 import Foundation
 
 public class CredentialTransaction: IDTransactionInfo {
-    private var _request: CredentialRequest
+    var _request: CredentialRequest
     
     init(_ txid: String, _ timestamp: Date, _ request: CredentialRequest) {
         self._request = request

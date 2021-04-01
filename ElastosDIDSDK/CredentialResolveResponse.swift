@@ -24,7 +24,6 @@ import Foundation
 
 /// The credential resolve response object.
 public class CredentialResolveResponse: ResolveResponse {
-    init() {}
     
     init(_ responseId: String, _ result: CredentialBiography) {
         super.init(responseId, result)

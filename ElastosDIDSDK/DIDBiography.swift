@@ -66,6 +66,10 @@ public class DIDBiography: ResolveResult {
         return _txs
     }
     
+    func removeTransaction(_ index: Int) -> DIDTransaction? {
+        return _txs.remove(at: index)
+    }
+
     public func appendTransaction(_ newElement: DIDTransaction) {
         _txs.append(newElement)
     }

@@ -25,12 +25,12 @@ import Foundation
 public class CredentialResolveRequest: ResolveRequest{
     private let PARAMETER_ID = "id"
     private let PARAMETER_ISSUER = "issuer"
-    private let METHOD_NAME = "resolvecredential"
+    public static let METHOD_NAME = "resolvecredential"
 
     private var _params: CredentialParameters?
     
     init(_ requestId: String) {
-        super.init(requestId, METHOD_NAME)
+        super.init(requestId, CredentialResolveRequest.METHOD_NAME)
     }
     
     public var params: CredentialParameters? {
@@ -64,6 +64,11 @@ public class CredentialResolveRequest: ResolveRequest{
     public override var description: String {
         
         return "TODO:"
+    }
+    
+    override func serialize(_ force: Bool) throws -> String {
+        // TODO:
+        return "todo"
     }
 }
 

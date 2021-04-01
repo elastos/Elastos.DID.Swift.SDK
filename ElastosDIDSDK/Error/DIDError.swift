@@ -122,10 +122,11 @@ public enum DIDError: Error {
         }
         
         public enum DIDBackendError {
-            public enum DIDResolveError {
+            public enum DIDResolveErrors {
                 case NetworkError(_ des: String? = nil)
             }
             case DIDTransactionError(_ des: String? = nil)
+            case DIDResolveError(_ des: String? = nil)
         }
     }
 }

@@ -113,7 +113,7 @@ public class CredentialRequest: IDChainRequest {
     }
     
     /// Get the target VerifiableCredential object of this request.
-    public var getCredential: VerifiableCredential? {
+    public var credential: VerifiableCredential? {
         return vc
     }
     
@@ -206,11 +206,11 @@ public class CredentialRequest: IDChainRequest {
         }
         
         if operation == IDChainRequestOperation.DECLARE {
-            signer = try getCredential?.getSubject()?.did.resolve()
+            signer = try credential?.getSubject()?.did.resolve()
         }
         else {
-           if getCredential != nil {
-            signer = try getCredential?.getSubject()?.did.resolve()
+           if credential != nil {
+            signer = try credential?.getSubject()?.did.resolve()
             }
            else {
             signer = try proof?.verificationMethod.did?.resolve()

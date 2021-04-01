@@ -66,4 +66,10 @@ public class ResolveRequest: NSObject {
     public class func parse(_ content: JsonNode) -> ResolveRequest {
         return ResolveRequest("TODO:", "TODO:")// TODO:
     }
+    
+    func serialize(_ force: Bool) throws -> String {
+        // TODO:
+        
+        return "TODO:"
+    }
 }

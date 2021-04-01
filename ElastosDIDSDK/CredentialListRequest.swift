@@ -26,11 +26,11 @@ public class CredentialListRequest: ResolveRequest {
     private let PARAMETER_DID = "did"
     private let PARAMETER_SKIP = "skip"
     private let PARAMETER_LIMIT = "limit"
-    private let METHOD_NAME = "listcredentials"
+    public static let METHOD_NAME = "listcredentials"
     private var _params: CredentialListParameters?
 
     init(_ requestId: String) {
-        super.init(requestId, METHOD_NAME)
+        super.init(requestId, CredentialListRequest.METHOD_NAME)
     }
     
     public var params: CredentialListParameters? {
@@ -76,6 +76,11 @@ public class CredentialListRequest: ResolveRequest {
     public override var description: String {
         
         return "TODO:"
+    }
+    
+    override func serialize(_ force: Bool) throws -> String {
+        // TODO:
+        return "todo"
     }
 }
 

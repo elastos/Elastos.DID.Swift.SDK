@@ -24,8 +24,7 @@ import Foundation
 
 public class DIDTransaction: IDTransactionInfo {
 
-    init() {}
-    private var _request: DIDRequest
+    var _request: DIDRequest
     
     init(_ txid: String, _ timestamp: Date, _ request: DIDRequest) {
         self._request = request

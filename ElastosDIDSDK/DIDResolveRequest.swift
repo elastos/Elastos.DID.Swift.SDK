@@ -25,11 +25,11 @@ import Foundation
 public class DIDResolveRequest: ResolveRequest {
     private let PARAMETER_DID = "did"
     private let PARAMETER_ALL = "all"
-    private let METHOD_NAME = "resolvedid"
+    public static let METHOD_NAME = "resolvedid"
     private var _params: DIDParameters?
 
     init(_ requestId: String) {
-        super.init(requestId, METHOD_NAME)
+        super.init(requestId, DIDResolveRequest.METHOD_NAME)
     }
     
     public var params: DIDParameters? {
@@ -55,6 +55,11 @@ public class DIDResolveRequest: ResolveRequest {
     public override var description: String {
         
         return "TODO:"
+    }
+    
+    override func serialize(_ force: Bool) throws -> String {
+        // TODO:
+        return "todo"
     }
 }
 
