@@ -103,19 +103,19 @@ public class DID: NSObject {
         self._metadata = newValue
     }
 
-    /// Save DID MetaData.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func saveMetadata() throws {
-        if (_metadata != nil && _metadata!.attachedStore) {
-            try _metadata?.store?.storeDidMetadata(self, _metadata!)
-        }
-    }
+//    /// Save DID MetaData.
+//    /// - Throws: If error occurs, throw error.
+//    @objc
+//    public func saveMetadata() throws {
+//        if (_metadata != nil && _metadata!.attachedStore) {
+//            try _metadata?.store?.storeDidMetadata(self, _metadata!)
+//        }
+//    }
 
     /// Check deactivated
     @objc
     public var isDeactivated: Bool {
-        return getMetadata().deactivated
+        return getMetadata().isDeactivated
     }
 
     /// Get the newest DID Document from chain.
@@ -125,7 +125,7 @@ public class DID: NSObject {
     /// - Throws: If error occurs, throw error.
     /// - Returns: Return the handle to DID Document.
     public func resolve(_ force: Bool) throws -> DIDDocument? {
-        let doc = try DIDBackend.resolve(self, force)
+        let doc = try DIDBackend.sharedInstance().resolveDid(self, force)
         if doc != nil {
             setMetadata(doc!.getMetadata())
         }
@@ -209,28 +209,22 @@ public class DID: NSObject {
         return resolveAsyncUsingObjectC(false)
     }
 
-    /// Get all DID Documents from chain.
+    /// Resolve all DID transactions.
     /// - Throws: If error occurs, throw error.
-    /// - Returns: return the handle to DID Document.
-    @objc
-    public func resolveHistory() throws -> DIDHistory {
-        return try DIDBackend.resolveHistory(self)
+    /// - Returns: the DIDBiography object
+    public func resolveBiography() throws -> DIDBiography? {
+        return try DIDBackend.sharedInstance().resolveDidBiography(self)
     }
 
-    /// Get all DID Documents from chain.
-    /// - Returns: return the handle to DID Document asynchronously.
-    public func resolveHistoryAsync() -> Promise<DIDHistory> {
-        return DispatchQueue.global().async(.promise){ [self] in try resolveHistory() }
-    }
-
-    /// Get all DID Documents from chain.
-    /// - Returns: return the handle to DID Document asynchronously.
+    /// Resolve all DID transactions in asynchronous model.
+    /// - Returns: the result is the DIDHistory interface for
+    ///            resolved transactions if success; null otherwise.
     @objc
     public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
             DispatchQueue.global().async{
                 do {
-                    resolver(try resolveHistory())
+                    resolver(try resolveBiography())
                 } catch let error  {
                     resolver(error)
                 }

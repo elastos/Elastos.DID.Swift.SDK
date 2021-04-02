@@ -58,21 +58,21 @@ public class TransferTicket: NSObject {
         guard target.isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(target.subject.toString())
         }
-        try target.getMetadata().setTransactionId(target.subject.resolve()!.getMetadata().getTransactionId())
+        try target.getMetadata().setTransactionId(target.subject.resolve()!.getMetadata().transactionId!)
         self.id = target.subject
         self.doc = target
         self.to = to
-        self.txid = target.getMetadata().getTransactionId()
+        self.txid = target.getMetadata().transactionId!
         super.init()
     }
 
-    init(_ did: DID, _ to: DID, _ txid: String) throws {
+    init(_ did: DID, _ to: DID, _ txid: String) {
         self.id  = did
         self.to = to
         self.txid = txid
     }
     
-    init(_ ticket: TransferTicket, _ withProof: Bool) throws {
+    init(_ ticket: TransferTicket, _ withProof: Bool) {
         self.id = ticket.id
         self.to = ticket.to
         self.txid = ticket.txid
@@ -175,7 +175,7 @@ public class TransferTicket: NSObject {
             return false
         }
         
-        guard txid == doc?.getMetadata().transactionId else {
+        guard txid == doc!.getMetadata().transactionId else {
             return false
         }
         
@@ -222,7 +222,7 @@ public class TransferTicket: NSObject {
 //        Collections.sort(this._proofs); // TODO:
     }
     
-    func seal(_ controller: DIDDocument, _ storepass: String) throws {
+    func seal(_ controller: DIDDocument, _ storePassword: String) throws {
         do {
             guard try !isQualified() else {
                 return
@@ -255,7 +255,7 @@ public class TransferTicket: NSObject {
         _proofs = nil
 //        let json = serialize(true)
         let json = ""
-        let sig = try controller.sign(using: storepass, for: [json.data(using: .utf8)!])
+        let sig = try controller.sign(using: storePassword, for: [json.data(using: .utf8)!])
         let proof = TransferTicketProof(signKey!, sig)
         proofs![proof.verificationMethod.did!] = proof
         proofs?.values.forEach({ tp in
@@ -264,27 +264,11 @@ public class TransferTicket: NSObject {
 //        Collections.sort(this._proofs) //TODO:
     }
     
-    /// Parse a TransferTicket object from from a string JSON representation.
-    /// - Parameter content: the string JSON content for building the object.
-    /// - Throws: DIDSyntaxError if a parse error occurs.
-    /// - Returns: the TransferTicket object.
-    // TODO:
-//    public class func parse(_ content: String) throws -> TransferTicket {
-//        do {
-//            return try parse(content, TransferTicket.self)
-//        } catch {
-//            throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError(DIDError.desription(error as! DIDError))
-//        }
-//    }
-//
-//    public class func parse(_ content: Dictionary<String, Any>) throws -> TransferTicket {
-//        do {
-//            return try parse(content, TransferTicket.self)
-//        } catch {
-//            throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError(DIDError.desription(error as! DIDError))
-//        }
-//    }
-//
+    public func serialize(_ force: Bool) -> String {
+        
+        return "TODO:"
+    }
+    
     /// Parse a TransferTicket object from from a string JSON representation.
     /// - Parameter content: the string JSON content for building the object
     /// - Returns: the TransferTicket object

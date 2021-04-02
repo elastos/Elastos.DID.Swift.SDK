@@ -247,17 +247,42 @@ public class DIDURL: NSObject {
         return self._metadata!
     }
 
-    /// Save Credential(DIDURL) MetaData.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func saveMetadata() throws {
-        if (_metadata != nil && _metadata!.attachedStore) {
-            try _metadata?.store?.storeCredentialMetadata(did!, self, _metadata!)
-        }
-    }
+//    /// Save Credential(DIDURL) MetaData.
+//    /// - Throws: If error occurs, throw error.
+//    @objc
+//    public func saveMetadata() throws {
+//        if (_metadata != nil && _metadata!.attachedStore) {
+//            try _metadata!.store!.storeCredentialMetadata(did, _metadata!)
+//        }
+//    }
 }
 
 extension DIDURL {
+    
+    func toString(_ base: DID) -> String {
+        var builder: String = ""
+        if did != nil && did != base {
+            builder.append(did!.toString())
+        }
+        if (parameters() != nil) {
+            builder.append(";")
+            builder.append(parameters()!)
+        }
+        if !(path?.isEmpty ?? true) {
+            builder.append(path!)
+        }
+        if (queryParameters() != nil) {
+            builder.append("?")
+            builder.append(queryParameters()!)
+        }
+        if !(_fragment?.isEmpty ?? true) {
+            builder.append("#")
+            builder.append(fragment!)
+        }
+        
+        return builder
+    }
+
     func toString() -> String {
         var builder: String = ""
 

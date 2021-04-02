@@ -23,13 +23,9 @@
 import Foundation
 
 /// DIDAdapter is support method to create did transaction
-@objc public protocol DIDAdapter {
+public protocol DIDAdapter: DIDTransactionAdapter {
 
-    /// User need to implement ‘createIdTransaction’ function.
-    /// An application-defined function that create id transaction to chain.
-    /// - Parameters:
-    ///   - payload: The content of id transaction to publish.
-    ///   - memo: Memo string.
-    func createIdTransaction(_ payload: String,
-                             _ memo: String?) throws
+    /// Perform the DID related resolve.
+    /// - Parameter request: the resolve request
+    func resolve(_ request: String) throws -> Data
 }

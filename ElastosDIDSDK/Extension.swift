@@ -44,3 +44,27 @@ extension FileSystemStorage {
     }
 }
 
+extension String {
+    func stringValueToDic(_ str: String) -> [String : Any]?{
+        let data = str.data(using: String.Encoding.utf8)
+        if let dict = try? JSONSerialization.jsonObject(with: data!,
+                        options: .mutableContainers) as? [String : Any] {
+            return dict
+        }
+
+        return nil
+    }
+}
+
+extension Dictionary {
+    func toJsonString() -> String? {
+        guard let data = try? JSONSerialization.data(withJSONObject: self,
+                                                     options: []) else {
+            return nil
+        }
+        guard let str = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return str
+     }
+}

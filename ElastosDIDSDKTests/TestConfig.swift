@@ -5,7 +5,7 @@ let root: String = "\(NSHomeDirectory())/Library/Caches/DIDStore"
 let tempDir: String = "\(root)/tempDir"
 
 let storeRoot: String = "\(root)/storeRoot"
-let storePass: String = "passwd"
+let storePassword: String = "passwd"
 let passphrase: String = "secret"
 
 let walletDir: String = "/Users/liaihong/.wallet"

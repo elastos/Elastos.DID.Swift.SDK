@@ -73,7 +73,7 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the root identity id that the DID derived from.
     /// nil if the DID is not derived from a root identity.
     /// - Returns: the root identity id
-    func getRootIdentityId() -> String? {
+    var rootIdentityId: String? {
         return get(ROOT_IDENTITY)
     }
     
@@ -85,8 +85,8 @@ public class DIDMetadata: AbstractMetadata {
     
     /// Get the derived index only if the DID is derived from a root identity.
     /// - Returns: a derive index
-    func getIndex() -> Int {
-        return getInteger(INDEX)!
+    var index: Int? {
+        return getInteger(INDEX)
     }
     
     /// Set the last transaction id of the DID that associated with
@@ -99,8 +99,8 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the last transaction id of the DID that kept in this metadata
     /// object.
     /// - Returns: the transaction id
-    func getTransactionId() -> String {
-        return get(TXID)!
+    var transactionId: String? {
+        return get(TXID)
     }
     
     /// Set the previous signature of the DID document that associated with this
@@ -112,8 +112,8 @@ public class DIDMetadata: AbstractMetadata {
     
     /// Get the previous document signature from the previous transaction.
     /// - Returns: the signature string
-    func getPreviousSignature() -> String {
-        return get(PREV_SIGNATURE)!
+    var previousSignature: String? {
+        return get(PREV_SIGNATURE)
     }
     
     /// Set the latest signature of the DID document that associated with this
@@ -125,8 +125,8 @@ public class DIDMetadata: AbstractMetadata {
     
     /// Get the signature of the DID document that kept in this metadata object.
     /// - Returns: the signature string
-    func getSignature() -> String {
-        return get(SIGNATURE)!
+    var signature: String? {
+        return get(SIGNATURE)
     }
     
     /// Set the publish time of the DID that associated with this
@@ -139,7 +139,7 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the publish time of the DID that kept in this metadata
     /// object.
     /// - Returns: the published time
-    func getPublishTime() -> Date? {
+    var publishTime: Date? {
         return getDate(PUBLISHED)
     }
     

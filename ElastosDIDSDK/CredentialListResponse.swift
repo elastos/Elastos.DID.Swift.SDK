@@ -31,4 +31,9 @@ public class CredentialListResponse: ResolveResponse{
     override init(_ responseId: String, _ code: Int, _ message: String) {
         super.init(responseId, code, message)
     }
+    
+    class func parse(_ input: Data) -> CredentialListResponse {
+        
+        return DIDResolveResponse("TODO", CredentialList())
+    }
 }

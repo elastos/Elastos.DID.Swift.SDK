@@ -55,10 +55,10 @@ public class RootIdentity: NSObject {
     /// - Parameters:
     ///   - mnemonic: the mnemonic string
     ///   - passphrase: the password for mnemonic to generate seed
-    ///   - storepass: the password for DIDStore
-    public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
+    ///   - storePassword: the password for DIDStore
+    public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
-        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         var _passphrase = passphrase == nil ? "" : passphrase
         try checkArgument(Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
         let identity = try RootIdentity(mnemonic, passphrase!)
@@ -66,20 +66,20 @@ public class RootIdentity: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
         identity.metadata = RootIdentityMetadata(identity.id!, store)
-        try store.storeRootIdentity(identity, storepass)
+        try store.storeRootIdentity(identity, storePassword)
         try identity.wipe()
         
         return identity
     }
     
-    public static func create(_ mnemonic: String, _ passphrase: String?, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
+    public static func create(_ mnemonic: String, _ passphrase: String?, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         
-        return try create(mnemonic, passphrase, false, store, storepass)
+        return try create(mnemonic, passphrase, false, store, storePassword)
     }
     
-    public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
+    public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
-        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
         let identity = try RootIdentity(rootPrivateKey)
         
@@ -87,15 +87,15 @@ public class RootIdentity: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
         identity.metadata = RootIdentityMetadata(identity.id!, store)
-        try! store.storeRootIdentity(identity, storepass)
+        try! store.storeRootIdentity(identity, storePassword)
         try identity.wipe()
         
         return identity
     }
     
-    public static func create(_ extentedPrivateKey: String, _ store: DIDStore, _ storepass: String) throws -> RootIdentity {
+    public static func create(_ extentedPrivateKey: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         
-        return try create(extentedPrivateKey, false, store, storepass)
+        return try create(extentedPrivateKey, false, store, storePassword)
     }
     
     public static func create(_ preDerivedPublicKey: String, _ index: Int) throws -> RootIdentity {
@@ -181,16 +181,16 @@ public class RootIdentity: NSObject {
         return did
     }
     
-    public static func lazyCreateDidPrivateKey(_ id: DIDURL, _ store: DIDStore, _ storepass: String) throws -> Data? {
+    public static func lazyCreateDidPrivateKey(_ id: DIDURL, _ store: DIDStore, _ storePassword: String) throws -> Data? {
         let  doc = try store.loadDid(id.did!)
         guard let _ = doc else {
             throw DIDError.CheckedError.DIDStoreError.MissingDocumentError("Missing document for DID: \(id.did)")
         }
-        let identity = doc?.getMetadata().getRootIdentityId()
+        let identity = doc?.getMetadata().rootIdentityId
         guard let _ = identity else {
             return nil
         }
-        let key: DIDHDKey? = try store.derive(identity!, DIDHDKey.DID_DERIVE_PATH_PREFIX + (doc?.getMetadata().getIndex())!, storepass)
+        let key: DIDHDKey? = try store.derive(identity!, DIDHDKey.DID_DERIVE_PATH_PREFIX + (doc?.getMetadata().index)!, storePassword)
         let pk = try doc?.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.CheckedError.DIDStoreError.InvalidPublickeyError("Invalid public key: \(id)")
@@ -198,7 +198,7 @@ public class RootIdentity: NSObject {
         guard key!.getPublicKeyBase58() == pk?.publicKeyBase58 else {
             throw DIDError.CheckedError.DIDStoreError.InvalidDIDMetadataError("Invalid DID metadata: \(id.did)")
         }
-        try store.storePrivateKey(for: id, privateKey: key!.serialize(), using: storepass)
+        try store.storePrivateKey(for: id, privateKey: key!.serialize(), using: storePassword)
         let sk = try key!.serialize()
         key!.wipe()
         
@@ -208,11 +208,11 @@ public class RootIdentity: NSObject {
     /// Create a new DID with specified index and get this DID's Document content.
     /// - Parameters:
     ///   - index: the index to create new did.
-    ///   - storepass: the password for DIDStore
+    ///   - storePassword: the password for DIDStore
     /// - Returns: the DIDDocument content related to the new DID
-    public func newDid(_ index: Int, _ overwrite: Bool, _ storepass: String) throws -> DIDDocument {
+    public func newDid(_ index: Int, _ overwrite: Bool, _ storePassword: String) throws -> DIDDocument {
         try checkArgument(index >= 0, "Invalid index")
-        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let did = try getDid(index)
         var doc = try store?.loadDid(did)
         if doc != nil  {
@@ -233,38 +233,38 @@ public class RootIdentity: NSObject {
         }
         Log.d(TAG, "Creating new DID ", did.toString(), " at index ", index)
         
-        let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + index, storepass)
+        let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + index, storePassword)
         
         let id = try DIDURL(did, "#primary")
-        try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storepass)
+        try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storePassword)
         let db = DIDDocumentBuilder(did, store!)
         try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
-        try db.sealed(using: storepass)
+        try db.sealed(using: storePassword)
         try store?.storeDid(using: doc!)
         
         return doc!
     }
     
-    public func newDid(_ index: Int, _ storepass: String) throws -> DIDDocument {
+    public func newDid(_ index: Int, _ storePassword: String) throws -> DIDDocument {
         
-        return try newDid(index, false, storepass)
+        return try newDid(index, false, storePassword)
     }
     
     /// Create a new DID without alias and get this DID's Document content.
     /// - Parameters:
-    ///   - storepass: the password for DIDStore
+    ///   - storePassword: the password for DIDStore
     /// - Returns: the DIDDocument content related to the new DID
-    public func newDid(_ overwrite: Bool, _ storepass: String) throws -> DIDDocument {
+    public func newDid(_ overwrite: Bool, _ storePassword: String) throws -> DIDDocument {
         
-        let doc = try newDid(index, overwrite, storepass)
+        let doc = try newDid(index, overwrite, storePassword)
         try incrementIndex()
         
         return doc
     }
     
-    public func newDid(_ storepass: String) throws -> DIDDocument {
+    public func newDid(_ storePassword: String) throws -> DIDDocument {
         
-        return try newDid(false, storepass)
+        return try newDid(false, storePassword)
     }
     
     public func hasMnemonic() throws -> Bool {
@@ -272,10 +272,10 @@ public class RootIdentity: NSObject {
     }
     
     /// Export mnemonic from DIDStore
-    /// - Parameter storepass: the password for DIDStore
+    /// - Parameter storePassword: the password for DIDStore
     /// - Returns: the mnemonic string
-    public func exportMnemonic(_ storepass: String) throws -> String {
-        return try store!.exportRootIdentityMnemonic(getId(), storepass)!
+    public func exportMnemonic(_ storePassword: String) throws -> String {
+        return try store!.exportRootIdentityMnemonic(getId(), storePassword)!
     }
     
     public func synchronize(_ index: Int, _ handle: ConflictHandler?) throws -> Bool {
@@ -298,7 +298,7 @@ public class RootIdentity: NSObject {
             // Update metadata off-store, then store back
             localDoc?.getMetadata().detachStore()
             
-            if localDoc?.signature == resolvedDoc?.signature || localDoc?.getMetadata().getSignature() != nil && localDoc?.proof.signature == localDoc?.getMetadata().getSignature() {
+            if localDoc?.signature == resolvedDoc?.signature || localDoc?.getMetadata().signature != nil && localDoc?.proof.signature == localDoc?.getMetadata().signature {
                 finalDoc?.getMetadata().merge(localDoc!.getMetadata())
             }
             else {
@@ -312,8 +312,8 @@ public class RootIdentity: NSObject {
             }
         }
         let metadata = finalDoc!.getMetadata()
-        metadata.setRootIdentityId(try getId())
-        metadata.setIndex(index)
+        try metadata.setRootIdentityId(try getId())
+        try metadata.setIndex(index)
         try store!.storeDid(using: finalDoc!)
         
         return true

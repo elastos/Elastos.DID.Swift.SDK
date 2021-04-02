@@ -30,9 +30,9 @@ public class JwtBuilder: NSObject {
     var issuer: String
     var jwt: JWT?
     var publicKeyClosure: ((_ id: String?) throws -> Data)?
-    var privateKeyClosure: ((_ id: String?, _ storepass: String) throws -> Data)?
+    var privateKeyClosure: ((_ id: String?, _ storePassword: String) throws -> Data)?
 
-    init(issuer: String, publicKey: @escaping (_ id: String?) throws -> Data, privateKey: @escaping (_ id: String?, _ storepass: String) throws -> Data) {
+    init(issuer: String, publicKey: @escaping (_ id: String?) throws -> Data, privateKey: @escaping (_ id: String?, _ storePassword: String) throws -> Data) {
         self.issuer = issuer
         publicKeyClosure = publicKey
         privateKeyClosure = privateKey

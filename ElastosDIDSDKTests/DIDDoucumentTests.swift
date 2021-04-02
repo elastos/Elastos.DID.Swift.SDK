@@ -214,7 +214,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try db.appendPublicKey(with: "test2", controller: doc.subject.toString(),
                                         keyBase58: key.getPublicKeyBase58())
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
 
@@ -284,7 +284,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -426,7 +426,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -504,7 +504,7 @@ class DIDDoucumentTests: XCTestCase {
                     XCTFail("Unexpected error thrown")
                 }
             }
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -641,7 +641,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -706,7 +706,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -815,7 +815,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -851,15 +851,15 @@ class DIDDoucumentTests: XCTestCase {
             // Add credentials.
             var subject: [String: String] = [: ]
             subject["passport"] = "S653258Z07"
-            _ = try db.appendCredential(with: "passport", subject: subject, using: storePass)
+            _ = try db.appendCredential(with: "passport", subject: subject, using: storePassword)
 
             let subjectjson = "{\"name\":\"Jay Holtslander\",\"alternateName\":\"Jason Holtslander\"}"
-            _ = try db.appendCredential(with: "name", json: subjectjson, using: storePass)
+            _ = try db.appendCredential(with: "name", json: subjectjson, using: storePassword)
             let json = "{\"twitter\":\"@john\"}"
             let jsonDict = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String: String]
-            _ = try db.appendCredential(with: "twitter", subject: jsonDict!, using: storePass)
+            _ = try db.appendCredential(with: "twitter", subject: jsonDict!, using: storePassword)
 
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
 
@@ -933,7 +933,7 @@ class DIDDoucumentTests: XCTestCase {
                                 }
             }
 
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -1034,7 +1034,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service id already exist, should failed.
             _ = try db.appendService(with: "vcr", type: "test", endpoint: "https://www.elastos.org/test")
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -1079,7 +1079,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(doc.isValid)
             
@@ -1156,7 +1156,7 @@ class DIDDoucumentTests: XCTestCase {
             
             for _ in 0..<10 {
                 var json = doc.toString(false)
-                var sig: String = try doc.sign(withId: pkid, using: storePass, for: json.data(using: .utf8)!)
+                var sig: String = try doc.sign(withId: pkid, using: storePassword, for: json.data(using: .utf8)!)
                 
                 var result: Bool = try doc.verify(withId: pkid, using: sig, onto: json.data(using: .utf8)!)
                 XCTAssertTrue(result)
@@ -1165,7 +1165,7 @@ class DIDDoucumentTests: XCTestCase {
                 result = try doc.verify(withId: pkid, using: sig, onto: json.data(using: .utf8)!)
                 XCTAssertFalse(result)
                 
-                sig = try doc.sign(using: storePass, for: json.data(using: .utf8)!)
+                sig = try doc.sign(using: storePassword, for: json.data(using: .utf8)!)
                 result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
                 XCTAssertTrue(result)
                 
@@ -1196,7 +1196,7 @@ class DIDDoucumentTests: XCTestCase {
                 var data: [String]  = Array(repeating: String(i), count: 1024)
                 var json = data.joined(separator: "")
                 
-                var sig: String = try doc.sign(withId: pkid, using: storePass, for: json.data(using: .utf8)!)
+                var sig: String = try doc.sign(withId: pkid, using: storePassword, for: json.data(using: .utf8)!)
                 var result: Bool = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
                 XCTAssertTrue(result)
                 
@@ -1205,7 +1205,7 @@ class DIDDoucumentTests: XCTestCase {
                 result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
                 XCTAssertFalse(result)
 
-                sig = try doc.sign(using: storePass, for: json.data(using: .utf8)!)
+                sig = try doc.sign(using: storePassword, for: json.data(using: .utf8)!)
                 result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
                 XCTAssertTrue(result)
                 
@@ -1233,7 +1233,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertTrue(doc.isValid)
 
             for i in -100..<100 {
-                let strKey = try doc.derive(identifier, i, storePass)
+                let strKey = try doc.derive(identifier, i, storePassword)
                 let key = DIDHDKey.deserializeBase58(strKey)
 
                 let binKey = Base58.bytesFromBase58(strKey)

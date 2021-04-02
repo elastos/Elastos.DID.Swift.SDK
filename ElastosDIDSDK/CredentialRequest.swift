@@ -46,14 +46,14 @@ public class CredentialRequest: IDChainRequest {
     ///   - vc: the VerifiableCredential object that needs to be declare
     ///   - signer: the credential owner's DIDDocument object
     ///   - signKey: the key id to sign request
-    ///   - storepass: the password for private key access from the DID store
-    public class func declare(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> CredentialRequest {
+    ///   - storePassword: the password for private key access from the DID store
+    public class func declare(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> CredentialRequest {
         
         let request = CredentialRequest(IDChainRequestOperation.DECLARE)
         request.setPayload(vc)
         request.setSigner(signer)
         do {
-            try request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }
@@ -66,15 +66,15 @@ public class CredentialRequest: IDChainRequest {
     ///   - vc: the VerifiableCredential object that needs to be revoke
     ///   - signer: the credential owner's DIDDocument object
     ///   - signKey: the key id to sign request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Returns: a CredentialRequest object
-    public class func revoke(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> CredentialRequest {
+    public class func revoke(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> CredentialRequest {
         
         let request = CredentialRequest(IDChainRequestOperation.REVOKE)
         request.setPayload(vc)
         request.setSigner(signer)
         do {
-            try request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }
@@ -87,15 +87,15 @@ public class CredentialRequest: IDChainRequest {
     ///   - id: the id of the credential that needs to be revoke
     ///   - signer: the credential owner's DIDDocument object
     ///   - signKey: the key id to sign request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Returns: a CredentialRequest object
-    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> CredentialRequest {
+    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> CredentialRequest {
         
         let request = CredentialRequest(IDChainRequestOperation.REVOKE)
         request.setPayload(id)
         request.setSigner(signer)
         do {
-            try request.seal(signer, signKey, storepass)
+            try request.seal(signer, signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
         }
@@ -186,7 +186,7 @@ public class CredentialRequest: IDChainRequest {
         proof?.qualifyVerificationMethod(id!.did!)
     }
     
-    func seal(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws {
+    func seal(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
         guard doc.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
         }
@@ -194,7 +194,7 @@ public class CredentialRequest: IDChainRequest {
         guard payload != nil, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
-        let signature = try doc.sign(signKey, storepass, getSigningInputs())
+        let signature = try doc.sign(signKey, storePassword, getSigningInputs())
         setProof(IDChainProof(signKey, signature))
     }
     

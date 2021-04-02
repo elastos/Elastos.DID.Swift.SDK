@@ -98,6 +98,7 @@
 		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
 		11B096DA241930690065228B /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096D5241930690065228B /* SHA256Helper.swift */; };
 		11B096E324193E200065228B /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096E224193E200065228B /* OrderedDictionary.swift */; };
+		11B342BA2616AC9600DC48FB /* DefaultDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */; };
 		11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33982604383700DEBD00 /* DIDRequest.swift */; };
 		11BE33A026043BBB00DEBD00 /* IDChainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */; };
 		11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
@@ -486,6 +487,7 @@
 		11A6B15A238FD77E00D3C1F1 /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = "Externals/HDKey/lib/-iphonesimulator/libhdkey.a"; sourceTree = "<group>"; };
 		11B096D5241930690065228B /* SHA256Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256Helper.swift; sourceTree = "<group>"; };
 		11B096E224193E200065228B /* OrderedDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OrderedDictionary.swift; path = Util/OrderedDictionary.swift; sourceTree = "<group>"; };
+		11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultDIDAdapter.swift; sourceTree = "<group>"; };
 		11BE33982604383700DEBD00 /* DIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDRequest.swift; sourceTree = "<group>"; };
 		11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainHeader.swift; sourceTree = "<group>"; };
 		11BE33A32604403100DEBD00 /* IDChainProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainProof.swift; sourceTree = "<group>"; };
@@ -1317,7 +1319,6 @@
 				A31ACE0223F199AE008EC032 /* DIDDocument.swift */,
 				11BE33B72607796300DEBD00 /* PublicKeyReference.swift */,
 				119F0C9225FF07ED006D4F75 /* TransferTicket.swift */,
-				119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */,
 				119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */,
 				A31ACE0023F199AE008EC032 /* DIDDocumentProof.swift */,
 				A31ACDF923F199AE008EC032 /* DIDDocumentBuilder.swift */,
@@ -1329,7 +1330,9 @@
 				A31ACE1723F199BA008EC032 /* VerifiablePresentation.swift */,
 				A31ACE1623F199BA008EC032 /* VerifiablePresentationBuilder.swift */,
 				A31ACE1523F199BA008EC032 /* VerifiablePresentationProof.swift */,
+				119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */,
 				A31ACE0123F199AE008EC032 /* DIDAdapter.swift */,
+				11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */,
 				A31801A224015EA30087E074 /* DIDResolver.swift */,
 				A31ACE0423F199AE008EC032 /* DIDBackend.swift */,
 				A31ACDFD23F199AE008EC032 /* DIDStore.swift */,
@@ -1985,6 +1988,7 @@
 				11D1F791257F3A5400BC5A54 /* ATNDeserializationOptions.swift in Sources */,
 				11D1F771257F3A5400BC5A54 /* LL1Analyzer.swift in Sources */,
 				11CACAA82612D611004145CB /* DIDResolveResponse.swift in Sources */,
+				11B342BA2616AC9600DC48FB /* DefaultDIDAdapter.swift in Sources */,
 				11D1F73B257F3A5400BC5A54 /* CommonTokenFactory.swift in Sources */,
 				11CACAC22612E5FC004145CB /* CredentialListResponse.swift in Sources */,
 				11D1F71A257F3A5400BC5A54 /* Interval.swift in Sources */,

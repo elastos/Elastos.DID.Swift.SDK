@@ -14,11 +14,11 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             let did = doc.subject
             print("Publishing new DID: \(did)...")
-//            try store.publishDid(for: did, using: storePass)
-            try store.publishDid(for: did, using: storePass)
+//            try store.publishDid(for: did, using: storePassword)
+            try store.publishDid(for: did, using: storePassword)
 
             // Resolve new DID document
             try testData.waitForWalletAvaliable()
@@ -39,11 +39,11 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             let did = doc.subject
             //TODO:
             var lock = XCTestExpectation(description: "publishDidAsync")
-            _ = try store.publishDidAsync(for: did, using: storePass).done { void in
+            _ = try store.publishDidAsync(for: did, using: storePassword).done { void in
                 XCTAssertTrue(true)
                 lock.fulfill()
             }.catch { error in
@@ -83,12 +83,12 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             let did = doc.subject
 
             print("Publishing new DID: \(did)...")
             let lock = XCTestExpectation(description: "publishDidAsync")
-            store.publishDidAsync(for: did, using: storePass).done { tx in
+            store.publishDidAsync(for: did, using: storePassword).done { tx in
                 XCTAssertNotNil(tx)
                 XCTAssertTrue(true)
                 lock.fulfill()
@@ -127,12 +127,12 @@ class IDChainOperationsTest: XCTestCase {
             _ = try testData.initIdentity()
             try testData.waitForWalletAvaliable()
             // Create new DID and publish to ID sidechain.
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             let did = doc.subject
             print("Publishing new DID and resolve: \(did)...")
             var resolved: DIDDocument?
             let lock = XCTestExpectation(description: "publishDidAsync")
-            try store.publishDidAsync(for: did, using: storePass)
+            try store.publishDidAsync(for: did, using: storePassword)
                 .done{ doc in
                     lock.fulfill()
             }
@@ -173,12 +173,12 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             let did = doc.subject
             print("Publishing new DID:  \(did)...")
 
             var lock = XCTestExpectation()
-            try store.publishDidAsync(for: did, using: storePass).done { void in
+            try store.publishDidAsync(for: did, using: storePassword).done { void in
                 print("OK")
                 sigs.append(doc.proof.signature)
                 XCTAssertTrue(true)
@@ -215,13 +215,13 @@ class IDChainOperationsTest: XCTestCase {
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
 
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
             lock = XCTestExpectation()
-            try store.publishDidAsync(for: did, using: storePass).done { tx in
+            try store.publishDidAsync(for: did, using: storePassword).done { tx in
                 print("OK")
                 sigs.append(doc.proof.signature)
                 XCTAssertTrue(true)
@@ -257,14 +257,14 @@ class IDChainOperationsTest: XCTestCase {
             db = doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
             print("Updating DID: \(did)...")
 
             lock = XCTestExpectation()
-            _ = try store.publishDidAsync(for: did, using: storePass).done{ tx in
+            _ = try store.publishDidAsync(for: did, using: storePassword).done{ tx in
                 print("OK")
                 sigs.append(doc.proof.signature)
                 XCTAssertTrue(true)
@@ -332,7 +332,7 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            var doc: DIDDocument = try store.newDid(using: storePass)
+            var doc: DIDDocument = try store.newDid(using: storePassword)
             let did: DID = doc.subject
 
             var selfIssuer = try VerifiableCredentialIssuer(doc)
@@ -349,19 +349,19 @@ class IDChainOperationsTest: XCTestCase {
             var vc: VerifiableCredential = try cb.withId("profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
 
             XCTAssertNotNil(vc)
 
             var db: DIDDocumentBuilder = doc.editing()
             doc = try db.appendCredential(with: vc)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(1, doc.credentialCount)
             try store.storeDid(using: doc)
 
             print("Published new DID: \(did)")
-            var txid = try store.publishDid(for: did, using: storePass)
+            var txid = try store.publishDid(for: did, using: storePassword)
             XCTAssertNotNil(txid)
 
             try! testData.waitForWalletAvaliable()
@@ -384,18 +384,18 @@ class IDChainOperationsTest: XCTestCase {
             vc = try! cb.withId("passport")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(vc)
 
             db = doc.editing()
             doc = try! db.appendCredential(with: vc)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(2, doc.credentialCount)
             try! store.storeDid(using: doc)
 
             print("Updated DID: \(did)")
-            txid = try! store.publishDid(for: did, using: storePass)
+            txid = try! store.publishDid(for: did, using: storePassword)
             XCTAssertNotNil(txid)
 
             try! testData.waitForWalletAvaliable()
@@ -421,18 +421,18 @@ class IDChainOperationsTest: XCTestCase {
             vc = try! cb.withId("test")
                 .withTypes("TestCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(vc)
 
             db = doc.editing()
             doc = try! db.appendCredential(with: vc)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(3, doc.credentialCount)
             try! store.storeDid(using: doc)
 
             print("Updated DID: \(did)")
-            txid = try! store.publishDid(for: did, using: storePass)
+            txid = try! store.publishDid(for: did, using: storePassword)
             XCTAssertNotNil(txid)
 
             try! testData.waitForWalletAvaliable()
@@ -456,7 +456,7 @@ class IDChainOperationsTest: XCTestCase {
             try testData.waitForWalletAvaliable()
 
             // Create new DID and publish to ID sidechain.
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             let did = doc.subject
 
             var selfIssuer = try VerifiableCredentialIssuer(doc)
@@ -473,19 +473,19 @@ class IDChainOperationsTest: XCTestCase {
             var vc = try cb.withId("profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(vc)
 
             var db = doc.editing()
             _ = try db.appendCredential(with: vc)
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(1, doc.credentialCount)
             try store.storeDid(using: doc)
 
             print("Publishing new DID: \(did)...")
             var lock = XCTestExpectation()
-            _ =  try store.publishDidAsync(for: did, using: storePass).done{ tx in
+            _ =  try store.publishDidAsync(for: did, using: storePassword).done{ tx in
                 print("OK")
                 lock.fulfill()
             }.catch{ error in
@@ -526,19 +526,19 @@ class IDChainOperationsTest: XCTestCase {
             vc = try cb.withId("passport")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(vc)
 
             db = doc.editing()
             _ = try db.appendCredential(with: vc)
-            try doc = db.sealed(using: storePass)
+            try doc = db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(2, doc.credentialCount)
             try store.storeDid(using: doc)
 
             lock = XCTestExpectation()
             print("Updating DID: \(did)...")
-            try store.publishDidAsync(for: did, using: storePass).done { tx in
+            try store.publishDidAsync(for: did, using: storePassword).done { tx in
                 print("OK")
                 lock.fulfill()
             }.catch { error in
@@ -584,18 +584,18 @@ class IDChainOperationsTest: XCTestCase {
             vc = try cb.withId("test")
                 .withTypes("TestCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             XCTAssertNotNil(vc)
 
             db = doc.editing()
             _ = try db.appendCredential(with: vc)
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
             try store.storeDid(using: doc)
 
             print("Updating DID: \(did)...")
             lock = XCTestExpectation()
-            try store.publishDidAsync(for: did, using: storePass).done { tx in
+            try store.publishDidAsync(for: did, using: storePassword).done { tx in
                 print("OK")
                 lock.fulfill()
             }.catch { error in
@@ -638,9 +638,9 @@ class IDChainOperationsTest: XCTestCase {
             let testData: TestData = TestData()
             let store: DIDStore = try testData.setup(false)
             let mnemonic: String = try testData.loadRestoreMnemonic()
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
             print("Synchronizing from IDChain...")
-            try store.synchronize(using: storePass) //5
+            try store.synchronize(using: storePassword) //5
             print("OK")
 
             let dids: Array<DID> = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
@@ -672,12 +672,12 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
 
             print("Synchronizing from IDChain...")
 
             let lock = XCTestExpectation()
-            try store.synchronizeAsync(using: storePass).done { _ in
+            try store.synchronizeAsync(using: storePassword).done { _ in
                 print("OK")
                 XCTAssertTrue(true)
                 lock.fulfill()
@@ -732,9 +732,9 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
             print("Synchronizing from IDChain...")
-            try store.synchronize(using: storePass)
+            try store.synchronize(using: storePassword)
             print("OK")
 
             var dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
@@ -773,12 +773,12 @@ class IDChainOperationsTest: XCTestCase {
             var doc = try store.loadDid(modifiedDid)
             let db = doc!.editing()
             _ = try db.appendService(with: "test1", type: "TestType", endpoint: "http://test.com/")
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             try store.storeDid(using: doc!)
             let modifiedSignature = doc!.proof.signature
 
             print("Synchronizing again from IDChain...")
-            try store.synchronize(using: storePass)
+            try store.synchronize(using: storePassword)
             print("OK")
 
             dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
@@ -830,9 +830,9 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
             print("Synchronizing from IDChain...")
-            try store.synchronize(using: storePass)
+            try store.synchronize(using: storePassword)
             print("OK")
 
             var dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
@@ -873,12 +873,12 @@ class IDChainOperationsTest: XCTestCase {
 
             var db = doc!.editing()
             _ = try db.appendService(with: "test1", type: "TestType", endpoint: "http://test.com/")
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             try store.storeDid(using: doc!)
             XCTAssertNotEqual(originSignature, doc!.proof.signature)
 
             print("OK")
-            try store.synchronize(using: storePass, conflictHandler: { (chain, loca) -> DIDDocument in
+            try store.synchronize(using: storePassword, conflictHandler: { (chain, loca) -> DIDDocument in
                 print("OK")
                 return chain
             })
@@ -889,12 +889,12 @@ class IDChainOperationsTest: XCTestCase {
 
             db = doc!.editing()
             _ = try db.appendService(with: "test1", type: "TestType", endpoint: "http://test.com/")
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             try store.storeDid(using: doc!)
             XCTAssertNotEqual(originSignature, doc!.proof.signature)
 
             print("Synchronizing again from IDChain...")
-            try store.synchronize(using: storePass, conflictHandler: { (chain, loca) -> DIDDocument in
+            try store.synchronize(using: storePassword, conflictHandler: { (chain, loca) -> DIDDocument in
                 return chain
             })
             print("OK")
@@ -948,10 +948,10 @@ class IDChainOperationsTest: XCTestCase {
 
             let mnemonic = try testData.loadRestoreMnemonic()
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
             print("Synchronizing from IDChain...")
             var lock = XCTestExpectation()
-            try store.synchronizeAsync(using: storePass).done{ _ in
+            try store.synchronizeAsync(using: storePassword).done{ _ in
                 print("OK")
                 lock.fulfill()
             }.catch{ error in
@@ -1000,13 +1000,13 @@ class IDChainOperationsTest: XCTestCase {
 
             let db = doc!.editing()
             _ = try db.appendService(with: "test1", type: "TestType", endpoint: "http://test.com/")
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             try store.storeDid(using: doc!)
             XCTAssertNotEqual(originSignature, doc!.proof.signature)
 
             print("Synchronizing again from IDChain...")
             lock = XCTestExpectation()
-            _ = store.synchornizeAsync(using: storePass, conflictHandler: { (c, l) -> DIDDocument in
+            _ = store.synchornizeAsync(using: storePassword, conflictHandler: { (c, l) -> DIDDocument in
                                 print("OK")
                 lock.fulfill()
                 return c

@@ -274,11 +274,13 @@ extension DIDError.CheckedError.DIDBackendError: LocalizedError {
         switch self {
         case .DIDTransactionError(let des):
             return des
+        case .DIDResolveError(let des):
+            return des
         }
     }
 }
 
-extension DIDError.CheckedError.DIDBackendError.DIDResolveError: LocalizedError {
+extension DIDError.CheckedError.DIDBackendError.DIDResolveErrors: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .NetworkError(let des):

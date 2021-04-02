@@ -71,7 +71,7 @@ class TestData: XCTestCase {
     
     public func initIdentity() throws -> String {
         let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
         return mnemonic
     }
     
@@ -127,14 +127,14 @@ class TestData: XCTestCase {
         let data = Data(bytes: temp, count: re)
         _ = [UInt8](data).map { Int8(bitPattern: $0) }
 
-        try store.storePrivateKey(for: id.did, id: id, privateKey: data, using: storePass)
+        try store.storePrivateKey(for: id.did, id: id, privateKey: data, using: storePassword)
     }
     
     func loadTestIssuer() throws -> DIDDocument {
         if testIssuer == nil {
             testIssuer = try loadDIDDocument("issuer", "json")
             try importPrivateKey(testIssuer!.defaultPublicKey, "issuer.primary", "sk")
-            _ = try store.publishDid(for: testIssuer!.subject, using: storePass)
+            _ = try store.publishDid(for: testIssuer!.subject, using: storePassword)
         }
         return testIssuer!
     }
@@ -147,7 +147,7 @@ class TestData: XCTestCase {
         try importPrivateKey(testDocument!.defaultPublicKey, "document.primary", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key2")!.getId(), "document.key2", "sk")
         try importPrivateKey(testDocument!.publicKey(ofId: "key3")!.getId(), "document.key3", "sk")
-        _ = try store.publishDid(for: testDocument!.subject, using: storePass)
+        _ = try store.publishDid(for: testDocument!.subject, using: storePassword)
         return testDocument!
     }
     

@@ -55,13 +55,13 @@ public class DIDRequest: IDChainRequest {
     /// - Parameters:
     ///   - doc: the DID Document be publishing
     ///   - signKey: the key id to sign the request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     ///   - Returns: a DIDRequest object
-    public class func create(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> DIDRequest {
+    public class func create(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> DIDRequest {
         let request = DIDRequest(IDChainRequestOperation.CREATE)
         request.setPayload(doc)
         do {
-            try request.seal(signKey, storepass)
+            try request.seal(signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
@@ -74,14 +74,14 @@ public class DIDRequest: IDChainRequest {
     ///   - doc: the DID Document be publishing
     ///   - previousTxid: the previous transaction id string
     ///   - signKey: the key id to sign the request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Throws: DIDStoreError if an error occurred when access the private key
     /// - Returns: a DIDRequest object
-    public class func update(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storepass: String) throws -> DIDRequest {
+    public class func update(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storePassword: String) throws -> DIDRequest {
         let request = DIDRequest(IDChainRequestOperation.UPDATE, previousTxid)
         request.setPayload(doc)
         do {
-            try request.seal(signKey, storepass)
+            try request.seal(signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
@@ -94,14 +94,14 @@ public class DIDRequest: IDChainRequest {
     ///   - doc: the DID Document be publishing
     ///   - ticket: the transfer ticket object
     ///   - signKey: the key id to sign the request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Throws: a DIDRequest object
     /// - Returns: DIDStoreError if an error occurred when access the private key
-    public class func transfer(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storepass: String) throws -> DIDRequest {
+    public class func transfer(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String) throws -> DIDRequest {
         let request = DIDRequest(IDChainRequestOperation.TRANSFER, ticket)
         request.setPayload(doc)
         do {
-            try request.seal(signKey, storepass)
+            try request.seal(signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
@@ -113,14 +113,14 @@ public class DIDRequest: IDChainRequest {
     /// - Parameters:
     ///   - doc: the DID Document be publishing
     ///   - signKey: the key id to sign the request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Throws: DIDStoreError if an error occurred when access the private key
     /// - Returns: a DIDRequest object
-    public class func deactivate(_ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> DIDRequest {
+    public class func deactivate(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> DIDRequest {
         let request = DIDRequest(IDChainRequestOperation.DEACTIVATE)
         request.setPayload(doc)
         do {
-            try request.seal(signKey, storepass)
+            try request.seal(signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
@@ -134,14 +134,14 @@ public class DIDRequest: IDChainRequest {
     ///   - targetSignKey: targetSignKey the authorization key id of target DID
     ///   - doc: the authorizer's document
     ///   - signKey: the real key is to sign request
-    ///   - storepass: the password for private key access from the DID store
+    ///   - storePassword: the password for private key access from the DID store
     /// - Throws: DIDStoreError if an error occurred when access the private key
     /// - Returns: a DIDRequest object
-    public class func deactivate(_ target: DIDDocument, _ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws -> DIDRequest {
+    public class func deactivate(_ target: DIDDocument, _ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws -> DIDRequest {
         let request = DIDRequest(IDChainRequestOperation.DEACTIVATE)
         request.setPayload(target)
         do {
-            try request.seal(targetSignKey, doc, signKey, storepass)
+            try request.seal(targetSignKey, doc, signKey, storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
@@ -244,7 +244,7 @@ public class DIDRequest: IDChainRequest {
         proof?.qualifyVerificationMethod(_did!)
     }
     
-    func seal(_ signKey: DIDURL, _ storepass: String) throws {
+    func seal(_ signKey: DIDURL, _ storePassword: String) throws {
         guard _doc!.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
         }
@@ -252,11 +252,11 @@ public class DIDRequest: IDChainRequest {
         guard payload != nil, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
-        let signature = try _doc!.sign(signKey, storepass, getSigningInputs())
+        let signature = try _doc!.sign(signKey, storePassword, getSigningInputs())
         setProof(IDChainProof(signKey, signature))
     }
     
-    func seal(_ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storepass: String) throws {
+    func seal(_ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
         guard _doc!.containsAuthorizationKey(forId: targetSignKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authorization key: \(targetSignKey).")
         }
@@ -266,7 +266,7 @@ public class DIDRequest: IDChainRequest {
         guard payload != nil, payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
-        let signature = try _doc!.sign(signKey, storepass, getSigningInputs())
+        let signature = try _doc!.sign(signKey, storePassword, getSigningInputs())
         setProof(IDChainProof(targetSignKey, signature))
     }
     

@@ -49,7 +49,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     
     func setFingerprint(_ fingerprint: String) throws {
         try checkArgument(!fingerprint.isEmpty, "Invalid fingerprint")
-        put(FINGERPRINT, fingerprint)
+        try put(FINGERPRINT, fingerprint)
     }
     
     public func getFingerprint() -> String? {
@@ -58,7 +58,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     }
     
     func setDefaultRootIdentity(_ id: String?) throws {
-        put(DEFAULT_ROOT_IDENTITY, id)
+        try put(DEFAULT_ROOT_IDENTITY, id)
     }
     
     public func getDefaultRootIdentity() -> String {

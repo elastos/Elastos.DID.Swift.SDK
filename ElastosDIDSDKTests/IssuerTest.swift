@@ -44,7 +44,7 @@ class IssuerTest: XCTestCase {
             let db: DIDDocumentBuilder = issuerDoc.editing()
             _ = try db.appendAuthenticationKey(with: signKey, keyBase58: key.getPublicKeyBase58())
             
-            issuerDoc = try db.sealed(using: storePass)
+            issuerDoc = try db.sealed(using: storePassword)
             XCTAssertTrue(issuerDoc.isValid)
 
             let doc = issuerDoc
@@ -106,7 +106,7 @@ class IssuerTest: XCTestCase {
             let vc: VerifiableCredential = try cb.withId("testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
 
             let vcId: DIDURL = try DIDURL(testDoc.subject, "testCredential")
 
@@ -151,7 +151,7 @@ class IssuerTest: XCTestCase {
             let vc: VerifiableCredential = try cb.withId("myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             
             let vcId: DIDURL = try DIDURL(issuerDoc.subject, "myCredential")
             XCTAssertEqual(vcId, vc.getId())
@@ -187,7 +187,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             
             let vcId = try DIDURL(issuerDoc.subject, "myCredential")
             XCTAssertEqual(vcId, vc.getId())

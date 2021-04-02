@@ -55,7 +55,7 @@ class VerifiablePresentationTest: XCTestCase {
                                             testData.loadPassportCredential()!)
                 .withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
-                .sealed(using: storePass)
+                .sealed(using: storePassword)
             
             XCTAssertNotNil(vp)
             XCTAssertEqual("VerifiablePresentation", vp.type)

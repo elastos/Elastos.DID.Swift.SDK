@@ -104,7 +104,7 @@ public class AbstractMetadata: NSObject {
         return result == nil ? nil : DateFormatter.convertToUTCDateFromString(result!)
     }
     
-    func remove(_ name: String) -> String? {
+    func remove(_ name: String) throws -> String? {
         let value = _props.removeValue(forKey: name)
         save()
         return value
@@ -213,7 +213,7 @@ public class AbstractMetadata: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
         }
         
-        return remove(USER_EXTRA_PREFIX + key)
+        return try remove(USER_EXTRA_PREFIX + key)
     }
     
     /// Merge two metadata.
@@ -238,5 +238,5 @@ public class AbstractMetadata: NSObject {
         return DIDMetadata()
     }
     
-    func save() throws { }
+    func save() { }
 }

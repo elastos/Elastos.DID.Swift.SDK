@@ -25,6 +25,10 @@ import Foundation
 @objc(ResolveResult)
 public class ResolveResult: NSObject{
 
+    public override init() {
+        super.init()
+    }
+    
     func sanitize() throws {
         
     }

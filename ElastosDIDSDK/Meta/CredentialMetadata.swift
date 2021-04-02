@@ -41,6 +41,7 @@ public class CredentialMetadata: AbstractMetadata {
     /// - Parameter id: a credential id
     init(_ id: DIDURL) {
         self.id = id
+        super.init()
     }
     
     /// Constructs a CredentialMetadata with given id and attach with
@@ -103,9 +104,9 @@ public class CredentialMetadata: AbstractMetadata {
         return try super.clone()
     }
     
-    override func save() throws {
+    override func save() {
         if attachedStore {
-            try store?.storeCredentialMetadata(id!, self)
+            try? store?.storeCredentialMetadata(id!, self)
         }
     }
     

@@ -37,7 +37,7 @@ public class DIDDocumentProof: NSObject {
     }
     
     convenience init(_ creator: DIDURL, _ signature: String) {
-        self.init(Constants.DEFAULT_PUBLICKEY_TYPE, DateHelper.currentDate(), creator, signature)
+        self.init(Constants.DEFAULT_PUBLICKEY_TYPE, DateFormatter.currentDate(), creator, signature)
     }
 
     /// The default type is ECDSAsecp256r1, which can be omitted.
@@ -112,7 +112,7 @@ public class DIDDocumentProof: NSObject {
 
         // createdDate
         generator.writeFieldName(Constants.CREATED)
-        generator.writeString(DateFormatter.formateDate(self.createdDate))
+        generator.writeString(DateFormatter.convertToUTCStringFromDate(self.createdDate))
 
         // creator
         if normalized {

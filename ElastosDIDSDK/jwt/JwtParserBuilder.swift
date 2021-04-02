@@ -26,7 +26,7 @@ import UIKit
 public class JwtParserBuilder: NSObject {
 
     var getPublicKey : ((_ id: String?) throws -> Data)?
-    var getPrivateKey : ((_ id: String?, _ storepass: String) throws -> Data)?
+    var getPrivateKey : ((_ id: String?, _ storePassword: String) throws -> Data)?
     var claimsJwt : String?
     var key: String?
 

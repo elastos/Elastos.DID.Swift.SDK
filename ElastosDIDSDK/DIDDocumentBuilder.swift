@@ -601,12 +601,12 @@ public class DIDDocumentBuilder: NSObject {
                                   _ types: Array<String>?,
                                   _ subject: Dictionary<String, String>,
                                   _ expirationDate: Date?,
-                                  _ storePassword: String) throws -> DIDDocumentBuilder  {
+                                  _ storePasswordword: String) throws -> DIDDocumentBuilder  {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        guard !subject.isEmpty && !storePassword.isEmpty else {
+        guard !subject.isEmpty && !storePasswordword.isEmpty else {
             throw DIDError.illegalArgument()
         }
 
@@ -632,7 +632,7 @@ public class DIDDocumentBuilder: NSObject {
                                     .withTypes(realTypes)
                                     .withProperties(subject)
                                     .withExpirationDate(realExpires)
-                                    .sealed(using: storePassword)
+                                    .sealed(using: storePasswordword)
             _ =  document!.appendCredential(credential)
         } catch {
             throw DIDError.malformedCredential()
@@ -647,7 +647,7 @@ public class DIDDocumentBuilder: NSObject {
     ///   - types: The array of credential types.
     ///   - subject: The array of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
@@ -655,9 +655,9 @@ public class DIDDocumentBuilder: NSObject {
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(id, types, subject, expirationDate, storePassword)
+        return try appendCredential(id, types, subject, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -666,17 +666,17 @@ public class DIDDocumentBuilder: NSObject {
     ///   - types: The array of credential types.
     ///   - subject: The array of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:types:subject:expirationDate:storePassword:error:)
+    @objc(appendCredential:types:subject:expirationDate:storePasswordword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), types, subject, expirationDate, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), types, subject, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -684,16 +684,16 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - subject: The array of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(id, nil, subject, expirationDate, storePassword)
+        return try appendCredential(id, nil, subject, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -701,16 +701,16 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - subject: The array of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:subject:expirationDate:storePassword:error:)
+    @objc(appendCredential:subject:expirationDate:storePasswordword:error:)
     public func appendCredential(with id: String,
                                  subject: Dictionary<String, String>,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), nil, subject, expirationDate, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), nil, subject, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -718,15 +718,15 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - types: The array of credential types.
     ///   - subject: The array of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
-        return try appendCredential(id, types, subject, nil, storePassword)
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
+        return try appendCredential(id, types, subject, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -734,57 +734,57 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - types: The array of credential types.
     ///   - subject: The array of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:types:subject:storePassword:error:)
+    @objc(appendCredential:types:subject:storePasswordword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                  subject: Dictionary<String, String>,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), types, subject, nil, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), types, subject, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
     /// - Parameters:
     ///   - id: The handle to DIDURL.
     ///   - subject: The array of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                  subject: Dictionary<String, String>,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
-        return try appendCredential(id, nil, subject, nil, storePassword)
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
+        return try appendCredential(id, nil, subject, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
     /// - Parameters:
     ///   - id: The handle to DIDURL.
     ///   - subject: The array of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:subject:storePassword:error:)
+    @objc(appendCredential:subject:storePasswordword:error:)
     public func appendCredential(with id: String,
                                  subject: Dictionary<String, String>,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), nil, subject, nil, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), nil, subject, nil, storePasswordword)
     }
 
     private func appendCredential(_ id: DIDURL,
                                   _ types: Array<String>?,
                                   _ json: String,
                                   _ expirationDate: Date?,
-                                  _ storePassword: String) throws -> DIDDocumentBuilder {
+                                  _ storePasswordword: String) throws -> DIDDocumentBuilder {
         guard let _ = document else {
             throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
         }
 
-        guard !json.isEmpty && !storePassword.isEmpty else {
+        guard !json.isEmpty && !storePasswordword.isEmpty else {
             throw DIDError.illegalArgument()
         }
 
@@ -810,7 +810,7 @@ public class DIDDocumentBuilder: NSObject {
                                     .withTypes(realTypes)
                                     .withProperties(json)
                                     .withExpirationDate(realExpires)
-                                    .sealed(using: storePassword)
+                                    .sealed(using: storePasswordword)
             _ =  document!.appendCredential(credential)
         } catch {
             throw DIDError.malformedCredential()
@@ -825,7 +825,7 @@ public class DIDDocumentBuilder: NSObject {
     ///   - types: The array of credential types.
     ///   - json: The json string of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
@@ -833,8 +833,8 @@ public class DIDDocumentBuilder: NSObject {
                                    types: Array<String>,
                                     json: String,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
-        return try appendCredential(id, types, json, expirationDate, storePassword)
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
+        return try appendCredential(id, types, json, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -843,17 +843,17 @@ public class DIDDocumentBuilder: NSObject {
     ///   - types: The array of credential types.
     ///   - json: The json string of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:types:json:expirationDate:storePassword:error:)
+    @objc(appendCredential:types:json:expirationDate:storePasswordword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                     json: String,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), types, json, expirationDate, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), types, json, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -861,16 +861,16 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - json: The json string of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                     json: String,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(id, nil, json, expirationDate, storePassword)
+        return try appendCredential(id, nil, json, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -878,16 +878,16 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - json: The json string of credential subject property.
     ///   - expirationDate: The time to credential be expired.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredentialWithId:json:expirationDate:storePassword:error:)
+    @objc(appendCredentialWithId:json:expirationDate:storePasswordword:error:)
     public func appendCredential(with id: String,
                                     json: String,
                           expirationDate: Date,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), nil, json, expirationDate, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), nil, json, expirationDate, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -895,16 +895,16 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - types: The array of credential types.
     ///   - json: The json string of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                    types: Array<String>,
                                     json: String,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(id, types, json, nil, storePassword)
+        return try appendCredential(id, types, json, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
@@ -912,46 +912,46 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The handle to DIDURL.
     ///   - types: The array of credential types.
     ///   - json: The json string of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:types:json:storePassword:error:)
+    @objc(appendCredential:types:json:storePasswordword:error:)
     public func appendCredential(with id: String,
                                    types: Array<String>,
                                     json: String,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), types, json, nil, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), types, json, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
     /// - Parameters:
     ///   - id: The handle to DIDURL.
     ///   - json: The json string of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
     public func appendCredential(with id: DIDURL,
                                     json: String,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(id, nil, json, nil, storePassword)
+        return try appendCredential(id, nil, json, nil, storePasswordword)
     }
 
     /// Add one credential to credential array.
     /// - Parameters:
     ///   - id: The handle to DIDURL.
     ///   - json: The json string of credential subject property.
-    ///   - storePassword: Password for DIDStores.
+    ///   - storePasswordword: Password for DIDStores.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendCredential:jsonString:storePassword:error:)
+    @objc(appendCredential:jsonString:storePasswordword:error:)
     public func appendCredential(with id: String,
                                     json: String,
-                     using storePassword: String) throws -> DIDDocumentBuilder {
+                     using storePasswordword: String) throws -> DIDDocumentBuilder {
 
-        return try appendCredential(DIDURL(getSubject(), id), nil, json, nil, storePassword)
+        return try appendCredential(DIDURL(getSubject(), id), nil, json, nil, storePasswordword)
     }
 
     private func removeCredential(_ id: DIDURL) throws -> DIDDocumentBuilder {
@@ -1086,13 +1086,13 @@ public class DIDDocumentBuilder: NSObject {
     }
 
     /// Seal the document object, attach the generated proof to the document.
-    /// - Parameter storePassword: the password for DIDStore
+    /// - Parameter storePasswordword: the password for DIDStore
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to DIDDocument
     @objc
-    public func sealed(using storePassword: String) throws -> DIDDocument {
+    public func sealed(using storePasswordword: String) throws -> DIDDocument {
         try checkNotSealed()
-        try checkArgument(!storePassword.isEmpty, "Invalid storepass")
+        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
         
         try sanitize()
         let signerDoc = document!.isCustomizedDid() ? controllerDoc : document
@@ -1104,7 +1104,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(signerDoc?.subject.toString())
         }
         let json = document?.toString(true)
-        let sig = try document?.sign(withId: signKey!, using: storePassword, for: [json!.data(using: .utf8)!])
+        let sig = try document?.sign(withId: signKey!, using: storePasswordword, for: [json!.data(using: .utf8)!])
         let proof = DIDDocumentProof(signKey!, sig!)
         document!._proofsDic[proof.creator.did!] = proof
         let values = document!._proofsDic.values

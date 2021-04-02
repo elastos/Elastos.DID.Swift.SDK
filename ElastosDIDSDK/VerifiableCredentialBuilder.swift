@@ -206,13 +206,13 @@ public class VerifiableCredentialBuilder: NSObject {
     }
 
     /// Finish modiy VerifiableCredential.
-    /// - Parameter storePassword: Pass word to sign.
+    /// - Parameter storePasswordword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiableCredential.
     @objc
-    public func sealed(using storePassword: String) throws -> VerifiableCredential {
+    public func sealed(using storePasswordword: String) throws -> VerifiableCredential {
         try checkNotSealed()
-        try checkArgument(!storePassword.isEmpty, "Invalid storepass")
+        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
         guard _credential!.checkIntegrity() else {
             throw DIDError.malformedCredential("imcomplete credential")
         }
@@ -226,7 +226,7 @@ public class VerifiableCredentialBuilder: NSObject {
         guard let data = _credential!.toJson(true, true).data(using: .utf8) else {
             throw DIDError.illegalArgument("credential is nil")
         }
-        let signature = try _forDoc.sign(_signKey, storePassword, [data])
+        let signature = try _forDoc.sign(_signKey, storePasswordword, [data])
         let proof = VerifiableCredentialProof(Constants.DEFAULT_PUBLICKEY_TYPE, _signKey, signature)
 
         _credential!.setProof(proof)

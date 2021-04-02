@@ -171,7 +171,13 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private class func toPath(_ id: DIDURL) -> String {
-        let path = id.toString(id.did)
+        var path = ""
+        if id.did != nil {
+            path = id.toString(id.did!)
+        }
+        else {
+            path = id.toString()
+        }
         return path.replacingOccurrences(of: ";", with: ".").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "?", with: "-")
     }
     
@@ -594,8 +600,8 @@ public class FileSystemStorage: DIDStorage {
     }
 
     func storeCredential(_ credential: VerifiableCredential) throws {
-        let file = try getCredentialFile(credential.getId(), true)
-        credential.serialize(file, true)
+        let path = try getCredentialFile(credential.getId(), true)
+        credential.serialize(path, true)
     }
 
     func loadCredential(_ id: DIDURL) throws -> VerifiableCredential? {
@@ -632,7 +638,7 @@ public class FileSystemStorage: DIDStorage {
             var dir = try getCredentialDir(id)
             if try dirExists(dir) {
                 try FileManager.default.removeItem(atPath: dir)
-                dir = getCredentialsDir(id.did!)
+                dir = try getCredentialsDir(id.did!)
                 
                 let fileManager = FileManager.default
                 let enumerator = try fileManager.contentsOfDirectory(atPath: dir)

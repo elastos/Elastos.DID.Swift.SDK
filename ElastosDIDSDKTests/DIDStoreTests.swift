@@ -28,7 +28,7 @@ class DIDStoreTests: XCTestCase {
             let testData: TestData = TestData()
             
             let store = try testData.setup(true)
-            _ = try store.newDid(withAlias: "this will be fail", using: storePass)
+            _ = try store.newDid(withAlias: "this will be fail", using: storePassword)
         } catch {
             print(error)
             XCTAssertTrue(true)
@@ -65,7 +65,7 @@ class DIDStoreTests: XCTestCase {
             var store = try testData.setup(true)
             XCTAssertFalse(store.containsPrivateIdentity())
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePassword: storePass)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePasswordword: storePassword)
             XCTAssertTrue(store.containsPrivateIdentity())
 
             var path = storeRoot + "/" + "private" + "/" + "key"
@@ -79,10 +79,10 @@ class DIDStoreTests: XCTestCase {
 
             store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: testData.adapter!)
             XCTAssertTrue(store.containsPrivateIdentity())
-            let exportedMnemonic = try store.exportMnemonic(using: storePass)
+            let exportedMnemonic = try store.exportMnemonic(using: storePassword)
             XCTAssertEqual(mnemonic, exportedMnemonic)
 
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(expectedIDString, doc.subject.methodSpecificId)
         } catch {
@@ -99,7 +99,7 @@ class DIDStoreTests: XCTestCase {
             var store = try testData.setup(true)
             XCTAssertFalse(store.containsPrivateIdentity())
 
-            try store.initializePrivateIdentity(using: rootKey, storePassword: storePass)
+            try store.initializePrivateIdentity(using: rootKey, storePasswordword: storePassword)
             XCTAssertTrue(store.containsPrivateIdentity())
 
             var path = storeRoot + "/" + "private" + "/" + "key"
@@ -114,7 +114,7 @@ class DIDStoreTests: XCTestCase {
             store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: testData.adapter!)
             XCTAssertTrue(store.containsPrivateIdentity())
 
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(expectedIDString, doc.subject.methodSpecificId)
         } catch {
@@ -130,13 +130,13 @@ class DIDStoreTests: XCTestCase {
             
             let alias: String = "my first did"
             
-            let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePass)
+            let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePassword)
             XCTAssertTrue(doc.isValid)
             
             var resolved = try doc.subject.resolve(true)
             XCTAssertNil(resolved)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             var path = ""
             
             path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
@@ -165,13 +165,13 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            let doc: DIDDocument = try store.newDid(using: storePass)
+            let doc: DIDDocument = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
             
             var resolved = try doc.subject.resolve(true)
             XCTAssertNil(resolved)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             let path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
             XCTAssertTrue(testData.existsFile(path))
 
@@ -194,11 +194,11 @@ class DIDStoreTests: XCTestCase {
 
             let alias = "my first did"
             let did = try store.getDid(byPrivateIdentityIndex: 0)
-            var doc = try store.newDid(withPrivateIdentityIndex: 0, alias: alias, using: storePass)
+            var doc = try store.newDid(withPrivateIdentityIndex: 0, alias: alias, using: storePassword)
             XCTAssertTrue(doc.isValid)
             XCTAssertEqual(did, doc.subject)
 
-            XCTAssertThrowsError(try store.newDid(withAlias: alias, using: storePass)){ (error) in
+            XCTAssertThrowsError(try store.newDid(withAlias: alias, using: storePassword)){ (error) in
                 switch error {
                 case DIDError.didStoreError("DID already exists."): break
                 //everything is fine
@@ -209,7 +209,7 @@ class DIDStoreTests: XCTestCase {
 
             let success = store.deleteDid(did)
             XCTAssertTrue(success)
-            doc = try store.newDid(withAlias: alias, using: storePass)
+            doc = try store.newDid(withAlias: alias, using: storePassword)
             XCTAssertTrue(doc.isValid)
             XCTAssertEqual(did, doc.subject)
         } catch {
@@ -224,7 +224,7 @@ class DIDStoreTests: XCTestCase {
             _ = try testData.initIdentity()
             for i in 0...100 {
                 let alias = "did#\(i)"
-                let doc = try store.newDid(withPrivateIdentityIndex: i, alias: alias, using: storePass)
+                let doc = try store.newDid(withPrivateIdentityIndex: i, alias: alias, using: storePassword)
                 XCTAssertTrue(doc.isValid)
                 let did = try store.getDid(byPrivateIdentityIndex: i)
                 XCTAssertEqual(doc.subject, did)
@@ -240,9 +240,9 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            let doc: DIDDocument = try store.newDid(using: storePass)
+            let doc: DIDDocument = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -252,12 +252,12 @@ class DIDStoreTests: XCTestCase {
             var db: DIDDocumentBuilder = resolved!.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            var newDoc = try db.sealed(using: storePass)
+            var newDoc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, newDoc.publicKeyCount)
             XCTAssertEqual(2, newDoc.authenticationKeyCount)
             try store.storeDid(using: newDoc)
             
-            _ = try store.publishDid(for: newDoc.subject, using: storePass)
+            _ = try store.publishDid(for: newDoc.subject, using: storePassword)
             
             resolved = try doc.subject.resolve(true)
 
@@ -269,11 +269,11 @@ class DIDStoreTests: XCTestCase {
             db = resolved!.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            newDoc = try db.sealed(using: storePass)
+            newDoc = try db.sealed(using: storePassword)
             XCTAssertEqual(3, newDoc.publicKeyCount)
             XCTAssertEqual(3, newDoc.authenticationKeyCount)
             try store.storeDid(using: newDoc)
-            _ = try store.publishDid(for: newDoc.subject, using: storePass)
+            _ = try store.publishDid(for: newDoc.subject, using: storePassword)
             
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -290,10 +290,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -303,12 +303,12 @@ class DIDStoreTests: XCTestCase {
             var db = doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -321,12 +321,12 @@ class DIDStoreTests: XCTestCase {
             db = doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
@@ -341,10 +341,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -354,11 +354,11 @@ class DIDStoreTests: XCTestCase {
             var db = doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -371,12 +371,12 @@ class DIDStoreTests: XCTestCase {
             db = doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            XCTAssertThrowsError(try store.publishDid(for: doc.subject, using: storePass)) { (error) in
+            XCTAssertThrowsError(try store.publishDid(for: doc.subject, using: storePassword)) { (error) in
                 switch error {
                 case DIDError.didNotUpToDate:
                     XCTAssertTrue(true)
@@ -398,10 +398,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             let resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -415,13 +415,13 @@ class DIDStoreTests: XCTestCase {
             let db = doc.editing()
             let key = try TestData.generateKeypair()
             _ =  try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
             let did = doc.subject
 
-            XCTAssertThrowsError(try store.publishDid(for: did, using: storePass)) { error in
+            XCTAssertThrowsError(try store.publishDid(for: did, using: storePassword)) { error in
                 switch error as! DIDError {
                 case .didNotUpToDate:
                     XCTAssertTrue(true)
@@ -440,10 +440,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -453,12 +453,12 @@ class DIDStoreTests: XCTestCase {
             var db = doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -471,13 +471,13 @@ class DIDStoreTests: XCTestCase {
             db = doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
 
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            try store.publishDid(for: doc.subject, using: storePass)
+            try store.publishDid(for: doc.subject, using: storePassword)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -494,10 +494,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -507,12 +507,12 @@ class DIDStoreTests: XCTestCase {
             var db = doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            try store.publishDid(for: doc.subject, using: storePass)
+            try store.publishDid(for: doc.subject, using: storePassword)
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
@@ -524,14 +524,14 @@ class DIDStoreTests: XCTestCase {
              db = doc.editing()
              key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
             let did = doc.subject
 
-            XCTAssertThrowsError(try store.publishDid(for: did, using: storePass)) { error in
+            XCTAssertThrowsError(try store.publishDid(for: did, using: storePassword)) { error in
                 switch error as! DIDError {
                 case .didNotUpToDate:
                     XCTAssertTrue(true)
@@ -550,10 +550,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -566,12 +566,12 @@ class DIDStoreTests: XCTestCase {
             let db = doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePass, true)
+            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePasswordword: storePassword, true)
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
@@ -586,10 +586,10 @@ class DIDStoreTests: XCTestCase {
             let store = try testData.setup(true)
             _ = try testData.initIdentity()
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
 
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
 
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -602,12 +602,12 @@ class DIDStoreTests: XCTestCase {
             let db = doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePass, true)
+            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePasswordword: storePassword, true)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -623,14 +623,14 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             let resolved: DIDDocument = try doc.subject.resolve(true)!
             XCTAssertNotNil(resolved)
 
-            _ = try store.deactivateDid(for: doc.subject, using: storePass)
+            _ = try store.deactivateDid(for: doc.subject, using: storePassword)
             
             let resolvedNil = try doc.subject.resolve(true)
             
@@ -651,10 +651,10 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             
             var resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -664,17 +664,17 @@ class DIDStoreTests: XCTestCase {
             let db = doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePass)
+            doc = try db.sealed(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
-            _ = try store.deactivateDid(for: doc.subject, using: storePass)
+            _ = try store.deactivateDid(for: doc.subject, using: storePassword)
             let did = doc.subject
 
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -696,29 +696,29 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            let doc = try store.newDid(using: storePass)
+            let doc = try store.newDid(using: storePassword)
             XCTAssertTrue(doc.isValid)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             
             var resolved: DIDDocument = try doc.subject.resolve(true)!
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved.toString())
             
-            var target = try store.newDid(using: storePass)
+            var target = try store.newDid(using: storePassword)
             let db: DIDDocumentBuilder = target.editing()
             _ = try db.authorizationDid(with: "recovery", controller: doc.subject.toString())
-            target = try db.sealed(using: storePass)
+            target = try db.sealed(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
 
             try store.storeDid(using: target)
-            _ = try store.publishDid(for: target.subject, using: storePass)
+            _ = try store.publishDid(for: target.subject, using: storePassword)
             resolved = try target.subject.resolve()!
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved.toString())
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePass)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePasswordword: storePassword)
             let did = target.subject
 
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -740,39 +740,39 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             var db: DIDDocumentBuilder = doc.editing()
             let key = try TestData.generateKeypair()
             let id = try DIDURL(doc.subject, "key-2")
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
-            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePass)
-            doc = try db.sealed(using: storePass)
+            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePassword)
+            doc = try db.sealed(using: storePassword)
             XCTAssertTrue(doc.isValid)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             var resolved: DIDDocument? = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), doc.toString())
             
-            var target: DIDDocument = try store.newDid(using: storePass)
+            var target: DIDDocument = try store.newDid(using: storePassword)
             db = target.editing()
             _ = try db.appendAuthorizationKey(with: "recovery", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePass)
+            target = try db.sealed(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             let controller = target.authorizationKeys()[0].controller
             XCTAssertEqual(doc.subject, controller)
             try store.storeDid(using: target)
             
-            _ = try store.publishDid(for: target.subject, using: storePass)
+            _ = try store.publishDid(for: target.subject, using: storePassword)
             
             resolved = try target.subject.resolve()
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved!.toString())
             
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, using: id, storePassword: storePass)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, using: id, storePasswordword: storePassword)
             let did = target.subject
 
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -794,42 +794,42 @@ class DIDStoreTests: XCTestCase {
             let store: DIDStore = try testData.setup(true)
             _ = try testData.initIdentity()
             
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             var db: DIDDocumentBuilder = doc.editing()
             
             let key = try TestData.generateKeypair()
             let id: DIDURL = try DIDURL(doc.subject, "key-2")
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             
-            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePass)
-            doc = try db.sealed(using: storePass)
+            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePassword)
+            doc = try db.sealed(using: storePassword)
             XCTAssertTrue(doc.isValid)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
             
-            _ = try store.publishDid(for: doc.subject, using: storePass)
+            _ = try store.publishDid(for: doc.subject, using: storePassword)
             
             var resolved: DIDDocument? = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
             
-            var target = try store.newDid(using: storePass)
+            var target = try store.newDid(using: storePassword)
             db = target.editing()
             _ = try db.appendAuthorizationKey(with: "recovery", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePass)
+            target = try db.sealed(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             let controller = target.authorizationKeys()[0].controller
             XCTAssertEqual(doc.subject, controller)
             try store.storeDid(using: target)
             
-            _ = try store.publishDid(for: target.subject, using: storePass)
+            _ = try store.publishDid(for: target.subject, using: storePassword)
             
             resolved = try target.subject.resolve()
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved!.toString())
 
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePass)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePasswordword: storePassword)
 
             let did = target.subject
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -853,13 +853,13 @@ class DIDStoreTests: XCTestCase {
             
             for i in 0..<100 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePass )
+                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePassword )
                 XCTAssertTrue(doc.isValid)
                 
                 var resolved = try doc.subject.resolve(true)
                 XCTAssertNil(resolved)
                 
-                _ = try store.publishDid(for: doc.subject, using: storePass)
+                _ = try store.publishDid(for: doc.subject, using: storePassword)
                 
                 var path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
                 XCTAssertTrue(testData.existsFile(path))
@@ -897,8 +897,8 @@ class DIDStoreTests: XCTestCase {
             var dids: Array<DID> = []
             for i in 0..<100 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePass)
-                _ =  try! store.publishDid(for: doc.subject, using: storePass)
+                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePassword)
+                _ =  try! store.publishDid(for: doc.subject, using: storePassword)
                 dids.append(doc.subject)
             }
             
@@ -1164,14 +1164,14 @@ class DIDStoreTests: XCTestCase {
             try DIDBackend.initializeInstance(adapter, TestData.getResolverCacheDir())
             let store = try DIDStore.open(atPath: jsonPath, withType:"filesystem" , adapter: adapter)
 
-            var doc = try store.newDid(using: storePass)
+            var doc = try store.newDid(using: storePassword)
             XCTAssertNotNil(doc)
 
             _ = store.deleteDid(doc.subject)
 
             let did = try store.getDid(byPrivateIdentityIndex: 1000)
 
-            doc = try store.newDid(withPrivateIdentityIndex: 1000, using: storePass)
+            doc = try store.newDid(withPrivateIdentityIndex: 1000, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertEqual(doc.subject, did)
 
@@ -1208,7 +1208,7 @@ class DIDStoreTests: XCTestCase {
         let jsonPath = bundle.path(forResource: "teststore", ofType: "")
         let store = try DIDStore.open(atPath: jsonPath!, withType: "filesystem", adapter: DummyAdapter())
         
-        let doc: DIDDocument = try store.newDid(using: storePass)
+        let doc: DIDDocument = try store.newDid(using: storePassword)
         XCTAssertNotNil(doc)
                 
         _ = store.deleteDid(doc.subject)
@@ -1226,14 +1226,14 @@ class DIDStoreTests: XCTestCase {
             
             for i in 0..<10 {
                 let alias: String = "my did \(i)"
-                let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePass)
+                let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePassword)
                 
                 let issuer = try VerifiableCredentialIssuer(doc)
                 let cb = issuer.editingVerifiableCredentialFor(did: doc.subject)
                 let vc: VerifiableCredential = try cb.withId("cred-1")
                     .withTypes("BasicProfileCredential", "InternetAccountCredential")
                     .withProperties(props)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 try store.storeCredential(using: vc)
             }
         } catch {
@@ -1256,7 +1256,7 @@ class DIDStoreTests: XCTestCase {
             }
                         
             let mnemonic: String = try Mnemonic.generate("0")
-            try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passPhrase: passphrase, storePassword: storePass)
+            try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passPhrase: passphrase, storePasswordword: storePassword)
             createDataForPerformanceTest(store)
             let dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
             XCTAssertEqual(10, dids.count)
@@ -1308,11 +1308,11 @@ class DIDStoreTests: XCTestCase {
                 let store = try DIDStore.open(atPath: storeRoot + String(i), withType: "filesystem", adapter: DummyAdapter())
                 stores.append(store)
                 let mnemonic: String = try Mnemonic.generate("0")
-                try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+                try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
             }
             
             for i in 0..<10 {
-                let doc: DIDDocument = try stores[i].newDid(using: storePass)
+                let doc: DIDDocument = try stores[i].newDid(using: storePassword)
                 XCTAssertNotNil(doc)
                 docs.append(doc)
             }
@@ -1337,11 +1337,11 @@ class DIDStoreTests: XCTestCase {
             
             for i in 0..<10 {
                 let alias: String = "my did \(i)"
-                let doc = try store.newDid(withAlias: alias, using: storePass)
+                let doc = try store.newDid(withAlias: alias, using: storePassword)
                 XCTAssertTrue(doc.isValid)
                 var resolved = try doc.subject.resolve(true)
                 XCTAssertNil(resolved)
-                _ = try store.publishDid(for: doc.subject, using: storePass)
+                _ = try store.publishDid(for: doc.subject, using: storePassword)
                 var path: String = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
                 XCTAssertTrue(testData.existsFile(path))
                 
@@ -1364,7 +1364,7 @@ class DIDStoreTests: XCTestCase {
             dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY);
             XCTAssertEqual(0, dids.count)
 
-            try store.changePassword(storePass, "newpasswd")
+            try store.changePassword(storePassword, "newpasswd")
 
             dids = try store.listDids(using: DIDStore.DID_ALL)
             XCTAssertEqual(10, dids.count)
@@ -1390,11 +1390,11 @@ class DIDStoreTests: XCTestCase {
             _ = try testData.initIdentity()
             for i in 0..<10 {
                 let alias = "my did \(i)"
-                let doc = try store.newDid(withAlias: alias, using: storePass)
+                let doc = try store.newDid(withAlias: alias, using: storePassword)
                 XCTAssertTrue(doc.isValid)
                 var resolved = try doc.subject.resolve(true)
                 XCTAssertNil(resolved)
-                _ = try store.publishDid(for: doc.subject, using: storePass)
+                _ = try store.publishDid(for: doc.subject, using: storePassword)
                 var path: String = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
                 XCTAssertTrue(testData.existsFile(path))
                 
@@ -1447,7 +1447,7 @@ class DIDStoreTests: XCTestCase {
             try create(exportPath, forWrite: true)
             let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
 
-            try store.exportDid(did, to: fileHndle, using: "password", storePassword: storePass)
+            try store.exportDid(did, to: fileHndle, using: "password", storePasswordword: storePassword)
             let restorePath = tempDir + "/" + "restore"
             TestData.deleteFile(restorePath)
 
@@ -1455,7 +1455,7 @@ class DIDStoreTests: XCTestCase {
 
             let readerHndle = FileHandle(forReadingAtPath: exportPath)
             readerHndle?.seek(toFileOffset: 0)
-            try store2.importStore(from: readerHndle!, "password", storePass)
+            try store2.importStore(from: readerHndle!, "password", storePassword)
 
 //            let didDirPath = storeRoot + "/ids/" + did.methodSpecificId
             let reDidDirPath = restorePath + "/ids/" + did.methodSpecificId
@@ -1483,7 +1483,7 @@ class DIDStoreTests: XCTestCase {
             try create(exportPath, forWrite: true)
             let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
 
-            try store.exportPrivateIdentity(to: fileHndle, "password", storePass)
+            try store.exportPrivateIdentity(to: fileHndle, "password", storePassword)
             let restorePath = tempDir + "/" + "restore"
             TestData.deleteFile(restorePath)
 
@@ -1491,7 +1491,7 @@ class DIDStoreTests: XCTestCase {
 
             let readerHndle = FileHandle(forReadingAtPath: exportPath)
             readerHndle?.seek(toFileOffset: 0)
-            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePassword: storePass)
+            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePasswordword: storePassword)
 
             //            let didDirPath = storeRoot + "/private"
             let reDidDirPath = restorePath + "/private"

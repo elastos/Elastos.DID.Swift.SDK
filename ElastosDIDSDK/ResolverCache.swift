@@ -80,7 +80,7 @@ public class ResolverCache: NSObject {
     @objc
     public class func load(_ did: DID, _ ttl: Int, error: NSErrorPointer) -> ResolveResult? {
         do {
-            return try load(did, ttl)
+            return try load(did, ttl, error: error)
         } catch let aError as NSError {
             error?.pointee = aError
             return nil

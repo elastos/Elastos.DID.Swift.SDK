@@ -18,14 +18,14 @@ class TestDataGenerator: XCTestCase {
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
         let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePass, true)
+        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic
     }
     
     func createTestIssuer() throws {
-        let doc: DIDDocument = try store.newDid(using: storePass)
+        let doc: DIDDocument = try store.newDid(using: storePassword)
         print("Generate issuer DID: \(doc.subject)...")
 //        let selfIssuer = try Issuer(doc)
         let selfIssuer = try VerifiableCredentialIssuer(doc)
@@ -39,18 +39,18 @@ class TestDataGenerator: XCTestCase {
         let vc = try cb.withId("profile")
             .withTypes("BasicProfileCredential","SelfProclaimedCredential")
             .withProperties(props)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
 
         let db: DIDDocumentBuilder = doc.editing()
         _ = try db.appendCredential(with: vc)
-        issuer = try db.sealed(using: storePass)
+        issuer = try db.sealed(using: storePassword)
         try store.storeDid(using: issuer)
         try store.storeCredential(using: vc)
         
         let id: DIDURL = issuer.defaultPublicKey
-        let key = try DIDHDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePass))
+        let key = try DIDHDKey.deserialize(try store.loadPrivateKey(issuer.subject, id, storePassword))
 //        let sk: String = try store.loadPrivateKey(for: issuer.subject, byId: id)
-//        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
+//        let data: Data = try DIDStore.decryptFromBase64(sk, storePassword)
 //        let binSk: [UInt8] = [UInt8](data)
         writeTo("issuer." + id.fragment! + ".sk", key.serializeBase58())
         
@@ -66,7 +66,7 @@ class TestDataGenerator: XCTestCase {
     }
     
     func createTestDocument() throws {
-        let doc = try store.newDid(using: storePass)
+        let doc = try store.newDid(using: storePassword)
         
         // Test document with two embedded credentials
         print("Generate test DID: \(doc.subject)...")
@@ -100,7 +100,7 @@ class TestDataGenerator: XCTestCase {
         let vcProfile = try cb.withId("profile")
             .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
             .withProperties(props)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
         
         let kycIssuer = try VerifiableCredentialIssuer(issuer)
         cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
@@ -109,12 +109,12 @@ class TestDataGenerator: XCTestCase {
         let vcEmail: VerifiableCredential = try cb.withId("email")
             .withTypes("BasicProfileCredential", "InternetAccountCredential", "EmailCredential")
             .withProperties(props)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
 
         _ = try db.appendCredential(with: vcProfile)
         _ = try db.appendCredential(with: vcEmail)
 
-        test = try db.sealed(using: storePass)
+        test = try db.sealed(using: storePassword)
         try store.storeDid(using: test)
         vcProfile.getMetadata().setAlias("Profile")
         try store.storeCredential(using: vcProfile)
@@ -122,10 +122,10 @@ class TestDataGenerator: XCTestCase {
         try store.storeCredential(using: vcEmail)
 
         var id = test.defaultPublicKey
-//        let sk = try store.loadPrivateKey(test.subject, id, storePass)
-//        let data: Data = try DIDStore.decryptFromBase64(sk, storePass)
+//        let sk = try store.loadPrivateKey(test.subject, id, storePassword)
+//        let data: Data = try DIDStore.decryptFromBase64(sk, storePassword)
 //        let binSk = [UInt8](data)
-        let key = try DIDHDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePass))
+        let key = try DIDHDKey.deserialize(try store.loadPrivateKey(test.subject, id, storePassword))
         writeTo("document." + id.fragment! + ".sk", key.serializeBase58())
         
         var json = test.toString(true)
@@ -174,7 +174,7 @@ class TestDataGenerator: XCTestCase {
         let vcPassport = try cb.withId("passport")
             .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
             .withProperties(props)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
         
         json = vcPassport.toString(true)
         writeTo("vc-passport.normalized.json", json)
@@ -196,7 +196,7 @@ class TestDataGenerator: XCTestCase {
         let vcTwitter = try cb.withId("twitter")
             .withTypes("InternetAccountCredential", "TwitterCredential")
             .withProperties(props)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
         
         json = vcTwitter.toString(true)
         writeTo("vc-twitter.normalized.json", json)
@@ -220,7 +220,7 @@ class TestDataGenerator: XCTestCase {
         let vcJson = try cb.withId(id)
             .withTypes("InternetAccountCredential", "TwitterCredential")
             .withProperties(jsonProps)
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
 
         vcJson.getMetadata().setAlias("json")
         try store.storeCredential(using: vcTwitter)
@@ -242,7 +242,7 @@ class TestDataGenerator: XCTestCase {
         let vp = try pb.withCredentials(vcProfile, vcEmail, vcPassport, vcTwitter)
             .withRealm("https://example.com/")
             .withNonce("873172f58701a9ee686f0630204fee59")
-            .sealed(using: storePass)
+            .sealed(using: storePassword)
 
         json = vp.description
         writeTo("vp.normalized.json", json)
@@ -299,7 +299,7 @@ class TestDataGenerator: XCTestCase {
                     wait(interval: 30)
                 }
                 
-                var doc = try store.newDid(using: storePass)
+                var doc = try store.newDid(using: storePassword)
                 let selfIssuer: VerifiableCredentialIssuer = try VerifiableCredentialIssuer(doc)
                 
                 let did: DID = doc.subject
@@ -309,7 +309,7 @@ class TestDataGenerator: XCTestCase {
                 let vcProfile: VerifiableCredential = try cb.withId("profile")
                     .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                     .withProperties(properties)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 
                 cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
                 properties.removeAll()
@@ -318,7 +318,7 @@ class TestDataGenerator: XCTestCase {
                 let vcEmail: VerifiableCredential = try cb.withId("email")
                     .withTypes("BasicProfileCredential", "InternetAccountCredential", "EmailCredential")
                     .withProperties(properties)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 
                 cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
                 properties.removeAll()
@@ -327,7 +327,7 @@ class TestDataGenerator: XCTestCase {
                 let vcPassport: VerifiableCredential = try cb.withId("passport")
                     .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                     .withProperties(properties)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 
                 cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
                 properties.removeAll()
@@ -336,18 +336,18 @@ class TestDataGenerator: XCTestCase {
                 let vcTwitter: VerifiableCredential = try cb.withId("twitter")
                     .withTypes("InternetAccountCredential", "TwitterCredential")
                     .withProperties(properties)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 
                 let db: DIDDocumentBuilder = doc.editing()
                 doc = try db.appendCredential(with: vcProfile)
                     .appendCredential(with: vcEmail)
                     .appendCredential(with: vcPassport)
                     .appendCredential(with: vcTwitter)
-                    .sealed(using: storePass)
+                    .sealed(using: storePassword)
                 try store.storeDid(using: doc)
                 
                 print("******** Publishing DID:\(doc.subject)")
-                _ = try store.publishDid(for: doc.subject, using: storePass)
+                _ = try store.publishDid(for: doc.subject, using: storePassword)
                 
                 while true {
                     wait(interval: 30)

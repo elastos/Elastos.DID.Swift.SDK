@@ -209,18 +209,18 @@ public class IDChainRequest: NSObject {
     /// - Parameters:
     ///   - doc: the DID Document be packed into Request
     ///   - signKey: the key to sign Request
-    ///   - storePassword: the password for DIDStore
+    ///   - storePasswordword: the password for DIDStore
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
     @objc
     public class func create(_ doc: DIDDocument,
                       _ signKey: DIDURL,
-                      _ storePassword: String) throws -> IDChainRequest {
+                      _ storePasswordword: String) throws -> IDChainRequest {
 
         return try IDChainRequest(.CREATE)
                 .setPayload(doc)
-                .sealed(signKey, storePassword)
+                .sealed(signKey, storePasswordword)
     }
 
     /// Constructs the 'update' IDChain Request.
@@ -228,7 +228,7 @@ public class IDChainRequest: NSObject {
     ///   - doc: the DID Document be packed into Request
     ///   - previousTransactionId: the previous transaction id string
     ///   - signKey: the key to sign Request
-    ///   - storePassword: the password for DIDStore
+    ///   - storePasswordword: the password for DIDStore
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
@@ -236,30 +236,30 @@ public class IDChainRequest: NSObject {
     public class func update(_ doc: DIDDocument,
                       _ previousTransactionId: String,
                       _ signKey: DIDURL,
-                      _ storePassword: String) throws -> IDChainRequest {
+                      _ storePasswordword: String) throws -> IDChainRequest {
 
         return try IDChainRequest(.UPDATE)
                 .setPreviousTransactionId(previousTransactionId)
                 .setPayload(doc)
-                .sealed(signKey, storePassword)
+                .sealed(signKey, storePasswordword)
     }
 
     /// Constructs the 'deactivate' IDChain Request.
     /// - Parameters:
     ///   - doc: the DID Document be packed into Request
     ///   - signKey: the key to sign Request
-    ///   - storePassword: the password for DIDStore
+    ///   - storePasswordword: the password for DIDStore
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
     @objc
     public class func deactivate(_ doc: DIDDocument,
                       _ signKey: DIDURL,
-                      _ storePassword: String) throws -> IDChainRequest {
+                      _ storePasswordword: String) throws -> IDChainRequest {
 
         return try IDChainRequest(.DEACTIVATE)
                 .setPayload(doc)
-                .sealed(signKey, storePassword)
+                .sealed(signKey, storePasswordword)
     }
 
     /// Constructs the 'deactivate' IDChain Request.
@@ -268,7 +268,7 @@ public class IDChainRequest: NSObject {
     ///   - targetSignKey: the target DID's key to sign
     ///   - doc: the authorizer's document
     ///   - signKey: the key to sign Request
-    ///   - storePassword: the password for DIDStore
+    ///   - storePasswordword: the password for DIDStore
     /// - Throws: didStoreError: there is no store to attach.
     /// - Throws: invalidKeyError: there is no an authentication key.
     /// - Returns: the IDChainRequest object
@@ -277,11 +277,11 @@ public class IDChainRequest: NSObject {
                       _ targetSignKey: DIDURL,
                       _ doc: DIDDocument,
                       _ signKey: DIDURL,
-                      _ storePassword: String) throws -> IDChainRequest {
+                      _ storePasswordword: String) throws -> IDChainRequest {
 
         return try IDChainRequest(.DEACTIVATE)
                 .setPayload(target)
-                .sealed(targetSignKey, doc, signKey, storePassword)
+                .sealed(targetSignKey, doc, signKey, storePasswordword)
     }
 
     /// Get operation string.
@@ -408,7 +408,7 @@ public class IDChainRequest: NSObject {
     }
 
     private func sealed(_ signKey: DIDURL,
-                        _ storePassword: String) throws -> IDChainRequest {
+                        _ storePasswordword: String) throws -> IDChainRequest {
 
         let prevTxid = _operation == .UPDATE ? self._previousTransactionId! : ""
         var inputs: [Data] = []
@@ -426,7 +426,7 @@ public class IDChainRequest: NSObject {
             inputs.append(data)
         }
 
-        self._signature = try _doc!.sign(signKey, storePassword, inputs)
+        self._signature = try _doc!.sign(signKey, storePasswordword, inputs)
         self._signKey = signKey
         self._keyType = Constants.DEFAULT_PUBLICKEY_TYPE
 
@@ -436,7 +436,7 @@ public class IDChainRequest: NSObject {
     private func sealed(_ targetSignKey: DIDURL,
                         _ doc: DIDDocument,
                         _ signKey: DIDURL,
-                        _ storePassword: String) throws -> IDChainRequest {
+                        _ storePasswordword: String) throws -> IDChainRequest {
 
         let prevTxid = operation == .UPDATE ? self._previousTransactionId! : ""
         var inputs: [Data] = []
@@ -453,7 +453,7 @@ public class IDChainRequest: NSObject {
             inputs.append(data)
         }
 
-        self._signature = try doc.sign(signKey, storePassword, inputs)
+        self._signature = try doc.sign(signKey, storePasswordword, inputs)
         self._signKey = targetSignKey
         self._keyType = Constants.DEFAULT_PUBLICKEY_TYPE
 
@@ -463,7 +463,7 @@ public class IDChainRequest: NSObject {
     private func checkValid() throws -> Bool {
         // internally using builder pattern "create/update/deactivate" to create
         // new IDChainRequest object.
-        // Always be sure have "_doc/_signKey/_storePass" in the object.
+        // Always be sure have "_doc/_signKey/_storePassword" in the object.
         var doc: DIDDocument?
         if self._operation != .DEACTIVATE {
             doc = self._doc!
