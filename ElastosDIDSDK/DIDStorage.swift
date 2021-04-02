@@ -21,13 +21,13 @@
 */
 
 /// The inferface to change password.
-protocol ReEncryptor {
-    
-    /// Reencrypt in the changing password.
-    /// - Parameter data: the data need to reencrypted
-    /// - Return: the reencrypted data
-    func containsPrivateIdentity(_ data: String) -> String
-}
+//protocol ReEncryptor {
+//
+//    /// Reencrypt in the changing password.
+//    /// - Parameter data: the data need to reencrypted
+//    /// - Return: the reencrypted data
+//    func containsPrivateIdentity(_ data: String) -> String
+//}
 
 /// The interface for DIDStorage to support different file system.
 protocol DIDStorage {

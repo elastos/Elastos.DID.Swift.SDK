@@ -274,6 +274,6 @@ public class TransferTicket: NSObject {
     /// - Returns: the TransferTicket object
     public class func fromJson(_ content: Dictionary<String, Any>) throws -> TransferTicket {
 //        return try parse(content)
-        return TransferTicket() // TODO:
+        return try TransferTicket(DIDDocument(), DID()) // TODO:
     }
 }

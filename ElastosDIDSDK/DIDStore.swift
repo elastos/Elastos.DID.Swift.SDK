@@ -345,17 +345,32 @@ public class DIDStore: NSObject {
         return encryptedMnemonic != nil
     }
     
-    private func loadRootIdentityPrivateKey(_ id: String, _ storePassword: String) throws -> DIDHDKey {
-        // TODO:
+    /// Load private identity from DIDStore.
+    /// - Parameters:
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the HDKey object(private identity)
+    private func loadRootIdentityPrivateKey(_ id: String, _ storePassword: String) throws -> DIDHDKey? {
+        let value = try cache.getValue(for: Key.forRootIdentityPrivateKey(id)) { () -> NSObject? in
+            let encryptedKey = try storage!.loadRootIdentityPrivateKey(id)
+            return encryptedKey as NSObject?
+        }
+        
+        if value != nil {
+            let keyData = try decrypt(value as! String, storePassword)
+            return DIDHDKey.deserialize(keyData)
+        }
+        else {
+            return nil
+        }
     }
-    
+
     func derive(_ id: String, _ path: String, _ storePassword: String) throws -> DIDHDKey {
         try checkArgument(!id.isEmpty, "Invalid identity")
         try checkArgument(!path.isEmpty, "Invalid path")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let rootPrivateKey = try loadRootIdentityPrivateKey(id, storePassword)
-        let key = try rootPrivateKey.derive(path)
-        rootPrivateKey.wipe()
+        let key = try rootPrivateKey!.derive(path)
+        rootPrivateKey!.wipe()
         
         return key
     }

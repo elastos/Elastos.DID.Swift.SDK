@@ -32,8 +32,8 @@ public class CredentialListResponse: ResolveResponse{
         super.init(responseId, code, message)
     }
     
-    class func parse(_ input: Data) -> CredentialListResponse {
+    class func parse(_ input: Data) throws -> CredentialListResponse {
         
-        return DIDResolveResponse("TODO", CredentialList())
+        return try CredentialListResponse("TODO", CredentialList(DID()))
     }
 }

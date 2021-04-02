@@ -1086,6 +1086,12 @@ public class VerifiableCredential: DIDObject {
     public class func fromJson(_ json: String) throws -> VerifiableCredential {
         return try fromJson(json.data(using: .utf8)!)
     }
+    
+    @objc(fromJsonWithJsonfor:error:)
+    public class func fromJson(for path: String) throws -> VerifiableCredential {
+        //TODO: data from path
+        return try fromJson(path.data(using: .utf8)!)
+    }
 
     /// Get one DID’s Credential from json context.
     /// - Parameter json: Json context about credential.

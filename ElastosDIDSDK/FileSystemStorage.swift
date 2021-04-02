@@ -54,9 +54,9 @@ import Foundation
  *        + ...
  *        + ixxxxxxxxxxxxxxxN
  */
+typealias ReEncryptor = (String) throws -> String
 public class FileSystemStorage: DIDStorage {
     private let TAG = NSStringFromClass(FileSystemStorage.self)
-    typealias ReEncryptor = (String) throws -> String
     let DATA_DIR = "data"
     let ROOT_IDENTITIES_DIR = "roots"
     let ROOT_IDENTITY_MNEMONIC_FILE = "mnemonic"
@@ -76,10 +76,10 @@ public class FileSystemStorage: DIDStorage {
     
     
     init(_ dir: String) throws {
-        try checkArgument(dir.isEmpty, "Invalid DIDStore root directory.")
-
         self.storeRoot = dir
         currentDataDir = DATA_DIR
+        try checkArgument(dir.isEmpty, "Invalid DIDStore root directory.")
+    
         if FileManager.default.fileExists(atPath: storeRoot) {
             try checkStore()
         } else {
@@ -503,8 +503,9 @@ public class FileSystemStorage: DIDStorage {
     }
 
     func storeDid(_ doc: DIDDocument) throws {
-        let file = try getDidFile(doc.subject, true)
-        try doc.serialize(file, true)
+        let path = try getDidFile(doc.subject, true)
+        try doc.convertFromDIDDocument(true, asFileAtPath: path)
+//        try doc.serialize(file, true)
     }
 
     func loadDid(_ did: DID) throws -> DIDDocument? {
@@ -584,7 +585,7 @@ public class FileSystemStorage: DIDStorage {
             if metadata.isEmpty() {
                 try FileManager.default.removeItem(atPath: file)
             } else {
-                try metadata.serialize(file)
+                metadata.serialize(file)
             }
         } catch {
             throw DIDError.didStoreError("store credential meta error")
@@ -601,16 +602,22 @@ public class FileSystemStorage: DIDStorage {
 
     func storeCredential(_ credential: VerifiableCredential) throws {
         let path = try getCredentialFile(credential.getId(), true)
-        credential.serialize(path, true)
+        let fileHandle = FileHandle(forWritingAtPath: path)
+        let generator = JsonGenerator()
+        credential.toJson(generator, true)
+
+        fileHandle!.write(generator.toString().data(using: .utf8)!)
+//        credential.serialize(path, true)
     }
 
     func loadCredential(_ id: DIDURL) throws -> VerifiableCredential? {
         do {
-            let file = try getCredentialFile(id, false)
-            if try !fileExists(file) {
+            let path = try getCredentialFile(id, false)
+            if try !fileExists(path) {
                 return nil
             }
-            return VerifiableCredential.parse(file)
+            
+            return try VerifiableCredential.fromJson(for: path)
         } catch {
             throw DIDError.didStoreError("load credential error")
         }
@@ -872,12 +879,12 @@ public class FileSystemStorage: DIDStorage {
     
     func upgradeFromV2() throws {
         Log.i(TAG, "Try to upgrading DID store to the latest version...")
-        var file = try getFile(".meta")
-        if try !fileExists(file!) {
+        var path = try getFile(".meta")
+        if try !fileExists(path!) {
             Log.e(TAG, "Abort upgrade DID store, invalid DID store metadata file")
             throw DIDError.didStoreError("Directory '\(storeRoot)' is not a DIDStore.")
         }
-        let data = FileHandle(forReadingAtPath: file!)!.readDataToEndOfFile()
+        let data = FileHandle(forReadingAtPath: path!)!.readDataToEndOfFile()
         guard data.count == 8 else {
             throw DIDError.didStoreError("Directory \(storeRoot) is not DIDStore directory")
         }
@@ -915,33 +922,33 @@ public class FileSystemStorage: DIDStorage {
                 throw DIDError.didStoreError("Invalid root identity folder")
             }
             // Root identity
-            file = try getFile("private" + "/" + "key")
+        path = try getFile("private" + "/" + "key")
             var privateKey: String?
-            if try fileExists(file!) {
-                privateKey = try readTextFromPath(file!)
+            if try fileExists(path!) {
+                privateKey = try readTextFromPath(path!)
             }
             if privateKey == nil || privateKey!.isEmpty {
                 Log.e(TAG, "Abort upgrade DID store, invalid root private key")
                 throw DIDError.didStoreError("Invalid root private key")
             }
-            file = try getFile("private" + "/" + "key.pub")
+        path = try getFile("private" + "/" + "key.pub")
             var publicKey: String?
-            if try fileExists(file!) {
-                publicKey = try readTextFromPath(file!)
+            if try fileExists(path!) {
+                publicKey = try readTextFromPath(path!)
             }
             if publicKey == nil || publicKey!.isEmpty {
                 Log.e(TAG, "Abort upgrade DID store, invalid root public key")
                 throw DIDError.didStoreError("Invalid root public key")
             }
-            file = try getFile("private" + "/" + "mnemonic")
+        path = try getFile("private" + "/" + "mnemonic")
             var mnemonic: String?
-            if try fileExists(file!) {
-                mnemonic = try readTextFromPath(file!)
+            if try fileExists(path!) {
+                mnemonic = try readTextFromPath(path!)
             }
-            file = try getFile("private" + "/" + "index")
+        path = try getFile("private" + "/" + "index")
             var index = 0
-            if try fileExists(file!) {
-                index = try Int(value: readTextFromPath(file!))
+            if try fileExists(path!) {
+                index = try Int(value: readTextFromPath(path!))
             }
             let pk = DIDHDKey.deserializeBase58(publicKey!)
             id = try RootIdentity.getId(pk.serializePublicKey())
@@ -966,17 +973,18 @@ public class FileSystemStorage: DIDStorage {
         for element: String in enumerator  {
             let did = DID(DID.METHOD, element)
             // DID document and metadata
-            file = try getFile("\(element)/document")
-            if try !fileExists(file!) {
+            path = try getFile("\(element)/document")
+            if try !fileExists(path!) {
                 Log.e(TAG, "Abort upgrade DID store, invalid DID document: \(element)")
                 throw DIDError.didStoreError("Invalid DID document: \(element)")
             }
-            let doc = DIDDocument.parse(file)
-            storeDid(doc)
-            file = try getFile("\(element)/.meta")
-            if try fileExists(file!) {
-                let dm = upgradeMetadataV2(file!, DIDMetadata.self)
-                storeDidMetadata(doc.subject, dm)
+//            let doc = DIDDocument.parse(file)
+            let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: path!)
+            try storeDid(doc)
+            path = try getFile("\(element)/.meta")
+            if try fileExists(path!) {
+                let dm = upgradeMetadataV2(path!, DIDMetadata.self) as! DIDMetadata
+                try storeDidMetadata(doc.subject, dm)
             }
             
             // Credentials
@@ -991,17 +999,18 @@ public class FileSystemStorage: DIDStorage {
                 return
             }
             for vcDir in vcs {
-                file = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
+                path = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
                                 vcDir + "/" + "credential")
-                if try !fileExists(file!) {
+                if try !fileExists(path!) {
                     continue
                 }
-               let vc = VerifiableCredential.parse(file)
-                storeCredential(vc)
-                file = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
+//               let vc = VerifiableCredential.parse(file)
+                let vc = try VerifiableCredential.fromJson(for: path!)
+                try storeCredential(vc)
+                path = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
                         vcDir + "/" + ".meta")
-                let cm = upgradeMetadataV2(file!, CredentialMetadata.self)
-                storeCredentialMetadata(vc.getId(), cm)
+                let cm = upgradeMetadataV2(path!, CredentialMetadata.self) as! CredentialMetadata
+                try storeCredentialMetadata(vc.getId(), cm)
             }
    
             // Private keys
@@ -1063,9 +1072,9 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
-    private func upgradeMetadataV2<T>(_ filePath: String, _ clazz: T) -> T {
+    private func upgradeMetadataV2<T>(_ filePath: String, _ class: T) -> T.Type{
         // TODO:
-        return T.Type.self as! T
+        return T.Type.self as! T.Type
     }
     
     private func postOperations(){

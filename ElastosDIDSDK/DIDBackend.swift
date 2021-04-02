@@ -243,11 +243,11 @@ public class DIDBackend: NSObject {
             break
         }
         case CredentialResolveRequest.METHOD_NAME: do {
-            response = CredentialResolveResponse.parse(re)
+            response = try CredentialResolveResponse.parse(re)
             break
         }
         case CredentialListRequest.METHOD_NAME: do {
-            response = CredentialListResponse.parse(re)
+            response = try CredentialListResponse.parse(re)
             break
         }
         default:

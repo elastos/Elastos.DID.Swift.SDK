@@ -69,8 +69,12 @@ final class LRUCache<Key: Hashable, Value> {
     }
 
     func keys() -> [Key] {
+        var keys: [Key] = []
+        self.nodesDict.forEach { (k, v) in
+            keys.append(k)
+        }
         
-        return nodesDict.keys
+        return keys
     }
     
     func getValue(for key: Key) -> Value? {

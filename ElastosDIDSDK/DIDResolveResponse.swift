@@ -34,6 +34,6 @@ public class DIDResolveResponse: ResolveResponse {
     
     class func parse(_ input: Data) -> DIDResolveResponse {
         
-        return DIDResolveResponse("TODO", DIDBiography())
+        return DIDResolveResponse("TODO", DIDBiography(DID()))
     }
 }
