@@ -4,7 +4,7 @@ import Foundation
 let root: String = "\(NSHomeDirectory())/Library/Caches/DIDStore"
 let tempDir: String = "\(root)/tempDir"
 
-let storeRoot: String = "\(root)/storeRoot"
+let storeRoot: String = "\(root)"
 let storePassword: String = "passwd"
 let passphrase: String = "secret"
 
@@ -20,3 +20,4 @@ let walletPassword: String = "11111111"
 //let walletId: String = "MainNetTest"
 //let walletPassword: String = "00001111"
 
+// SimNet

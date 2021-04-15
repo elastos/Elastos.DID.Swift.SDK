@@ -2,341 +2,36 @@
 import XCTest
 @testable import ElastosDIDSDK
 
-class TestData: XCTestCase {
-    private static var dummyAdapter: DummyAdapter?
-    private static var spvAdapter: DIDAdapter?
-    private static var rootKey: DIDHDKey?
-    private static var index: Int?
+class TestData {
+    static var rootKey: DIDHDKey?
+    static var index: Int?
     
-    private var testIssuer: DIDDocument?
-    private var issuerCompactJson: String?
-    private var issuerNormalizedJson: String?
-    private var testDocument: DIDDocument?
-    private var testCompactJson: String?
-    private var testNormalizedJson: String?
-    private var profileVc: VerifiableCredential?
-    private var profileVcCompactJson: String?
-    private var profileVcNormalizedJson: String?
-    private var emailVc: VerifiableCredential?
-    private var emailVcCompactJson: String?
-    private var emailVcNormalizedJson: String?
-    private var passportVc: VerifiableCredential?
-    private var passportVcCompactJson: String?
-    private var passportVcNormalizedJson: String?
-    private var twitterVc: VerifiableCredential?
-    private var twitterVcCompactJson: String?
-    private var twitterVcNormalizedJson: String?
-    private var testVp: VerifiablePresentation?
-    private var testVpNormalizedJson: String?
-    private var restoreMnemonic: String?
+    var store: DIDStore?
+    var mnemonic: String = ""
+    var identity: RootIdentity?
     
-    private var jsonVc: VerifiableCredential?
-    private var jsonVcCompactJson: String?
-    private var jsonVcNormalizedJson: String?
-    var adapter: DIDAdapter?
-    let verbose: Bool = true
+    var v1: CompatibleData?
+    var v2: CompatibleData?
+    var instantData: InstantData?
     
-    private var store: DIDStore!
+    init() {
+        do {
+            TestData.deleteFile(storeRoot)
+            store = try DIDStore.open(atPath: storeRoot)
+            v1 = CompatibleData(1, store!)
+            v2 = CompatibleData(2, store!)
+        } catch {
+            print(error)
+        }
+//        super.init()
+    }
 
-    class func getResolverCacheDir() -> String {
-        return "\(NSHomeDirectory())/Library/Caches/.cache.did.elastos"
-    }
-        
-    public func setup(_ dummyBackend: Bool) throws -> DIDStore {
-        if dummyBackend {
-            if TestData.dummyAdapter == nil {
-                TestData.dummyAdapter = DummyAdapter(verbose)
-                adapter = TestData.dummyAdapter!
-            }
-            else {
-                TestData.dummyAdapter!.reset()
-            }
-            adapter = TestData.dummyAdapter!
-            try DIDBackend.initializeInstance((adapter as! DIDResolver), TestData.getResolverCacheDir())
-        }
-        else {
-            if TestData.spvAdapter == nil {
-                let cblock: PasswordCallback = ({(walletDir, walletId) -> String in return walletPassword})
-                TestData.spvAdapter = SPVAdaptor(walletDir, walletId, networkConfig, resolver, cblock)
-            }
-                adapter = TestData.spvAdapter!
-            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
-        }
-        try ResolverCache.reset()
-        TestData.deleteFile(storeRoot)
-        print(storeRoot)
-        store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter!)
-        return store
-    }
-    
-    public func initIdentity() throws -> String {
-        let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
-        return mnemonic
-    }
-    
-    func loadDIDDocument(_ fileName: String, _ type_: String) throws -> DIDDocument {
-        let bundle = Bundle(for: type(of: self))
-        let jsonPath = bundle.path(forResource: fileName, ofType: type_)
-        let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: jsonPath!)
-        
+    func cleanup() {
         if store != nil {
-            try store.storeDid(using: doc)
+            store!.close()
         }
-        return doc
-    }
-
-    func waitForWalletAvaliable() throws {
-        var spvAdapter: SPVAdaptor? = nil
-        if adapter is SPVAdaptor {
-            spvAdapter = adapter as? SPVAdaptor
-        }
-        if spvAdapter != nil {
-            while true {
-                if try spvAdapter!.isAvailable() {
-                    print("OK")
-                    break
-                }
-                else {
-                    print(".")
-                }
-                wait(interval: 30)
-            }
-        }
-    }
-
-    func wait(interval: Double) {
-
-        let lock = XCTestExpectation(description: "")
-
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + interval) {
-            lock.fulfill()
-        }
-        wait(for: [lock], timeout: interval + 10)
-    }
-    
-    func importPrivateKey(_ id: DIDURL, _ fileName: String, _ type: String) throws {
-        let skBase58: String = try loadText(fileName, type)
-        let capacity = skBase58.count * 3
-        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let cp = skBase58.toUnsafePointerInt8()
-        let re = base58_decode(buffer, capacity, cp)
-        let temp = UnsafeRawPointer(buffer)
-        .bindMemory(to: UInt8.self, capacity: re)
-        
-        let data = Data(bytes: temp, count: re)
-        _ = [UInt8](data).map { Int8(bitPattern: $0) }
-
-        try store.storePrivateKey(for: id.did, id: id, privateKey: data, using: storePassword)
-    }
-    
-    func loadTestIssuer() throws -> DIDDocument {
-        if testIssuer == nil {
-            testIssuer = try loadDIDDocument("issuer", "json")
-            try importPrivateKey(testIssuer!.defaultPublicKey, "issuer.primary", "sk")
-            _ = try store.publishDid(for: testIssuer!.subject, using: storePassword)
-        }
-        return testIssuer!
-    }
-    
-    func loadTestDocument() throws -> DIDDocument {
-        _ = try loadTestIssuer()
-        if testDocument == nil {
-            testDocument = try loadDIDDocument("document", "json")
-        }
-        try importPrivateKey(testDocument!.defaultPublicKey, "document.primary", "sk")
-        try importPrivateKey(testDocument!.publicKey(ofId: "key2")!.getId(), "document.key2", "sk")
-        try importPrivateKey(testDocument!.publicKey(ofId: "key3")!.getId(), "document.key3", "sk")
-        _ = try store.publishDid(for: testDocument!.subject, using: storePassword)
-        return testDocument!
-    }
-    
-    func loadCredential(_ fileName: String, _ type_: String) throws -> VerifiableCredential {
-        let buldle = Bundle(for: type(of: self))
-        let filepath = buldle.path(forResource: fileName, ofType: type_)
-        let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
-        let vc: VerifiableCredential = try VerifiableCredential.fromJson(json)
-        if store != nil {
-            try store.storeCredential(using: vc)
-        }
-        return vc
-    }
-    
-    public func loadProfileCredential() throws -> VerifiableCredential? {
-        if profileVc == nil {
-            profileVc = try loadCredential("vc-profile", "json")
-        }
-        return profileVc
-    }
-    
-    public func loadEmailCredential() throws -> VerifiableCredential {
-        if emailVc == nil {
-            emailVc = try loadCredential("vc-email", "json")
-        }
-        return emailVc!
-    }
-    
-    public func loadPassportCredential() throws -> VerifiableCredential? {
-        if passportVc == nil {
-            passportVc = try loadCredential("vc-passport", "json")
-        }
-        return passportVc
-    }
-    
-    public func loadTwitterCredential() throws -> VerifiableCredential {
-        if twitterVc == nil {
-            twitterVc = try loadCredential("vc-twitter", "json")
-        }
-        return twitterVc!
-    }
-   
-    public func loadJsonCredential() throws -> VerifiableCredential {
-        if jsonVc == nil {
-            jsonVc = try loadCredential("vc-json", "json")
-        }
-        return jsonVc!
-    }
-    
-    public func loadPresentation() throws -> VerifiablePresentation {
-        if testVp == nil {
-            let bl = Bundle(for: type(of: self))
-            let path = bl.path(forResource: "vp", ofType: "json")
-            let urlPath = URL(fileURLWithPath: path!)
-            let json = try String(contentsOf: urlPath)
-            var jsonString = json.replacingOccurrences(of: " ", with: "")
-            jsonString = jsonString.replacingOccurrences(of: "\n", with: "")
-            testVp = try VerifiablePresentation.fromJson(jsonString)
-        }
-        return testVp!
-    }
-    
-    func loadText(_ fileName: String, _ type_: String) throws -> String {
-        let bl = Bundle(for: type(of: self))
-        let filepath = bl.path(forResource: fileName, ofType: type_)
-        let json = try! String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
-
-        return json
-    }
-    
-    public func loadIssuerCompactJson() throws -> String {
-        if issuerCompactJson == nil {
-            issuerCompactJson = try loadText("issuer.compact", "json")
-        }
-        return issuerCompactJson!
-    }
-    
-    public func loadIssuerNormalizedJson() throws -> String {
-        if issuerNormalizedJson == nil {
-            issuerNormalizedJson = try loadText("issuer.normalized", "json")
-        }
-        return issuerNormalizedJson!
-    }
-    
-    public func loadTestCompactJson() throws -> String {
-        if testCompactJson == nil {
-            testCompactJson = try loadText("document.compact", "json")
-        }
-        return testCompactJson!
-    }
-    
-    public func loadTestNormalizedJson() throws -> String {
-        if testNormalizedJson == nil {
-            testNormalizedJson = try loadText("document.normalized", "json")
-        }
-        return testNormalizedJson!
-    }
-    
-    public func loadProfileVcCompactJson() throws -> String {
-        if profileVcCompactJson == nil {
-            profileVcCompactJson = try loadText("vc-profile.compact", "json")
-        }
-        return profileVcCompactJson!
-    }
-    
-    public func loadProfileVcNormalizedJson() throws -> String {
-        if profileVcNormalizedJson == nil {
-            profileVcNormalizedJson = try loadText("vc-profile.normalized", "json")
-        }
-        return profileVcNormalizedJson!
-    }
-    
-    public func loadEmailVcCompactJson() throws -> String {
-        if emailVcCompactJson == nil {
-            emailVcCompactJson = try loadText("vc-email.compact", "json")
-        }
-        return emailVcCompactJson!
-    }
-    
-    public func loadEmailVcNormalizedJson() throws -> String {
-        if emailVcNormalizedJson == nil {
-            emailVcNormalizedJson = try loadText("vc-email.normalized", "json")
-        }
-        return emailVcNormalizedJson!
-    }
-    
-    public func loadPassportVcCompactJson() throws -> String {
-        if passportVcCompactJson == nil {
-            passportVcCompactJson = try loadText("vc-passport.compact", "json")
-        }
-        return passportVcCompactJson!
-    }
-    
-    public func loadPassportVcNormalizedJson() throws -> String {
-        if passportVcNormalizedJson == nil {
-            passportVcNormalizedJson = try loadText("vc-passport.normalized", "json")
-        }
-        return passportVcNormalizedJson!
-    }
-    
-    public func loadTwitterVcCompactJson() throws -> String {
-        if twitterVcCompactJson == nil {
-            twitterVcCompactJson = try loadText("vc-twitter.compact", "json")
-        }
-        return twitterVcCompactJson!
-    }
-    
-    public func loadTwitterVcNormalizedJson() throws -> String {
-        if twitterVcNormalizedJson == nil {
-            twitterVcNormalizedJson = try loadText("vc-twitter.normalized", "json")
-        }
-        return twitterVcNormalizedJson!
-    }
-    
-    public func loadJsonVcCompactJson() throws -> String {
-        if jsonVcCompactJson == nil {
-            jsonVcCompactJson = try loadText("vc-json.compact", "json")
-        }
-        return jsonVcCompactJson!
-    }
-    
-    public func loadJsonVcNormalizedJson() throws -> String {
-        if jsonVcNormalizedJson == nil {
-            jsonVcNormalizedJson = try loadText("vc-json.normalized", "json")
-        }
-        return jsonVcNormalizedJson!
-    }
-
-    public func loadPresentationNormalizedJson() throws -> String {
-        if testVpNormalizedJson == nil {
-            testVpNormalizedJson = try loadText("vp.normalized", "json")
-        }
-        return testVpNormalizedJson!
-    }
-    
-    public func loadRestoreMnemonic() throws -> String {
-        if restoreMnemonic == nil {
-            // TODO: load test
-            restoreMnemonic = try loadText("mnemonic", "restore")
-        }
-        return restoreMnemonic!
-    }
-    
-    public func deleteFile() throws -> String {
-        if restoreMnemonic == nil {
-            // TODO: load test
-            restoreMnemonic = try loadText("mnemonic", "restore")
-        }
-        return restoreMnemonic!
+        print("0909")
+        DIDBackend.sharedInstance().clearCache()
     }
     
     public class func generateKeypair() throws -> DIDHDKey {
@@ -351,6 +46,97 @@ class TestData: XCTestCase {
         return try TestData.rootKey!.derive(path)
     }
 
+    public func getRootIdentity() throws -> RootIdentity {
+        if identity == nil {
+            mnemonic = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
+            identity = try RootIdentity.create(mnemonic, passphrase, true, store!, storePassword)
+        }
+        
+        return identity!
+    }
+    
+    public func getCompatibleData(_ version: Int) throws -> CompatibleData {
+        switch (version) {
+        case 1:
+            if (v1 == nil) {
+                v1 = CompatibleData(version, store!)
+            }
+            return v1!
+        case 2:
+            if (v2 == nil) {
+                v2 = CompatibleData(version, store!)
+            }
+            return v2!
+            
+        default:
+            throw TestError.failue("Unsupported version")
+        }
+    }
+    
+    func sharedInstantData() -> InstantData {
+        if (instantData == nil) {
+            instantData = InstantData(self)
+        }
+        
+        return instantData!
+    }
+    
+//    func waitForWalletAvaliable() throws {
+//        var spvAdapter: SPVAdaptor? = nil
+//        if adapter is SPVAdaptor {
+//            spvAdapter = adapter as? SPVAdaptor
+//        }
+//        if spvAdapter != nil {
+//            while true {
+//                if try spvAdapter!.isAvailable() {
+//                    print("OK")
+//                    break
+//                }
+//                else {
+//                    print(".")
+//                }
+//                wait(interval: 30)
+//            }
+//        }
+//    }
+    
+    func wait(interval: Double) {
+
+//        let lock = XCTestExpectation(description: "")
+
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + interval) {
+//            lock.fulfill()
+        }
+//        wait(for: [lock], timeout: interval + 10)
+    }
+    /*
+     public void waitForWalletAvaliable() throws DIDException {
+         // need synchronize?
+         if (DIDTestExtension.getAdapter() instanceof SPVAdapter) {
+             SPVAdapter spvAdapter = (SPVAdapter)DIDTestExtension.getAdapter();
+
+             System.out.print("Waiting for wallet available...");
+             long start = System.currentTimeMillis();
+             while (true) {
+                 try {
+                     Thread.sleep(30000);
+                 } catch (InterruptedException ignore) {
+                 }
+
+                 if (spvAdapter.isAvailable()) {
+                     long duration = (System.currentTimeMillis() - start + 500) / 1000;
+                     System.out.println("OK(" + duration + "s)");
+                     break;
+                 }
+             }
+         }
+     }
+     */
+
+    class func getResolverCacheDir() -> String {
+        return "\(NSHomeDirectory())/Library/Caches/.cache.did.elastos"
+    }
+  
    class func deleteFile(_ path: String) {
         do {
             let filemanager: FileManager = FileManager.default
@@ -453,3 +239,1043 @@ extension String {
     }
 }
 
+public class CompatibleData {
+    var dataPath: String = "resources/v1/testdata/"
+    var storePath: String = "resources/v1/teststore/"
+    var data: [String: Any] = [: ]
+    var version: Int = 1
+    var store: DIDStore?
+    
+    init(_ version: Int, _ store: DIDStore) {
+        self.version = version
+        self.dataPath = "resources/v\(version)/testdata/"
+        self.storePath = "resources/v\(version)/teststore/"
+        self.store = store
+    }
+    
+    func test1() {
+        print("123")
+       let re = listFiles(dataPath, "sk")
+        let kfs = re.filter(re, dataPath, "user1.id.", ".sk")
+        kfs.forEach { kf in
+            let start = kf.count - "user1".count - 4
+            var fragment = kf.suffix(start)
+            let end = fragment.count - 3
+            fragment = fragment.prefix(end)
+        }
+        
+        print("kfs == \(kfs)")
+    }
+    
+    var isLatestVersion: Bool {
+        return version == 2
+    }
+    
+    func getDidFile(_ name: String, _ type: String?) -> String {
+        var str = dataPath
+        str.append(name)
+        str.append(".id")
+        if let _ = type {
+            str.append(".\(type!)")
+        }
+        str.append(".json")
+        print("path = \(str)")
+        
+        return str
+    }
+    
+    func getCredentialFile(_ did: String, _ vc: String, _ type: String?) -> String {
+        var str = dataPath
+        str.append(did)
+        str.append(".vc.")
+        str.append(vc)
+        if let _ = type {
+            str.append(".\(type!)")
+        }
+        str.append(".json")
+
+        return str
+    }
+    
+    func getPresentationFile(_ did: String, _ vp: String, _ type: String?) -> String {
+        var str = dataPath
+        str.append(did)
+        str.append(".vp.")
+        str.append(vp)
+        if let _ = type {
+            str.append(".\(type!)")
+        }
+        str.append(".json")
+
+        return str
+    }
+    
+    func loadText(_ path: String) throws -> String {
+        let bl = Bundle(for: type(of: self))
+        let paths = path.replacingOccurrences(of: bl.bundlePath, with: "").slip()
+        let filepath = bl.path(forResource: paths[0], ofType: paths[1])
+        let json = try String(contentsOf: URL(fileURLWithPath: filepath!), encoding: .utf8)
+        
+        print("loadText ---> path=: \(path): json = \(json)")
+        return json
+    }
+
+    func listFiles(_ path: String, _ ofType: String) -> [String] {
+        let bl = Bundle(for: type(of: self))
+        print("path == \(path)")
+        let files = bl.paths(forResourcesOfType: ofType, inDirectory: path)
+//        print("filepath == \(filepath)")
+        
+        return files
+    }
+    
+    func getDocument(_ did: String, _ type: String?) throws -> DIDDocument {
+        let baseKey = "res:did:" + did
+        let key = type != nil ? baseKey + ":" + type! : baseKey
+        if data.keys.contains(key) {
+            return data[key] as! DIDDocument
+        }
+
+        // load the document
+        let path = getDidFile(did, type)
+        let doc = try DIDDocument.convertToDIDDocument(fromJson: loadText(path))
+        
+        if !data.keys.contains(baseKey) {
+            // If not stored before, store it and load private keys
+            try store?.storeDid(using: doc)
+//            let kfs = dataPath.
+            let re = listFiles(dataPath, ".sk")
+            let kfs: [String] = re.filter(re, dataPath, did + ".id.", ".sk")
+            
+            try kfs.forEach { kf in
+                let kfName = kf.components(separatedBy: "/").last!
+                
+                let start = kfName.index(kfName.startIndex, offsetBy: did.count + 4)
+                let end = kfName.index(kfName.startIndex, offsetBy: kfName.count - 4)
+
+                let fragment = kfName[start...end]
+                let id = try DIDURL(doc.subject, "#" + fragment)
+
+                let sk = try DIDHDKey.deserializeBase58(loadText(kf)).serialize()
+                try store!.storePrivateKey(for: id, privateKey: sk, using: storePassword)
+            }
+        }
+        
+        switch did {
+        case "foobar", "foo", "bar", "baz":
+            try doc.publish(getDocument("user1").defaultPublicKeyId()!, storePassword)
+            break
+        default:
+            try doc.publish(storePassword)
+            break
+        }
+        data[key] = doc
+        
+        return doc
+    }
+    
+    func getDocument(_ did: String) throws -> DIDDocument {
+        return try getDocument(did, nil)
+    }
+    
+    func getDocumentJson(_ did: String, _ type: String?) throws -> String {
+        let path = getDidFile(did, type)
+        let key = "res:json:" + path
+        if (data.keys.contains(key)) {
+            return data[key] as! String
+        }
+        // load the document
+        let text = try loadText(path)
+        data[key] = text
+        
+        return text
+    }
+    
+    func getCredential(_ did: String, _ vc: String, _ type: String?) throws -> VerifiableCredential {
+        // Load DID document first for verification
+        let doc = try getDocument(did)
+        let baseKey = "res:vc:" + did + ":" + vc
+        let key = type != nil ? baseKey + ":" + type! : baseKey
+        if (data.keys.contains(key)) {
+            return data[key] as! VerifiableCredential
+        }
+        // load the credential
+        let credential = try VerifiableCredential.fromJson(for: getCredentialFile(did, vc, type))
+        // If not stored before, store it
+        
+        if (!data.keys.contains(baseKey)) {
+            try store!.storeCredential(using: credential)
+        }
+        data[key] = credential
+        
+        return credential
+    }
+    
+    func getCredential(_ did: String, _ vc: String) throws -> VerifiableCredential {
+        return try getCredential(did, vc, nil)
+    }
+    
+    func getCredentialJson(_ did: String, _ vc: String, _ type: String?) throws -> String {
+        let path = getCredentialFile(did, vc, type)
+        let key = "res:json:" + path
+        if (data.keys.contains(key)) {
+            return data[key] as! String
+        }
+        
+        // load the document
+        let text = try loadText(path)
+        data[key] = text
+        
+        return text
+    }
+    
+    func getPresentation(_ did: String, _ vp: String, _ type: String?) throws -> VerifiablePresentation {
+        // Load DID document first for verification
+        try getDocument(did)
+
+        let baseKey = "res:vp:" + did + ":" + vp
+        let key = type != nil ? baseKey + ":" + type! : baseKey
+        if (data.keys.contains(key)) {
+            return data[key] as! VerifiablePresentation
+        }
+
+        // load the presentation
+        let presentation = try VerifiablePresentation.fromJson(getPresentationFile(did, vp, type))
+
+        data[key] = presentation
+        
+        return presentation
+    }
+    
+    func getPresentation(_ did: String, _ vp: String) throws -> VerifiablePresentation {
+        return try getPresentation(did, vp, nil)
+    }
+    
+    func getPresentationJson(_ did: String, _ vp: String, _ type: String?) throws -> String {
+        let path = getPresentationFile(did, vp, type)
+        let key = "res:json:" + path
+        if (data.keys.contains(key)) {
+            return data[key] as! String
+        }
+        // load the document
+        let text = try loadText(path)
+        data[key] = text
+        
+        return text
+    }
+    
+    func loadAll() throws {
+        try getDocument("issuer")
+        try getDocument("user1")
+        try getDocument("user2")
+        try getDocument("user3")
+
+        if (version == 2) {
+            try getDocument("user4")
+            try getDocument("examplecorp")
+            try getDocument("foobar")
+            try getDocument("foo")
+            try getDocument("bar")
+            try getDocument("baz")
+        }
+    }
+}
+
+class InstantData {
+    var idIssuer: DIDDocument?
+    var idUser1: DIDDocument?
+    var idUser2: DIDDocument?
+    var idUser3: DIDDocument?
+    var idUser4: DIDDocument?
+
+    var vcUser1Passport: VerifiableCredential?    // Issued by idIssuer
+    var vcUser1Twitter: VerifiableCredential?    // Self-proclaimed
+    var vcUser1Json: VerifiableCredential?      // Issued by idIssuer with complex JSON subject
+    var vpUser1Nonempty: VerifiablePresentation?
+    var vpUser1Empty: VerifiablePresentation?
+
+    var idExampleCorp: DIDDocument?     // Controlled by idIssuer
+    var idFooBar: DIDDocument?         // Controlled by User1, User2, User3 (2/3)
+    var idFoo: DIDDocument?           // Controlled by User1, User2 (2/2)
+    var idBar: DIDDocument?          // Controlled by User1, User2, User3 (3/3)
+    var idBaz: DIDDocument?         // Controlled by User1, User2, User3 (1/3)
+
+    var vcFooBarServices: VerifiableCredential?    // Self-proclaimed
+    var vcFooBarLicense: VerifiableCredential?    // Issued by idExampleCorp
+    var vcFooEmail: VerifiableCredential?        // Issued by idIssuer
+
+    var vpFooBarNonempty: VerifiablePresentation?
+    var vpFooBarEmpty: VerifiablePresentation?
+
+    var vcUser1JobPosition: VerifiableCredential? // Issued by idExampleCorp
+
+    var ttFooBar: TransferTicket?
+    var ttBaz: TransferTicket?
+    
+//    var identity: RootIdentity
+//    var store: DIDStore
+    var testData: TestData
+
+
+    init(_ testData: TestData) {
+        self.testData = testData
+    }
+    
+    func getIssuerDocument() throws -> DIDDocument {
+        if idIssuer == nil {
+            try testData.getRootIdentity()
+            
+            var doc = try testData.identity!.newDid(storePassword)
+            doc.getMetadata().setAlias("Issuer")
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            var props = ["name": "Test Issuer"]
+            props["nation"] = "Singapore"
+            props["language"] = "English"
+            props["email"] = "issuer@example.com"
+            let vc = try cb.withId("#profile")
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            
+            let db = try doc.editing()
+            try db.appendCredential(with: vc)
+            
+            var key = try TestData.generateKeypair()
+            var id = try DIDURL(doc.subject, "#key2")
+            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
+            
+            // No private key for testKey
+            key = try TestData.generateKeypair()
+            id = try DIDURL(doc.subject, "#testKey")
+            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            
+            // No private key for recovery
+            key = try TestData.generateKeypair()
+            id = try DIDURL(doc.subject, "#recovery")
+            try db.appendAuthorizationKey(id, DID("did:elastos:\(key.getAddress())"), key.getPublicKeyBase58())
+            
+            doc = try db.sealed(using: storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(storePassword)
+            
+            idIssuer = doc
+        }
+        return idIssuer!
+    }
+    
+    func getUser1Document() throws -> DIDDocument {
+        if idUser1 == nil {
+            try getIssuerDocument()
+            
+            var doc = try testData.identity!.newDid(storePassword)
+            doc.getMetadata().setAlias("User1")
+
+            // Test document with two embedded credentials
+            let db = try doc.editing()
+
+            var temp = try TestData.generateKeypair()
+            try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key2"),
+                                            privateKey: temp.serialize(),
+                                            using: storePassword)
+            
+            temp = try TestData.generateKeypair()
+            try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key3"),
+                                            privateKey: temp.serialize(),
+                                            using: storePassword)
+
+            temp = try TestData.generateKeypair()
+            try db.appendAuthorizationKey(with: "#recovery", controller: "did:elastos:\(temp.getAddress())", keyBase58: temp.getPublicKeyBase58())
+            
+            try db.appendService(with: "#openid", type: "OpenIdConnectVersion1.0Service", endpoint: "https://openid.example.com/")
+            try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
+                             endpoint: "https://did.example.com/credentials")
+
+            var map = ["abc": "helloworld",
+                       "foo": 123,
+                       "bar": "foobar",
+                       "foobar": "lalala...",
+                       "date": DateFormatter.currentDate(),
+                       "ABC": "Helloworld",
+                       "FOO": 678,
+                       "BAR": "Foobar",
+                       "DATE": DateFormatter.currentDate()] as [String : Any]
+            var props = ["abc": "helloworld",
+                         "foo": 123,
+                         "bar": "foobar",
+                         "foobar": "lalala...",
+                         "date": DateFormatter.currentDate(),
+                         "map": map,
+                         "ABC": "Helloworld",
+                         "FOO": 678,
+                         "BAR": "Foobar",
+                         "FOOBAR": "Lalala...",
+                         "DATE": DateFormatter.currentDate(),
+                         "MAP": map] as [String : Any]
+            try db.appendService(with: "#carrier", type: "CarrierAddress", endpoint: "carrier://X2tDd1ZTErwnHNot8pTdhp7C7Y9FxMPGD8ppiasUT4UsHH2BpF1d", properties: map)
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            var cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            var prop: [String: String] = [: ]
+            prop["name"] = "John"
+            prop["gender"] = "Male"
+            prop["nation"] = "Singapore"
+            prop["language"] = "English"
+            prop["email"] = "john@example.com"
+            prop["twitter"] = "@john"
+            let vcProfile = try cb.withId("#profile")
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(prop)
+                .sealed(using: storePassword)
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
+            cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+
+            prop.removeAll()
+            prop["email"] = "john@example.com"
+
+            let vcEmail = try cb.withId("#email")
+                    .withTypes("BasicProfileCredential",
+                            "InternetAccountCredential", "EmailCredential")
+                    .withProperties(prop)
+                .sealed(using: storePassword)
+
+            try db.appendCredential(with: vcProfile)
+            try db.appendCredential(with: vcEmail)
+            doc = try db.sealed(using: storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(storePassword)
+
+            idUser1 = doc
+        }
+        
+        return idUser1!
+    }
+    
+    func getUser1PassportCredential() throws -> VerifiableCredential {
+        if (vcUser1Passport == nil) {
+            let doc = try getUser1Document()
+            
+            let id = try DIDURL(doc.subject, "#passport")
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props: [String: String] = ["nation": "Singapore", "passport": "S653258Z07"]
+            
+            let vcPassport = try cb.withId(id)
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            vcPassport.getMetadata().setAlias("Passport")
+            try testData.store!.storeCredential(using: vcPassport)
+            
+            vcUser1Passport = vcPassport
+        }
+        
+        return vcUser1Passport!
+    }
+    
+    func getUser1TwitterCredential() throws -> VerifiableCredential {
+        if (vcUser1Twitter == nil) {
+            let doc = try getUser1Document()
+            
+            let id = try DIDURL(doc.subject, "#twitter")
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
+            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["twitter": "@john"]
+            
+            let vcTwitter = try cb.withId(id)
+                .withTypes("InternetAccountCredential", "TwitterCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            vcTwitter.getMetadata().setAlias("Twitter")
+            try testData.store!.storeCredential(using: vcTwitter)
+            
+            vcUser1Twitter = vcTwitter
+        }
+        
+        return vcUser1Twitter!
+    }
+    
+    func getUser1JsonCredential() throws -> VerifiableCredential {
+        if (vcUser1Json == nil) {
+            let doc = try  getUser1Document()
+
+            let id = try DIDURL(doc.subject, "#json")
+
+            let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
+            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+
+            let jsonProps = "{\"name\":\"Jay Holtslander\",\"alternateName\":\"Jason Holtslander\",\"booleanValue\":true,\"numberValue\":1234,\"doubleValue\":9.5,\"nationality\":\"Canadian\",\"birthPlace\":{\"type\":\"Place\",\"address\":{\"type\":\"PostalAddress\",\"addressLocality\":\"Vancouver\",\"addressRegion\":\"BC\",\"addressCountry\":\"Canada\"}},\"affiliation\":[{\"type\":\"Organization\",\"name\":\"Futurpreneur\",\"sameAs\":[\"https://twitter.com/futurpreneur\",\"https://www.facebook.com/futurpreneur/\",\"https://www.linkedin.com/company-beta/100369/\",\"https://www.youtube.com/user/CYBF\"]}],\"alumniOf\":[{\"type\":\"CollegeOrUniversity\",\"name\":\"Vancouver Film School\",\"sameAs\":\"https://en.wikipedia.org/wiki/Vancouver_Film_School\",\"year\":2000},{\"type\":\"CollegeOrUniversity\",\"name\":\"CodeCore Bootcamp\"}],\"gender\":\"Male\",\"Description\":\"Technologist\",\"disambiguatingDescription\":\"Co-founder of CodeCore Bootcamp\",\"jobTitle\":\"Technical Director\",\"worksFor\":[{\"type\":\"Organization\",\"name\":\"Skunkworks Creative Group Inc.\",\"sameAs\":[\"https://twitter.com/skunkworks_ca\",\"https://www.facebook.com/skunkworks.ca\",\"https://www.linkedin.com/company/skunkworks-creative-group-inc-\",\"https://plus.google.com/+SkunkworksCa\"]}],\"url\":\"https://jay.holtslander.ca\",\"image\":\"https://s.gravatar.com/avatar/961997eb7fd5c22b3e12fb3c8ca14e11?s=512&r=g\",\"address\":{\"type\":\"PostalAddress\",\"addressLocality\":\"Vancouver\",\"addressRegion\":\"BC\",\"addressCountry\":\"Canada\"},\"sameAs\":[\"https://twitter.com/j_holtslander\",\"https://pinterest.com/j_holtslander\",\"https://instagram.com/j_holtslander\",\"https://www.facebook.com/jay.holtslander\",\"https://ca.linkedin.com/in/holtslander/en\",\"https://plus.google.com/+JayHoltslander\",\"https://www.youtube.com/user/jasonh1234\",\"https://github.com/JayHoltslander\",\"https://profiles.wordpress.org/jasonh1234\",\"https://angel.co/j_holtslander\",\"https://www.foursquare.com/user/184843\",\"https://jholtslander.yelp.ca\",\"https://codepen.io/j_holtslander/\",\"https://stackoverflow.com/users/751570/jay\",\"https://dribbble.com/j_holtslander\",\"http://jasonh1234.deviantart.com/\",\"https://www.behance.net/j_holtslander\",\"https://www.flickr.com/people/jasonh1234/\",\"https://medium.com/@j_holtslander\"]}";
+
+            let vcJson = try cb.withId(id)
+                    .withTypes("TestCredential", "JsonCredential")
+                    .withProperties(jsonProps)
+                    .sealed(using: storePassword)
+            vcJson.getMetadata().setAlias("json")
+            try testData.store!.storeCredential(using: vcJson)
+
+            vcUser1Json = vcJson
+        }
+
+        return vcUser1Json!
+    }
+    
+    func getUser1JobPositionCredential() throws -> VerifiableCredential {
+        if (vcUser1JobPosition == nil) {
+            try getExampleCorpDocument()
+            
+            let doc = try getUser1Document()
+            
+            let id = try DIDURL(doc.subject, "#email")
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
+            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["title": "CEO"]
+            
+            let vc = try cb.withId(id)
+                .withTypes("JobPositionCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            try testData.store!.storeCredential(using: vc)
+            
+            vcUser1JobPosition = vc
+        }
+        
+        return vcUser1JobPosition!
+    }
+    
+    func getUser1NonemptyPresentation() throws -> VerifiablePresentation {
+        if (vpUser1Nonempty == nil) {
+            let doc = try getUser1Document()
+
+            let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: testData.store!)
+
+            let vp = try pb
+                .withCredentials(doc.credential(ofId: "#profile")!,
+                                 doc.credential(ofId: "#email")!,
+                                 getUser1PassportCredential(),
+                                 getUser1TwitterCredential(),
+                                 getUser1JobPositionCredential())
+                    .withRealm("https://example.com/")
+                    .withNonce("873172f58701a9ee686f0630204fee59")
+                    .sealed(using: storePassword)
+
+            vpUser1Nonempty = vp
+        }
+
+        return vpUser1Nonempty!
+    }
+    
+    func getUser1EmptyPresentation() throws -> VerifiablePresentation {
+        if (vpUser1Empty == nil) {
+            let doc = try getUser1Document()
+            
+            let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: testData.store!)
+            
+            let vp = try pb.withRealm("https://example.com/")
+                .withNonce("873172f58701a9ee686f0630204fee59")
+                .sealed(using: storePassword)
+            
+            vpUser1Empty = vp
+        }
+        
+        return vpUser1Empty!
+    }
+    
+    func getUser2Document() throws -> DIDDocument {
+        if (idUser2 == nil) {
+            var doc = try testData.identity!.newDid(storePassword)
+            doc.getMetadata().setAlias("User2")
+
+            let db = try doc.editing()
+
+            let props = ["name": "John", "gender": "Male", "nation": "Singapore", "language": "English", "email": "john@example.com", "twitter": "@john"]
+
+            try db.appendCredential(with: "#profile", subject: props, using: storePassword)
+            doc = try db.sealed(using: storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(storePassword)
+
+            idUser2 = doc
+        }
+
+        return idUser2!
+    }
+    
+    func getUser3Document() throws -> DIDDocument {
+        if (idUser3 == nil) {
+            let doc = try testData.identity!.newDid(storePassword)
+            doc.getMetadata().setAlias("User3")
+            try doc.publish(storePassword)
+
+            idUser3 = doc
+        }
+
+        return idUser3!
+    }
+    
+    func getUser4Document() throws -> DIDDocument {
+        if (idUser4 == nil) {
+            let doc = try testData.identity!.newDid(storePassword)
+            doc.getMetadata().setAlias("User4")
+            try doc.publish(storePassword)
+            
+            idUser4 = doc
+        }
+
+        return idUser4!
+    }
+    
+    func getExampleCorpDocument() throws -> DIDDocument {
+        if (idExampleCorp == nil) {
+            try getIssuerDocument()
+            
+            let did = try DID("did:elastos:example")
+            var doc = try idIssuer!.newCustomizedDid(did, storePassword)
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["name": "Example LLC", "website": "https://example.com/", "email": "contact@example.com"]
+            
+            let vc = try cb.withId("#profile")
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            
+            let db = try doc.editing()
+            try db.appendCredential(with: vc)
+            
+            var key = try TestData.generateKeypair()
+            var id = try DIDURL(doc.subject, "#key2")
+            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
+            
+            // No private key for testKey
+            key = try TestData.generateKeypair()
+            id = try DIDURL(doc.subject, "#testKey")
+            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            
+            doc = try db.sealed(using: storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(storePassword)
+            
+            idExampleCorp = doc
+        }
+        
+        return idExampleCorp!
+    }
+    
+    func getFooBarDocument() throws -> DIDDocument {
+        if (idFooBar == nil) {
+            try getExampleCorpDocument()
+            try getUser1Document()
+            try getUser2Document()
+            try getUser3Document()
+            
+            let controllers = [idUser1!.subject, idUser2!.subject, idUser3!.subject]
+            let did = try DID("did:elastos:foobar")
+            var doc = try idUser1!.newCustomizedDid(did, controllers, 2, storePassword)
+            let signKey = idUser1!.defaultPublicKeyId()
+            
+            // Add public keys embedded credentials
+            let db = try doc.editing(idUser1!)
+            
+            var temp = try TestData.generateKeypair()
+            try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key2"),
+                                                privateKey: temp.serialize(), using: storePassword)
+            
+            temp = try TestData.generateKeypair()
+            try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
+            try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key3"),
+                                                privateKey: try temp.serialize(), using: storePassword)
+            
+            try db.appendService(with: "#vault", type: "Hive.Vault.Service",
+                                 endpoint: "https://foobar.com/vault")
+            
+            let map = ["abc": "helloworld", "foo": 123, "bar": "foobar", "foobar": "lalala...", "date": DateFormatter.currentDate(), "ABC": "Helloworld", "FOO": 678, "BAR": "Foobar", "DATE": DateFormatter.currentDate()] as [String : Any]
+            
+            let props = ["abc": "helloworld", "foo": 123, "bar": "foobar", "foobar": "lalala...", "date": DateFormatter.currentDate(),"map": map, "ABC": "Helloworld", "FOO": 678, "BAR": "Foobar", "DATE": DateFormatter.currentDate(), "MAP": map] as [String : Any]
+            
+            try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
+                                 endpoint: "https://foobar.com/credentials", properties: props)
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc, signKey!)
+            var cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            var pr = ["name": "Foo Bar Inc", "language": "Chinese", "email": "contact@foobar.com"]
+            
+            let vcProfile = try cb.withId("#profile")
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(pr)
+                .sealed(using: storePassword)
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
+            cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            pr.removeAll()
+            pr["email"] = "foobar@example.com"
+            
+            let vcEmail = try cb.withId("#email")
+                .withTypes("BasicProfileCredential",
+                           "InternetAccountCredential", "EmailCredential")
+                .withProperties(pr)
+                .sealed(using: storePassword)
+            
+            try db.appendCredential(with: vcProfile)
+            try db.appendCredential(with: vcEmail)
+            doc = try db.sealed(using: storePassword)
+            doc = try idUser3!.sign(doc, storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(signKey!, storePassword)
+            
+            idFooBar = doc
+        }
+        
+        return idFooBar!
+    }
+    
+    func getFooBarServiceCredential() throws -> VerifiableCredential {
+        if (vcFooBarServices == nil) {
+            let doc = try getFooBarDocument()
+            
+            let id = try DIDURL(doc.subject, "#services")
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc, idUser1!.defaultPublicKeyId()!)
+            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["consultation": "https://foobar.com/consultation", "Outsourceing": "https://foobar.com/outsourcing"]
+            
+            let vc = try cb.withId(id)
+                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            try testData.store!.storeCredential(using: vc)
+            
+            vcFooBarServices = vc
+        }
+        
+        return vcFooBarServices!
+    }
+    
+    func getFooBarLicenseCredential() throws -> VerifiableCredential {
+        if (vcFooBarLicense == nil) {
+            try getExampleCorpDocument()
+            try getUser1Document()
+            try getUser2Document()
+            try getUser3Document()
+            
+            let doc = try getFooBarDocument()
+            
+            let id = try DIDURL(doc.subject, "#license")
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
+            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["license-id": "20201021C889", "scope": "Consulting"]
+            
+            let vc = try cb.withId(id)
+                .withTypes("LicenseCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            try testData.store!.storeCredential(using: vc)
+            
+            vcFooBarLicense = vc
+        }
+        
+        return vcFooBarLicense!
+    }
+    
+    func getFooBarNonemptyPresentation() throws -> VerifiablePresentation {
+        if (vpFooBarNonempty == nil) {
+            let doc = try getFooBarDocument()
+            
+            let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: testData.store!)
+            
+            let vp = try pb
+                .withCredentials(doc.credential(ofId: "#profile")!,
+                                 doc.credential(ofId: "#email")!)
+                .withCredentials(getFooBarServiceCredential())
+                .withCredentials(getFooBarLicenseCredential())
+                .withRealm("https://example.com/")
+                .withNonce("873172f58701a9ee686f0630204fee59")
+                .sealed(using: storePassword)
+            
+            vpFooBarNonempty = vp
+        }
+        
+        return vpFooBarNonempty!
+    }
+    
+    func getFooBarEmptyPresentation() throws -> VerifiablePresentation {
+        if (vpFooBarEmpty == nil) {
+            let doc = try getFooBarDocument()
+
+            let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: testData.store!)
+
+            let vp = try pb.withRealm("https://example.com/")
+                    .withNonce("873172f58701a9ee686f0630204fee59")
+                    .sealed(using: storePassword)
+
+            vpFooBarEmpty = vp
+        }
+
+        return vpFooBarEmpty!
+    }
+    
+    func getFooBarTransferTicket() throws -> TransferTicket {
+        if (ttFooBar == nil) {
+            let doc = try getFooBarDocument()
+            let user4 = try getUser4Document()
+
+            var tt = try idUser1!.createTransferTicket(doc.subject, user4.subject, storePassword)
+            tt = try idUser3!.sign(tt, storePassword)
+
+            ttFooBar = tt
+        }
+
+        return ttFooBar!
+    }
+    
+    func getFooDocument() throws -> DIDDocument {
+        if (idFoo == nil) {
+            try getUser1Document()
+            try getUser2Document()
+
+            let controllers = [idUser2!.subject]
+            let did = try DID("did:elastos:foo")
+            var doc = try idUser1!.newCustomizedDid(did, controllers, 2, storePassword)
+            doc = try idUser2!.sign(doc, storePassword)
+            try testData.store!.storeDid(using: doc)
+
+            try doc.setEffectiveController(idUser2!.subject)
+            try doc.publish(storePassword)
+            try doc.setEffectiveController(nil)
+
+            idFoo = doc
+        }
+
+        return idFoo!
+    }
+    
+    func getFooEmailCredential() throws -> VerifiableCredential {
+        if (vcFooEmail == nil) {
+            try getIssuerDocument()
+            
+            let doc = try getFooDocument()
+            
+            let id = try DIDURL(doc.subject, "#email")
+            
+            let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
+            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            
+            let props = ["email": "foo@example.com"]
+            
+            let vc = try cb.withId(id)
+                .withTypes("InternetAccountCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            try testData.store!.storeCredential(using: vc)
+            
+            vcFooEmail = vc
+        }
+        
+        return vcFooEmail!
+    }
+    
+    func getBarDocument() throws -> DIDDocument {
+        if (idBar == nil) {
+            try getUser1Document()
+            try getUser2Document()
+            try getUser3Document()
+            
+            let controllers = [idUser2!.subject, idUser3!.subject]
+            let did = try DID("did:elastos:bar")
+            var doc = try idUser1!.newCustomizedDid(did, controllers, 3, storePassword)
+            doc = try idUser2!.sign(doc, storePassword)
+            doc = try idUser3!.sign(doc, storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(idUser3!.defaultPublicKeyId()!, storePassword)
+            
+            idBar = doc
+        }
+        
+        return idBar!
+    }
+    
+    func getBazDocument() throws -> DIDDocument {
+        if (idBaz == nil) {
+            try getUser1Document()
+            try getUser2Document()
+            try getUser3Document()
+
+            let controllers = [idUser2!.subject, idUser3!.subject]
+            let did = try DID("did:elastos:baz")
+            let doc = try idUser1!.newCustomizedDid(did, controllers, 1, storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(idUser1!.defaultPublicKeyId()!, storePassword)
+
+            idBaz = doc
+        }
+
+        return idBaz!
+    }
+    
+    func getBazTransferTicket() throws -> TransferTicket {
+        if (ttBaz == nil) {
+            let doc = try getBazDocument()
+            let user4 = try getUser4Document()
+
+            let tt = try idUser2!.createTransferTicket(doc.subject, user4.subject, storePassword)
+
+            ttBaz = tt
+        }
+
+        return ttBaz!
+    }
+    
+    func getDocument(_ did: String) throws -> DIDDocument? {
+        switch (did) {
+        case "issuer":
+            return try getIssuerDocument()
+
+        case "user1":
+            return try getUser1Document()
+
+        case "user2":
+            return try getUser1Document()
+
+        case "user3":
+            return try getUser1Document()
+
+        case "user4":
+            return try getUser1Document()
+
+        case "examplecorp":
+            return try getExampleCorpDocument()
+
+        case "foobar":
+            return try getFooBarDocument()
+
+        case "foo":
+            return try getFooDocument()
+
+        case "bar":
+            return try getBarDocument()
+
+        case "baz":
+            return try getBazDocument()
+
+        default:
+            return nil
+        }
+    }
+    
+    func getCredential(_ did: String, _ vc: String) throws -> VerifiableCredential? {
+        switch (did) {
+        case "user1":
+            switch (vc) {
+            case "passport":
+                return try getUser1PassportCredential()
+
+            case "twitter":
+                return try getUser1TwitterCredential()
+
+            case "json":
+                return try getUser1JsonCredential()
+
+            case "jobposition":
+                return try getUser1JobPositionCredential()
+
+            default:
+                return nil
+            }
+
+        case "foobar":
+            switch (vc) {
+            case "services":
+                return try getFooBarServiceCredential()
+
+            case "license":
+                return try getFooBarLicenseCredential()
+
+            default:
+                return nil
+            }
+
+        case "foo":
+            switch (vc) {
+            case "email":
+                return try getFooEmailCredential()
+
+            default:
+                return nil
+            }
+
+        default:
+            return nil
+        }
+    }
+    
+    func getPresentation(_ did: String, _ vp: String) throws -> VerifiablePresentation? {
+        switch (did) {
+        case "user1":
+            switch (vp) {
+            case "nonempty":
+                return try getUser1NonemptyPresentation()
+
+            case "empty":
+                return try getUser1EmptyPresentation()
+
+            default:
+                return nil
+            }
+
+        case "foobar":
+            switch (vp) {
+            case "nonempty":
+                return try getFooBarNonemptyPresentation()
+
+            case "empty":
+                return try getFooBarEmptyPresentation()
+
+            default:
+                return nil
+            }
+
+        default:
+            return nil
+        }
+    }
+}
+
+//public class DIDTestExtension {
+//    var adapter: DIDAdapter
+//    var simChain: SimulatedIDChain
+//    init(_ name: String) {
+//        let network = networkConfig
+//
+//                if (name == "IDChainOperationsTest") {
+//                    if (network == "mainnet") {
+//                        adapter = SPVAdaptor()
+//                    }
+//                }
+//
+//                if (adapter == nil) {
+//                    simChain = SimulatedIDChain()
+//                    simChain.start()
+//                    adapter = simChain.adapter
+//                }
+//
+//                DIDBackend.initialize(adapter)
+//    }
+//}

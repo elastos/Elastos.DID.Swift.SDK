@@ -26,35 +26,6 @@
 		11054F1F239D2088008A4500 /* DIDTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1E239D2088008A4500 /* DIDTest.swift */; };
 		110830CF241FA0E4000FDD2B /* ResolverCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110830CA241FA0E4000FDD2B /* ResolverCache.swift */; };
 		110AD2FF234E44C8006578D6 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
-		111215C023ED63BD009B068C /* document.key2.sk in Resources */ = {isa = PBXBuildFile; fileRef = 111215B423ED63BA009B068C /* document.key2.sk */; };
-		111215C123ED63BD009B068C /* document.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215B523ED63BA009B068C /* document.json */; };
-		111215C223ED63BD009B068C /* document.key3.sk in Resources */ = {isa = PBXBuildFile; fileRef = 111215B623ED63BB009B068C /* document.key3.sk */; };
-		111215C323ED63BD009B068C /* document.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215B723ED63BB009B068C /* document.normalized.json */; };
-		111215C423ED63BD009B068C /* dids.restore in Resources */ = {isa = PBXBuildFile; fileRef = 111215B823ED63BB009B068C /* dids.restore */; };
-		111215C523ED63BD009B068C /* issuer.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215B923ED63BB009B068C /* issuer.normalized.json */; };
-		111215C623ED63BD009B068C /* issuer.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215BA23ED63BB009B068C /* issuer.compact.json */; };
-		111215C723ED63BD009B068C /* document.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215BB23ED63BB009B068C /* document.compact.json */; };
-		111215C823ED63BD009B068C /* document.primary.sk in Resources */ = {isa = PBXBuildFile; fileRef = 111215BC23ED63BB009B068C /* document.primary.sk */; };
-		111215C923ED63BD009B068C /* issuer.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215BD23ED63BC009B068C /* issuer.json */; };
-		111215CA23ED63BD009B068C /* issuer.primary.sk in Resources */ = {isa = PBXBuildFile; fileRef = 111215BE23ED63BC009B068C /* issuer.primary.sk */; };
-		111215CB23ED63BD009B068C /* mnemonic.restore in Resources */ = {isa = PBXBuildFile; fileRef = 111215BF23ED63BC009B068C /* mnemonic.restore */; };
-		111215DD23ED63CF009B068C /* vc-email.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215CC23ED63C7009B068C /* vc-email.json */; };
-		111215DE23ED63CF009B068C /* vc-passport.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215CD23ED63C8009B068C /* vc-passport.json */; };
-		111215DF23ED63CF009B068C /* vc-json.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215CE23ED63C8009B068C /* vc-json.json */; };
-		111215E023ED63CF009B068C /* vc-profile.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215CF23ED63C8009B068C /* vc-profile.json */; };
-		111215E123ED63CF009B068C /* vp.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D023ED63C9009B068C /* vp.json */; };
-		111215E223ED63CF009B068C /* vc-json.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D123ED63CA009B068C /* vc-json.compact.json */; };
-		111215E323ED63CF009B068C /* vc-json.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D223ED63CA009B068C /* vc-json.normalized.json */; };
-		111215E423ED63CF009B068C /* vc-email.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D323ED63CB009B068C /* vc-email.compact.json */; };
-		111215E523ED63CF009B068C /* vc-passport.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D423ED63CB009B068C /* vc-passport.compact.json */; };
-		111215E623ED63CF009B068C /* vc-twitter.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D523ED63CC009B068C /* vc-twitter.normalized.json */; };
-		111215E723ED63CF009B068C /* vc-email.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D623ED63CD009B068C /* vc-email.normalized.json */; };
-		111215E823ED63CF009B068C /* vc-twitter.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D723ED63CD009B068C /* vc-twitter.compact.json */; };
-		111215E923ED63CF009B068C /* vc-profile.compact.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D823ED63CE009B068C /* vc-profile.compact.json */; };
-		111215EA23ED63CF009B068C /* vc-passport.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215D923ED63CE009B068C /* vc-passport.normalized.json */; };
-		111215EB23ED63CF009B068C /* vp.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215DA23ED63CE009B068C /* vp.normalized.json */; };
-		111215EC23ED63CF009B068C /* vc-profile.normalized.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215DB23ED63CF009B068C /* vc-profile.normalized.json */; };
-		111215ED23ED63CF009B068C /* vc-twitter.json in Resources */ = {isa = PBXBuildFile; fileRef = 111215DC23ED63CF009B068C /* vc-twitter.json */; };
 		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
@@ -80,6 +51,9 @@
 		11782ACF242130C4009A1F5A /* DIDURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11782AC4242130C4009A1F5A /* DIDURLParser.swift */; };
 		11782AD0242130C4009A1F5A /* ParserHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11782AC5242130C4009A1F5A /* ParserHelper.swift */; };
 		11795211241B3A7100A1C55B /* RegexHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1179520C241B3A7100A1C55B /* RegexHelper.swift */; };
+		1183E1D7261BFDA900F8CEF0 /* SimulatedIDChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1183E1D6261BFDA900F8CEF0 /* SimulatedIDChain.swift */; };
+		1183E1DC261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */; };
+		1183E3A1261F4D3100F8CEF0 /* resources in Resources */ = {isa = PBXBuildFile; fileRef = 1183E3A0261F4D3100F8CEF0 /* resources */; };
 		119338DD237E4DB800C4998E /* TestConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119338DC237E4DB800C4998E /* TestConfig.swift */; };
 		119B299E2578ED210084B859 /* EllipticCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29932578ED210084B859 /* EllipticCurve.swift */; };
 		119B299F2578ED210084B859 /* ECPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29942578ED210084B859 /* ECPublicKey.swift */; };
@@ -93,6 +67,7 @@
 		119B29A72578ED220084B859 /* ECSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299C2578ED210084B859 /* ECSignature.swift */; };
 		119B29A82578ED220084B859 /* ECEncryptable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299D2578ED210084B859 /* ECEncryptable.swift */; };
 		119B29AD2578ED8D0084B859 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29AC2578ED8D0084B859 /* ByteBuffer.swift */; };
+		119B607C2624997A0099750F /* FirstExecuteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B607B2624997A0099750F /* FirstExecuteTest.swift */; };
 		119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
 		119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
 		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
@@ -298,7 +273,6 @@
 		11D1F7A3257F3A5400BC5A54 /* ParserRuleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1F70B257F3A5400BC5A54 /* ParserRuleContext.swift */; };
 		11D4B9B523535E7000453218 /* DIDDoucumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */; };
 		11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9C623545A5700453218 /* DIDStoreTests.swift */; };
-		11D67C6A23BF3BF500FF7B8E /* teststore in Resources */ = {isa = PBXBuildFile; fileRef = 11D67C6523BF3BF400FF7B8E /* teststore */; };
 		11D8DBD22438CB8300E8E787 /* DIDTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */; };
 		11DA0797238B92A00066CC86 /* SPVAdaptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DA0796238B929F0066CC86 /* SPVAdaptor.swift */; };
 		11E09CBC23A8DB5A009B6A8D /* IssuerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */; };
@@ -394,35 +368,6 @@
 		110830CA241FA0E4000FDD2B /* ResolverCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResolverCache.swift; sourceTree = "<group>"; };
 		1109D08423275CFE00A03D56 /* Antlr4.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Antlr4.framework; sourceTree = "<group>"; };
 		110AD2FE234E44C8006578D6 /* Base58.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base58.swift; sourceTree = "<group>"; };
-		111215B423ED63BA009B068C /* document.key2.sk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = document.key2.sk; sourceTree = "<group>"; };
-		111215B523ED63BA009B068C /* document.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = document.json; sourceTree = "<group>"; };
-		111215B623ED63BB009B068C /* document.key3.sk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = document.key3.sk; sourceTree = "<group>"; };
-		111215B723ED63BB009B068C /* document.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = document.normalized.json; sourceTree = "<group>"; };
-		111215B823ED63BB009B068C /* dids.restore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dids.restore; sourceTree = "<group>"; };
-		111215B923ED63BB009B068C /* issuer.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = issuer.normalized.json; sourceTree = "<group>"; };
-		111215BA23ED63BB009B068C /* issuer.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = issuer.compact.json; sourceTree = "<group>"; };
-		111215BB23ED63BB009B068C /* document.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = document.compact.json; sourceTree = "<group>"; };
-		111215BC23ED63BB009B068C /* document.primary.sk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = document.primary.sk; sourceTree = "<group>"; };
-		111215BD23ED63BC009B068C /* issuer.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = issuer.json; sourceTree = "<group>"; };
-		111215BE23ED63BC009B068C /* issuer.primary.sk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = issuer.primary.sk; sourceTree = "<group>"; };
-		111215BF23ED63BC009B068C /* mnemonic.restore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mnemonic.restore; sourceTree = "<group>"; };
-		111215CC23ED63C7009B068C /* vc-email.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-email.json"; sourceTree = "<group>"; };
-		111215CD23ED63C8009B068C /* vc-passport.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-passport.json"; sourceTree = "<group>"; };
-		111215CE23ED63C8009B068C /* vc-json.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-json.json"; sourceTree = "<group>"; };
-		111215CF23ED63C8009B068C /* vc-profile.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-profile.json"; sourceTree = "<group>"; };
-		111215D023ED63C9009B068C /* vp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = vp.json; sourceTree = "<group>"; };
-		111215D123ED63CA009B068C /* vc-json.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-json.compact.json"; sourceTree = "<group>"; };
-		111215D223ED63CA009B068C /* vc-json.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-json.normalized.json"; sourceTree = "<group>"; };
-		111215D323ED63CB009B068C /* vc-email.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-email.compact.json"; sourceTree = "<group>"; };
-		111215D423ED63CB009B068C /* vc-passport.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-passport.compact.json"; sourceTree = "<group>"; };
-		111215D523ED63CC009B068C /* vc-twitter.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-twitter.normalized.json"; sourceTree = "<group>"; };
-		111215D623ED63CD009B068C /* vc-email.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-email.normalized.json"; sourceTree = "<group>"; };
-		111215D723ED63CD009B068C /* vc-twitter.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-twitter.compact.json"; sourceTree = "<group>"; };
-		111215D823ED63CE009B068C /* vc-profile.compact.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-profile.compact.json"; sourceTree = "<group>"; };
-		111215D923ED63CE009B068C /* vc-passport.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-passport.normalized.json"; sourceTree = "<group>"; };
-		111215DA23ED63CE009B068C /* vp.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = vp.normalized.json; sourceTree = "<group>"; };
-		111215DB23ED63CF009B068C /* vc-profile.normalized.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-profile.normalized.json"; sourceTree = "<group>"; };
-		111215DC23ED63CF009B068C /* vc-twitter.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "vc-twitter.json"; sourceTree = "<group>"; };
 		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
@@ -464,6 +409,9 @@
 		11782AC4242130C4009A1F5A /* DIDURLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDURLParser.swift; path = Parser/DIDURLParser.swift; sourceTree = "<group>"; };
 		11782AC5242130C4009A1F5A /* ParserHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ParserHelper.swift; path = Parser/ParserHelper.swift; sourceTree = "<group>"; };
 		1179520C241B3A7100A1C55B /* RegexHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegexHelper.swift; sourceTree = "<group>"; };
+		1183E1D6261BFDA900F8CEF0 /* SimulatedIDChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedIDChain.swift; sourceTree = "<group>"; };
+		1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedIDChainAdapter.swift; sourceTree = "<group>"; };
+		1183E3A0261F4D3100F8CEF0 /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
 		119338DC237E4DB800C4998E /* TestConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConfig.swift; sourceTree = "<group>"; };
 		119338E2237E622300C4998E /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.1.tbd"; sourceTree = DEVELOPER_DIR; };
 		119338E4237E623100C4998E /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
@@ -480,6 +428,7 @@
 		119B299C2578ED210084B859 /* ECSignature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECSignature.swift; sourceTree = "<group>"; };
 		119B299D2578ED210084B859 /* ECEncryptable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECEncryptable.swift; sourceTree = "<group>"; };
 		119B29AC2578ED8D0084B859 /* ByteBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
+		119B607B2624997A0099750F /* FirstExecuteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstExecuteTest.swift; sourceTree = "<group>"; };
 		119F0C9225FF07ED006D4F75 /* TransferTicket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicket.swift; sourceTree = "<group>"; };
 		119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicketProof.swift; sourceTree = "<group>"; };
 		119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransactionAdapter.swift; sourceTree = "<group>"; };
@@ -702,7 +651,6 @@
 		11D3C06F23815E4300875E51 /* libcurl.la */ = {isa = PBXFileReference; lastKnownFileType = text; name = libcurl.la; path = Externals/libhdkey/libcurl.la; sourceTree = "<group>"; };
 		11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDDoucumentTests.swift; sourceTree = "<group>"; };
 		11D4B9C623545A5700453218 /* DIDStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDStoreTests.swift; sourceTree = "<group>"; };
-		11D67C6523BF3BF400FF7B8E /* teststore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = teststore; sourceTree = "<group>"; };
 		11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransaction.swift; sourceTree = "<group>"; };
 		11DA06DD238B7B750066CC86 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = ElastosDIDSDKTests/spvadapter/lib/libspvsdk.a; sourceTree = "<group>"; };
 		11DA06DE238B7B750066CC86 /* libcjson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcjson.a; path = ElastosDIDSDKTests/spvadapter/lib/libcjson.a; sourceTree = "<group>"; };
@@ -905,7 +853,7 @@
 		1155D9472352FACE00DF8C9D /* ElastosDIDSDKTests */ = {
 			isa = PBXGroup;
 			children = (
-				11CA74D1235E131B006E66F7 /* Resources */,
+				1183E3A0261F4D3100F8CEF0 /* resources */,
 				11E751A423A75A120022C592 /* DummyAdapter.swift */,
 				11DA0796238B929F0066CC86 /* SPVAdaptor.swift */,
 				11641BB423B702FC0037016B /* AbstractAdapter.swift */,
@@ -923,6 +871,7 @@
 				11E09CBD23A8E033009B6A8D /* TestDataGenerator.swift */,
 				11D03AD323A9D05600549296 /* VerifiableCredentialTest.swift */,
 				11D03AD923A9D50200549296 /* VerifiablePresentationTest.swift */,
+				119B607B2624997A0099750F /* FirstExecuteTest.swift */,
 				1155D94A2352FACE00DF8C9D /* Info.plist */,
 			);
 			path = ElastosDIDSDKTests;
@@ -1000,43 +949,6 @@
 				11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */,
 			);
 			path = SwiftJWT;
-			sourceTree = "<group>";
-		};
-		11CA74D1235E131B006E66F7 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				111215D323ED63CB009B068C /* vc-email.compact.json */,
-				111215CC23ED63C7009B068C /* vc-email.json */,
-				111215D623ED63CD009B068C /* vc-email.normalized.json */,
-				111215D123ED63CA009B068C /* vc-json.compact.json */,
-				111215CE23ED63C8009B068C /* vc-json.json */,
-				111215D223ED63CA009B068C /* vc-json.normalized.json */,
-				111215D423ED63CB009B068C /* vc-passport.compact.json */,
-				111215CD23ED63C8009B068C /* vc-passport.json */,
-				111215D923ED63CE009B068C /* vc-passport.normalized.json */,
-				111215D823ED63CE009B068C /* vc-profile.compact.json */,
-				111215CF23ED63C8009B068C /* vc-profile.json */,
-				111215DB23ED63CF009B068C /* vc-profile.normalized.json */,
-				111215D723ED63CD009B068C /* vc-twitter.compact.json */,
-				111215DC23ED63CF009B068C /* vc-twitter.json */,
-				111215D523ED63CC009B068C /* vc-twitter.normalized.json */,
-				111215D023ED63C9009B068C /* vp.json */,
-				111215DA23ED63CE009B068C /* vp.normalized.json */,
-				111215B823ED63BB009B068C /* dids.restore */,
-				111215BB23ED63BB009B068C /* document.compact.json */,
-				111215B523ED63BA009B068C /* document.json */,
-				111215B423ED63BA009B068C /* document.key2.sk */,
-				111215B623ED63BB009B068C /* document.key3.sk */,
-				111215B723ED63BB009B068C /* document.normalized.json */,
-				111215BC23ED63BB009B068C /* document.primary.sk */,
-				111215BA23ED63BB009B068C /* issuer.compact.json */,
-				111215BD23ED63BC009B068C /* issuer.json */,
-				111215B923ED63BB009B068C /* issuer.normalized.json */,
-				111215BE23ED63BC009B068C /* issuer.primary.sk */,
-				111215BF23ED63BC009B068C /* mnemonic.restore */,
-				11D67C6523BF3BF400FF7B8E /* teststore */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		11D1F66B257F3A5300BC5A54 /* Antlr4 */ = {
@@ -1442,6 +1354,8 @@
 				11CACA9B2612CC83004145CB /* ResolveRequest.swift */,
 				11CACA952612C72B004145CB /* ResolveResponse.swift */,
 				A31ACE6523F19A66008EC032 /* ResolveResult.swift */,
+				1183E1D6261BFDA900F8CEF0 /* SimulatedIDChain.swift */,
+				1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */,
 			);
 			name = Backend;
 			sourceTree = "<group>";
@@ -1583,36 +1497,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				111215C023ED63BD009B068C /* document.key2.sk in Resources */,
-				111215E723ED63CF009B068C /* vc-email.normalized.json in Resources */,
-				111215C523ED63BD009B068C /* issuer.normalized.json in Resources */,
-				111215E923ED63CF009B068C /* vc-profile.compact.json in Resources */,
-				111215EA23ED63CF009B068C /* vc-passport.normalized.json in Resources */,
-				111215E423ED63CF009B068C /* vc-email.compact.json in Resources */,
-				111215EC23ED63CF009B068C /* vc-profile.normalized.json in Resources */,
-				111215C223ED63BD009B068C /* document.key3.sk in Resources */,
-				111215EB23ED63CF009B068C /* vp.normalized.json in Resources */,
-				111215C623ED63BD009B068C /* issuer.compact.json in Resources */,
-				111215DF23ED63CF009B068C /* vc-json.json in Resources */,
-				11D67C6A23BF3BF500FF7B8E /* teststore in Resources */,
-				111215ED23ED63CF009B068C /* vc-twitter.json in Resources */,
-				111215E023ED63CF009B068C /* vc-profile.json in Resources */,
-				111215C123ED63BD009B068C /* document.json in Resources */,
-				111215CA23ED63BD009B068C /* issuer.primary.sk in Resources */,
-				111215E223ED63CF009B068C /* vc-json.compact.json in Resources */,
-				111215E123ED63CF009B068C /* vp.json in Resources */,
-				111215DD23ED63CF009B068C /* vc-email.json in Resources */,
-				111215CB23ED63BD009B068C /* mnemonic.restore in Resources */,
-				111215E823ED63CF009B068C /* vc-twitter.compact.json in Resources */,
-				111215C923ED63BD009B068C /* issuer.json in Resources */,
-				111215E523ED63CF009B068C /* vc-passport.compact.json in Resources */,
-				111215E323ED63CF009B068C /* vc-json.normalized.json in Resources */,
-				111215C423ED63BD009B068C /* dids.restore in Resources */,
-				111215DE23ED63CF009B068C /* vc-passport.json in Resources */,
-				111215C723ED63BD009B068C /* document.compact.json in Resources */,
-				111215E623ED63CF009B068C /* vc-twitter.normalized.json in Resources */,
-				111215C823ED63BD009B068C /* document.primary.sk in Resources */,
-				111215C323ED63BD009B068C /* document.normalized.json in Resources */,
+				1183E3A1261F4D3100F8CEF0 /* resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1724,6 +1609,7 @@
 				11054F1F239D2088008A4500 /* DIDTest.swift in Sources */,
 				11E7519F23A7570A0022C592 /* TestData.swift in Sources */,
 				11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */,
+				119B607C2624997A0099750F /* FirstExecuteTest.swift in Sources */,
 				11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */,
 				119338DD237E4DB800C4998E /* TestConfig.swift in Sources */,
 				11E09CBE23A8E033009B6A8D /* TestDataGenerator.swift in Sources */,
@@ -1803,6 +1689,7 @@
 				11BE33BE260842CE00DEBD00 /* DIDMetadata.swift in Sources */,
 				11782ACA242130C4009A1F5A /* DIDURLParserATN.swift in Sources */,
 				11D1F775257F3A5400BC5A54 /* LookupATNConfig.swift in Sources */,
+				1183E1D7261BFDA900F8CEF0 /* SimulatedIDChain.swift in Sources */,
 				11C3ECE32477807300DF1B4F /* JWTVerifier.swift in Sources */,
 				11D1F745257F3A5400BC5A54 /* RuntimeMetaData.swift in Sources */,
 				A31ACE0823F199AE008EC032 /* Service.swift in Sources */,
@@ -1927,6 +1814,7 @@
 				A31ACE3723F19A22008EC032 /* ExtensionInt.swift in Sources */,
 				11C3EC6724765D0F00DF1B4F /* JwtParserBuilder.swift in Sources */,
 				A3368469242201D90049126D /* LogLevel.swift in Sources */,
+				1183E1DC261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift in Sources */,
 				116F71A025F1D5F20041D983 /* AbstractMetadata.swift in Sources */,
 				11C3ECEC2477807300DF1B4F /* BlueRSA.swift in Sources */,
 				11D1F723257F3A5400BC5A54 /* ParseTreeWalker.swift in Sources */,
@@ -2033,6 +1921,7 @@
 				BUNDLE_LOADER = "";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = LFU7T9UYL5;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2068,6 +1957,7 @@
 				BUNDLE_LOADER = "";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = LFU7T9UYL5;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2233,6 +2123,7 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
+				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -2276,6 +2167,7 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
+				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -2302,6 +2194,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TestHost.app/TestHost";
