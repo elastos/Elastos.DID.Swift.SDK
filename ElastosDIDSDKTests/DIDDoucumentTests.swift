@@ -2,1093 +2,2573 @@
 import XCTest
 @testable import ElastosDIDSDK
 
+
 class DIDDoucumentTests: XCTestCase {
-    
-    var store: DIDStore!
-    var compactPath: String!
-    var documentPath: String!
-    var normalizedPath: String!
+    var testData: TestData?
+    var store: DIDStore?
+    var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
 
-    func test0Payload() {
-        let payload = "eyJpZCI6ImRpZDplbGFzdG9zOmlqNUIyVE02NzVRazlSdVFVOXVHUnFNMTQ0SzRMUktNblIiLCJwdWJsaWNLZXkiOlt7ImlkIjoiI3ByaW1hcnkiLCJwdWJsaWNLZXlCYXNlNTgiOiIyN1JOMkNySlpxS21aMjFHMko1VWdNWG14aUVkbTFwYWVMZG5CU1BGd3hZR0MifV0sImF1dGhlbnRpY2F0aW9uIjpbIiNwcmltYXJ5Il0sInZlcmlmaWFibGVDcmVkZW50aWFsIjpbeyJpZCI6IiNuYW1lIiwidHlwZSI6WyJCYXNpY1Byb2ZpbGVDcmVkZW50aWFsIiwiU2VsZlByb2NsYWltZWRDcmVkZW50aWFsIl0sImlzc3VhbmNlRGF0ZSI6IjIwMjAtMDMtMDNUMTI6MjA6MDhaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDIwLTAzLTE4VDEyOjIwOjA4WiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7Im5hbWUiOiLmiZjlsJTmlq_ms7AifSwicHJvb2YiOnsidmVyaWZpY2F0aW9uTWV0aG9kIjoiI3ByaW1hcnkiLCJzaWduYXR1cmUiOiJrSmVZVE5weEt4NjR5X3hYME5xdmFNVlF2TWxiY2xxTkJpYzJHUnYyMXo0dVZsMnRuNFVCZkNJbVR6ZHlGVUV3c3NEbkFCM21ub0xNYWhDckpWU19XdyJ9fV0sImV4cGlyZXMiOiIyMDI1LTAzLTAzVDEyOjIwOjA3WiIsInByb29mIjp7ImNyZWF0ZWQiOiIyMDIwLTEyLTA1VDAyOjAxOjMxWiIsInNpZ25hdHVyZVZhbHVlIjoiZmc1Sm5Hc3kyeS1XaVpvYlZIMDV0V3hod3QyMHZQcUd3UzBnZnRWU0dhT2dHdmxRSWJKVlc3cFhxY2d4VWdxYTB4WDAyVy1wS1MxdHNyRkJ6aEs2b0EifX0"
-        let capacity = payload.count * 3
-        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let cp = payload.toUnsafePointerInt8()
-        let c = base64_url_decode(buffer, cp)
-        buffer[c] = 0
-        let json: String = String(cString: buffer)
-        print("json == \(json)")
+    override func setUp() {
+        FirstExecuteTest().setUp()
+        testData = TestData()
+        store = testData?.store!
+        try! simulatedIDChain.httpServer.start(9999, forceIPv4: true)
+    }
+    
+    override func tearDown() {
+        testData?.cleanup()
+        simulatedIDChain.httpServer.stop()
+    }
+
+    func testGetPublicKeyV1() {
+        GetPublicKey(1)
+    }
+    
+    func testGetPublicKeyV2() {
+        GetPublicKey(2)
+    }
+    
+    func GetPublicKey(_ version: Int) {
         do {
-            let doc = try DIDDocument.convertToDIDDocument(fromJson: json)
-            let vc = try doc.credential(ofId: "did:elastos:ij5B2TM675Qk9RuQU9uGRqM144K4LRKMnR#name")
-            let dataString = vc!.toJson(true, true)
-            print("doc === \(doc.description)")
-            print("vcstring====\(dataString)")
-            let publicKeyBase58 = "27RN2CrJZqKmZ21G2J5UgMXmxiEdm1paeLdnBSPFwxYGC"
-            let pks = Base58.bytesFromBase58(publicKeyBase58)
-            var pkData = Data(bytes: pks, count: pks.count)
-            let cpk = pkData.withUnsafeMutableBytes { (pk: UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> in
-                return pk
-            }
-            // vc 验签
-            let signature = "kJeYTNpxKx64y_xX0NqvaMVQvMlbclqNBic2GRv21z4uVl2tn4UBfCImTzdyFUEwssDnAB3mnoLMahCrJVS_Ww"
-            let digest = sha256Digest([dataString.data(using: .utf8)!])
-            let cdigest = digest.toPointer()
-            let size: Int = digest.count
-            let csignature = signature.toUnsafeMutablePointerInt8()
-            let re = ecdsa_verify_base64(csignature, cpk, UnsafeMutablePointer(mutating: cdigest), size)
-            print("vcre==\(re)")
-            
-            // doc 验签
-            let dataString1 = doc.toString(true, forSign: true)
-            let signature1 = "fg5JnGsy2y-WiZobVH05tWxhwt20vPqGwS0gftVSGaOgGvlQIbJVW7pXqcgxUgqa0xX02W-pKS1tsrFBzhK6oA"
-            let digest1 = sha256Digest([dataString1.data(using: .utf8)!])
-            let cdigest1 = digest1.toPointer()
-            let size1: Int = digest1.count
-            let csignature1 = signature1.toUnsafeMutablePointerInt8()
-            let docRe = ecdsa_verify_base64(csignature1, cpk, UnsafeMutablePointer(mutating: cdigest1), size1)
-            print("docRe==\(docRe)")
-            
-            let json = doc.toString()
-            let capacity = json.count * 3
-
-            // payload
-            let cInput = json.toUnsafePointerUInt8()
-            let cPayload = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-            let rePayload = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
-            cPayload[rePayload] = 0
-            let payload = String(cString: cPayload)
-            print(payload)
-            
-        } catch {
-        print("error=====\(error)")
-        }
-    }
-
-    private func sha256Digest(_ data: [Data]) -> Data {
-        var cinputs: [CVarArg] = []
-        var capacity: Int = 0
-        data.forEach { data in
-            let json = String(data: data, encoding: .utf8)
-            if json != "" {
-                let cjson = json!.toUnsafePointerInt8()!
-                cinputs.append(cjson)
-                cinputs.append(json!.lengthOfBytes(using: .utf8))
-                capacity += json!.count * 3
-            }
-        }
-
-        let c_inputs = getVaList(cinputs)
-        let count = cinputs.count / 2
-        
-        // digest
-        let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let size = sha256v_digest(cdigest, Int32(count), c_inputs)
-        let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
-
-        return Data(buffer: cdigestPointerToArry)
-    }
-    
-    func getDictionaryFromJSONString(_ jsonString: String) -> Dictionary<String, Any> {
-     
-        let jsonData:Data = jsonString.data(using: .utf8)!
-     
-        let dict = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers)
-        if dict != nil {
-            return dict as! [String: Any]
-        }
-        return [: ]
-    }
-    
-    func testGetPublicKey() {
-        do {
-            let time = DateHelper.currentDate()
-            let timestr = DateHelper.formateDate(time)
-            print("timestr=== \(timestr)")
-            
-            let timester2 = DateHelper.getTimeStampForString(time)
-            print("timester2 === \(timester2)")
-            
-            let maxExpirationDate = DateHelper.maxExpirationDate()
-            let maxExpirationDateStr = DateHelper.formateDate(maxExpirationDate)
-            print("maxExpirationDateStr == \(maxExpirationDateStr)")
-            
-            let date = DateFormatter.convertToUTCDateFromString("1612510747")
-            let dateSTR = DateHelper.formateDate(date!)
-
-            print("dateSTR == \(dateSTR)")
-            
-            let ss = DateFormatter.convertToUTCStringFromDate(maxExpirationDate)
-            print("ss ===== \(ss)")
-            
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
+            let doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
+            XCTAssertTrue(try doc.isValid())
+
+
+            XCTAssertEqual(4, doc.publicKeyCount)
+
             // Count and list.
             XCTAssertEqual(4, doc.publicKeyCount)
-            var pks:Array<PublicKey> = doc.publicKeys()
+
+            var pks = doc.publicKeys()
             XCTAssertEqual(4, pks.count)
             
-            for pk in pks {
-                XCTAssertEqual(doc.subject, pk.getId().did)
-                XCTAssertEqual("ECDSAsecp256r1", pk.getType())
-                
-                if (pk.getId().fragment == "recovery") {
+            pks.forEach { pk in
+                XCTAssertEqual(doc.subject, pk.getId()!.did)
+                XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
+                if pk.getId()!.fragment == "recovery" {
                     XCTAssertNotEqual(doc.subject, pk.controller)
                 }
                 else {
                     XCTAssertEqual(doc.subject, pk.controller)
                 }
                 
-                let re = pk.getId().fragment == "primary" || pk.getId().fragment == "key2" || pk.getId().fragment == "key3" || pk.getId().fragment == "recovery"
-                XCTAssertTrue(re)
+                XCTAssertEqual(pk.getId()!.fragment, "primary")
+                XCTAssertEqual(pk.getId()!.fragment, "key2")
+                XCTAssertEqual(pk.getId()!.fragment, "key3")
+                XCTAssertEqual(pk.getId()!.fragment, "recovery")
             }
-
             // PublicKey getter.
-            var pk = try doc.publicKey(ofId: "primary")
+            var pk = try doc.publicKey(ofId: "#primary")
             XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "primary"), pk!.getId())
+            XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pk?.getId())
+            var id = try DIDURL(doc.subject, "#key2")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
             
-            var id: DIDURL = try DIDURL(doc.subject, "key2")
-            pk = doc.publicKey(ofId: id)
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(id, pk!.getId())
-            
-            id = doc.defaultPublicKey
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "primary"), id)
+            id = doc.defaultPublicKeyId()!
+            XCTAssertNotNil(id)
+            XCTAssertEqual(try DIDURL(doc.subject, "#primary"), id)
             
             // Key not exist, should fail.
-            pk = try doc.publicKey(ofId: "notExist")
+            pk = try doc.publicKey(ofId: "#notExist")
             XCTAssertNil(pk)
-            id = try DIDURL(doc.subject, "notExist")
-            pk = doc.publicKey(ofId: id)
+            
+            id = try DIDURL(doc.subject, "#notExist")
+            pk = try doc.publicKey(ofId: id)
             XCTAssertNil(pk)
             
             // Selector
-            id = doc.defaultPublicKey
-            pks = doc.selectPublicKeys(byId: id, andType: "ECDSAsecp256r1")
-            XCTAssertEqual(1, pks.count);
-            XCTAssertEqual(try DIDURL(doc.subject, "primary"), pks[0].getId())
-            
-            pks = doc.selectPublicKeys(byId: id, andType: nil)
+            id = doc.defaultPublicKeyId()!
+            pks = try doc.selectPublicKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "primary"), pks[0].getId())
-
-            pks = doc.selectPublicKeys(byType: "ECDSAsecp256r1")
+            XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pks[0].getId())
+            
+            pks = try doc.selectPublicKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pks[0].getId())
+            
+            pks = doc.selectPublicKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(4, pks.count)
             
-            pks = try doc.selectPublicKeys(byId: "key2", andType: "ECDSAsecp256r1")
+            pks = try doc.selectPublicKeys(byId: "#key2", andType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "key2"), pks[0].getId())
+            XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
             
-            pks = try doc.selectPublicKeys(byId: "key3", andType: nil)
+            pks = try doc.selectPublicKeys(byId: "#key3", andType: nil)
             XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "key3"), pks[0].getId())
+            XCTAssertEqual(try DIDURL(doc.subject, "#key3"), pks[0].getId())
         } catch {
-            print(error)
-            XCTFail()
+            XCTFail("\(error)")
         }
     }
     
-    func testAddPublicKey() {
+    func testGetPublicKeyWithCid() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            var doc = try testData.loadTestDocument()
+            let cd = try testData!.getCompatibleData(2)
+
+            let issuer = try cd.getDocument("issuer")
+            let doc = try cd.getDocument("examplecorp")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            var db: DIDDocumentBuilder = doc.editing()
+            XCTAssertTrue(try doc.isValid())
 
-            // Add 2 public keys
-            let id = try DIDURL(doc.subject, "test1")
-            var key = try TestData.generateKeypair()
-            db = try db.appendPublicKey(id, doc.subject, key.getPublicKeyBase58())
-
-            key = try TestData.generateKeypair()
-            db = try db.appendPublicKey(with: "test2", controller: doc.subject.toString(),
-                                        keyBase58: key.getPublicKeyBase58())
-            
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-
-            // Check existence
-            var pk: PublicKey = try doc.publicKey(ofId: "test1")!
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test1"), pk.getId())
-            
-            pk = try doc.publicKey(ofId: "test2")!
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test2"), pk.getId())
-            
-            // Check the final count.
-            XCTAssertEqual(6, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            XCTAssertEqual(1, doc.authorizationKeyCount)
-            
-        } catch  {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testRemovePublicKey() {
-        do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // recovery used by authorization, should failed.
-            let id = try DIDURL(doc.subject, "recovery")
-            XCTAssertThrowsError(try db.removePublicKey(with: id)) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-
-            // force remove public key, should success
-            _ = try db.removePublicKey(with: id, true)
-            
-            _ = try db.removePublicKey(with: "key2", true)
-            
-            // Key not exist, should fail.
-            XCTAssertThrowsError(try db.removePublicKey(with: "notExistKey", true)) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-
-            XCTAssertThrowsError(try db.removePublicKey(with: doc.defaultPublicKey, true)) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Check existence
-            var pk = try doc.publicKey(ofId: "recovery")
-            XCTAssertNil(pk)
-            
-            pk = try doc.publicKey(ofId: "key2")
-            XCTAssertNil(pk)
-            
-            // Check the final count.
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            XCTAssertEqual(0, doc.authorizationKeyCount)
-        } catch {
-            print(error)
-            XCTFail()
-        }
-        
-    }
-    
-    func testGetAuthenticationKey() {
-        do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
             // Count and list.
-            XCTAssertEqual(3, doc.authenticationKeyCount)
+            XCTAssertEqual(1, doc.publicKeyCount)
+
+            var pks = doc.publicKeys()
+            XCTAssertEqual(1, pks.count)
+
+            XCTAssertEqual(issuer.defaultPublicKeyId(), pks[0].getId())
             
-            var pks: Array<PublicKey> = doc.authenticationKeys()
-            XCTAssertEqual(3, pks.count)
-            
-            for pk in pks {
-                XCTAssertEqual(doc.subject, pk.getId().did)
-                XCTAssertEqual("ECDSAsecp256r1", pk.getType())
-                XCTAssertEqual(doc.subject, pk.controller)
-                let re = pk.getId().fragment == "primary" || pk.getId().fragment == "key2" || pk.getId().fragment == "key3"
-                XCTAssertTrue(re)
-            }
-            
-            // AuthenticationKey getter
-            var pk = try doc.authenticationKey(ofId: "primary")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "primary"), pk!.getId())
-            
-            var id: DIDURL = try DIDURL(doc.subject, "key3")
-            pk = doc.authenticationKey(ofId: id)
+            // PublicKey getter.
+            var pk = try doc.publicKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(doc.controller!, "#primary")
+            pk = try doc.publicKey(ofId: id)
             XCTAssertNotNil(pk)
             XCTAssertEqual(id, pk!.getId())
-            
-            // Key not exist, should fail.
-            pk = try doc.authenticationKey(ofId: "notExist")
-            XCTAssertNil(pk)
-            id = try DIDURL(doc.subject, "notExist")
-            pk = doc.authenticationKey(ofId: id)
-            XCTAssertNil(pk)
-            
-            // selector
-            id = try DIDURL(doc.subject, "key3")
-            pks = doc.selectAuthenticationKeys(byId: id, andType: "ECDSAsecp256r1")
-            XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(id, pks[0].getId())
-            pks = doc.selectAuthenticationKeys(byId: id, andType: nil)
-            XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(id, pks[0].getId())
 
-            pks = doc.selectAuthenticationKeys(byType: "ECDSAsecp256r1")
-            XCTAssertEqual(3, pks.count)
-            
-            pks = try doc.selectAuthenticationKeys(byId: "key2", andType: "ECDSAsecp256r1")
-            XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "key2"), pks[0].getId())
-            
-            pks = try doc.selectAuthenticationKeys(byId: "key2", andType: nil)
-            XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "key2"), pks[0].getId())
-        } catch {
-            print(error)
-            XCTFail()
-        }
-        
-    }
-    
-    func testAddAuthenticationKey() {
-        do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add 2 public keys for test.
-            let id: DIDURL = try DIDURL(doc.subject, "test1")
-            var key = try TestData.generateKeypair()
-            _ = try db.appendPublicKey(with: id, controller: doc.subject.toString(),
-                                       keyBase58: key.getPublicKeyBase58())
-            key = try TestData.generateKeypair()
-            _ = try db.appendPublicKey(with: "test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-            
-            // Add by reference
-            _ = try db.appendAuthenticationKey(with: DIDURL(doc.subject, "test1"))
-            
-            _ = try db.appendAuthenticationKey(with: "test2")
-            
-            // Add new keys
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: DIDURL(doc.subject, "test3"),
-                                               keyBase58: key.getPublicKeyBase58())
-            
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "test4", keyBase58: key.getPublicKeyBase58())
-            
-            // Try to add a non existing key, should fail.
-            XCTAssertThrowsError(try db.appendAuthenticationKey(with: "notExistKey")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
+            id = doc.defaultPublicKeyId()!
+            XCTAssertNotNil(id)
+            XCTAssertEqual(issuer.defaultPublicKeyId(), id)
 
-            // Try to add a key not owned by self, should fail.
-            XCTAssertThrowsError(try db.appendAuthenticationKey(with: "recovery")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-            
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Check existence
-            var pk = try doc.authenticationKey(ofId: "test1")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test1"), pk!.getId())
-            
-            pk = try doc.authenticationKey(ofId: "test2")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test2"), pk!.getId())
-            
-            pk = try doc.authenticationKey(ofId: "test3")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test3"), pk!.getId())
-            
-            pk = try doc.authenticationKey(ofId: "test4")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test4"), pk!.getId())
-            
-            // Check the final count.
-            XCTAssertEqual(8, doc.publicKeyCount)
-            XCTAssertEqual(7, doc.authenticationKeyCount)
-            XCTAssertEqual(1, doc.authorizationKeyCount)
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testRemoveAuthenticationKey() {
-        do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-        
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add 2 public keys for test
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(
-                with: try DIDURL(doc.subject, "test1"), keyBase58: key.getPublicKeyBase58())
-            
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "test2", keyBase58: key.getPublicKeyBase58())
-            
-            // Remote keys
-            _ = try db.removeAuthenticationKey(with: try DIDURL(doc.subject, "test1"))
-            
-            _ = try db.removeAuthenticationKey(with: "test2")
-            
-            _ = try db.removeAuthenticationKey(with: "key2")
-            
             // Key not exist, should fail.
-            XCTAssertThrowsError(try db.removeAuthenticationKey(with: "notExistKey")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-            
-            // Default publickey, can not remove, should fail.
-            XCTAssertThrowsError(try db.removeAuthenticationKey(with: doc.defaultPublicKey)) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Check existence
-            var pk = try doc.authenticationKey(ofId: "test1")
+            pk = try doc.publicKey(ofId: "#notExist")
             XCTAssertNil(pk)
-            
-            pk = try doc.authenticationKey(ofId: "test2")
-            XCTAssertNil(pk)
-            
-            pk = try doc.authenticationKey(ofId: "key2")
-            XCTAssertNil(pk)
-            
-            // Check the final count.
-            XCTAssertEqual(6, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            XCTAssertEqual(1, doc.authorizationKeyCount)
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testGetAuthorizationKey() {
-        do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Count and list.
-            XCTAssertEqual(1, doc.authorizationKeyCount)
-            
-            var pks: Array<PublicKey> = doc.authorizationKeys()
-            XCTAssertEqual(1, pks.count)
-            
-            for pk in pks {
-                XCTAssertEqual(doc.subject, pk.getId().did)
-                XCTAssertEqual("ECDSAsecp256r1", pk.getType())
-                
-                XCTAssertNotEqual(doc.subject, pk.controller)
-                XCTAssertTrue(pk.getId().fragment == "recovery")
-            }
-            
-            // AuthorizationKey getter
-            var pk = try doc.authorizationKey(ofId: "recovery")
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "recovery"), pk!.getId())
-            
-            var id: DIDURL = try DIDURL(doc.subject, "recovery")
-            pk = doc.authorizationKey(ofId: id)
-            XCTAssertNotNil(pk)
-            XCTAssertEqual(id, pk!.getId())
-            
-            // Key not exist, should fail.
-            pk = try doc.authorizationKey(ofId: "notExistKey")
-            XCTAssertNil(pk)
-            id = try DIDURL(doc.subject, "notExistKey")
-            pk = doc.authorizationKey(ofId: id)
+
+            id = try DIDURL(doc.controller!, "#notExist")
+            pk = try doc.publicKey(ofId: id)
             XCTAssertNil(pk)
             
             // Selector
-            id = try DIDURL(doc.subject, "recovery")
-            pks = doc.selectAuthorizationKeys(byId: id, andType: "ECDSAsecp256r1")
+            id = doc.defaultPublicKeyId()!
+            pks = try doc.selectPublicKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(1, pks.count)
-            XCTAssertEqual(id, pks[0].getId())
-            
-            pks = doc.selectAuthorizationKeys(byId: id, andType: nil)
+            XCTAssertEqual(try DIDURL(doc.controller!, "#primary"), pks[0].getId())
+
+            pks = try doc.selectPublicKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.controller!, "#primary"), pks[0].getId())
+
+            pks = doc.selectPublicKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetPublicKeyWithMultiControllerCid1() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            let doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(7, doc.publicKeyCount)
+
+            var pks = doc.publicKeys()
+            XCTAssertEqual(7, pks.count)
+
+            var ids: [DIDURL] = []
+            for pk in pks {
+                ids.append(pk.getId()!)
+            }
+
+            var refs: [DIDURL] = []
+            refs.append(user1.defaultPublicKeyId()!)
+            refs.append(user2.defaultPublicKeyId()!)
+            refs.append(user3.defaultPublicKeyId()!)
+            refs.append(try DIDURL(user1.subject, "#key2"))
+            refs.append(try DIDURL(user1.subject, "#key3"))
+            refs.append(try DIDURL(doc.subject, "#key2"))
+            refs.append(try DIDURL(doc.subject, "#key3"))
+
+            XCTAssertEqual(refs, ids)
+
+            // PublicKey getter.
+            var pk = try doc.publicKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(user1.subject, "#primary")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk!.getId())
+
+            id = try DIDURL(user1.subject, "#key2")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk!.getId())
+
+            id = try DIDURL(doc.subject, "#key2")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk!.getId())
+
+            id = try DIDURL(doc.subject, "#key3")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk!.getId())
+
+            id = doc.defaultPublicKeyId()!
+            XCTAssertNil(id);
+
+            // Key not exist, should fail.
+            pk = try doc.publicKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+
+            id = try DIDURL(doc.controller!, "#notExist")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNil(pk)
+
+            // Selector
+            id = user1.defaultPublicKeyId()!
+            pks = try doc.selectPublicKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(1, pks.count)
             XCTAssertEqual(id, pks[0].getId())
 
-            pks = doc.selectAuthorizationKeys(byType: "ECDSAsecp256r1")
+            pks = try doc.selectPublicKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            pks = doc.selectPublicKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(7, pks.count)
+
+            pks = try doc.selectPublicKeys(byId: try DIDURL(user1.subject, "#key2"),
+                                       andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key2"), pks[0].getId())
+
+            pks = try doc.selectPublicKeys(byId: try DIDURL(doc.subject, "#key3"), andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "#key3"), pks[0].getId())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetPublicKeyWithMultiControllerCid2() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            let doc = try cd.getDocument("baz")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(5, doc.publicKeyCount)
+
+            var pks = doc.publicKeys()
+            XCTAssertEqual(5, pks.count)
+
+            var ids: [DIDURL] = []
+            for pk in pks {
+                ids.append(pk.getId()!)
+            }
+
+            var refs: [DIDURL] = []
+            refs.append(user1.defaultPublicKeyId()!)
+            refs.append(user2.defaultPublicKeyId()!)
+            refs.append(user3.defaultPublicKeyId()!)
+            refs.append(try DIDURL(user1.subject, "#key2"))
+            refs.append(try DIDURL(user1.subject, "#key3"))
+
+            XCTAssertEqual(refs, ids)
+
+            // PublicKey getter.
+            var pk = try doc.publicKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(user1.subject, "#primary")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = try DIDURL(user1.subject, "#key2")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = doc.defaultPublicKeyId()!
+            XCTAssertNil(id)
+
+            // Key not exist, should fail.
+            pk = try doc.publicKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+
+            id = try DIDURL(user2.subject, "#notExist")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNil(pk)
+
+            // Selector
+            id = user2.defaultPublicKeyId()!
+            pks = try doc.selectPublicKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            id = user3.defaultPublicKeyId()!
+            pks = try doc.selectPublicKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            pks = doc.selectPublicKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(5, pks.count)
+
+            pks = try doc.selectPublicKeys(byId: try DIDURL(user1.subject, "#key2"),
+                                       andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key2"), pks[0].getId())
+
+            pks = try doc.selectPublicKeys(byId: try DIDURL(user1.subject, "#key3"), andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key3"), pks[0].getId())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddPublicKey1() {
+        do {
+            try AddPublicKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddPublicKey2() {
+        do {
+            try AddPublicKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddPublicKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add 2 public keys
+        let id = try DIDURL(db.getSubject(), "#test1")
+        var key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        var pk = try doc.publicKey(ofId: "#test1")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+
+        pk = try doc.publicKey(ofId: "#test2")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+
+        // Check the final count.
+        XCTAssertEqual(6, doc.publicKeyCount)
+        XCTAssertEqual(3, doc.authenticationKeyCount)
+        XCTAssertEqual(1, doc.authorizationKeyCount)
+    }
+    
+    func testAddPublicKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user1)
+
+            // Add 2 public keys
+            let id = try DIDURL(db.getSubject(), "#test1")
+            var key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(id, db.getSubject(), key.getPublicKeyBase58())
+
+            key = try TestData.generateKeypair();
+            _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+
+            doc = try db.sealed(using: storePassword)
+            doc = try user2.sign(doc, storePassword)
+            XCTAssertNotNil(doc);
+            XCTAssertTrue(try doc.isValid())
+
+            // Check existence
+            var pk = try doc.publicKey(ofId: "#test1")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+
+            pk = try doc.publicKey(ofId: "#test2")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+
+            // Check the final count.
+            XCTAssertEqual(9, doc.publicKeyCount)
+            XCTAssertEqual(7, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemovePublicKey1() {
+        do {
+            try RemovePublicKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemovePublicKey2() {
+        do {
+            try RemovePublicKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func RemovePublicKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // recovery used by authorization, should failed.
+        let id = try DIDURL(doc.subject, "#recovery")
+        XCTAssertThrowsError(DIDError.UncheckedError.UnsupportedOperationError.self) { (e) in
+            do {
+                _ = try db.removePublicKey(with: id)
+            }
+            catch {
+                XCTFail()
+            }
+        }
+        // force remove public key, should success
+        _ = try db.removePublicKey(with: id, true)
+
+        _ = try db.removePublicKey(with: "#key2", true)
+
+        // Key not exist, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { (e) in
+            do {
+                _ = try db.removePublicKey(with: "#notExistKey", true)
+            }
+            catch {
+                XCTFail()
+            }
+        }
+
+        // Can not remove default publickey, should fail.
+        let d = doc
+        XCTAssertThrowsError(DIDError.UncheckedError.UnsupportedOperationError.self) { (e) in
+            do {
+                _ = try db.removePublicKey(with: d.defaultPublicKeyId()!, true)
+            }
+            catch {
+                XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        var pk = try doc.publicKey(ofId: "#recovery")
+        XCTAssertNil(pk)
+
+        pk = try doc.publicKey(ofId: "#key2")
+        XCTAssertNil(pk)
+
+        // Check the final count.
+        XCTAssertEqual(2, doc.publicKeyCount)
+        XCTAssertEqual(2, doc.authenticationKeyCount)
+        XCTAssertEqual(0, doc.authorizationKeyCount)
+    }
+    
+    func testRemovePublicKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user2)
+
+            // Can not remove the controller's key
+            let key2 = try DIDURL(user1.subject, "#key2")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { (e) in
+                do {
+                    _ = try db.removePublicKey(with: key2)
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            // key2 used by authentication, should failed.
+            let id = try DIDURL(doc.subject, "#key2")
+            XCTAssertThrowsError(DIDError.UncheckedError.UnsupportedOperationError.self) { (e) in
+                do {
+                    _ = try db.removePublicKey(with: id)
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+            
+            // force remove public key, should success
+            _ = try db.removePublicKey(with: id, true)
+
+            _ = try db.removePublicKey(with: "#key3", true)
+
+            // Key not exist, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { (e) in
+                do {
+                    _ = try db.removePublicKey(with: "#notExistKey", true)
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+            doc = try db.sealed(using: storePassword)
+            doc = try user1.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Check existence
+            var pk = try doc.publicKey(ofId: "#key2")
+            XCTAssertNil(pk)
+
+            pk = try doc.publicKey(ofId: "#key3")
+            XCTAssertNil(pk)
+
+            // Check the final count.
+            XCTAssertEqual(5, doc.publicKeyCount)
+            XCTAssertEqual(5, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetAuthenticationKey1() {
+        do {
+            try GetAuthenticationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetAuthenticationKey2() {
+        do {
+            try GetAuthenticationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func GetAuthenticationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        let doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Count and list.
+        XCTAssertEqual(3, doc.authenticationKeyCount)
+
+        var pks = doc.authenticationKeys()
+        XCTAssertEqual(3, pks.count)
+
+        for pk in pks {
+            XCTAssertEqual(doc.subject, pk.getId()!.did)
+            XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
+
+            XCTAssertEqual(doc.subject, pk.controller)
+            let re = pk.getId()?.fragment == "primary" || pk.getId()?.fragment == "key2" || pk.getId()?.fragment == "key3"
+            XCTAssertTrue(re)
+        }
+
+        // AuthenticationKey getter
+        var pk = try doc.authenticationKey(ofId: "#primary")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pk?.getId())
+
+        var id = try DIDURL(doc.subject, "#key3")
+        pk = doc.authenticationKey(ofId: id)
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(id, pk?.getId())
+
+        // Key not exist, should fail.
+        pk = try doc.authenticationKey(ofId: "#notExist")
+        XCTAssertNil(pk)
+
+        id = try DIDURL(doc.subject, "#notExist")
+        pk = doc.authenticationKey(ofId: id)
+        XCTAssertNil(pk)
+
+        // selector
+        id = try DIDURL(doc.subject, "#key3")
+        pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(id, pks[0].getId())
+
+        pks = try doc.selectAuthenticationKeys(byId: id, andType: nil)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(id, pks[0].getId())
+
+        pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+        XCTAssertEqual(3, pks.count)
+
+        pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
+
+        pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: nil)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
+    }
+    
+    func testGetAuthenticationKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+
+            let issuer = try cd.getDocument("issuer")
+            let doc = try cd.getDocument("examplecorp")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(1, doc.authenticationKeyCount)
+
+            var pks = doc.authenticationKeys()
+            XCTAssertEqual(1, pks.count)
+
+            XCTAssertEqual(issuer.defaultPublicKeyId(), pks[0].getId())
+
+            var pk = try doc.authenticationKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(doc.controller!, "#primary")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            // Key not exist, should fail.
+            pk = try doc.authenticationKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+
+            id = try DIDURL(doc.controller!, "#notExist")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNil(pk)
+
+            // Selector
+            id = doc.defaultPublicKeyId()!
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.controller!, "#primary"),
+                    pks[0].getId())
+
+            pks = try doc.selectPublicKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.controller!, "#primary"),
+                    pks[0].getId())
+
+            pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
             XCTAssertEqual(1, pks.count)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testAddAuthorizationKey() {
+    func testGetAuthenticationKeyWithMultiControllerCid1() {
         do {
-            let testData: TestData = TestData()
-            store = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
+            let cd = try testData!.getCompatibleData(2)
+
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(7, doc.authenticationKeyCount)
+
+            var pks = doc.authenticationKeys()
+            XCTAssertEqual(7, pks.count)
+
+            var ids: [DIDURL] = []
+            for pk in pks {
+                ids.append(pk.getId()!)
+            }
+
+            var refs: [DIDURL] = []
+            refs.append(user1.defaultPublicKeyId()!)
+            refs.append(user2.defaultPublicKeyId()!)
+            refs.append(user3.defaultPublicKeyId()!)
+            refs.append(try DIDURL(user1.subject, "#key2"))
+            refs.append(try DIDURL(user1.subject, "#key3"))
+            refs.append(try DIDURL(doc.subject, "#key2"))
+            refs.append(try DIDURL(doc.subject, "#key3"))
+
+            XCTAssertEqual(refs, ids)
+
+            // PublicKey getter.
+            var pk = try doc.authenticationKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(user1.subject, "#primary")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = try DIDURL(user1.subject, "#key2")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = try DIDURL(doc.subject, "#key2")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = try DIDURL(doc.subject, "#key3")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            // Key not exist, should fail.
+            pk = try doc.authenticationKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+
+            id = try DIDURL(doc.controller!, "#notExist")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNil(pk)
+
+            // Selector
+            id = user1.defaultPublicKeyId()!
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(7, pks.count)
+
+            pks = try doc.selectAuthenticationKeys(byId: try DIDURL(user1.subject, "#key2"),
+                                               andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key2"), pks[0].getId())
+
+            pks = try doc.selectAuthenticationKeys(byId: try DIDURL(doc.subject, "#key3"), andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "#key3"), pks[0].getId())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetAuthenticationKeyWithMultiControllerCid2() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            let doc = try cd.getDocument("baz")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(5, doc.authenticationKeyCount)
+
+            var pks = doc.authenticationKeys()
+            XCTAssertEqual(5, pks.count)
+
+            var ids: [DIDURL] = []
+            for pk in pks {
+                ids.append(pk.getId()!)
+            }
             
-            let db: DIDDocumentBuilder = doc.editing()
-            
+            var refs: [DIDURL] = []
+            refs.append(user1.defaultPublicKeyId()!)
+            refs.append(user2.defaultPublicKeyId()!)
+            refs.append(user3.defaultPublicKeyId()!)
+            refs.append(try DIDURL(user1.subject, "#key2"))
+            refs.append(try DIDURL(user1.subject, "#key3"))
+
+            XCTAssertEqual(refs, ids)
+
+            // PublicKey getter.
+            var pk = try doc.authenticationKey(ofId: "#primary")
+            XCTAssertNil(pk)
+
+            var id = try DIDURL(user1.subject, "#primary")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            id = try DIDURL(user1.subject, "#key2")
+            pk = doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+
+            // Key not exist, should fail.
+            pk = try doc.authenticationKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+
+            id = try DIDURL(user2.subject, "#notExist")
+            pk = try doc.publicKey(ofId: id)
+            XCTAssertNil(pk)
+
+            // Selector
+            id = user2.defaultPublicKeyId()!
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            id = user3.defaultPublicKeyId()!
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+
+            pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(5, pks.count)
+
+            pks = try doc.selectAuthenticationKeys(byId: try DIDURL(user1.subject, "#key2"),
+                                               andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key2"), pks[0].getId())
+
+            pks = try doc.selectAuthenticationKeys(byId: try DIDURL(user1.subject, "#key3"), andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(user1.subject, "#key3"), pks[0].getId())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddAuthenticationKey1() {
+        do {
+            try AddAuthenticationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddAuthenticationKey2() {
+        do {
+            try AddAuthenticationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddAuthenticationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add 2 public keys for test.
+        let id = try DIDURL(db.getSubject(), "#test1")
+        var key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+
+        // Add by reference
+        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
+
+        _ = try db.appendAuthenticationKey(with: "#test2")
+
+        // Add new keys
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test3"),
+                                   keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthenticationKey(with: "#test4", keyBase58: key.getPublicKeyBase58())
+
+        // Try to add a non existing key, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.appendAuthenticationKey(with: "#notExistKey")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        // Try to add a key not owned by self, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError()) { e in
+            do {
+                _ = try db.appendAuthenticationKey(with: "#recovery")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        var pk = try doc.authenticationKey(ofId: "#test1")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+
+        pk = try doc.authenticationKey(ofId: "#test2")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+
+        pk = try doc.authenticationKey(ofId: "#test3")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test3"), pk?.getId())
+
+        pk = try doc.authenticationKey(ofId: "#test4")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test4"), pk?.getId())
+
+        // Check the final count.
+        XCTAssertEqual(8, doc.publicKeyCount)
+        XCTAssertEqual(7, doc.authenticationKeyCount)
+        XCTAssertEqual(1, doc.authorizationKeyCount)
+    }
+    
+    func testAddAuthenticationKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+
+            let user1 = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user1)
+
             // Add 2 public keys for test.
-            let id: DIDURL = try DIDURL(doc.subject, "test1")
+            let id = try DIDURL(db.getSubject(), "#test1")
             var key = try TestData.generateKeypair()
-            let did = DID(DID.METHOD, key.getAddress())
-            _ = try db.appendPublicKey(with: id, controller: did.toString(), keyBase58: key.getPublicKeyBase58())
-            
+            _ = try db.appendPublicKey(id, db.getSubject(), key.getPublicKeyBase58())
+
             key = try TestData.generateKeypair()
-            _ = try db.appendPublicKey(with: "test2", controller: did.toString(), keyBase58: key.getPublicKeyBase58())
-            
+            _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+
             // Add by reference
-            _ = try db.appendAuthorizationKey(with: DIDURL(doc.subject, "test1"))
-            
-            _ = try db.appendAuthorizationKey(with: "test2")
-            
+            _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
+
+            _ = try db.appendAuthenticationKey(with: "#test2")
+
             // Add new keys
             key = try TestData.generateKeypair()
-            _ = try db.appendAuthorizationKey(try DIDURL(doc.subject, "test3"),
-                                                  did, key.getPublicKeyBase58())
-            
+            _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test3"),
+                                       keyBase58: key.getPublicKeyBase58())
+
             key = try TestData.generateKeypair()
-            _ = try db.appendAuthorizationKey(with: "test4", controller: did.toString(), keyBase58: key.getPublicKeyBase58())
-            
+            _ = try db.appendAuthenticationKey(with: "#test4", keyBase58: key.getPublicKeyBase58())
+
+            // Try to add a controller's key, should fail.
+            let key3 = try DIDURL(user1.subject, "#testkey")
+            // Try to add a key not owned by self, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.appendAuthenticationKey(with: key3)
+                }
+                catch {
+                XCTFail()
+                }
+            }
             // Try to add a non existing key, should fail.
-            XCTAssertThrowsError(try db.appendAuthorizationKey(with: "notExistKey")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.appendAuthenticationKey(with: "#notExistKey")
+                }
+                catch {
+                XCTFail()
                 }
             }
             
-            // Try to add key owned by self, should fail.
-            XCTAssertThrowsError(try db.appendAuthorizationKey(with: "key2")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
+            // Try to add a key not owned by self, should fail.
+            let recovery = try DIDURL(user1.subject, "#recovery")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.appendAuthenticationKey(with: recovery)
+                }
+                catch {
+                XCTFail()
                 }
             }
-            
+
             doc = try db.sealed(using: storePassword)
+            doc = try user3.sign(doc, storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            var pk = try doc.authorizationKey(ofId: "test1")
+            XCTAssertTrue(try doc.isValid())
+
+            // Check existence
+            var pk = try doc.authenticationKey(ofId: "#test1")
             XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test1"), pk!.getId())
-            pk = try doc.authorizationKey(ofId: "test2")
+            XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+
+            pk = try doc.authenticationKey(ofId: "#test2")
             XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test2"), pk!.getId())
-            pk = try doc.authorizationKey(ofId: "test3")
-            
+            XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+
+            pk = try doc.authenticationKey(ofId: "#test3")
             XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test3"), pk!.getId())
-            
-            pk = try doc.authorizationKey(ofId: "test4")
+            XCTAssertEqual(try DIDURL(doc.subject, "#test3"), pk?.getId())
+
+            pk = try doc.authenticationKey(ofId: "#test4")
             XCTAssertNotNil(pk)
-            XCTAssertEqual(try DIDURL(doc.subject, "test4"), pk!.getId())
-            
-            // Check the final key count.
-            XCTAssertEqual(8, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            XCTAssertEqual(5, doc.authorizationKeyCount)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test4"), pk?.getId())
+
+            // Check the final count.
+            XCTAssertEqual(11, doc.publicKeyCount)
+            XCTAssertEqual(11, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testRemoveAuthorizationKey() {
+    func testRemoveAuthenticationKey1() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
+            try RemoveAuthenticationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemoveAuthenticationKey2() {
+        do {
+            try RemoveAuthenticationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func RemoveAuthenticationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add 2 public keys for test
+        var key = try TestData.generateKeypair()
+        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"),
+                                   keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthenticationKey(with: "#test2", keyBase58: key.getPublicKeyBase58())
+
+        // Remote keys
+        _ = try db.removeAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
+            .removeAuthenticationKey(with: "#test2")
+            .removeAuthenticationKey(with: "#key2")
+
+        // Key not exist, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.removeAuthenticationKey(with: "#notExistKey")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        // Default publickey, can not remove, should fail.
+        let id = doc.defaultPublicKeyId()
+        XCTAssertThrowsError(DIDError.UncheckedError.UnsupportedOperationError.self) { e in
+            do {
+                _ = try db.removeAuthenticationKey(with: id!)
+            }
+            catch {
+            XCTFail()
+            }
+        }
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        var pk = try doc.authenticationKey(ofId: "#test1")
+        XCTAssertNil(pk)
+
+        pk = try doc.authenticationKey(ofId: "#test2")
+        XCTAssertNil(pk)
+
+        pk = try doc.authenticationKey(ofId: "#key2")
+        XCTAssertNil(pk)
+
+        // Check the final count.
+        XCTAssertEqual(6, doc.publicKeyCount)
+        XCTAssertEqual(2, doc.authenticationKeyCount)
+        XCTAssertEqual(1, doc.authorizationKeyCount)
+    }
+    
+    func testRemoveAuthenticationKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add 2 keys for test.
-            let id: DIDURL = try DIDURL(doc.subject, "test1")
-            var key = try TestData.generateKeypair()
-            let did = DID(DID.METHOD, key.getAddress())
-            _ = try db.appendAuthorizationKey(id, did, key.getPublicKeyBase58())
-            
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthorizationKey(with: "test2", controller: did.toString(), keyBase58: key.getPublicKeyBase58())
-            
-            // Remove keys.
-            _ = try db.removeAuthorizationKey(with: try DIDURL(doc.subject, "test1"))
-            
-            _ = try db.removeAuthorizationKey(with: "recovery")
-            
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(7, doc.publicKeyCount)
+            XCTAssertEqual(7, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
+
+            let db = try doc.editing(user1)
+
+            // Remote keys
+            _ = try db.removeAuthenticationKey(with: try DIDURL(doc.subject, "#key2"))
+                .removeAuthenticationKey(with: "#key3")
+
+            _ = try db.removePublicKey(with: "#key3")
+
             // Key not exist, should fail.
-            XCTAssertThrowsError(try db.removeAuthorizationKey(with: "notExistKey")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeAuthenticationKey(with: "#notExistKey")
+                }
+                catch {
+                XCTFail()
                 }
             }
-            
+
+            // Remove controller's key, should fail.
+            let key2 = try DIDURL(user1.subject, "#key2")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeAuthenticationKey(with: key2)
+                }
+                catch {
+                XCTFail()
+                }
+            }
+
             doc = try db.sealed(using: storePassword)
+            doc = try user2.sign(doc, storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
+            XCTAssertTrue(try doc.isValid())
+
             // Check existence
-            var pk = try doc.authorizationKey(ofId: "test1")
+            var pk = try doc.authenticationKey(ofId: "#key2")
             XCTAssertNil(pk)
-            
-            pk = try doc.authorizationKey(ofId: "test2")
-            XCTAssertNotNil(pk)
-            
-            pk = try doc.authorizationKey(ofId: "recovery")
+
+            pk = try doc.authenticationKey(ofId: "#key3")
             XCTAssertNil(pk)
-            
+
             // Check the final count.
             XCTAssertEqual(6, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            XCTAssertEqual(1, doc.authorizationKeyCount)
+            XCTAssertEqual(5, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testGetCredential() {
+    func testGetAuthorizationKey1() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
+            try GetAuthorizationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetAuthorizationKey2() {
+        do {
+            try GetAuthorizationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func GetAuthorizationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        let doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Count and list.
+        XCTAssertEqual(1, doc.authorizationKeyCount)
+        var pks = doc.authorizationKeys()
+        XCTAssertEqual(1, pks.count)
+
+        for pk in pks {
+            XCTAssertEqual(doc.subject, pk.getId()?.did)
+            XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
+            XCTAssertEqual(doc.subject, pk.controller)
+            XCTAssertEqual(pk.getId()?.fragment, "recovery")
+        }
+
+        // AuthorizationKey getter
+        var pk = try doc.authorizationKey(ofId: "#recovery")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#recovery"), pk?.getId())
+
+        var id = try DIDURL(doc.subject, "#recovery")
+        pk = doc.authorizationKey(ofId: id)
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(id, pk?.getId())
+
+        // Key not exist, should fail.
+        pk = try doc.authorizationKey(ofId: "#notExistKey")
+        XCTAssertNil(pk)
+
+        id = try DIDURL(doc.subject, "#notExistKey")
+        pk = doc.authorizationKey(ofId: id)
+        XCTAssertNil(pk)
+
+        // Selector
+        id = try DIDURL(doc.subject, "#recovery")
+        pks = try doc.selectAuthorizationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(id, pks[0].getId())
+
+        pks = try doc.selectAuthorizationKeys(byId: id, andType: nil)
+        XCTAssertEqual(1, pks.count)
+        XCTAssertEqual(id, pks[0].getId())
+
+        pks = doc.selectAuthorizationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+        XCTAssertEqual(1, pks.count)
+    }
+    
+    func testGetAuthorizationKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            _ = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list.
+            XCTAssertEqual(0, doc.authorizationKeyCount)
+
+            let pks = doc.authorizationKeys
+            XCTAssertEqual(0, pks().count)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddAuthorizationKey1() {
+        do {
+            try AddAuthorizationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddAuthorizationKey2() {
+        do {
+            try AddAuthorizationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddAuthorizationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add 2 public keys for test.
+        let id = try DIDURL(db.getSubject(), "#test1")
+        var key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: id, controller: DID(DID.METHOD, key.getAddress()).toString(),
+                           keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendPublicKey(with: "#test2",
+                           controller: DID(DID.METHOD, key.getAddress()).toString(),
+                           keyBase58: key.getPublicKeyBase58())
+
+        // Add by reference
+        _ = try db.appendAuthorizationKey(with: try DIDURL(doc.subject, "#test1"))
+
+        _ = try db.appendAuthorizationKey(with: "#test2")
+
+        // Add new keys
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthorizationKey(try DIDURL(doc.subject, "#test3"),
+                DID(DID.METHOD, key.getAddress()),
+                key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthorizationKey(with: "#test4",
+                                  controller: DID(DID.METHOD, key.getAddress()).toString(),
+                                  keyBase58: key.getPublicKeyBase58())
+
+        // Try to add a non existing key, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.appendAuthorizationKey(with: "#notExistKey")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+        
+        // Try to add key owned by self, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError()) { e in
+            do {
+                _ = try db.appendAuthorizationKey(with: "#key2")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        var pk = try doc.authorizationKey(ofId: "#test1")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+
+        pk = try doc.authorizationKey(ofId: "#test2")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+
+        pk = try doc.authorizationKey(ofId: "#test3")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test3"), pk?.getId())
+
+        pk = try doc.authorizationKey(ofId: "#test4")
+        XCTAssertNotNil(pk)
+        XCTAssertEqual(try DIDURL(doc.subject, "#test4"), pk?.getId())
+
+        // Check the final key count.
+        XCTAssertEqual(8, doc.publicKeyCount)
+        XCTAssertEqual(3, doc.authenticationKeyCount)
+        XCTAssertEqual(5, doc.authorizationKeyCount)
+    }
+    
+    func testAddAuthorizationKeyWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let did = doc.subject
+            let db = try doc.editing(user1)
+
+            // Add 2 public keys for test.
+            let id = try DIDURL(db.getSubject(), "#test1")
+            var key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: id,controller: DID(DID.METHOD, key.getAddress()).toString(), keyBase58:
+                    key.getPublicKeyBase58())
+
+            key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: "#test2", controller: DID(DID.METHOD, key.getAddress()).toString(),
+                               keyBase58: key.getPublicKeyBase58())
+
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError()) { e in
+                do {
+                    _ = try db.appendAuthorizationKey(with: DIDURL(did, "#test1"))
+                }
+                catch {
+                XCTFail()
+                }
+            }
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError()) { e in
+                do {
+                    _ = try db.appendAuthorizationKey(with: "#test2")
+                }
+                catch {
+                XCTFail()
+                }
+            }
+
+            // Try to add a non existing key, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError()) { e in
+                do {
+                    _ = try db.appendAuthorizationKey(with: "#notExistKey")
+                }
+                catch {
+                XCTFail()
+                }
+            }
+
+            // Try to add controller's, should fail.
+            let recovery = try DIDURL(user1.subject, "#recovery")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError()) { e in
+                do {
+                    _ = try db.appendAuthorizationKey(with: recovery)
+                }
+                catch {
+                XCTFail()
+                }
+            }
+
+            doc = try db.sealed(using: storePassword)
+            doc = try user2.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            var pk = try doc.authorizationKey(ofId: "#test1")
+            XCTAssertNil(pk)
+
+            pk = try doc.authorizationKey(ofId: "#test2")
+            XCTAssertNotNil(pk)
+
+            pk = try doc.authorizationKey(ofId: "#test3")
+            XCTAssertNil(pk)
+
+            pk = try doc.authorizationKey(ofId: "#test4")
+            XCTAssertNil(pk)
+
+            // Check the final key count.
+            XCTAssertEqual(9, doc.publicKeyCount)
+            XCTAssertEqual(7, doc.authenticationKeyCount)
+            XCTAssertEqual(0, doc.authorizationKeyCount)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemoveAuthorizationKey1() {
+        do {
+            try RemoveAuthorizationKey(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemoveAuthorizationKey2() {
+        do {
+            try RemoveAuthorizationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func RemoveAuthorizationKey(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add 2 keys for test.
+        let id = try DIDURL(db.getSubject(), "#test1")
+        var key = try TestData.generateKeypair()
+        _ = try db.appendAuthorizationKey(with: id, controller: DID(DID.METHOD, key.getAddress()),
+                                  keyBase58: key.getPublicKeyBase58())
+
+        key = try TestData.generateKeypair()
+        _ = try db.appendAuthorizationKey(with: "#test2", controller: DID(DID.METHOD, key.getAddress()).toString(),
+                                  keyBase58: key.getPublicKeyBase58())
+
+        // Remove keys.
+        _ = try db.removeAuthorizationKey(with: try DIDURL(doc.subject, "#test1"))
+            .removeAuthorizationKey(with: "#recovery")
+
+        // Key not exist, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.removeAuthorizationKey(with: "#notExistKey")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        var pk = try doc.authorizationKey(ofId: "#test1")
+        XCTAssertNil(pk)
+
+        pk = try doc.authorizationKey(ofId: "#test2")
+        XCTAssertNotNil(pk)
+
+        pk = try doc.authorizationKey(ofId: "#recovery")
+        XCTAssertNil(pk)
+
+        // Check the final count.
+        XCTAssertEqual(6, doc.publicKeyCount)
+        XCTAssertEqual(3, doc.authenticationKeyCount)
+        XCTAssertEqual(1, doc.authorizationKeyCount)
+    }
+    
+    func testGetJceKeyPair() {
+        do {
             
+        } catch {
+            
+        }
+    }
+    
+    func testGetCredential1() {
+        do {
+            try GetCredential(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetCredential2() {
+        do {
+            try GetCredential(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func GetCredential(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        let doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Count and list.
+        XCTAssertEqual(2, doc.credentialCount)
+        var vcs = doc.credentials()
+        XCTAssertEqual(2, vcs.count)
+
+        for vc in vcs {
+            XCTAssertEqual(doc.subject, vc.getId()?.did)
+            XCTAssertEqual(doc.subject, vc.subject?.did)
+            
+            let re = vc.getId()?.fragment == "profile" || vc.getId()?.fragment == "email"
+            XCTAssertTrue(re)
+        }
+
+        // Credential getter.
+        var vc = try doc.credential(ofId: "#profile")
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vc?.getId())
+
+        vc = doc.credential(ofId: try DIDURL(doc.subject, "#email"))
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#email"), vc!.getId())
+
+        // Credential not exist.
+        vc = try doc.credential(ofId: "#notExistVc")
+        XCTAssertNil(vc)
+
+        // Credential selector.
+        vcs = try doc.selectCredentials(byId: try DIDURL(doc.subject, "#profile"),
+                                    andType: "SelfProclaimedCredential")
+        XCTAssertEqual(1, vcs.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#profile"),
+                vcs[0].getId())
+
+        vcs = try doc.selectCredentials(byId: try DIDURL(doc.subject, "#profile"), andType: nil)
+        XCTAssertEqual(1, vcs.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vcs[0].getId())
+
+        vcs = doc.selectCredentials(byType: "SelfProclaimedCredential");
+        XCTAssertEqual(1, vcs.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vcs[0].getId())
+
+        vcs = doc.selectCredentials(byType: "TestingCredential");
+        XCTAssertEqual(0, vcs.count)
+    }
+    
+    func testGetCredentialWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            _ = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            let doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
             // Count and list.
             XCTAssertEqual(2, doc.credentialCount)
-            var vcs: Array<VerifiableCredential> = doc.credentials()
+            var vcs = doc.credentials()
             XCTAssertEqual(2, vcs.count)
-            
+
             for vc in vcs {
-                XCTAssertEqual(doc.subject, vc.getId().did)
-                XCTAssertEqual(doc.subject, vc.subject.did)
-                let re = vc.getId().fragment == "profile" || vc.getId().fragment == "email"
+                XCTAssertEqual(doc.subject, vc.getId()?.did)
+                XCTAssertEqual(doc.subject, vc.subject?.did)
+
+                let re = vc.getId()?.fragment == "profile" || vc.getId()?.fragment == "email"
                 XCTAssertTrue(re)
             }
+
             // Credential getter.
-            var vc = try doc.credential(ofId: "profile")
+            var vc = try doc.credential(ofId: "#profile")
             XCTAssertNotNil(vc)
-            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vc!.getId())
-            
-            vc = try doc.credential(ofId: DIDURL(doc.subject, "email"))
+            XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vc?.getId())
+
+            vc = doc.credential(ofId: try DIDURL(doc.subject, "#email"))
             XCTAssertNotNil(vc)
-            XCTAssertEqual(try DIDURL(doc.subject, "email"), vc!.getId())
-            
+            XCTAssertEqual(try DIDURL(doc.subject, "#email"), vc?.getId())
+
             // Credential not exist.
-            vc = try doc.credential(ofId: "notExistVc")
+            vc = try doc.credential(ofId: "#notExistVc")
             XCTAssertNil(vc)
-            
+
             // Credential selector.
-            vcs = try doc.selectCredentials(byId: DIDURL(doc.subject, "profile"), andType: "SelfProclaimedCredential")
+            vcs = try doc.selectCredentials(byId: try DIDURL(doc.subject, "#profile"),
+                                        andType: "SelfProclaimedCredential")
             XCTAssertEqual(1, vcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
-            
-            vcs = try doc.selectCredentials(byId: DIDURL(doc.subject, "profile"), andType: nil)
+            XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vcs[0].getId())
+
+            vcs = try doc.selectCredentials(byId: try DIDURL(doc.subject, "#profile"), andType: nil)
             XCTAssertEqual(1, vcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
+            XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vcs[0].getId())
 
             vcs = doc.selectCredentials(byType: "SelfProclaimedCredential")
             XCTAssertEqual(1, vcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "profile"), vcs[0].getId())
+            XCTAssertEqual(try DIDURL(doc.subject, "#profile"), vcs[0].getId())
 
             vcs = doc.selectCredentials(byType: "TestingCredential")
             XCTAssertEqual(0, vcs.count)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testAddCredential() {
+    func testAddCredential1() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add credentials.
-            var vc = try testData.loadPassportCredential()
-            _ = try db.appendCredential(with: vc!)
-            
-            vc = try testData.loadTwitterCredential()
-            _ = try db.appendCredential(with: vc!)
+            try AddCredential(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddCredential2() {
+        do {
+            try AddCredential(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddCredential(_ version: Int) throws {
+        let cd = try testData!.getCompatibleData(version)
 
-            
+        _ = try testData!.getRootIdentity()
+
+        var doc = try cd.getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add credentials.
+        var vc = try cd.getCredential("user1", "passport")
+        _ = try db.appendCredential(with: vc)
+
+        vc = try cd.getCredential("user1", "twitter")
+        _ = try db.appendCredential(with: vc)
+
+        let fvc = vc
+        // Credential already exist, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+            do {
+                _ = try db.appendCredential(with: fvc)
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check new added credential.
+        vc = try doc.credential(ofId: "#passport")!
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#passport"), vc.getId())
+
+        let id = try DIDURL(doc.subject, "#twitter")
+        vc = doc.credential(ofId: id)!
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(id, vc.getId())
+
+        // Should contains 3 credentials.
+//        assertEquals(4, doc.getCredentialCount());
+    }
+    
+    func testAddCredentialWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user1)
+
+            // Add credentials.
+            var vc = try cd.getCredential("foobar", "license")
+            _ = try db.appendCredential(with: vc)
+
+            vc = try cd.getCredential("foobar", "services")
+            _ = try db.appendCredential(with: vc)
+
+            let fvc = vc
             // Credential already exist, should fail.
-            XCTAssertThrowsError(try db.appendCredential(with: vc!)) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                    //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+                do {
+                    _ = try db.appendCredential(with: fvc)
+                }
+                catch {
+                XCTFail()
                 }
             }
-            
+
+            // Credential not belongs to current did, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError()) { e in
+                do {
+                    _ = try db.appendCredential(with: cd.getCredential("user1", "passport"))
+                }
+                catch {
+                XCTFail()
+                }
+            }
+
             doc = try db.sealed(using: storePassword)
+            doc = try user2.sign(doc, storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
+            XCTAssertTrue(try doc.isValid())
+
             // Check new added credential.
-            vc = try doc.credential(ofId: "passport")
+            vc = try doc.credential(ofId: "#license")!
             XCTAssertNotNil(vc)
-            XCTAssertEqual(try DIDURL(doc.subject, "passport"), vc!.getId())
-            
-            let id: DIDURL = try DIDURL(doc.subject, "twitter")
-            vc = doc.credential(ofId: id)
+            XCTAssertEqual(try DIDURL(doc.subject, "#license"), vc.getId())
+
+            let id = try DIDURL(doc.subject, "#services")
+            vc = doc.credential(ofId: id)!
             XCTAssertNotNil(vc)
-            XCTAssertEqual(id, vc!.getId())
-            
-            // Should contains 3 credentials.
+            XCTAssertEqual(id, vc.getId())
+
             XCTAssertEqual(4, doc.credentialCount)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testAddSelfClaimedCredential() {
+    func testAddSelfClaimedCredential1() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
+            try AddSelfClaimedCredential(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddSelfClaimedCredential2() {
+        do {
+            try AddSelfClaimedCredential(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddSelfClaimedCredential(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
 
-            var doc: DIDDocument = try testData.loadTestDocument()
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add credentials.
+        let subject: [String: String] = ["passport": "S653258Z07"]
+        _ = try db.appendCredential(with: "#passport", subject: subject, using: storePassword)
+
+        var json = "{\"name\":\"Jay Holtslander\",\"alternateName\":\"Jason Holtslander\"}"
+        _ = try db.appendCredential(with: "#name", json: json, using: storePassword)
+
+        json = "{\"twitter\":\"@john\"}";
+        _ = try db.appendCredential(with: "#twitter", json: json, using: storePassword)
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check new added credential.
+        var vc = try doc.credential(ofId: "#passport")
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#passport"), vc!.getId())
+        XCTAssertTrue(vc!.isSelfProclaimed)
+
+        var id = try DIDURL(doc.subject, "#name")
+        vc = doc.credential(ofId: id)
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(id, vc!.getId())
+        XCTAssertTrue(vc!.isSelfProclaimed)
+
+        id = try DIDURL(doc.subject, "#twitter")
+        vc = doc.credential(ofId: id)
+        XCTAssertNotNil(vc)
+        XCTAssertEqual(id, vc!.getId())
+        XCTAssertTrue(vc!.isSelfProclaimed)
+
+        XCTAssertEqual(5, doc.credentialCount)
+    }
+    
+    func testAddSelfClaimedCredentialWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
-            let db = doc.editing()
+            let db = try doc.editing(user2)
+
             // Add credentials.
-            var subject: [String: String] = [: ]
-            subject["passport"] = "S653258Z07"
-            _ = try db.appendCredential(with: "passport", subject: subject, using: storePassword)
+            let subject: [String: String] = ["foo": "bar"]
+            _ = try db.appendCredential(with: "#testvc", subject: subject, using: storePassword)
 
-            let subjectjson = "{\"name\":\"Jay Holtslander\",\"alternateName\":\"Jason Holtslander\"}"
-            _ = try db.appendCredential(with: "name", json: subjectjson, using: storePassword)
-            let json = "{\"twitter\":\"@john\"}"
-            let jsonDict = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String: String]
-            _ = try db.appendCredential(with: "twitter", subject: jsonDict!, using: storePassword)
+            var json = "{\"name\":\"Foo Bar\",\"alternateName\":\"Jason Holtslander\"}"
+            _ = try db.appendCredential(with: "#name", json: json, using: storePassword)
+
+            json = "{\"twitter\":\"@foobar\"}"
+            _ = try db.appendCredential(with: "#twitter", json: json, using: storePassword)
 
             doc = try db.sealed(using: storePassword)
+            doc = try user1.sign(doc, storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             // Check new added credential.
-            var vc = try doc.credential(ofId: "passport")
+            var vc = try doc.credential(ofId: "#testvc")
             XCTAssertNotNil(vc)
-            XCTAssertEqual(try DIDURL(doc.subject, "passport"), vc!.getId())
-            XCTAssertTrue(vc!.isSelfProclaimed())
+            XCTAssertEqual(try DIDURL(doc.subject, "#testvc"), vc!.getId())
+            XCTAssertTrue(vc!.isSelfProclaimed)
 
-            var id = try DIDURL(doc.subject, "name")
+            var id = try DIDURL(doc.subject, "#name")
             vc = doc.credential(ofId: id)
             XCTAssertNotNil(vc)
             XCTAssertEqual(id, vc!.getId())
-            XCTAssertTrue(vc!.isSelfProclaimed())
+            XCTAssertTrue(vc!.isSelfProclaimed)
 
-            id = try DIDURL(doc.subject, "twitter")
+            id = try DIDURL(doc.subject, "#twitter")
             vc = doc.credential(ofId: id)
             XCTAssertNotNil(vc)
             XCTAssertEqual(id, vc!.getId())
-            XCTAssertTrue(vc!.isSelfProclaimed())
+            XCTAssertTrue(vc!.isSelfProclaimed)
 
-            // Should contains 3 credentials.
             XCTAssertEqual(5, doc.credentialCount)
         } catch {
             XCTFail()
         }
     }
-
-    func testRemoveCredential() {
+    
+    func testRemoveCredential1() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add test credentials.
-            var vc = try testData.loadPassportCredential()
-            _ = try db.appendCredential(with: vc!)
-            
-            vc = try testData.loadTwitterCredential()
-            _ = try db.appendCredential(with: vc!)
-            
-            // Remove credentials
-            _ = try db.removeCredential(with: "profile")
-            
-            _ = try db.removeCredential(with: try DIDURL(doc.subject, "twitter"))
-            
-            // Credential not exist, should fail.
-            XCTAssertThrowsError(try db.removeCredential(with: "notExistCredential")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-            XCTAssertThrowsError(
-                try db.removeCredential(with:
-                    try DIDURL(doc.subject,
-                               "notExistCredential"))) { (error) in
-                                switch error {
-                                case DIDError.illegalArgument: break
-                                //everything is fine
-                                default:
-                                    XCTFail("Unexpected error thrown")
-                                }
-            }
-
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Check existence
-            vc = try doc.credential(ofId: "profile")
-            XCTAssertNil(vc)
-            vc = doc.credential(ofId: try DIDURL(doc.subject, "twitter"))
-            XCTAssertNil(vc)
-            
-            // Check the final count.
-            XCTAssertEqual(2, doc.credentialCount)
+            try RemoveCredentia(1)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testGetService() {
+    func testRemoveCredential2() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
+            try RemoveCredentia(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func RemoveCredentia(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+        let cd = try testData!.getCompatibleData(version)
+
+        var doc = try cd.getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add test credentials.
+        var vc: VerifiableCredential? = try cd.getCredential("user1", "passport")
+        _ = try db.appendCredential(with: vc!)
+
+        vc = try cd.getCredential("user1", "twitter")
+        _ = try db.appendCredential(with: vc!)
+
+        // Remove credentials
+        _ = try db.removeCredential(with: "#profile")
+
+        _ = try db.removeCredential(with: try DIDURL(doc.subject, "#twitter"))
+
+        // Credential not exist, should fail.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.removeCredential(with: "notExistCredential")
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        let did = doc.subject
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+            do {
+                _ = try db.removeCredential(with: DIDURL(did, "#notExistCredential"))
+            }
+            catch {
+            XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc);
+        XCTAssertTrue(try doc.isValid())
+
+        // Check existence
+        vc = try doc.credential(ofId: "#profile")
+        XCTAssertNil(vc)
+
+        vc = doc.credential(ofId: try DIDURL(doc.subject, "#twitter"))
+        XCTAssertNil(vc)
+
+        // Check the final count.
+        XCTAssertEqual(2, doc.credentialCount)
+    }
+    
+    func testRemoveCredentialWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
             
-            let doc: DIDDocument = try testData.loadTestDocument()
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            let user2 = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+            
+            var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
             
-            // Count and list
-            XCTAssertEqual(3, doc.serviceCount)
-            var svcs: Array<Service> = doc.services()
-            XCTAssertEqual(3, svcs.count)
+            let db = try doc.editing(user1)
             
-            for svc in svcs {
-                XCTAssertEqual(doc.subject, svc.getId().did)
-                let re = svc.getId().fragment == "openid" || svc.getId().fragment == "vcr" || svc.getId().fragment == "carrier"
-                XCTAssertTrue(re)
+            // Remove credentials
+            _ = try db.removeCredential(with: "#profile")
+            
+            _ = try db.removeCredential(with: try DIDURL(doc.subject, "#email"))
+            
+            // Credential not exist, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeCredential(with: "#notExistCredential")
+                }
+                catch {
+                    XCTFail()
+                }
             }
             
-            // Service getter, should success.
-            var svc = try doc.service(ofId: "openid")
-            XCTAssertNotNil(svc)
-            XCTAssertEqual(try DIDURL(doc.subject, "openid"), svc!.getId())
-            XCTAssertEqual("OpenIdConnectVersion1.0Service", svc!.getType())
-            XCTAssertEqual("https://openid.example.com/", svc!.endpoint)
+            let did = doc.subject
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeCredential(with: DIDURL(did, "#notExistCredential"))
+                }
+                catch {
+                    XCTFail()
+                }
+            }
             
-            svc = try doc.service(ofId: DIDURL(doc.subject, "vcr"))!
-            XCTAssertNotNil(svc)
-            XCTAssertEqual(try DIDURL(doc.subject, "vcr"), svc!.getId())
+            doc = try db.sealed(using: storePassword)
+            doc = try user2.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
             
-            // Service not exist, should fail.
-            svc = try doc.service(ofId: "notExistService")
-            XCTAssertNil(svc)
+            // Check existence
+            var vc = try doc.credential(ofId: "#profile")
+            XCTAssertNil(vc)
             
-            // Service selector.
-            svcs = try doc.selectServices(byId: "vcr", andType: "CredentialRepositoryService")
-            XCTAssertEqual(1, svcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "vcr"), svcs[0].getId())
+            vc = doc.credential(ofId: try DIDURL(doc.subject, "#email"))
+            XCTAssertNil(vc)
             
-            svcs = try doc.selectServices(byId: DIDURL(doc.subject, "openid"), andType: nil)
-            XCTAssertEqual(1, svcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "openid"), svcs[0].getId())
+            // Check the final count.
+            XCTAssertEqual(0, doc.credentialCount)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetService1() {
+        do {
+            try GetService(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetService2() {
+        do {
+            try GetService(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func GetService(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
 
-            svcs = doc.selectServices(byType: "CarrierAddress")
+        let doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Count and list
+        XCTAssertEqual(3, doc.serviceCount)
+        let svcs = doc.services
+        XCTAssertEqual(3, svcs().count)
+
+        for svc in svcs() {
+            XCTAssertEqual(doc.subject, svc.getId()?.did)
+            let re = svc.getId()?.fragment == "openid" || svc.getId()?.fragment == "vcr" || svc.getId()?.fragment == "carrier"
+            XCTAssertTrue(re)
+        }
+
+        // Service getter, should success.
+        var svc = try doc.service(ofId: "#openid")
+        XCTAssertNotNil(svc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#openid"), svc?.getId())
+        XCTAssertEqual("OpenIdConnectVersion1.0Service", svc?.getType());
+        XCTAssertEqual("https://openid.example.com/", svc?.endpoint)
+        var props = svc!.properties
+        XCTAssertTrue(props.isEmpty)
+
+        svc = doc.service(ofId: try DIDURL(doc.subject, "#vcr"))
+        XCTAssertNotNil(svc)
+        XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svc?.getId())
+        props = svc!.properties
+        XCTAssertTrue(props.isEmpty)
+
+        // Service not exist, should fail.
+        svc = try doc.service(ofId: "#notExistService")
+        XCTAssertNil(svc)
+
+        // Service selector.
+        var svcss = try doc.selectServices(byId: "#vcr", andType: "CredentialRepositoryService")
+        XCTAssertEqual(1, svcss.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svcss[0].getId())
+
+        svcss = doc.selectServices(byId: try DIDURL(doc.subject, "#openid"), andType: nil)
+        XCTAssertEqual(1, svcss.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#openid"),
+                     svcss[0].getId())
+
+        svcss = doc.selectServices(byType: "CarrierAddress")
+        XCTAssertEqual(1, svcss.count)
+        XCTAssertEqual(try DIDURL(doc.subject, "#carrier"),
+                svcss[0].getId())
+        props = svcss[0].properties
+        if (version == 1) {
+            XCTAssertTrue(props.isEmpty)
+        } else {
+            XCTAssertEqual(12, props.count)
+            XCTAssertEqual("lalala...", props["foobar"] as! String)
+            XCTAssertEqual("Lalala...", props["FOOBAR"] as! String)
+        }
+
+        // Service not exist, should return a empty list.
+        svcss = try doc.selectServices(byId: "#notExistService",
+                                   andType: "CredentialRepositoryService")
+        XCTAssertEqual(0, svcss.count)
+
+        svcss = doc.selectServices(byType: "notExistType")
+        XCTAssertEqual(0, svcss.count)
+    }
+    
+    func testGetServiceWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            _ = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            _ = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            let doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Count and list
+            XCTAssertEqual(2, doc.serviceCount)
+            var svcs = doc.services()
+            XCTAssertEqual(2, svcs.count)
+
+            for svc in svcs {
+                XCTAssertEqual(doc.subject, svc.getId()?.did)
+                let re = svc.getId()?.fragment == "vault" || svc.getId()?.fragment == "vcr"
+                XCTAssertTrue(re)
+            }
+
+            // Service getter, should success.
+            var svc = try doc.service(ofId: "#vault")
+            XCTAssertNotNil(svc)
+            XCTAssertEqual(try DIDURL(doc.subject, "#vault"), svc?.getId())
+            XCTAssertEqual("Hive.Vault.Service", svc?.getType())
+            XCTAssertEqual("https://foobar.com/vault", svc?.endpoint)
+            var props = svc?.properties
+            XCTAssertTrue(props!.isEmpty)
+
+            svc = doc.service(ofId: try DIDURL(doc.subject, "#vcr"))
+            XCTAssertNotNil(svc)
+            XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svc?.getId())
+            props = svc?.properties
+            XCTAssertEqual(12, props?.count)
+            XCTAssertEqual("lalala...", props!["foobar"] as! String)
+            XCTAssertEqual("Lalala...", props!["FOOBAR"] as! String)
+
+            // Service not exist, should fail.
+            svc = try doc.service(ofId: "#notExistService")
+            XCTAssertNil(svc)
+
+            // Service selector.
+            svcs = try doc.selectServices(byId: "#vcr", andType: "CredentialRepositoryService")
             XCTAssertEqual(1, svcs.count)
-            XCTAssertEqual(try DIDURL(doc.subject, "carrier"), svcs[0].getId())
-            
+            XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svcs[0].getId())
+
+            svcs = doc.selectServices(byId: try DIDURL(doc.subject, "#openid"), andType: nil)
+            XCTAssertEqual(0, svcs.count)
+
             // Service not exist, should return a empty list.
-            svcs = try doc.selectServices(byId: "notExistService", andType: "CredentialRepositoryService")
+            svcs = try doc.selectServices(byId: "#notExistService", andType: "CredentialRepositoryService")
             XCTAssertEqual(0, svcs.count)
 
             svcs = doc.selectServices(byType: "notExistType")
             XCTAssertEqual(0, svcs.count)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testAddService() {
+    func testAddService1() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // Add services
-            _ = try db.appendService(with: "test-svc-1",
-                                     type: "Service.Testing", endpoint: "https://www.elastos.org/testing1")
-            
-            _ = try db.appendService(with: DIDURL(doc.subject, "test-svc-2"),
-                                     type: "Service.Testing", endpoint: "https://www.elastos.org/testing2")
-            
-            // Service id already exist, should failed.
-            _ = try db.appendService(with: "vcr", type: "test", endpoint: "https://www.elastos.org/test")
-            
-            doc = try db.sealed(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            // Check the final count
-            XCTAssertEqual(5, doc.serviceCount)
-            
-            // Try to select new added 2 services
-            let svcs: Array<Service> = doc.selectServices(byType: "Service.Testing")
-            XCTAssertEqual(2, svcs.count)
-            XCTAssertEqual("Service.Testing", svcs[0].getType())
-            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            try AddService(1)
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
-    func testRemoveService() {
+    func testAddService2() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc: DIDDocument = try testData.loadTestDocument()
+            try AddService(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddService(_ version: Int) throws {
+        _ = try testData!.getRootIdentity()
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add services
+        _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
+                         endpoint: "https://www.elastos.org/testing1")
+
+        _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
+                         type: "Service.Testing", endpoint: "https://www.elastos.org/testing2")
+
+        // Service id already exist, should failed.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+            do {
+                _ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")
+            }
+            catch {
+                XCTFail()
+            }
+        }
+        
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check the final count
+        XCTAssertEqual(5, doc.serviceCount)
+
+        // Try to select new added 2 services
+        let svcs = doc.selectServices(byType: "Service.Testing")
+        XCTAssertEqual(2, svcs.count)
+        XCTAssertEqual("Service.Testing", svcs[0].getType())
+        XCTAssertEqual("Service.Testing", svcs[1].getType())
+    }
+    
+    func testAddServiceWithDescription1() {
+        do {
+            try AddServiceWithDescription(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddServiceWithDescription2() {
+        do {
+            try AddServiceWithDescription(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func AddServiceWithDescription(_ version: Int) throws {
+        _ = try testData!.getRootIdentity();
+
+        let map = ["abc": "helloworld",
+                   "foo": 123,
+                   "bar": "foobar",
+                   "foobar": "lalala...",
+                   "date": DateFormatter.currentDate(),
+                   "ABC": "Helloworld",
+                   "FOO": 678,
+                   "BAR": "Foobar",
+                   "FOOBAR": "Lalala...",
+                   "DATE": DateFormatter.currentDate()] as [String : Any]
+        let props = ["abc": "helloworld",
+                     "foo": 123,
+                     "bar": "foobar",
+                     "foobar": "lalala...",
+                     "date": DateFormatter.currentDate(),
+                     "map": map,
+                     "ABC": "Helloworld",
+                     "FOO": 678,
+                     "BAR": "Foobar",
+                     "FOOBAR": "Lalala...",
+                     "DATE": DateFormatter.currentDate(),
+                     "MAP": map] as [String : Any]
+
+        var doc = try testData!.getCompatibleData(version).getDocument("user1")
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        let db = try doc.editing()
+
+        // Add services
+        _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
+                         endpoint: "https://www.elastos.org/testing1", properties: props)
+
+        _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
+                         type: "Service.Testing", endpoint: "https://www.elastos.org/testing2", properties: props)
+
+        _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-3"),
+                         type: "Service.Testing", endpoint: "https://www.elastos.org/testing3")
+
+        // Service id already exist, should failed.
+        XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+            do {
+                _ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")
+            }
+            catch {
+                XCTFail()
+            }
+        }
+
+        doc = try db.sealed(using: storePassword)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        // Check the final count
+        XCTAssertEqual(6, doc.serviceCount)
+
+        // Try to select new added 2 services
+        let svcs = doc.selectServices(byType: "Service.Testing")
+        XCTAssertEqual(3, svcs.count)
+        XCTAssertEqual("Service.Testing", svcs[0].getType())
+        XCTAssertTrue(!svcs[0].properties.isEmpty)
+        XCTAssertEqual("Service.Testing", svcs[1].getType())
+        XCTAssertTrue(!svcs[1].properties.isEmpty)
+        XCTAssertEqual("Service.Testing", svcs[2].getType())
+        XCTAssertTrue(svcs[2].properties.isEmpty)
+    }
+    
+    func testAddServiceWithCid() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let db: DIDDocumentBuilder = doc.editing()
-            
-            // remove services
-            _ = try db.removeService(with: "openid")
-            
-            _ = try db.removeService(with: try DIDURL(doc.subject, "vcr"))
-            
-            // Service not exist, should fail.
-            XCTAssertThrowsError(try db.removeService(with: "notExistService")) { (error) in
-                switch error {
-                case DIDError.illegalArgument: break
-                //everything is fine
-                default:
-                XCTFail("Unexpected error thrown")
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user3)
+
+            // Add services
+            _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
+                             endpoint: "https://www.elastos.org/testing1")
+
+            _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
+                             type: "Service.Testing", endpoint: "https://www.elastos.org/testing2")
+
+            // Service id already exist, should failed.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+                do {
+                    _ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")
+                }
+                catch {
+                    XCTFail()
                 }
             }
-            
+            doc = try db.sealed(using: storePassword)
+            doc = try user1.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Check the final count
+            XCTAssertEqual(4, doc.serviceCount)
+
+            // Try to select new added 2 services
+            let svcs = doc.selectServices(byType: "Service.Testing")
+            XCTAssertEqual(2, svcs.count)
+            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            XCTAssertEqual("Service.Testing", svcs[1].getType())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddServiceWithCidAndDescription() {
+        do {
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user3)
+
+            let map = ["abc": "helloworld",
+                       "foo": 123,
+                       "bar": "foobar",
+                       "foobar": "lalala...",
+                       "date": DateFormatter.currentDate(),
+                       "ABC": "Helloworld",
+                       "FOO": 678,
+                       "BAR": "Foobar",
+                       "FOOBAR": "Lalala...",
+                       "DATE": DateFormatter.currentDate()] as [String : Any]
+            let props = ["abc": "helloworld",
+                       "foo": 123,
+                       "bar": "foobar",
+                       "foobar": "lalala...",
+                       "date": DateFormatter.currentDate(),
+                       "map": map,
+                       "ABC": "Helloworld",
+                       "FOO": 678,
+                       "BAR": "Foobar",
+                       "FOOBAR": "Lalala...",
+                       "DATE": DateFormatter.currentDate(),
+                       "MAP": map] as [String : Any]
+            // Add services
+            _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
+                             endpoint: "https://www.elastos.org/testing1", properties: props)
+
+            _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
+                             type: "Service.Testing", endpoint: "https://www.elastos.org/testing2", properties: props)
+
+            _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-3"),
+                             type: "Service.Testing", endpoint: "https://www.elastos.org/testing3")
+
+            // Service id already exist, should failed.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError()) { e in
+                do {
+                    _ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test", properties: props)
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            doc = try db.sealed(using: storePassword)
+            doc = try user1.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            // Check the final count
+            XCTAssertEqual(5, doc.serviceCount)
+
+            // Try to select new added 2 services
+            let svcs = doc.selectServices(byType: "Service.Testing")
+            XCTAssertEqual(3, svcs.count)
+            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            XCTAssertTrue(!svcs[0].properties.isEmpty)
+            XCTAssertEqual("Service.Testing", svcs[1].getType())
+            XCTAssertTrue(!svcs[1].properties.isEmpty)
+            XCTAssertEqual("Service.Testing", svcs[2].getType())
+            XCTAssertTrue(svcs[2].properties.isEmpty)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemoveService1() {
+        do {
+            try RemoveService(1)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRemoveService2() {
+        do {
+            try RemoveService(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func RemoveService(_ version: Int) throws {
+        do {
+            _ = try testData!.getRootIdentity()
+
+            var doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing()
+
+            // remove services
+            _ = try db.removeService(with: "#openid")
+            _ = try db.removeService(with: try DIDURL(doc.subject, "#vcr"))
+
+            // Service not exist, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeService(with: "#notExistService")
+                }
+                catch {
+                    XCTFail()
+                }
+            }
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            var svc = try doc.service(ofId: "openid")
+            XCTAssertTrue(try doc.isValid())
+
+            var svc = try doc.service(ofId: "#openid")
             XCTAssertNil(svc)
-            
-            svc = try doc.service(ofId: DIDURL(doc.subject, "vcr"))
+
+            svc = doc.service(ofId: try DIDURL(doc.subject, "#vcr"))
             XCTAssertNil(svc)
-            
+
             // Check the final count
             XCTAssertEqual(1, doc.serviceCount)
         } catch {
@@ -1096,144 +2576,210 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testParseAndSerializeDocument() {
+    func testRemoveServiceWithCid() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let compact = try DIDDocument.convertToDIDDocument(fromJson: try testData.loadTestCompactJson())
-            XCTAssertNotNil(compact)
-            XCTAssertTrue(compact.isValid)
-            
-            XCTAssertEqual(4, compact.publicKeyCount)
-            
-            XCTAssertEqual(3, compact.authenticationKeyCount)
-            XCTAssertEqual(1, compact.authorizationKeyCount)
-            XCTAssertEqual(2, compact.credentialCount)
-            XCTAssertEqual(3, compact.serviceCount)
-            
-            let normalized = try DIDDocument.convertToDIDDocument(fromJson: try testData.loadTestCompactJson())
-            XCTAssertNotNil(normalized);
-            XCTAssertTrue(normalized.isValid)
-            
-            XCTAssertEqual(4, normalized.publicKeyCount)
-            
-            XCTAssertEqual(3, normalized.authenticationKeyCount)
-            XCTAssertEqual(1, normalized.authorizationKeyCount)
-            XCTAssertEqual(2, normalized.credentialCount)
-            XCTAssertEqual(3, normalized.serviceCount)
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
+            let cd = try testData!.getCompatibleData(2)
+            _ = try testData!.getRootIdentity()
+
+            _ = try cd.getDocument("issuer")
+            let user1 = try cd.getDocument("user1")
+            _ = try cd.getDocument("user2")
+            let user3 = try cd.getDocument("user3")
+            _ = try cd.getDocument("examplecorp")
+
+            var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            XCTAssertEqual(try testData.loadTestNormalizedJson(), compact.toString(true))
-            XCTAssertEqual(try testData.loadTestNormalizedJson(), normalized.toString(true))
-            XCTAssertEqual(try testData.loadTestNormalizedJson(), doc.toString(true))
-            
-            XCTAssertEqual(try testData.loadTestCompactJson(), compact.toString(false))
-            XCTAssertEqual(try testData.loadTestCompactJson(), normalized.toString(false))
-            XCTAssertEqual(try testData.loadTestCompactJson(), doc.toString(false))
+            XCTAssertTrue(try doc.isValid())
+
+            let db = try doc.editing(user1)
+
+            // remove services
+            _ = try db.removeService(with: "#vault")
+
+            _ = try db.removeService(with: try DIDURL(doc.subject, "#vcr"))
+
+            // Service not exist, should fail.
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError()) { e in
+                do {
+                    _ = try db.removeService(with: "#notExistService")
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            doc = try db.sealed(using: storePassword)
+            doc = try user3.sign(doc, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            var svc = try doc.service(ofId: "#openid")
+            XCTAssertNil(svc)
+
+            svc = doc.service(ofId: try DIDURL(doc.subject, "#vcr"))
+            XCTAssertNil(svc)
+
+            // Check the final count
+            XCTAssertEqual(0, doc.serviceCount)
         } catch {
-            print(error)
             XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument1() {
+        do {
+            try ParseAndSerializeDocument(1, "issuer")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument2() {
+        do {
+            try ParseAndSerializeDocument(1, "user1")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument3() {
+        do {
+            try ParseAndSerializeDocument(1, "user2")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument4() {
+        do {
+            try ParseAndSerializeDocument(1, "user3")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument5() {
+        do {
+            try ParseAndSerializeDocument(2, "examplecorp")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument6() {
+        do {
+            try ParseAndSerializeDocument(2, "foobar")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument7() {
+        do {
+            try ParseAndSerializeDocument(2, "foo")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument8() {
+        do {
+            try ParseAndSerializeDocument(2, "bar")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testParseAndSerializeDocument9() {
+        do {
+            try ParseAndSerializeDocument(2, "baz")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func ParseAndSerializeDocument(_ version: Int, _ did: String) throws {
+        let cd = try testData!.getCompatibleData(version)
+        try cd.loadAll()
+
+        let compactJson = try cd.getDocumentJson(did, "compact")
+        let compact = try DIDDocument.convertToDIDDocument(fromJson: compactJson)
+        XCTAssertNotNil(compact)
+        XCTAssertTrue(try compact.isValid())
+
+           let normalizedJson = try cd.getDocumentJson(did, "normalized")
+        let normalized = try DIDDocument.convertToDIDDocument(fromJson: normalizedJson)
+        XCTAssertNotNil(normalized)
+        XCTAssertTrue(try normalized.isValid())
+
+        let doc = try cd.getDocument(did)
+        XCTAssertNotNil(doc)
+        XCTAssertTrue(try doc.isValid())
+
+        XCTAssertEqual(normalizedJson, compact.toString(true))
+        XCTAssertEqual(normalizedJson, normalized.toString(true))
+        XCTAssertEqual(normalizedJson, doc.toString(true));
+
+        // Don't check the compact mode for the old versions
+        if (cd.isLatestVersion) {
+            XCTAssertEqual(compactJson, compact.toString(false))
+            XCTAssertEqual(compactJson, normalized.toString(false))
+            XCTAssertEqual(compactJson, doc.toString(false))
         }
     }
     
     func testSignAndVerify() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
-
+            let identity = try testData!.getRootIdentity()
+            let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let pkid: DIDURL = try DIDURL(doc.subject, "primary")
-            
-            for _ in 0..<10 {
-                var json = doc.toString(false)
-                var sig: String = try doc.sign(withId: pkid, using: storePassword, for: json.data(using: .utf8)!)
-                
-                var result: Bool = try doc.verify(withId: pkid, using: sig, onto: json.data(using: .utf8)!)
-                XCTAssertTrue(result)
-                
-                json = String(json.suffix(json.count - 1))
-                result = try doc.verify(withId: pkid, using: sig, onto: json.data(using: .utf8)!)
-                XCTAssertFalse(result)
-                
-                sig = try doc.sign(using: storePassword, for: json.data(using: .utf8)!)
-                result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertTrue(result)
-                
-                json = String(json.suffix(json.count - 1))
-                result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertFalse(result)
-            }
+            XCTAssertTrue(try doc.isValid())
+
+//            let data = byte[1024]
+            _ = try DIDURL(doc.subject, "#primary")
+
+//            for i in 0...10 {
+////                Arrays.fill(data, (byte) i);
+//
+//                let sig = doc.sign(pkid, storePassword, data)
+//                let result = doc.verify(pkid, sig, data)
+//                XCTAssertTrue(result)
+//
+//                data[0] = 0xF
+//                result = doc.verify(pkid, sig, data)
+//                XCTAssertFalse(result)
+//
+//                sig = doc.sign(storePassword, data)
+//                result = doc.verify(sig, data)
+//                assertTrue(result)
+//
+//                data[0] =  i
+//                result = doc.verify(sig, data)
+//                XCTAssertFalse(result)
+//            }
         } catch {
-            print(error)
             XCTFail()
         }
     }
-
-    func testSignAndVerifyNew() {
-
+    
+    func testDerive() {
         do {
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try testData.loadTestDocument()
+            let identity = try testData!.getRootIdentity()
+            let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-            
-            let pkid: DIDURL = try DIDURL(doc.subject, "primary")
-            
-            for i in 0..<10 {
-                var data: [String]  = Array(repeating: String(i), count: 1024)
-                var json = data.joined(separator: "")
-                
-                var sig: String = try doc.sign(withId: pkid, using: storePassword, for: json.data(using: .utf8)!)
-                var result: Bool = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertTrue(result)
-                
-                data[0] = String(i + 1)
-                json = data.joined(separator: "")
-                result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertFalse(result)
+            XCTAssertTrue(try doc.isValid())
 
-                sig = try doc.sign(using: storePassword, for: json.data(using: .utf8)!)
-                result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertTrue(result)
-                
-                data[0] = String(i + 2)
-                json = data.joined(separator: "")
-                result = try doc.verify(signature: sig, onto: json.data(using: .utf8)!)
-                XCTAssertFalse(result)
-            }
-            
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-
-    func testDeriveFromIdentifier() {
-        do {
-            let identifier = "org.elastos.did.test"
-            let testData: TestData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc: DIDDocument = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-
-            for i in -100..<100 {
-                let strKey = try doc.derive(identifier, i, storePassword)
+            for i in 0...1000 {
+                let strKey = try doc.derive(index: i, storePasswordword: storePassword)
                 let key = DIDHDKey.deserializeBase58(strKey)
 
                 let binKey = Base58.bytesFromBase58(strKey)
@@ -1242,7 +2788,2012 @@ class DIDDoucumentTests: XCTestCase {
                 XCTAssertEqual(key.getPrivateKeyBytes(), sk)
             }
         } catch {
-            print(error)
+            XCTFail()
+        }
+    }
+    
+    func testDerive2() {
+        do {
+            let doc = try testData!.getCompatibleData(2).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            for i in 0...1000 {
+                let strKey = try doc.derive(index: i, storePasswordword: storePassword)
+                let key = DIDHDKey.deserializeBase58(strKey)
+
+                let binKey = Base58.bytesFromBase58(strKey)
+                let sk = Array(binKey[46..<78])
+
+                XCTAssertEqual(key.getPrivateKeyBytes().count, sk.count)
+                XCTAssertEqual(key.getPrivateKeyBytes(), sk)
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeriveFromIdentifier() {
+        do {
+            let identifier = "org.elastos.did.test"
+
+            let identity = try testData!.getRootIdentity()
+            let doc = try identity.newDid(storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            for i in 0...1000 {
+                let strKey = try doc.derive(identifier, i, storePassword);
+                let key = DIDHDKey.deserializeBase58(strKey)
+
+                let binKey = Base58.bytesFromBase58(strKey)
+                let sk = Array(binKey[46..<78])
+
+                XCTAssertEqual(key.getPrivateKeyBytes().count, sk.count)
+                XCTAssertEqual(key.getPrivateKeyBytes(), sk)
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeriveFromIdentifier2() {
+        do {
+            let identifier = "org.elastos.did.test"
+
+            let doc = try testData!.getCompatibleData(2).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+
+            for i in 0...100 {
+                let strKey = try doc.derive(identifier, i, storePassword)
+                let key = DIDHDKey.deserializeBase58(strKey)
+
+                let binKey = Base58.bytesFromBase58(strKey)
+                let sk = Array(binKey[46..<78])
+
+                XCTAssertEqual(key.getPrivateKeyBytes().count, sk.count)
+                XCTAssertEqual(key.getPrivateKeyBytes(), sk);
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testCreateCustomizedDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword);
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            let doc = try! controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testCreateMultisigCustomizedDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+                do {
+                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid());
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved!.toString())
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved!.toString())
+
+            // Update again
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved!.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateCustomizedDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve();
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved!.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update again
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateMultisigCustomizedDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve();
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+                do {
+                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try  did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword);
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            var db = try doc.editing(ctrl2)
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            doc = try ctrl1.sign(doc, storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved?.publicKeyCount)
+            XCTAssertEqual(4, resolved?.authenticationKeyCount)
+
+            // Update again
+            db = try doc.editing(ctrl3)
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            doc = try ctrl2.sign(doc, storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(5, resolved?.publicKeyCount)
+            XCTAssertEqual(5, resolved?.authenticationKeyCount)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testTransferCustomizedDidAfterCreate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword);
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // create new controller
+            let newController = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try newController.publish(storePassword)
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(newController.subject, resolved?.subject)
+            XCTAssertEqual(newController.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // create the transfer ticket
+            try doc.setEffectiveController(controller.subject)
+            let ticket = try doc.createTransferTicket(to: newController.subject, storePassword)
+            XCTAssertTrue(try ticket.isValid())
+
+            // create new document for customized DID
+            doc = try newController.newCustomizedDid(did, true, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(newController.subject, doc.controller)
+
+            // transfer
+            try doc.publish(ticket, storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(newController.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testTransferCustomizedDidAfterUpdate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // create new controller
+            let newController = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try newController.publish(storePassword)
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(newController.subject, resolved?.subject)
+            XCTAssertEqual(newController.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // create the transfer ticket
+            let ticket = try controller.createTransferTicket(did, newController.subject, storePassword)
+            XCTAssertTrue(try ticket.isValid());
+
+            // create new document for customized DID
+            doc = try newController.newCustomizedDid(did, true, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(newController.subject, doc.controller)
+
+            // transfer
+            try doc.publish(ticket, storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(newController.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testTransferMultisigCustomizedDidAfterCreate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+                do {
+                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // new controllers for the did
+            let td = testData!.sharedInstantData()
+            _ = try td.getIssuerDocument()
+            let u1 = try td.getUser1Document()
+            let u2 = try td.getUser2Document()
+            let u3 = try td.getUser3Document()
+            let u4 = try td.getUser4Document()
+
+            // transfer ticket
+            var ticket = try ctrl1.createTransferTicket(did, u1.subject, storePassword)
+            ticket = try ctrl2.sign(ticket, storePassword)
+            XCTAssertTrue(try ticket.isValid())
+
+            try doc = u1.newCustomizedDid(did, [u2.subject, u3.subject, u4.subject],
+                        3, true, storePassword)
+            try doc = u2.sign(doc, storePassword)
+            try doc = u3.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(4, doc.controllerCount())
+            XCTAssertEqual("3:4", doc.multiSignature!.description)
+
+            // transfer
+            try doc.publish(ticket, storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testTransferMultisigCustomizedDidAfterUpdate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try  ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+                do {
+                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+                }
+                catch {
+                    XCTFail()
+                }
+            }
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing(ctrl2)
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            doc = try ctrl1.sign(doc, storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved?.publicKeyCount)
+            XCTAssertEqual(4, resolved?.authenticationKeyCount)
+
+            // new controllers for the did
+            let td = testData!.sharedInstantData()
+            _ = try td.getIssuerDocument()
+            let u1 = try td.getUser1Document()
+            let u2 = try td.getUser2Document()
+            let u3 = try td.getUser3Document()
+            let u4 = try td.getUser4Document()
+
+            // transfer ticket
+            try doc.setEffectiveController(ctrl1.subject)
+            var ticket = try doc.createTransferTicket(to: u1.subject, storePassword)
+            ticket = try ctrl2.sign(ticket, storePassword)
+            XCTAssertTrue(try ticket.isValid())
+
+            doc = try u1.newCustomizedDid(did, [u2.subject, u3.subject, u4.subject], 3, true, storePassword)
+            doc = try u2.sign(doc, storePassword)
+            doc = try u3.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(4, doc.controllerCount())
+            XCTAssertEqual("3:4", doc.multiSignature?.description)
+
+            // transfer
+            try doc.publish(ticket, storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDidWithoutPrevSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+//            doc.getMetadata().previousSignature = nil
+//            doc.getMetadata().setPreviousSignature(nil) //TODO:
+
+            // Update again
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword);
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDidWithoutSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+//            doc.getMetadata().setSignature(null)
+
+            // Update again
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            let d = doc
+            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError()) { e in
+                do {
+                    try d.publish(storePassword)
+                }
+                catch {
+//                    XCTAssertEqual(d.subject.toString(), e) //TODO:
+                }
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDidWithoutAllSignatures() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            let resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+//            doc.getMetadata().setPreviousSignature(null);
+//            doc.getMetadata().setSignature(null);
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            _ = doc
+//            Exception e = assertThrows(DIDNotUpToDateException.class, () -> {
+//                d.publish(storePassword);
+//            });
+//            XCTAssertEqual(d.getSubject().toString(), e.getMessage());
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testForceUpdateDidWithoutAllSignatures() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+//            doc.getMetadata().setPreviousSignature(null);
+//            doc.getMetadata().setSignature(null);
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(doc.defaultPublicKeyId()!, true, storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDidWithWrongPrevSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString());
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair();
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve();
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(doc.toString(), resolved?.toString());
+
+            doc.getMetadata().setPreviousSignature("1234567890");
+
+            // Update
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testUpdateDidWithWrongSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            doc.getMetadata().setSignature("1234567890");
+
+            // Update
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            _ = doc
+//            Exception e = assertThrows(DIDNotUpToDateException.class, () -> {
+//                d.publish(storePassword);
+//            });
+//            XCTAssertEqual(d.getSubject().toString(), e.getMessage());
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testForceUpdateDidWithWrongPrevSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            doc.getMetadata().setPreviousSignature("1234567890")
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(doc.defaultPublicKeyId()!, true, storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testForceUpdateDidWithWrongSignature() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            doc.getMetadata().setSignature("1234567890")
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair();
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(doc.defaultPublicKeyId()!, true, storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateSelfAfterCreate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            let resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            try doc.deactivate(storePassword)
+
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateSelfAfterUpdate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            try doc.deactivate(storePassword)
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateCustomizedDidAfterCreate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Deactivate
+            try doc.deactivate(storePassword)
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateCustomizedDidAfterUpdate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString());
+
+            // Deactivate
+            try doc.deactivate(storePassword)
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateCidAfterCreateByController() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Deactivate
+            try controller.deactivate(did, storePassword)
+            doc = try did.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateCidAfterUpdateByController() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let controller = try identity.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid())
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(storePassword)
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            var doc = try controller.newCustomizedDid(did, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Deactivate
+            try controller.deactivate(did, storePassword)
+            doc = try did.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateMultisigCustomizedDidAfterCreate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+//            assertThrows(AlreadySignedException.class, () -> {
+//                ctrl1.sign(d, storePassword);
+//            });
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Deactivate
+            try doc.deactivate(ctrl1.defaultPublicKeyId()!, storePassword)
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateMultisigCustomizedDidAfterUpdate() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+//            assertThrows(AlreadySignedException.class, () -> {
+//                ctrl1.sign(d, storePassword);
+//            });
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing(ctrl2)
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword)
+            doc = try ctrl1.sign(doc, storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved?.publicKeyCount)
+            XCTAssertEqual(4, resolved?.authenticationKeyCount)
+
+            // Deactivate
+            try doc.deactivate(ctrl1.defaultPublicKeyId()!, storePassword)
+            doc = try doc.subject.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateMultisigCidAfterCreateByController() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword)
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+//            assertThrows(AlreadySignedException.class, () -> {
+//                ctrl1.sign(d, storePassword);
+//            });
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Deactivate
+            try ctrl1.deactivate(did, storePassword)
+            doc = try did.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateMultisigCidAfterUpdateByController() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            // Create normal DID first
+            let ctrl1 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid())
+            try ctrl1.publish(storePassword)
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            let ctrl2 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid())
+            try ctrl2.publish(storePassword)
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+               let ctrl3 = try identity.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid())
+            try ctrl3.publish(storePassword)
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3")
+            var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword);
+            XCTAssertFalse(try doc.isValid())
+
+            _ = doc
+//            assertThrows(AlreadySignedException.class, () -> {
+//                ctrl1.sign(d, storePassword);
+//            });
+
+            doc = try ctrl2.sign(doc, storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(storePassword)
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid())
+
+            // Update
+            let db = try doc.editing(ctrl2)
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.sealed(using: storePassword);
+            doc = try ctrl1.sign(doc, storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved!.publicKeyCount)
+            XCTAssertEqual(4, resolved!.authenticationKeyCount)
+
+            // Deactivate
+            try ctrl2.deactivate(did, storePassword)
+            doc = try did.resolve()!
+            XCTAssertTrue(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateWithAuthorization1() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            XCTAssertTrue(try doc.isValid())
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            var target = try identity.newDid(storePassword)
+            let db = try target.editing()
+            _ = try db.authorizationDid(with: "#recovery", controller: doc.subject.toString())
+            target = try db.sealed(using: storePassword)
+            XCTAssertNotNil(target);
+            XCTAssertEqual(1, target.authorizationKeyCount)
+            XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
+            try store!.storeDid(using: target)
+
+            try target.publish(storePassword)
+
+            resolved = try target.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(target.toString(), resolved?.toString());
+
+            try doc.deactivate(target.subject, storePassword)
+            target = try target.subject.resolve()!
+            XCTAssertTrue(target.isDeactivated)
+
+            doc = try doc.subject.resolve()!
+            XCTAssertFalse(doc.isDeactivated)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testDeactivateWithAuthorization2() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            var db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            let id = try DIDURL(doc.subject, "#key-2")
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
+            doc = try db.sealed(using: storePassword)
+            XCTAssertTrue(try doc.isValid())
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            var target = try identity.newDid(storePassword)
+            db = try target.editing()
+            _ = try db.appendAuthorizationKey(with: "#recovery", controller: doc.subject.toString(),
+                                      keyBase58: key.getPublicKeyBase58())
+            target = try db.sealed(using: storePassword)
+            XCTAssertNotNil(target)
+            XCTAssertEqual(1, target.authorizationKeyCount)
+            XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
+            try store!.storeDid(using: target)
+
+            try target.publish(storePassword)
+
+            resolved = try target.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(target.toString(), resolved?.toString())
+
+            try doc.deactivate(target.subject, id, storePassword)
+            target = try target.subject.resolve()!
+            XCTAssertTrue(target.isDeactivated)
+
+            doc = try doc.subject.resolve()!
+            XCTAssertFalse(doc.isDeactivated)
+        } catch {
+         XCTFail()
+        }
+    }
+    
+    func testDeactivateWithAuthorization3() {
+        do {
+            let identity = try testData!.getRootIdentity()
+
+            var doc = try identity.newDid(storePassword)
+            var db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            let id = try  DIDURL(doc.subject, "#key-2")
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
+            doc = try db.sealed(using: storePassword)
+            XCTAssertTrue(try doc.isValid())
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(storePassword)
+
+            var resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            var target = try identity.newDid(storePassword)
+            db = try target.editing()
+            _ = try db.appendAuthorizationKey(with: "#recovery", controller: doc.subject.toString(),
+                                      keyBase58: key.getPublicKeyBase58())
+            target = try db.sealed(using: storePassword)
+            XCTAssertNotNil(target)
+            XCTAssertEqual(1, target.authorizationKeyCount)
+            XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
+            try store!.storeDid(using: target)
+
+            try target.publish(storePassword)
+
+            resolved = try target.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(target.toString(), resolved?.toString())
+
+            try doc.deactivate(target.subject, storePassword)
+            target = try target.subject.resolve()!
+            XCTAssertTrue(target.isDeactivated)
+
+            doc = try doc.subject.resolve()!
+            XCTAssertFalse(doc.isDeactivated)
+        } catch {
             XCTFail()
         }
     }
