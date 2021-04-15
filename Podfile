@@ -5,6 +5,11 @@ def import_pods
   pod 'KituraContracts', '~> 1.1'
   pod 'BlueCryptor', '~> 1.0'
   pod 'ReadWriteLock', '~> 1.0'
+  pod 'ObjectMapper'
+  pod 'Swifter'
+  pod 'Alamofire'
+  pod 'Telegraph'
+  
 end
 
 target :ElastosDIDSDK do
