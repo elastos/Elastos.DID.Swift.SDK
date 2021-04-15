@@ -985,13 +985,28 @@ public class DIDDocumentBuilder: NSObject {
 
     private func appendService(_ id: DIDURL,
                                _ type: String,
-                               _ endpoint: String) throws -> DIDDocumentBuilder {
-        guard let _ = document else {
-            throw DIDError.invalidState(Errors.DOCUMENT_ALREADY_SEALED)
+                               _ endpoint: String, _ properties: [String: Any]?) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        try checkArgument(id.did == nil || id.did == getSubject(), "Invalid publicKey id")
+        try checkArgument(!type.isEmpty, "Invalid type")
+        try checkArgument(!endpoint.isEmpty, "Invalid endpoint")
+
+        var svc: Service
+        if let _ = properties {
+            let node = JsonNode(properties as Any)
+            svc = try Service(canonicalId(id)!, type, endpoint, node)
         }
-        guard document!.appendService(Service(id, type, endpoint)) else {
-            throw DIDError.illegalArgument()
+        else {
+            svc = try Service(canonicalId(id)!, type, endpoint)
         }
+            
+        if document!.serviceMap.get(forKey: svc.id, { _ -> Bool in
+            return true
+        }) != nil {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
+        }
+        _ = document!.appendService(svc)
+        invalidateProof()
 
         return self
     }
@@ -1006,8 +1021,22 @@ public class DIDDocumentBuilder: NSObject {
     @objc
     public func appendService(with id: DIDURL,
                                  type: String,
+                                 endpoint: String, properties: [String: Any]) throws -> DIDDocumentBuilder {
+        return try appendService(id, type, endpoint, properties)
+    }
+    
+    /// Add one Service to services array.
+    /// - Parameters:
+    ///   - id: The identifier of Service.
+    ///   - type: The type of Service.
+    ///   - endpoint: ServiceEndpoint property is a valid URI.
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: DIDDocumentBuilder instance.
+    @objc
+    public func appendService(with id: DIDURL,
+                                 type: String,
                              endpoint: String) throws -> DIDDocumentBuilder {
-        return try appendService(id, type, endpoint)
+        return try appendService(id, type, endpoint, nil)
     }
 
     /// Add one Service to services array.
@@ -1021,7 +1050,21 @@ public class DIDDocumentBuilder: NSObject {
     public func appendService(with id: String,
                                  type: String,
                              endpoint: String) throws -> DIDDocumentBuilder {
-        return try appendService(DIDURL(getSubject(), id), type, endpoint)
+        return try appendService(DIDURL(getSubject(), id), type, endpoint, nil)
+    }
+    
+    /// Add one Service to services array.
+    /// - Parameters:
+    ///   - id: The identifier of Service.
+    ///   - type: The type of Service.
+    ///   - endpoint: ServiceEndpoint property is a valid URI.
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: DIDDocumentBuilder instance.
+    @objc(appendService:type:endpoint:properties:error:)
+    public func appendService(with id: String,
+                                 type: String,
+                             endpoint: String, properties: [String: Any]) throws -> DIDDocumentBuilder {
+        return try appendService(DIDURL(getSubject(), id), type, endpoint, properties)
     }
 
     private func removeService(_ id: DIDURL) throws -> DIDDocumentBuilder {
@@ -1106,7 +1149,7 @@ public class DIDDocumentBuilder: NSObject {
         let json = document?.toString(true)
         let sig = try document?.sign(withId: signKey!, using: storePasswordword, for: [json!.data(using: .utf8)!])
         let proof = DIDDocumentProof(signKey!, sig!)
-        document!._proofsDic[proof.creator.did!] = proof
+        document!._proofsDic[proof.creator!.did!] = proof
         let values = document!._proofsDic.values
         values.forEach { df in
             document!._proofs.append(df)

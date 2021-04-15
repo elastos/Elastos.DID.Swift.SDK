@@ -22,6 +22,8 @@
 
 import Foundation
 import PromiseKit
+import ObjectMapper
+
 
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
@@ -63,15 +65,6 @@ public class DIDDocument: NSObject {
      var _metadata: DIDMetadata?
 
     private var _capacity: Int = 0
-
-//    private var _subject: DID?
-//    private var _expirationDate: Date?
-//    private var _proof: DIDDocumentProof?
-//    private var _metadata: DIDMeta?
-
-//    private var publicKeyMap: EntryMap<PublicKey>
-//    private var credentialMap: EntryMap<VerifiableCredential>
-//    private var serviceMap: EntryMap<Service>
 
     class EntryMap<T: DIDObject> {
         private var map: Dictionary<DIDURL, T>?
@@ -178,11 +171,11 @@ public class DIDDocument: NSObject {
         }
 
         func append(_ value: T) {
-            if  map == nil {
+            if map == nil {
                 map = Dictionary<DIDURL, T>()
             }
 
-            map![value.getId()] = value
+            map![value.getId()!] = value
         }
 
         func remove(_ key: DIDURL) -> Bool {
@@ -754,8 +747,8 @@ public class DIDDocument: NSObject {
                 return false
             }
         }
-
         publicKeyMap.append(publicKey)
+        
         return true
     }
 
@@ -1186,13 +1179,14 @@ public class DIDDocument: NSObject {
         guard vc.subject!.did == subject else {
             return false
         }
-        let _vc = credential(ofId: vc.getId())
+        let _vc = credential(ofId: vc.getId()!)
         guard _vc == nil else {
             // TODO: Throw ERROR
-            Log.e(DIDDocument.TAG, "Credential \(vc.getId()) already exist.")
+            Log.e(DIDDocument.TAG, "Credential \(String(describing: vc.getId())) already exist.")
             return false
         }
         credentialMap.append(vc)
+        _credentials.append(vc)
         return true
     }
 
@@ -1280,6 +1274,7 @@ public class DIDDocument: NSObject {
 
     func appendService(_ service: Service) -> Bool {
         serviceMap.append(service)
+        _services.append(service)
         return true
     }
 
@@ -1387,18 +1382,18 @@ public class DIDDocument: NSObject {
         let pks = EntryMap<PublicKey>()
         if  _publickeys.count > 0 {
             try _publickeys.forEach { pk in
-                if pk.getId().did == nil {
-                    pk.getId().setDid(subject)
+                if pk.getId()?.did == nil {
+                    pk.getId()!.setDid(subject)
                 }
                 else {
-                    guard pk.getId().did == subject else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(pk.getId())")
+                    guard pk.getId()?.did == subject else {
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(String(describing: pk.getId()))")
                     }
                 }
-                guard pks.get(forKey: pk.getId(), { vault -> Bool in
+                guard pks.get(forKey: pk.getId()!, { vault -> Bool in
                     return true
                 }) == nil else {
-                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk.getId())")
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk.getId()))")
                 }
                 guard !pk.publicKeyBase58.isEmpty else {
                     throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
@@ -1406,10 +1401,9 @@ public class DIDDocument: NSObject {
                 if pk.getType() == nil {
                     pk.setType(Constants.DEFAULT_PUBLICKEY_TYPE)
                 }
-                // TODO:
-//                if pk.controller == nil {
-//                    pk.controller = subject
-//                }
+                if pk.controller == nil {
+                    pk.setController(subject)
+                }
                 pks.append(pk)
             }
         }
@@ -1423,14 +1417,14 @@ public class DIDDocument: NSObject {
                     }
                     else {
                         guard keyRef.id?.did == subject else {
-                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = (pks.get(forKey: keyRef.id!, { (vault) -> Bool in
+                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in
                         return true
-                    }) as! PublicKey)
+                    })
                     guard pk != nil else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(keyRef.id)")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
                     try keyRef.update(pk!)
                 }
@@ -1441,13 +1435,13 @@ public class DIDDocument: NSObject {
                     }
                     else {
                         guard keyRef.id?.did != nil else {
-                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard pks.get(forKey: pk!.getId(), { vaule -> Bool in
+                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in
                         return true
                     })  == nil else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk?.getId())")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 != nil || !pk!.publicKeyBase58.isEmpty else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
@@ -1477,14 +1471,14 @@ public class DIDDocument: NSObject {
                     }
                     else {
                         guard keyRef.id?.did == subject else {
-                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = (pks.get(forKey: keyRef.id!, { vaule -> Bool in
+                    pk = pks.get(forKey: keyRef.id!, { vaule -> Bool in
                         return true
-                    }) as! PublicKey)
+                    })
                     guard pk != nil else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(keyRef.id)")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
                     try keyRef.update(pk!)
                 }
@@ -1495,13 +1489,13 @@ public class DIDDocument: NSObject {
                     }
                     else {
                         guard keyRef.id?.did == subject else {
-                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(keyRef.id)")
+                            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard (pks.get(forKey: pk!.getId(), { vaule -> Bool in
+                    guard (pks.get(forKey: pk!.getId()!, { vaule -> Bool in
                         return true
                     }) == nil) else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(pk?.getId())")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 == nil || pk!.publicKeyBase58.isEmpty else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
@@ -1510,10 +1504,10 @@ public class DIDDocument: NSObject {
                         pk?.setType(Constants.DEFAULT_PUBLICKEY_TYPE)
                     }
                     guard pk?.controller != nil else {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key missing controller: \(pk?.getId())")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key missing controller: \(String(describing: pk?.getId()))")
                     }
                     if pk!.controller == subject {
-                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Authorization key with wrong controller: \(pk?.getId())")
+                        throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Authorization key with wrong controller: \(String(describing: pk?.getId()))")
                     }
                     pks.append(pk!)
                 }
@@ -1525,12 +1519,12 @@ public class DIDDocument: NSObject {
             _authorizations = [ ]
         }
         // for customized DID with controller, could be no public keys
-        if pks.count({ vault -> Bool in return true }) > 0 {
+        if pks.count({ _ -> Bool in return true }) > 0 {
             self.publicKeyMap = pks
-            self._publickeys = [ ]
+            self._publickeys = pks.values{ _ -> Bool in return true }
         }
         else {
-            self.publicKeyMap = EntryMap()
+            self.publicKeyMap = EntryMap<PublicKey>()
             self._publickeys = [ ]
         }
         // Find default key
@@ -1552,7 +1546,7 @@ public class DIDDocument: NSObject {
                 }
             }
         }
-        guard !_controllers.isEmpty && _defaultPublicKey != nil else {
+        if _controllers.isEmpty && _defaultPublicKey == nil {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing default public key.")
         }
     }
@@ -1564,33 +1558,32 @@ public class DIDDocument: NSObject {
             return
         }
         
-        var vcs = EntryMap<VerifiableCredential>()
+        let vcs = EntryMap<VerifiableCredential>()
          try _credentials.forEach { vc in
-            guard vc.getId() == nil else {
+            guard let _ = vc.getId() else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing credential id.")
             }
-            if vc.getId().did == nil {
-                vc.getId().setDid(subject)
+            if vc.getId()!.did == nil {
+                vc.getId()!.setDid(subject)
             }
             else {
-                guard vc.getId().did == subject else {
-                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(vc.getId())")
+                guard vc.getId()!.did == subject else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(String(describing: vc.getId()))")
                 }
             }
             
-            guard vcs.get(forKey: vc.getId(), { vaule -> Bool in return true }) == nil else {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Credential already exists: \(vc.getId())")
+            guard vcs.get(forKey: vc.getId()!, { vaule -> Bool in return true }) == nil else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Credential already exists: \(String(describing: vc.getId()))")
             }
-            // TODO:
             if vc.subject?.did == nil {
                 vc.subject!.setId(subject)
             }
             
             do {
-               try vc.sanitize() //TODO:
+               try vc.sanitize()
             }
             catch {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid credential: \(vc.getId())")
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid credential: \(String(describing: vc.getId()))")
             }
             vcs.append(vc)
         }
@@ -1604,12 +1597,12 @@ public class DIDDocument: NSObject {
         }
         let svcs = EntryMap<Service>()
         try _services.forEach { svc in
-            if svc.getId().did == nil {
-                svc.getId().setDid(subject)
+            if svc.getId()?.did == nil {
+                svc.getId()!.setDid(subject)
             }
             else {
-                guard svc.getId().did == subject else {
-                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(svc.getId())")
+                guard svc.getId()!.did == subject else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid crdential id: \(String(describing: svc.getId()))")
                 }
             }
             guard !svc.getType()!.isEmpty else {
@@ -1618,7 +1611,7 @@ public class DIDDocument: NSObject {
             guard !svc.endpoint.isEmpty else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing service endpoint.")
             }
-            guard svcs.get(forKey: svc.getId(), { value -> Bool in return true }) == nil else {
+            guard svcs.get(forKey: svc.getId()!, { value -> Bool in return true }) == nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Service already exists: \(svc.getId())")
             }
             svcs.append(svc)
@@ -1628,7 +1621,7 @@ public class DIDDocument: NSObject {
     }
     
     private func sanitizeProof() throws {
-        guard _proofs.isEmpty else {
+        guard _proofs.isEmpty == false else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing document proof")
         }
         
@@ -1636,7 +1629,7 @@ public class DIDDocument: NSObject {
             // TODO:
             if proof.creator == nil {
                 if defaultPublicKey() != nil {
-                    proof.setCreator(_defaultPublicKey!.getId())
+                    proof.setCreator(_defaultPublicKey!.getId()!)
                 }
                 else if _controllers.count == 1 {
                     proof.setCreator(_controllerDocs[_controllers[0]]!.defaultPublicKeyId()!)
@@ -1646,12 +1639,12 @@ public class DIDDocument: NSObject {
                 }
             }
             else {
-                if proof.creator.did == nil {
+                if proof.creator?.did == nil {
                     if _defaultPublicKey != nil {
-                        proof.creator.setDid(subject)
+                        proof.creator!.setDid(subject)
                     }
                     else if _controllers.count == 1 {
-                        proof.creator.setDid(_controllers[0])
+                        proof.creator!.setDid(_controllers[0])
                     }
                     else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid creator key.")
@@ -1659,15 +1652,16 @@ public class DIDDocument: NSObject {
                 }
             }
 
-            if _proofsDic[proof.creator.did!] != nil {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Aleady exist proof from \(proof.creator.did)")
+            if _proofsDic[proof.creator!.did!] != nil {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Aleady exist proof from \(String(describing: proof.creator?.did))")
             }
             
-            _proofsDic[proof.creator.did!] = proof
+            _proofsDic[proof.creator!.did!] = proof
         }
 
         _proofsDic.values.forEach { proof in
-            self._proofs.append(proof)
+            self._proofs.removeAll()
+            _proofs.append(proof)
         }
         // TODO:  Collections.sort(this._proofs)
     }
@@ -1691,15 +1685,6 @@ public class DIDDocument: NSObject {
         return _metadata!
     }
 
-    /// Save DIDMetaData of document.
-    /// - Throws: If no error occurs, throw error.
-//    @objc
-//    public func saveMetadata() throws {
-//        if _metadata != nil && _metadata!.attachedStore {
-//            try  _metadata!.store?.storeDidMetadata(subject, _metadata!)
-//        }
-//    }
-    
     var store: DIDStore? {
         return getMetadata().store
     }
@@ -1728,8 +1713,7 @@ public class DIDDocument: NSObject {
             return false
         }
         let doc = DIDDocument(self, false)
-//        let json = try doc.serialize(true) // TODO:
-        let json = doc.toString()
+        let json = doc.toString(true)
         let jsonData = json.data(using: .utf8)
         let digest = sha256Digest([jsonData!])
         
@@ -1744,7 +1728,7 @@ public class DIDDocument: NSObject {
             guard proof.creator == defaultPublicKeyId() else {
                 return false
             }
-            return try verifyDigest(withId: proof.creator, using: proof.signature, for: digest)
+            return try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
         }
         else {
             for proof in _proofs {
@@ -1752,7 +1736,7 @@ public class DIDDocument: NSObject {
                 guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
                     return false
                 }
-                let controllerDoc = controllerDocument(proof.creator.did!)
+                let controllerDoc = controllerDocument(proof.creator!.did!)
                 guard controllerDoc != nil else {
                     return false
                 }
@@ -1762,7 +1746,7 @@ public class DIDDocument: NSObject {
                 guard proof.creator == controllerDoc!.defaultPublicKeyId() else {
                     return false
                 }
-                guard try controllerDoc!.verifyDigest(withId: proof.creator, using: proof.signature, for: digest) else {
+                guard try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest) else {
                     return false
                 }
             }
@@ -2989,13 +2973,28 @@ public class DIDDocument: NSObject {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options
 
+        // subject
         options = JsonSerializer.Options()
                                 .withHint("document subject")
         let did = try serializer.getDID(Constants.ID, options)
         setSubject(did)
 
+        // controller
         var node: JsonNode?
 
+        node = doc.get(forKey: Constants.CONTROLLER)
+        if let _ = node {
+            try parseController(node!)
+            try sanitizeControllers()
+        }
+        
+        // multisig
+        let multisig = doc.get(forKey: MULTI_SIGNATURE)
+        if let _ = multisig {
+            _multisig = try MultiSignature(multisig!.asString()!)
+        }
+        
+        //publicKey
         node = doc.get(forKey: Constants.PUBLICKEY)
         guard let _ = node else {
             throw DIDError.malformedDocument("missing publicKey")
@@ -3007,43 +3006,96 @@ public class DIDDocument: NSObject {
             try parseAuthenticationKeys(node!)
         }
 
+        //authentication
         // Add default public key to authentication keys if need.
-        let defaultKey = self.getDefaultPublicKey()
-        guard let _ = defaultKey else {
-            throw DIDError.malformedDocument("missing default public key")
+//        let defaultKey = self.getDefaultPublicKey()
+//        guard let _ = defaultKey else {
+//            throw DIDError.malformedDocument("missing default public key")
+//        }
+//
+//        if !containsAuthenticationKey(forId: defaultKey!) {
+//            _ = try appendAuthenticationKey(defaultKey!)
+//        }
+        node = doc.get(forKey: Constants.AUTHENTICATION)
+        let array: [JsonNode] = node?.asArray() ?? []
+        for authentication in array {
+            let auth = authentication.asString()
+            
+            for pk in self._publickeys {
+                let didURL = try DIDURL(auth!)
+                if pk.getId() == didURL {
+                    let rf = PublicKeyReference(didURL, pk)
+                    self._authentications.append(rf)
+                }
+            }
         }
 
-        if !containsAuthenticationKey(forId: defaultKey!) {
-            _ = try appendAuthenticationKey(defaultKey!)
-        }
-
+        //authorization
         node = doc.get(forKey: Constants.AUTHORIZATION)
         if let _ = node {
-            try parseAuthorizationKeys(node!)
+            try parseAuthorizationKeys(node!, self.publicKeys())
         }
 
+        //verifiableCredential
         node = doc.get(forKey: Constants.VERIFIABLE_CREDENTIAL)
         if let _ = node {
             try parseCredential(node!)
         }
-
+        // service
         node = doc.get(forKey: Constants.SERVICE)
         if let _ = node {
             try parseService(node!)
         }
 
+        //expires
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withHint("document expires")
         let expirationDate = try serializer.getDate(Constants.EXPIRES, options)
         self.setExpirationDate(expirationDate)
 
+        //proof
         node = doc.get(forKey: Constants.PROOF)
         guard let _ = node else {
             throw DIDError.malformedDocument("missing document proof")
         }
+        try parseProof(node!)
+    
+        try sanitize()
+        print("000")
+    }
+    
+    private func parseProof(_ arrayNode: JsonNode) throws {
         
-//        setProof(try DIDDocumentProof.fromJson(node!, defaultKey!))
+        let array = arrayNode.asArray()
+        
+        if array == nil {
+            let p = try DIDDocumentProof.fromJson(arrayNode, DIDURL(arrayNode.get(forKey: "creator")!.asString()!))
+            _proofs = [p]
+            return
+        }
+        
+        try array?.forEach{ node in
+            let p = try DIDDocumentProof.fromJson(node, DIDURL(node.get(forKey: "creator")!.asString()!))
+            _proofs.append(p)
+        }
+    }
+    
+    private func parseController(_ arrayNode: JsonNode) throws {
+        let array = arrayNode.asArray()
+        
+        if array == nil {
+            let ct = arrayNode.asString()
+            if ct != nil && ct!.count > 0 {
+                _controllers = [try DID(ct!)]
+            }
+            return
+        }
+
+        try array?.forEach{ node in
+            let n = node.asString()
+            _controllers.append(try DID(n!))
+        }
     }
 
     private func parsePublicKeys(_ arrayNode: JsonNode) throws {
@@ -3055,7 +3107,9 @@ public class DIDDocument: NSObject {
 
         for node in array! {
             do {
-                _ = appendPublicKey(try PublicKey.fromJson(node, self.subject))
+                let pk = try PublicKey.fromJson(node, self.subject)
+                _ = appendPublicKey(pk)
+                _publickeys.append(pk)
             } catch {
                 throw DIDError.malformedDocument()
             }
@@ -3082,14 +3136,14 @@ public class DIDDocument: NSObject {
                     let didUrl = try serializer.getDIDURL(options)
                     pk = try publicKey(ofId: didUrl!)!
                 }
-                _ = try appendAuthenticationKey(pk.getId())
+                _ = try appendAuthenticationKey(pk.getId()!)
             } catch {
                 throw DIDError.malformedDocument()
             }
         }
     }
 
-    private func parseAuthorizationKeys(_ arrayNode: JsonNode) throws {
+    private func parseAuthorizationKeys(_ arrayNode: JsonNode, _ publicKeys: [PublicKey]) throws {
         let array = arrayNode.asArray()
         guard array?.count ?? 0 > 0 else {
             return
@@ -3097,19 +3151,16 @@ public class DIDDocument: NSObject {
 
         for node in array! {
             do {
-                var pk: PublicKey
-                if let _ = node.asDictionary() {
-                    pk =  try PublicKey.fromJson(node, self.subject)
+                // ADD
+                let key = node.toString()
+                var _: PublicKey?
+                for pk in publicKeys {
+                    let didURL = try DIDURL(key)
+                    if pk.getId() == didURL {
+                        let rf = PublicKeyReference(didURL, pk)
+                        self._authorizations.append(rf)
+                    }
                 }
-                else {
-                    let serializer = JsonSerializer(node)
-                    var options: JsonSerializer.Options
-                    options = JsonSerializer.Options()
-                                            .withRef(subject)
-                    let didUrl = try serializer.getDIDURL(options)
-                    pk = try publicKey(ofId: didUrl!)!
-                }
-                _ = try appendAuthorizationKey(pk.getId())
             } catch {
                 throw DIDError.malformedDocument()
             }
@@ -3164,6 +3215,7 @@ public class DIDDocument: NSObject {
         }
 
         let node: Dictionary<String, Any>?
+        
         do {
             node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
         } catch {
@@ -3251,10 +3303,10 @@ public class DIDDocument: NSObject {
         generator.writeStartArray()
         for pubKey in authenticationKeys() {
             var value: String
-            if normalized || pubKey.getId().did != self.subject {
-                value = pubKey.getId().toString()
+            if normalized || pubKey.getId()?.did != self.subject {
+                value = pubKey.getId()!.toString()
             } else {
-                value = "#" + pubKey.getId().fragment!
+                value = "#" + pubKey.getId()!.fragment!
             }
             generator.writeString(value)
         }
@@ -3266,10 +3318,10 @@ public class DIDDocument: NSObject {
 
             for pubKey in authorizationKeys() {
                 var value: String
-                if normalized || pubKey.getId().did != self.subject {
-                    value = pubKey.getId().toString()
+                if normalized || pubKey.getId()?.did != self.subject {
+                    value = pubKey.getId()!.toString()
                 } else {
-                    value = "#" + pubKey.getId().fragment!
+                    value = "#" + pubKey.getId()!.fragment!
                 }
                 generator.writeString(value)
             }
@@ -3300,7 +3352,7 @@ public class DIDDocument: NSObject {
             generator.writeString(DateFormatter.convertToUTCStringFromDate(self.expirationDate!))
         }
 
-        if proof != nil && !forSign {
+        if forSign {
             generator.writeFieldName(Constants.PROOF)
             self.proof.toJson(generator, normalized)
         }

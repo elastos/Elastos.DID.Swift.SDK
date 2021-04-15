@@ -2,6 +2,7 @@
 import XCTest
 @testable import ElastosDIDSDK
 
+/*
 class JwtTest: XCTestCase {
 
     func testTokenJwt() {
@@ -829,3 +830,4 @@ class JwtTest: XCTestCase {
     }
 
 }
+*/

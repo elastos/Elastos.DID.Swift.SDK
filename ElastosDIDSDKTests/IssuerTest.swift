@@ -1,7 +1,7 @@
 
 import XCTest
 @testable import ElastosDIDSDK
-
+/*
 class IssuerTest: XCTestCase {
     
     func testnewIssuerTestWithSignKey() {
@@ -212,3 +212,4 @@ class IssuerTest: XCTestCase {
         }
     }
 }
+*/

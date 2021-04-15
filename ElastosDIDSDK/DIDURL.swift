@@ -21,6 +21,7 @@
 */
 
 import Foundation
+import ObjectMapper
 
 private func mapToString(_ dict: OrderedDictionary<String, String>?, _ sep: String) -> String? {
     guard let _ = dict else {

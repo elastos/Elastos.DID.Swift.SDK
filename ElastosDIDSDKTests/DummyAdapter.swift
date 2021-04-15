@@ -1,7 +1,7 @@
 import Foundation
 @testable import ElastosDIDSDK
 import SPVWrapper
-
+/*
 class DummyAdapter: DIDAdapter, DIDResolver {
     
     private var verbose: Bool = false
@@ -236,3 +236,4 @@ class IDTx {
         return "{\"id\": \"1\",\"jsonrpc\":\"2.0\",\"result\":[\(json)]}"
     }
 }
+*/

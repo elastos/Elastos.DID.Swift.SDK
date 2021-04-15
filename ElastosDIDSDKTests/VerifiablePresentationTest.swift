@@ -1,7 +1,7 @@
 
 import XCTest
 @testable import ElastosDIDSDK
-
+/*
 class VerifiablePresentationTest: XCTestCase {
     
     func testReadPresentation() {
@@ -109,3 +109,4 @@ class VerifiablePresentationTest: XCTestCase {
         }
     }
 }
+*/

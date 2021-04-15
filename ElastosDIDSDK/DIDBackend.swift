@@ -214,7 +214,7 @@ public class DIDBackend: NSObject {
     /// - Returns: DIDBackend instance.
     @objc
     public class func sharedInstance() -> DIDBackend {
-        return instance!
+            return instance!
     }
     
     private func generateRequestId() -> String {
@@ -389,7 +389,7 @@ public class DIDBackend: NSObject {
         return try resolveCredentialBiography(id, nil, false)
     }
     
-    private func resolveCredential(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> VerifiableCredential? {
+    private func resolveCredential(id: DIDURL, issuer: DID?, force: Bool) throws -> VerifiableCredential? {
         Log.d(TAG, "Resolving credential ", id)
         let bio = try resolveCredentialBiography(id, issuer, force)
         var tx: CredentialTransaction?
@@ -435,10 +435,10 @@ public class DIDBackend: NSObject {
         }
         let vc = tx!.request.credential
         let metadata = CredentialMetadata(vc!.id!)
-        try metadata.setTransactionId(tx!.getTransactionId())
-        try metadata.setPublishTime(tx!.getTimestamp())
+        metadata.setTransactionId(tx!.getTransactionId())
+        metadata.setPublishTime(tx!.getTimestamp())
         if (bio.status == CredentialBiographyStatus.STATUS_REVOKED) {
-            try metadata.setRevoked(true)
+             metadata.setRevoked(true)
         }
         vc!.setMetadata(metadata)
         
@@ -446,22 +446,22 @@ public class DIDBackend: NSObject {
     }
     
     func resolveCredential(_ id: DIDURL, _ issuer: DID, _ force: Bool) throws -> VerifiableCredential? {
-        try resolveCredential(id, issuer, force)
+        try resolveCredential(id: id, issuer: issuer, force: force)
     }
     
     func resolveCredential(_ id: DIDURL, _ issuer: DID) throws -> VerifiableCredential? {
         
-        return try resolveCredential(id, issuer, false)
+        return try resolveCredential(id: id, issuer: issuer, force: false)
     }
     
     func resolveCredential(_ id: DIDURL, _ force: Bool) throws -> VerifiableCredential? {
         
-        return try resolveCredential(id, nil, force)
+        return try resolveCredential(id: id, issuer: nil, force: force)
     }
     
     func resolveCredential(_ id: DIDURL) throws -> VerifiableCredential? {
         
-        return try resolveCredential(id, nil, false)
+        return try resolveCredential(id: id, issuer: nil, force: false)
     }
     
     func listCredentials(_ did: DID, _ skip: Int, _ limit: Int) throws -> [DIDURL] {
@@ -568,15 +568,15 @@ public class DIDBackend: NSObject {
     func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.declare(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
-        invalidCredentialCache(vc.getId(), nil)
-        invalidCredentialCache(vc.getId(), vc.getIssuer())
+        invalidCredentialCache(vc.getId()!, nil)
+        invalidCredentialCache(vc.getId()!, vc.getIssuer())
     }
     
     func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
-        invalidCredentialCache(vc.getId(), nil)
-        invalidCredentialCache(vc.getId(), vc.getIssuer())
+        invalidCredentialCache(vc.getId()!, nil)
+        invalidCredentialCache(vc.getId()!, vc.getIssuer())
     }
     
     func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {

@@ -219,7 +219,7 @@ public class VerifiableCredentialBuilder: NSObject {
         try sanitize()
         
         _credential!.setIssuanceDate(DateFormatter.currentDate())
-        if try _credential!.expirationDate() == nil {
+        if try _credential!.getExpirationDate() == nil {
             _ = try withDefaultExpirationDate()
         }
 
@@ -227,7 +227,7 @@ public class VerifiableCredentialBuilder: NSObject {
             throw DIDError.illegalArgument("credential is nil")
         }
         let signature = try _forDoc.sign(_signKey, storePasswordword, [data])
-        let proof = VerifiableCredentialProof(Constants.DEFAULT_PUBLICKEY_TYPE, _signKey, signature)
+        let proof = VerifiableCredentialProof(_signKey, signature)
 
         _credential!.setProof(proof)
 
@@ -239,8 +239,8 @@ public class VerifiableCredentialBuilder: NSObject {
     }
 
     private func maxExpirationDate() -> Date {
-        guard _credential?.issuanceDate != nil else {
-            return DateFormatter.convertToWantDate(_credential!.issuanceDate!, Constants.MAX_VALID_YEARS)
+        guard _credential?.getIssuanceDate() != nil else {
+            return DateFormatter.convertToWantDate(_credential!.getIssuanceDate()!, Constants.MAX_VALID_YEARS)
         }
         return DateFormatter.convertToWantDate(Date(), Constants.MAX_VALID_YEARS)
     }

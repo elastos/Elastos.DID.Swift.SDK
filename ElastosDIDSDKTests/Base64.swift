@@ -15,11 +15,29 @@ extension String {
     func toBase64() -> String {
         return Data(self.utf8).base64EncodedString()
     }
+    
+    func slip() -> [String] {
+        if let index = self.lastIndex(of: ".") {
+            
+            let endIndex = self.index(index, offsetBy: 1)
+
+            let firstWord = self[..<index]
+            let lastWord = self[endIndex...]
+            
+            print("lastWord == \(lastWord)")
+            print("firstWord == \(firstWord)")
+            
+            return [String(firstWord), String(lastWord)]
+        }
+        
+        return ["", ""]
+    }
+
 }
 
 // MARK: base64url
 public extension Data {
-    public init?(base64urlEncoded input: String) {
+    init?(base64urlEncoded input: String) {
         var base64 = input
         base64 = base64.replacingOccurrences(of: "-", with: "+")
         base64 = base64.replacingOccurrences(of: "_", with: "/")
@@ -29,7 +47,7 @@ public extension Data {
         self.init(base64Encoded: base64)
     }
     
-    public func base64urlEncodedString() -> String {
+    func base64urlEncodedString() -> String {
         var result = self.base64EncodedString()
         result = result.replacingOccurrences(of: "+", with: "-")
         result = result.replacingOccurrences(of: "/", with: "_")
@@ -38,3 +56,19 @@ public extension Data {
     }
 }
 
+extension Array {
+    
+    func filter(_ source: [String], _ path: String, _ start: String, _ end: String) -> [String] {
+        var result: [String] = []
+        source.forEach { sub in
+            let f = sub.components(separatedBy: "/").last
+            if f != nil {
+                if f!.hasPrefix(start) && f!.hasSuffix(end) {
+                    result.append(sub)
+                }
+            }
+        }
+
+        return result
+    }
+}

@@ -32,7 +32,7 @@ public class DIDStore: NSObject {
     static let DID_STORE_TYPE = "did:elastos:store"
     static let DID_STORE_VERSION = 3
     @objc public static let CACHE_INITIAL_CAPACITY = 16
-    @objc public static let CACHE_MAX_CAPACITY = 32 // 128
+    @objc public static let CACHE_MAX_CAPACITY = 128 // 128
     private var cache: LRUCache<Key, NSObject>
 
     private var documentCache: LRUCache<DID, DIDDocument>?
@@ -71,16 +71,25 @@ public class DIDStore: NSObject {
         }
 
         override func isEqual(_ object: Any?) -> Bool {
-            if object as? NSObject != nil && object as! NSObject == self {
-                return true
-            }
             
-            if object as? NSObject != nil && (object as! NSObject).isKind(of: Key.self)  {
-                let key = object as! Key
-                return type == key.type ? id.isEqual(key.id) : false
+            if let obj = object as? Key {
+                if obj.type == self.type && obj.id == self.id {
+                    return true
+                }
+                
             }
-            
             return false
+            
+//            if object as? NSObject != nil && object as! NSObject == self {
+//                return true
+//            }
+//
+//            if object as? NSObject != nil && (object as! NSObject).isKind(of: Key.self)  {
+//                let key = object as! Key
+//                return type == key.type ? id.isEqual(key.id) : false
+//            }
+//
+//            return false
         }
         
         public class func forRootIdentity(_ id: String) -> Key {
@@ -119,9 +128,9 @@ public class DIDStore: NSObject {
         }
         cache = LRUCache<Key, NSObject>(initialCacheCapacity, maxCacheCapacity)
         self.storage = storage
-        self.metadata = try storage.loadMetadata()!
+        self.metadata = try storage.loadMetadata()
         super.init()
-        self.metadata!.attachStore(self)
+        self.metadata?.attachStore(self)
         Log.i(TAG, "DID store opened: , cache(init:\(initialCacheCapacity), max:\(maxCacheCapacity)")
     }
 
@@ -130,14 +139,8 @@ public class DIDStore: NSObject {
                                  _ maxCacheCapacity: Int) throws -> DIDStore {
         
         try checkArgument(path.isEmpty, "Invalid store location");
-        try checkArgument(maxCacheCapacity >= initialCacheCapacity, "Invalid cache capacity spec")
-        guard !path.isEmpty else {
-            throw DIDError.illegalArgument("location is empty")
-        }
-
-        guard maxCacheCapacity >= initialCacheCapacity else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(maxCacheCapacity < initialCacheCapacity, "Invalid cache capacity spec")
+        
         let storage = try FileSystemStorage(path)
         storePath = path
         return try DIDStore(initialCacheCapacity, maxCacheCapacity, storage)
@@ -222,7 +225,7 @@ public class DIDStore: NSObject {
     }
     
     private func encrypt(_ input: Data, _ passwd: String) throws -> String {
-        let fingerprint = metadata?.getFingerprint()
+        let fingerprint = metadata?.fingerprint
         let currentFingerprint = try calcFingerprint(passwd)
         if fingerprint != nil && currentFingerprint != fingerprint {
             throw DIDError.CheckedError.DIDStoreError.WrongPasswordError("Password mismatched with previous password.")
@@ -235,7 +238,7 @@ public class DIDStore: NSObject {
     }
     
     private func decrypt(_ input: String, _ passwd: String) throws -> Data {
-        let fingerprint = metadata?.getFingerprint()
+        let fingerprint = metadata?.fingerprint
         let currentFingerprint = try calcFingerprint(passwd)
         let result = try DIDStore.decryptFromBase64(input, passwd)
         
@@ -256,7 +259,7 @@ public class DIDStore: NSObject {
         let publicKey = try identity.preDerivedPublicKey.serializePublicKeyBase58()
         try storage!.storeRootIdentity(identity.getId(), encryptedMnemonic,
                 encryptedPrivateKey, publicKey, identity.index)
-        if metadata?.getDefaultRootIdentity() == nil {
+        if metadata?.defaultRootIdentity == nil {
             try metadata!.setDefaultRootIdentity(identity.getId())
         }
         try cache.removeValue(for: Key.forRootIdentity(identity.getId()))
@@ -298,7 +301,7 @@ public class DIDStore: NSObject {
     }
     
     public func loadRootIdentity() throws -> RootIdentity? {
-        let id = metadata?.getDefaultRootIdentity()
+        let id = metadata?.defaultRootIdentity
         if id == nil || id!.isEmpty {
             let ids = try storage!.listRootIdentities()
             if ids.count != 1 {
@@ -379,7 +382,7 @@ public class DIDStore: NSObject {
         try checkArgument(!id.isEmpty, "Invalid id")
         let success = try storage!.deleteRootIdentity(id)
         if success {
-            if metadata?.getDefaultRootIdentity() != nil && metadata!.getDefaultRootIdentity() == id {
+            if metadata?.defaultRootIdentity != nil && metadata!.defaultRootIdentity == id {
                 try metadata!.setDefaultRootIdentity(nil)
             }
             cache.removeValue(for: Key.forRootIdentity(id))
@@ -640,10 +643,10 @@ public class DIDStore: NSObject {
         if credential.getMetadata().store != self {
             let metadata = try loadCredentialMetadata(credential.id!)
             credential.getMetadata().merge(metadata)
-            try storeCredentialMetadata(credential.getId(), credential.getMetadata())
+            try storeCredentialMetadata(credential.getId()!, credential.getMetadata())
         }
         
-        cache.setValue(credential, for: Key.forCredential(credential.getId()))
+        cache.setValue(credential, for: Key.forCredential(credential.getId()!))
     }
 
     /// Load the specified Credential.
@@ -765,10 +768,10 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - byId: the identifier of Credential
     /// - Returns: the meta data for Credential
-    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {
+    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {        
         let value = try cache.getValue(for: Key.forCredentialMetadata(byId)) { () -> NSObject? in
             var metadata = try storage?.loadCredentialMetadata(byId)
-            if metadata == nil {
+            if metadata != nil {
                 metadata?.id = byId
                 metadata?.attachStore(self)
             }

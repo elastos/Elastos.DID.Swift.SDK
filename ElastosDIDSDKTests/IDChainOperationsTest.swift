@@ -1,7 +1,7 @@
 import XCTest
 @testable import ElastosDIDSDK
 import PromiseKit
-
+/*
 class IDChainOperationsTest: XCTestCase {
 
     public static let DUMMY_TEST = false
@@ -1063,3 +1063,4 @@ class IDChainOperationsTest: XCTestCase {
         wait(for: [lock], timeout: interval + 10)
     }
 }
+*/

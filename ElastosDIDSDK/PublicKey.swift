@@ -21,16 +21,36 @@
 */
 
 import Foundation
+import ObjectMapper
 
 /// Public keys are used for digital signatures, encryption and other cryptographic operations,
 /// which are the basis for purposes such as authentication or establishing secure communication with service endpoints.
 @objc(PublicKey)
-public class PublicKey: DIDObject {
-    private var _controller: DID
-    private var _keyBase58: String
+public class PublicKey: DIDObject, Mappable {
+    
+    public required init?(map: Map) {
+//        try! self._controller = map.value("controller")
+//        try! self._keyBase58 = map.value("publicKeyBase58")
+//        try! self.authenticationKey = map.value("controller")
+//        try! self.authorizationKey = map.value("controller")
+        super.init()
+    }
+    
+    public func mapping(map: Map) {
+//        _id <- map["id"]
+        _keyBase58 <- map["publicKeyBase58"]
+        
+        _id = try! DIDURL(map.value("id"))
 
-    private var authenticationKey: Bool
-    private var authorizationKey: Bool
+    }
+    
+    private var _controller: DID?
+    private var _keyBase58: String?
+    private var _id: DIDURL?
+    private var _type: String?
+    
+    private var authenticationKey: Bool?
+    private var authorizationKey: Bool?
 
     init(_ id: DIDURL, _ type: String, _ controller: DID, _ keyBase58: String) {
         self._controller = controller
@@ -47,7 +67,7 @@ public class PublicKey: DIDObject {
     }
 
     /// DID of the corresponding private key controller
-    @objc public var controller: DID {
+    @objc public var controller: DID? {
         return _controller
     }
     
@@ -57,12 +77,12 @@ public class PublicKey: DIDObject {
 
     /// Base58 encoded public key
     @objc public var publicKeyBase58: String {
-        return _keyBase58
+        return _keyBase58!
     }
 
     /// [UInt8] public key
     @objc public var publicKeyBytes: [UInt8] {
-        return Base58.bytesFromBase58(_keyBase58)
+        return Base58.bytesFromBase58(_keyBase58!)
     }
 
 //    public var publicKeyData: Data {
@@ -71,7 +91,7 @@ public class PublicKey: DIDObject {
 
     /// Check publickey is authentication key or not.
     @objc public var isAuthenticationKey: Bool {
-        return authenticationKey
+        return authenticationKey!
     }
 
     func setAuthenticationKey(_ newValue: Bool) {
@@ -80,7 +100,7 @@ public class PublicKey: DIDObject {
 
     /// Check publickey is athorization key or not.
     @objc public var isAuthorizationKey: Bool {
-        return authorizationKey
+        return authorizationKey!
     }
 
     func setAuthorizationKey(_ newValue: Bool) {
@@ -118,7 +138,7 @@ public class PublicKey: DIDObject {
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
         generator.writeStartObject()
         generator.writeFieldName(Constants.ID)
-        generator.writeString(IDGetter(getId(), ref).value(normalized))
+        generator.writeString(IDGetter(getId()!, ref).value(normalized))
 
         // type
         if normalized || !isDefType() {
@@ -128,7 +148,7 @@ public class PublicKey: DIDObject {
         // controller
         if normalized || ref == nil || ref != controller {
             generator.writeFieldName(Constants.CONTROLLER);
-            generator.writeString(controller.toString())
+            generator.writeString(controller!.toString())
         }
 
         // publicKeyBase58

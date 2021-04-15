@@ -37,8 +37,8 @@ public class DIDObject: NSObject {
     /// Get 'DIDURL'
     /// - Returns: 'DIDURL'
     @objc
-    public func getId() -> DIDURL {
-        return _id!
+    public func getId() -> DIDURL? {
+        return _id
     }
 
     func setId(_ id: DIDURL) {

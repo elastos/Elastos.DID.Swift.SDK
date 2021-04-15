@@ -30,7 +30,7 @@ extension NSObject {
     }
     
     func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard !full else {
+        guard full else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
     }
@@ -45,14 +45,38 @@ extension FileSystemStorage {
 }
 
 extension String {
-    func stringValueToDic(_ str: String) -> [String : Any]?{
-        let data = str.data(using: String.Encoding.utf8)
+    func stringValueToDic() -> [String : Any] {
+        let data = self.data(using: String.Encoding.utf8)
         if let dict = try? JSONSerialization.jsonObject(with: data!,
                         options: .mutableContainers) as? [String : Any] {
-            return dict
+            return dict != nil ? dict! : [: ]
         }
 
-        return nil
+        return [: ]
+    }
+    
+    func forReading() throws -> Data {
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: self) {
+            let readhandle = FileHandle.init(forReadingAtPath: self)
+            let data: Data = readhandle!.readDataToEndOfFile()
+            return data
+        }
+        else {
+            throw DIDError.unknownFailure("path not Exists.")
+        }
+    }
+    
+    func forReading() throws -> String {
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: self) {
+            let readhandle = FileHandle.init(forReadingAtPath: self)
+            let data = readhandle!.readDataToEndOfFile()
+            return  String(data: data, encoding: .utf8) ?? ""
+        }
+        else {
+            throw DIDError.unknownFailure("path not Exists.")
+        }
     }
 }
 
@@ -67,4 +91,27 @@ extension Dictionary {
         }
         return str
      }
+}
+
+extension Data {
+    
+    func dataToDictionary(for data: Data) throws -> [String: Any] {
+        let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+        let dic = json as? [String: Any]
+        guard let _ = dic else {
+            throw DIDError.unknownFailure("Change json to [String: Any] failed.")
+        }
+        return dic!
+    }
+    
+    func dataToDictionary(for data: Data) throws -> [String: String] {
+        
+        let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+        let dic = json as? [String: String]
+        
+        guard let _ = dic else {
+            throw DIDError.unknownFailure("Change json to [String: Any] failed.")
+        }
+        return dic!
+    }
 }

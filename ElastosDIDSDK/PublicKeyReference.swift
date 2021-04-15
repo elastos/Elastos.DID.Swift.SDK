@@ -21,10 +21,22 @@
 */
 
 import Foundation
+import ObjectMapper
 
-public class PublicKeyReference: NSObject {
+public class PublicKeyReference: NSObject, Mappable {
      private var _id: DIDURL?
      private var _key: PublicKey?
+    
+    public required init?(map: Map) {
+        
+    }
+    
+    public func mapping(map: Map) {
+//        _subject = try! DID(map.value("id") as String)
+//        _publickeys <- map["publicKey"]
+//        _authentications <- map["authentication"]
+//        _services <- map["service"]
+    }
      
      init(_ id: DIDURL) {
          _id = id
@@ -33,6 +45,11 @@ public class PublicKeyReference: NSObject {
      init(_ key: PublicKey) {
          _key = key
      }
+    
+    init(_ id: DIDURL, _ key: PublicKey) {
+        _id = id
+        _key = key
+    }
      
      public var isReference: Bool {
          return _id != nil

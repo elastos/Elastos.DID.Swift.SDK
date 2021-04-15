@@ -30,7 +30,11 @@ public class DIDStoreMetadata: AbstractMetadata {
     private let DEFAULT_ROOT_IDENTITY = "defaultRootIdentity"
     
     /// The default constructor for JSON deserialize creator.
-    override init() { super.init() }
+    override init() {
+        super.init()
+        put(TYPE, DIDStore.DID_STORE_TYPE)
+        put(VERSION, DIDStore.DID_STORE_VERSION)
+    }
     
     /// Constructs the empty DIDMetadataImpl.
     override init(_ store: DIDStore) {
@@ -39,29 +43,29 @@ public class DIDStoreMetadata: AbstractMetadata {
         put(VERSION, 1)
     }
     
-    public func getType() -> String {
+    public var type: String {
         return get(TYPE)!
     }
     
-    public func getVersion() -> Int {
+    public var version: Int {
         return getInteger(VERSION)!
     }
     
     func setFingerprint(_ fingerprint: String) throws {
         try checkArgument(!fingerprint.isEmpty, "Invalid fingerprint")
-        try put(FINGERPRINT, fingerprint)
+        put(FINGERPRINT, fingerprint)
     }
     
-    public func getFingerprint() -> String? {
+    public var fingerprint: String? {
        
         return get(FINGERPRINT)
     }
     
     func setDefaultRootIdentity(_ id: String?) throws {
-        try put(DEFAULT_ROOT_IDENTITY, id)
+        put(DEFAULT_ROOT_IDENTITY, id)
     }
     
-    public func getDefaultRootIdentity() -> String {
+    public var defaultRootIdentity: String {
        
         return get(DEFAULT_ROOT_IDENTITY)!
     }
@@ -76,239 +80,28 @@ public class DIDStoreMetadata: AbstractMetadata {
             }
         }
     }
-    func serialize(_ path: String) {
-        // TODO:
-    }
     
-    class func parse(_ path: String) -> DIDStoreMetadata {
-        // TODO:
-        return DIDStoreMetadata()
-    }
-}
-/*
-@objc(Metadata)
-public class Metadata: NSObject {
-    static let RESERVED_PREFIX = "DX-"
-    static let LAST_MODIFIED = RESERVED_PREFIX + "lastModified"
-    private var _store: DIDStore?
-    private var _extra = Dictionary<String, Any>()
-
-    @objc public required override init() {}
-
-    init(store: DIDStore) {
-        super.init()
-        setStore(store)
-    }
-
-    /// Get store.
-    @objc
-    public var store: DIDStore? {
-        return self._store
-    }
-
-    /// Check is attached store or not.
-    @objc
-    public var attachedStore: Bool {
-        return self._store != nil
-    }
-
-    /// Set store for did.
-    /// - Parameter store: The handle of DIDStore.
-    @objc
-    public func setStore(_ store: DIDStore) {
-        self._store = store
-    }
-
-    /// Set last modify for metadata.
-    /// - Parameter timestamp: The time of metadata modified.
-    @objc
-    public func setLastModified(_ timestamp: Date) {
-        put(key: Metadata.LAST_MODIFIED, value: DateFormatter.convertToUTCStringFromDate(timestamp))
-    }
-
-    /// Get last modify for metadata.
-    /// - Returns: The time of metadata modified.
-    @objc
-    public func getLastModified() -> Date? {
-        if let date = get(key: Metadata.LAST_MODIFIED) as? String {
-            let time = DateFormatter.convertToUTCDateFromString(date)
-            return time
-        }
-
-        return nil
-    }
-
-    /// Clear last modified for metadata.
-    @objc
-    public func clearLastModified() {
-        _extra.removeValue(forKey: Metadata.LAST_MODIFIED)
-    }
-
-    /// Set ‘string’ extra elemfor did.
-    /// - Parameters:
-    ///   - key: The key string.
-    ///   - value: The value string.
-    @objc
-    public func setExtra(_ key: String, _ value: String?) {
-        self._extra[key] = value
-    }
-
-    /// Get ‘string’ extra elem from DID.
-    /// - Parameter key: The key string.
-    /// - Returns: The elem string
-    @objc
-    public func getExtra(_ key: String) -> String? {
-        return self._extra[key] as? String
-    }
-
-    /// Merge meta.
-    /// - Parameter meta: The metadata foe merge.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func merge(_ meta: Metadata) throws {
-        meta._extra.forEach{ (key, value) in
-            if _extra.keys.contains(key) {
-                if _extra[key] == nil {
-                    _extra.removeValue(forKey: key)
-                }
-            }
-            else {
-                if case Optional<Any>.none = value {
-                    return
-                }
-                _extra[key] = value
-            }
-        }
-    }
-
-    /// Load metadata.
-    /// - Parameter reader: The FileHandle of metadata data.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func load(reader: FileHandle) throws {
-        let data = reader.readDataToEndOfFile()
-        defer {
-            reader.closeFile()
-        }
-        var node = JsonNode()
-        do {
-            let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
-            let dic = json as! Dictionary<String, Any>
-            node = JsonNode(dic)
-        } catch {
-            throw DIDError.didMetaDateLocalFormatError("Loading metadata format error.")
-        }
-
-        try load(node)
-    }
-
-    /// Load metadata.
-    /// - Parameter node: The JsonNode of metadata data.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func load(_ node: JsonNode) throws {
-        let dic = node.asDictionary()
-        try dic?.forEach{ (key, value) in
-            switch value.getNodeType() {
-
-            case .BOOLEAN:
-                _extra[key] = value.asBool()
-                break;
-            case .NIL:
-                break
-            case .NUMBER:
-                _extra[key] = value.asNumber()
-                break;
-            case .STRING:
-                _extra[key] = value.asString()
-                break;
-            default:
-                throw DIDError.malformedMeta("Unsupported field: \(key)")
-            }
-        }
-    }
-
-    /// Add key-value for metadata.
-    /// - Parameters:
-    ///   - key: The key string.
-    ///   - value: The value string.
-    @objc
-    public func put(key: String, value: Any) {
-        _extra[key] = value
-    }
-
-    /// Get metadata value by key.
-    /// - Parameter key: The key string.
-    /// - Returns: If error occurs, throw error.
-    @objc
-    public func get(key: String) -> Any {
-        return _extra[key] as Any
-    }
-
-    private func save(_ generator: JsonGenerator) throws {
+    func serialize(_ path: String) throws {
+        let generator = JsonGenerator()
         generator.writeStartObject()
-
-        let sortedKeys = _extra.keys.sorted()
-        for key in sortedKeys {
-            let value = _extra[key] as Any
-            if case Optional<Any>.none = value {
-                // Continue
-            } else if value is Int {
-                generator.writeNumberField(key, value as! Int)
-            } else if value is Bool {
-                generator.writeBoolField(key, value as! Bool)
-            } else if value is String {
-                generator.writeStringField(key, value as! String)
-            } else if value is Date {
-                generator.writeStringField(key, DateFormatter.convertToUTCStringFromDate(value as! Date))
-            } else {
-                throw DIDError.malformedMeta("Can not serialize attribute: \(key)")
+        generator.writeStringField(TYPE, _props[TYPE]!)
+        generator.writeStringField(VERSION, _props[VERSION]!)
+        _props.forEach { k,v in
+            guard k != TYPE, k != VERSION else {
+                return
             }
+            generator.writeStringField(k, v)
         }
         generator.writeEndObject()
+        try generator.toString().write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
     }
-
-    /// Save metada.
-    /// - Parameter path: The path to save metada.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func save(path: FileHandle) throws {
-        defer {
-            path.closeFile()
-        }
-
-        let generator = JsonGenerator()
-        try save(generator)
-        path.write(generator.toString().data(using: .utf8)!)
-    }
-
-    /// Get string of metadata.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: Metadata string.
-    @objc
-    public func toJson() throws -> String {
-        let generator = JsonGenerator()
-        try save(generator)
-
-        return generator.toString()
-    }
-
-    /// Check metadata is empty or not.
-    /// - Returns: true if metadata is empty, otherwise false.
-    @objc
-    public func isEmpty() -> Bool {
-        return _extra.isEmpty
+    
+    class func parse(_ path: String) throws -> DIDStoreMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary(for: data)
+        let metadata = DIDStoreMetadata()
+        metadata._props = dic
+        
+        return metadata
     }
 }
-
-extension Metadata {
-
-    /// Get string of metadata.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: Metadata string.
-    @objc
-    public func toString() throws -> String {
-        return try toJson()
-    }
-}
-*/

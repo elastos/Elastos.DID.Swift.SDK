@@ -46,9 +46,9 @@ class Constants {
     static let EXPIRES = "expires"
     static let PROOF = "proof"
 
-    static let CREATOR = "creator";
-    static let CREATED = "created";
-    static let SIGNATURE_VALUE = "signatureValue";
+    static let CREATOR = "creator"
+    static let CREATED = "created"
+    static let SIGNATURE_VALUE = "signatureValue"
 
     // Verifiable Credential
     static let ISSUER = "issuer"
@@ -79,7 +79,7 @@ class Constants {
     static let CREDENTIAL_FILE = "credential"
     static let PRIVATEKEYS_DIR = "privatekeys"
 
-    static let META_FILE = ".meta"
+    static let META_FILE = ".metadata"
     static let JOURNAL_SUFFIX = ".journal"
     static let DEPRECATED_SUFFIX = ".deprecated"
 

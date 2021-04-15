@@ -22,6 +22,7 @@
 
 import Foundation
 import PromiseKit
+import ObjectMapper
 
 /// DID is a globally unique identifier that does not require a centralized registration authority.
 /// It includes method specific string. (elastos:id:ixxxxxxxxxx).

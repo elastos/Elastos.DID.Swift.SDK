@@ -1,7 +1,7 @@
 
 import XCTest
 @testable import ElastosDIDSDK
-
+/*
 class VerifiableCredentialTest: XCTestCase {
     
     func TestKycCredential() {
@@ -142,3 +142,4 @@ class VerifiableCredentialTest: XCTestCase {
         }
     }
 }
+*/

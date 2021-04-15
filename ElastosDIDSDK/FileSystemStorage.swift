@@ -72,7 +72,7 @@ public class FileSystemStorage: DIDStorage {
     let JOURNAL_SUFFIX = ".journal"
     private var storeRoot: String
     private var currentDataDir: String
-    private let MAGIC:   [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
+    private let MAGIC: [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
     
     
     init(_ dir: String) throws {
@@ -95,16 +95,7 @@ public class FileSystemStorage: DIDStorage {
                                                     attributes: nil)
             let path = try getFile(true, currentDataDir + "/" + METADATA)
             let metadata = DIDStoreMetadata()
-            metadata.serialize(path)
-//            var data = Data(capacity: 8)
-//            data.append(contentsOf: FileSystemStorage.STORE_MAGIC)
-//
-//            // TODO: do with version
-//            data.append(contentsOf: intToByteArray(i: FileSystemStorage.STORE_VERSION))
-//
-//            let file = try openFileHandle(true, Constants.META_FILE)
-//            file.write(data)
-//            file.closeFile()
+            try metadata.serialize(path)
         } catch {
             Log.i(TAG, "Initialize DID store error ", storeRoot)
             throw DIDError.didStoreError("Initialize DIDStore \(storeRoot) error.")
@@ -116,7 +107,7 @@ public class FileSystemStorage: DIDStorage {
         Log.d(TAG, "Checking DID store at ", storeRoot)
 
         // Further to check the '_rootPath' is not a file path.
-        guard FileManager.default.fileExists(atPath: self.storeRoot, isDirectory: &isDir) && isDir.boolValue else {
+        guard FileManager.default.fileExists(atPath: storeRoot, isDirectory: &isDir) && isDir.boolValue else {
             Log.i(TAG, "Path ", storeRoot, " not a directory")
             throw DIDError.didStoreError("Invalid DIDStore ' \(storeRoot) '.")
         }
@@ -142,32 +133,19 @@ public class FileSystemStorage: DIDStorage {
             }
         }
         
-        let metadata = DIDStoreMetadata.parse(path)
-        // TODO:
-        
-//        let file: FileHandle
-//        file = try openFileHandle(false, oldMetadata!)
-//        let data = file.readDataToEndOfFile()
-//        guard data.count == FileSystemStorage.STORE_META_SIZE else {
-//            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore directory")
-//        }
-//        // Check MAGIC & VERSION
-//        guard data[0...3].elementsEqual(FileSystemStorage.STORE_MAGIC) else {
-//            throw DIDError.didStoreError("Directory \(_rootPath) is not DIDStore file")
-//        }
-//
-//
-//        let array : [UInt8] = [UInt8](data[4...7])
-//        var value : UInt32 = 0
-//        let storeVersion = NSData(bytes: array, length: 4)
-//        storeVersion.getBytes(&value, length: 4)
-//        value = UInt32(bigEndian: value)
-//
-//        guard value == FileSystemStorage.STORE_VERSION else {
-//            throw DIDError.didStoreError("Directory \(_rootPath) unsupported version.")
-//        }
-//
-//        try postChangePassword()
+        do {
+            let metadata = try DIDStoreMetadata.parse(path)
+            guard metadata.type == DIDStore.DID_STORE_TYPE else {
+                throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Unknown DIDStore type")
+            }
+            
+            guard metadata.version == DIDStore.DID_STORE_VERSION else {
+                throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Unsupported DIDStore version")
+            }
+        } catch {
+            Log.e(TAG, "Check DID store error, failed load store metadata")
+            throw  DIDError.CheckedError.DIDStoreError.DIDStorageError.DIDStorageError("Can not check the store metadata")
+        }
     }
     
     private class func toPath(_ id: DIDURL) -> String {
@@ -213,6 +191,12 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private func fileExists(_ dirPath: String) throws -> Bool {
+        let fileManager = FileManager.default
+        var isDir : ObjCBool = false
+        return fileManager.fileExists(atPath: dirPath)
+    }
+    
+    private func fileExistsWithContent(_ dirPath: String) throws -> Bool {
         let fileManager = FileManager.default
         var isDir : ObjCBool = false
         fileManager.fileExists(atPath: dirPath, isDirectory:&isDir)
@@ -314,7 +298,7 @@ public class FileSystemStorage: DIDStorage {
             try deleteFile(path)
         }
         else {
-            metadata.serialize(path)
+            try metadata.serialize(path)
         }
     }
 
@@ -322,7 +306,7 @@ public class FileSystemStorage: DIDStorage {
         let path = try getFile(currentDataDir + "/" + METADATA)
         var metadata: DIDStoreMetadata?
         if try fileExists(path!) {
-            metadata = DIDStoreMetadata.parse(path!)
+            metadata = try DIDStoreMetadata.parse(path!)
         }
         
         return metadata
@@ -477,13 +461,16 @@ public class FileSystemStorage: DIDStorage {
             if metadata.isEmpty() {
                 var path: String = storeRoot
                 path.append("/")
-                path.append(Constants.DID_DIR)
+                path.append(currentDataDir)
                 path.append("/")
                 path.append(did.methodSpecificId)
                 path.append("/")
                 path.append(Constants.META_FILE)
+                
+                if FileManager.default.fileExists(atPath: path) {
+                    try FileManager.default.removeItem(atPath: path)
+                }
 
-                try FileManager.default.removeItem(atPath: path)
             } else {
                 try metadata.serialize(file)
             }
@@ -505,7 +492,6 @@ public class FileSystemStorage: DIDStorage {
     func storeDid(_ doc: DIDDocument) throws {
         let path = try getDidFile(doc.subject, true)
         try doc.convertFromDIDDocument(true, asFileAtPath: path)
-//        try doc.serialize(file, true)
     }
 
     func loadDid(_ did: DID) throws -> DIDDocument? {
@@ -601,13 +587,12 @@ public class FileSystemStorage: DIDStorage {
     }
 
     func storeCredential(_ credential: VerifiableCredential) throws {
-        let path = try getCredentialFile(credential.getId(), true)
+        let path = try getCredentialFile(credential.getId()!, true)
         let fileHandle = FileHandle(forWritingAtPath: path)
         let generator = JsonGenerator()
         credential.toJson(generator, true)
 
         fileHandle!.write(generator.toString().data(using: .utf8)!)
-//        credential.serialize(path, true)
     }
 
     func loadCredential(_ id: DIDURL) throws -> VerifiableCredential? {
@@ -1010,7 +995,7 @@ public class FileSystemStorage: DIDStorage {
                 path = try getFile("ids" + "/" + element + "/" + "credentials" + "/" +
                         vcDir + "/" + ".meta")
                 let cm = upgradeMetadataV2(path!, CredentialMetadata.self) as! CredentialMetadata
-                try storeCredentialMetadata(vc.getId(), cm)
+                try storeCredentialMetadata(vc.getId()!, cm)
             }
    
             // Private keys
@@ -1145,7 +1130,7 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private func getFile(_ create: Bool, _ path: String) throws -> String {
-        let relPath = path
+        let relPath = storeRoot + "/" + path
         let fileManager = FileManager.default
         if create {
             var isDirectory = ObjCBool.init(false)

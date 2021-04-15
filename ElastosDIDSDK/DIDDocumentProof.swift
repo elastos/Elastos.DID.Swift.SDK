@@ -21,13 +21,14 @@
 */
 
 import Foundation
+import ObjectMapper
 
 @objc(DIDDocumentProof)
 public class DIDDocumentProof: NSObject {
-    private var _type: String
-    private var _createdDate: Date
-    private var _creator: DIDURL
-    private var _signature: String
+    private var _type: String?
+    private var _createdDate: Date?
+    private var _creator: DIDURL?
+    private var _signature: String?
     
     init(_ type: String, _ createdDate: Date, _ creator: DIDURL, _ signature: String) {
         self._type = type
@@ -43,20 +44,20 @@ public class DIDDocumentProof: NSObject {
     /// The default type is ECDSAsecp256r1, which can be omitted.
     @objc
     public var type: String {
-        return self._type
+        return self._type!
     }
 
     /// The signature creation time can be omitted.
     @objc
     public var createdDate: Date {
-        return self._createdDate
+        return self._createdDate!
     }
 
     /// Key reference to verify the signature,
     /// the value must be a reference to the key corresponding to the DID topic,
     /// can be omitted
     @objc
-    public var creator: DIDURL {
+    public var creator: DIDURL? {
         return self._creator
     }
 
@@ -67,7 +68,7 @@ public class DIDDocumentProof: NSObject {
     /// The signed value, using Base64 encoding
     @objc
     public var signature: String {
-        return self._signature
+        return self._signature!
     }
 
     class func fromJson(_ node: JsonNode, _ refSginKey: DIDURL) throws -> DIDDocumentProof {
@@ -107,7 +108,7 @@ public class DIDDocumentProof: NSObject {
         // type
         if normalized || self.type != Constants.DEFAULT_PUBLICKEY_TYPE {
             generator.writeFieldName(Constants.TYPE)
-            generator.writeString(self._type)
+            generator.writeString(self._type!)
         }
 
         // createdDate
@@ -117,7 +118,7 @@ public class DIDDocumentProof: NSObject {
         // creator
         if normalized {
             generator.writeFieldName(Constants.CREATOR)
-            generator.writeString(self.creator.toString())
+            generator.writeString(self.creator!.toString())
         }
 
         // signature

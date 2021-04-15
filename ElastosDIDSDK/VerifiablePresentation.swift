@@ -138,7 +138,7 @@ public class VerifiablePresentation: NSObject {
     /// - Parameter credential: The handle to Credential.
     @objc
     public func appendCredential(_ credential: VerifiableCredential) {
-        self._verifiableCredentials[credential.getId()] = credential
+        self._verifiableCredentials[credential.getId()!] = credential
     }
 
     /// Get Credential list for signing the Presentation.

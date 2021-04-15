@@ -130,7 +130,7 @@ public class CredentialRequest: IDChainRequest {
             cPayload[re] = 0
             self._payload = String(cString: cPayload)
         } else {
-            self._payload = vc.getId().toString()
+            self._payload = vc.getId()!.toString()
         }
     }
     

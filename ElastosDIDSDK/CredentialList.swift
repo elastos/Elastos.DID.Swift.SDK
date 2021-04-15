@@ -23,11 +23,11 @@
 import Foundation
 
 public class CredentialList: ResolveResult {
-    private let DID = "did"
-    private let CREDENTIALS = "credentials"
+    static let DID = "did"
+    static let CREDENTIALS = "credentials"
 
-    private let DEFAULT_SIZE = 128
-    private let MAX_SIZE = 512
+    static let DEFAULT_SIZE = 128
+    static let MAX_SIZE = 512
 
     private var _did: DID
     private var _credentialIds: [DIDURL] = [ ]

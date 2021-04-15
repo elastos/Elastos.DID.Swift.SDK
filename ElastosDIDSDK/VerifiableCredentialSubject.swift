@@ -21,12 +21,29 @@
 */
 
 import Foundation
+import ObjectMapper
 
 @objc(VerifiableCredentialSubject)
 /// The object keeps the credential subject contents.
-public class VerifiableCredentialSubject: NSObject {
+public class VerifiableCredentialSubject: NSObject, Mappable {
+    
+    public required init?(map: Map) {
+
+    }
+    
+    public func mapping(map: Map) {
+        _id = try! DID(map.value("id") as String)
+        var dic: Dictionary<String, Any> = [:]
+        for (item) in map.JSON.enumerated() {
+            if item.element.key != "id" {
+                dic[item.element.key] = item.element.value
+            }
+        }
+        _properties = JsonNode(dic)
+    }
+    
     private let TAG = NSStringFromClass(VerifiableCredentialSubject.self)
-    private var _id: DID
+    private var _id: DID?
     private var _properties: JsonNode = JsonNode()
     private let ID = "id"
 
@@ -37,7 +54,7 @@ public class VerifiableCredentialSubject: NSObject {
     /// Get id property from Credential.
     @objc
     public var did: DID {
-        return self._id
+        return self._id!
     }
     
     func setId(_ newVaule: DID) {

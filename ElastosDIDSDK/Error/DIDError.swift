@@ -112,7 +112,9 @@ public enum DIDError: Error {
         public enum DIDStoreError {
             public enum DIDStorageError {
                 case DIDStoreVersionMismatchError(_ des: String? = nil)
+                case DIDStorageError(_ des: String? = nil)
             }
+            case DIDStoreError(_ des: String? = nil)
             case WrongPasswordError(_ des: String? = nil)
             case DIDStoreCryptoError(_ des: String? = nil)
             case MissingDocumentError(_ des: String? = nil)
@@ -256,6 +258,8 @@ extension DIDError.CheckedError.DIDStoreError: LocalizedError {
             return des
         case .MissingDocumentError(let des):
             return des
+        case .DIDStoreError(let des):
+            return des
         }
     }
 }
@@ -264,6 +268,8 @@ extension DIDError.CheckedError.DIDStoreError.DIDStorageError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .DIDStoreVersionMismatchError(let des):
+            return des
+        case .DIDStorageError(let des):
             return des
         }
     }

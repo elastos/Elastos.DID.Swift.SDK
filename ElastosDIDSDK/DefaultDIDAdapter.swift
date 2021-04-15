@@ -51,7 +51,7 @@ public class DefaultDIDAdapter: DIDAdapter {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        let parameters = body.stringValueToDic(body)
+        let parameters = body.stringValueToDic()
 //        let parameters: [String: Any] = [
 //            "jsonrpc": "2.0",
 //            "method": "resolvedid",

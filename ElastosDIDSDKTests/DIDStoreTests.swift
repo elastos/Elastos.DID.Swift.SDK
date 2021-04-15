@@ -2,6 +2,7 @@
 import XCTest
 @testable import ElastosDIDSDK
 
+/*
 class DIDStoreTests: XCTestCase {
     
     var store: DIDStore!
@@ -1515,3 +1516,4 @@ class DIDStoreTests: XCTestCase {
     }
 }
 
+*/

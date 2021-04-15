@@ -45,6 +45,25 @@ final class LRUCache<Key: Hashable, Value> {
         self.initCapacity = initCapacity
         self.maxCapacity = max(initCapacity, maxCapacity)
     }
+    
+    func setValueWithoutLock(_ value: Value, for key: Key) {
+        let payload = CachePayload(key: key, value: value)
+        
+        if let node = self.nodesDict[key] {
+            node.payload = payload
+            self.list.moveToHead(node)
+        } else {
+            let node = self.list.addHead(payload)
+            self.nodesDict[key] = node
+        }
+        
+        if self.list.count > self.maxCapacity {
+            let nodeRemoved = self.list.removeLast()
+            if let key = nodeRemoved?.payload.key {
+                self.nodesDict[key] = nil
+            }
+        }
+    }
 
     func setValue(_ value: Value, for key: Key) {
         lock.acquireWriteLock {
@@ -97,7 +116,8 @@ final class LRUCache<Key: Hashable, Value> {
                 guard let _ = value else {
                     return nil
                 }
-                setValue(value!, for: key)
+                // TODO Lock
+                setValueWithoutLock(value!, for: key)
                 node = nodesDict[key]
             }
             

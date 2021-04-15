@@ -2,7 +2,7 @@
 import XCTest
 @testable import ElastosDIDSDK
 import SPVWrapper
-
+/*
 class TestDataGenerator: XCTestCase {
     private var outputDir: String = ""
     private var adapter: DIDAdapter!
@@ -384,3 +384,4 @@ class TestDataGenerator: XCTestCase {
         wait(for: [lock], timeout: interval + 10)
     }
 }
+*/

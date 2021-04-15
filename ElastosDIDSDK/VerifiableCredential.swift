@@ -22,11 +22,42 @@
 
 import Foundation
 import PromiseKit
+import ObjectMapper
 
+//@objc(VerifiableCredentialA)
+public class VerifiableCredentialA: Mappable {
+
+    public required init?(map: Map) {
+//        super.init()
+    }
+    
+    public func mapping(map: Map) {
+        issuanceDate <- (map["issuanceDate"], ISO8601DateTransform())
+        string <- map["string"]
+    }
+    
+    public var issuanceDate: Date?
+    public var string: String?
+
+
+}
 /// Credential is a set of one or more claims made by the same entity.
 /// Credentials might also include an identifier and metadata to describe properties of the credential.
 @objc(VerifiableCredential)
-public class VerifiableCredential: DIDObject {
+public class VerifiableCredential: DIDObject, Mappable {
+
+    public required init?(map: Map) {
+        super.init()
+    }
+    
+    public func mapping(map: Map) {
+        _id = try! DIDURL(map.value("id") as String)
+        _types <- map["type"]
+        _subject <- map["credentialSubject"]
+        _issuanceDate <- (map["issuanceDate"], ISO8601DateTransform())
+        _expirationDateString <- map["expirationDate"]
+    }
+    
     private let TAG = NSStringFromClass(VerifiableCredential.self)
     private let ID = "id"
     private let TYPE = "type"
@@ -42,6 +73,8 @@ public class VerifiableCredential: DIDObject {
     private var _id: DIDURL?
     private var _types: Array<String> = []
     private var _issuer: DID?
+    private var _issuanceDateString: String?
+    private var _expirationDateString: String?
     private var _issuanceDate: Date?
     private var _expirationDate: Date?
     private var _subject: VerifiableCredentialSubject?
@@ -59,12 +92,12 @@ public class VerifiableCredential: DIDObject {
     /// Constructs a credential object, copy the contents from the given object.
     /// - Parameter credential: the source credential object
     init(_ credential: VerifiableCredential, _ withProof: Bool) throws {
-        super.init(credential.getId(), credential.getType())
+        super.init(credential.getId()!, credential.getType())
         self._id = credential._id
         self._types = credential.getTypes()
         self._issuer = credential.issuer
         self._issuanceDate = credential.issuanceDate
-        self._expirationDate = try credential.expirationDate()
+        self._expirationDate = try credential.getExpirationDate()
         self._subject = credential.subject
         if withProof {
             self._proof = credential.proof
@@ -159,7 +192,7 @@ public class VerifiableCredential: DIDObject {
     }
 
     /// Get the date of credential expired.
-    public func expirationDate() throws -> Date? {
+    public func getExpirationDate() throws -> Date? {
         guard let _ = _expirationDate else {
             let controllerDoc = try _subject?.did.resolve()
             guard let _ = controllerDoc else {
@@ -179,14 +212,14 @@ public class VerifiableCredential: DIDObject {
         if  self._metadata == nil {
             self._metadata = CredentialMetadata()
 
-            getId().setMetadata(_metadata!)
+            getId()!.setMetadata(_metadata!)
         }
         return self._metadata!
     }
 
     func setMetadata(_ newValue: CredentialMetadata) {
         self._metadata = newValue
-        getId().setMetadata(newValue)
+        getId()!.setMetadata(newValue)
     }
 
     /// Get credential alias.
@@ -237,7 +270,7 @@ public class VerifiableCredential: DIDObject {
         guard let _ = id else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential id")
         }
-        guard _types.count == 0 else {
+        guard _types.count != 0 else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential type")
         }
         guard let _ = issuanceDate else {
@@ -1131,7 +1164,7 @@ public class VerifiableCredential: DIDObject {
 
         // id
         generator.writeFieldName(Constants.ID)
-        generator.writeString(IDGetter(getId(), ref).value(normalized))
+        generator.writeString(IDGetter(getId()!, ref).value(normalized))
 
         // type
         generator.writeFieldName(Constants.TYPE)
@@ -1155,7 +1188,7 @@ public class VerifiableCredential: DIDObject {
         generator.writeString(DateFormatter.convertToUTCStringFromDate(issuanceDate!))
 
         // expirationDate // TODO:
-        if let e = try! expirationDate() {
+        if let e = try! getExpirationDate() {
             generator.writeFieldName(Constants.EXPIRATION_DATE)
             generator.writeString(DateFormatter.convertToUTCStringFromDate(e))
         }

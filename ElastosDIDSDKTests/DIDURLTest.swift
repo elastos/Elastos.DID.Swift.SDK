@@ -14,6 +14,7 @@ class DIDURLTest: XCTestCase {
     var url: DIDURL!
     
     override func setUp() {
+        print("2222222222")
         // Put setup code here. This method is called before the invocation of each test method in the class.
         url = try! DIDURL(testURL)
     }
@@ -73,7 +74,7 @@ class DIDURLTest: XCTestCase {
     }
     
     func testGetDid() {
-        XCTAssertEqual(testDID, url.did.description)
+        XCTAssertEqual(testDID, url.did!.description)
     }
 
    func testGetParameters() {

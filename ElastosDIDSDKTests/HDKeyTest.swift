@@ -1,7 +1,7 @@
 
 import XCTest
 @testable import ElastosDIDSDK
-
+/*
 class HDKeyTest: XCTestCase {
 
     override func setUpWithError() throws {
@@ -157,3 +157,4 @@ class HDKeyTest: XCTestCase {
      */
 
 }
+*/

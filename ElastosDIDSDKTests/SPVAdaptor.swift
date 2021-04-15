@@ -3,6 +3,17 @@ import Foundation
 @testable import ElastosDIDSDK
 import SPVWrapper
 
+public class SPVAdaptor: DIDAdapter {
+    public func resolve(_ request: String) throws -> Data {
+        
+        return "TODO".data(using: .utf8)!
+    }
+    
+    public func createIdTransaction(_ payload: String, _ memo: String?) throws {
+        
+    }
+}
+/*
 public typealias PasswordCallback = (_ walletDir: String, _ walletId: String) -> String?
 public class SPVAdaptor: DIDAdapter {
     public func createIdTransaction(_ payload: String, _ memo: String?) throws {
@@ -97,3 +108,4 @@ public class SPVAdaptor: DIDAdapter {
     }
 }
 
+*/
