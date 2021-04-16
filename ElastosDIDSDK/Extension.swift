@@ -45,14 +45,21 @@ extension FileSystemStorage {
 }
 
 extension String {
-    func stringValueToDic() -> [String : Any] {
-        let data = self.data(using: String.Encoding.utf8)
-        if let dict = try? JSONSerialization.jsonObject(with: data!,
-                        options: .mutableContainers) as? [String : Any] {
-            return dict != nil ? dict! : [: ]
+    
+    func toDictionary() -> [String : Any] {
+        
+        var result = [String : Any]()
+        guard !self.isEmpty else { return result }
+        
+        guard let dataSelf = self.data(using: .utf8) else {
+            return result
         }
-
-        return [: ]
+        
+        if let dic = try? JSONSerialization.jsonObject(with: dataSelf,
+                           options: []) as? [String : Any] {
+            result = dic ?? [: ]
+        }
+        return result
     }
     
     func forReading() throws -> Data {
@@ -95,8 +102,8 @@ extension Dictionary {
 
 extension Data {
     
-    func dataToDictionary(for data: Data) throws -> [String: Any] {
-        let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+    func dataToDictionary() throws -> [String: Any] {
+        let json = try JSONSerialization.jsonObject(with: self, options: .mutableContainers)
         let dic = json as? [String: Any]
         guard let _ = dic else {
             throw DIDError.unknownFailure("Change json to [String: Any] failed.")
@@ -104,9 +111,9 @@ extension Data {
         return dic!
     }
     
-    func dataToDictionary(for data: Data) throws -> [String: String] {
+    func dataToDictionary() throws -> [String: String] {
         
-        let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+        let json = try JSONSerialization.jsonObject(with: self, options: .mutableContainers)
         let dic = json as? [String: String]
         
         guard let _ = dic else {

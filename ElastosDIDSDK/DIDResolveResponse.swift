@@ -32,8 +32,33 @@ public class DIDResolveResponse: ResolveResponse {
         super.init(responseId, code, message)
     }
     
-    class func parse(_ input: Data) -> DIDResolveResponse {
-        
-        return DIDResolveResponse("TODO", DIDBiography(DID()))
+    class func parse(_ input: Data) throws -> DIDResolveResponse {
+        let json: [String: Any] = try input.dataToDictionary()
+        let id = "\(String(describing: json["id"]))"
+        let result: [String: Any]? = json["result"] as? [String: Any]
+        let err: [String: Any]? = json["error"] as? [String: Any]
+        if let _ = result {
+            let did = result!["did"] as! String
+            var stau = DIDBiographyStatus.STATUS_VALID
+            switch "\(String(describing: result!["status"]))" {
+            case "0":
+                stau = DIDBiographyStatus.STATUS_VALID
+            case "1":
+                stau = DIDBiographyStatus.STATUS_EXPIRED
+            case "2":
+                stau = DIDBiographyStatus.STATUS_DEACTIVATED
+            case "3":
+                stau = DIDBiographyStatus.STATUS_NOT_FOUND
+            default:
+                stau = DIDBiographyStatus.STATUS_NOT_FOUND
+            }
+            return DIDResolveResponse(id, DIDBiography(try DID(did), stau))
+        }
+        else {
+            let code = "\(String(describing: err!["code"]))"
+            let message = "\(String(describing: err!["message"]))"
+
+            return DIDResolveResponse(id, try Int(value: code), message)
+        }
     }
 }

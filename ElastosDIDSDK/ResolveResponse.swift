@@ -32,11 +32,15 @@ public class ResolveResponse: ResolveResult {
     private let ERROR_MESSAGE = "message"
     private let ERROR_DATA = "data"
 
-    private var _responseId: String
-    private var _jsonRpcVersion: String
+    private var _responseId: String?
+    private var _jsonRpcVersion: String?
     private var _result: ResolveResult?
     private var _error: JsonRpcError?
 
+    public override init() {
+        super.init()
+    }
+    
     init(_ responseId: String, _ result: ResolveResult) {
         self._responseId = responseId
         self._jsonRpcVersion = JSON_RPC_VERSION
@@ -50,7 +54,7 @@ public class ResolveResponse: ResolveResult {
     }
     
     public var responseId: String {
-        return _responseId
+        return _responseId!
     }
     
     public var result: ResolveResult? {

@@ -174,7 +174,7 @@ public class DIDRequest: IDChainRequest {
         self._doc = doc
         
         if header?.operation != .DEACTIVATE {
-            let json = doc.toString()
+            let json = doc.toString(true)
             let capacity = json.count * 3
 
             let cInput = json.toUnsafePointerUInt8()
@@ -214,13 +214,13 @@ public class DIDRequest: IDChainRequest {
         case .DEACTIVATE:
             break
         default:
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header?.operation?.description)")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(String(describing: header?.operation?.description))")
         }
         
-        guard payload == nil, payload!.isEmpty else {
+        guard payload != nil, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
-        guard proof == nil else {
+        guard proof != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing proof")
         }
         
@@ -278,8 +278,16 @@ public class DIDRequest: IDChainRequest {
         return document
     }
     
-    override func serialize(_ force: Bool) -> String {
-        
-        return "TODO"
+    override class func parse(_ content: JsonNode) throws -> DIDRequest {
+
+        let header = IDChainHeader.parse(content.get(forKey: "header")!)
+        let payload = content.get(forKey: "payload")!.asString()
+        let proof = try IDChainProof.parse(content.get(forKey: "proof")!)
+        let request = DIDRequest()
+        request.setHeader(header)
+        request.setProof(proof)
+        request.setPayload(payload!)
+        try request.sanitize()
+        return request
     }
 }

@@ -233,7 +233,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         return _expirationDate != nil
     }
     
-    public var lastModified: Date {
+    public var lastModified: Date? {
         return proof!.created
     }
     

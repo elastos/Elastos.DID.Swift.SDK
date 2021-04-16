@@ -26,6 +26,7 @@ public class DIDResolveRequest: ResolveRequest {
     private let PARAMETER_DID = "did"
     private let PARAMETER_ALL = "all"
     public static let METHOD_NAME = "resolvedid"
+
     private var _params: DIDParameters?
 
     init(_ requestId: String) {
@@ -54,12 +55,26 @@ public class DIDResolveRequest: ResolveRequest {
     
     public override var description: String {
         
-        return "TODO:"
+        return serialize(false)
     }
     
-    override func serialize(_ force: Bool) throws -> String {
-        // TODO:
-        return "todo"
+    override func serialize(_ force: Bool) -> String {
+        let generator = JsonGenerator()
+        generator.writeStartObject()
+        generator.writeStringField(ID, requestId)
+        generator.writeStringField(METHOD, method)
+        if let _ = did {
+            generator.writeFieldName(PARAMETERS)
+            generator.writeStartObject()
+            generator.writeStringField(PARAMETER_DID, did!.toString())
+            if let _ = isResolveAll {
+                generator.writeBoolField(PARAMETER_ALL, isResolveAll!)
+            }
+            generator.writeEndObject()
+        }
+        generator.writeEndObject()
+
+        return generator.toString()
     }
 }
 

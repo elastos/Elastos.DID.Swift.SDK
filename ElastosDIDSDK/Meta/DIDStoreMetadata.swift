@@ -98,7 +98,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     
     class func parse(_ path: String) throws -> DIDStoreMetadata {
         let data: Data = try path.forReading()
-        let dic: [String: String] = try data.dataToDictionary(for: data)
+        let dic: [String: String] = try data.dataToDictionary()
         let metadata = DIDStoreMetadata()
         metadata._props = dic
         

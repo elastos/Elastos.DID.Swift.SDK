@@ -234,12 +234,12 @@ public class DIDBackend: NSObject {
     private func resolve(_ request: ResolveRequest) throws -> ResolveResult{
         Log.d(TAG, "Resolving request ", request, "...")
         
-        let requestJson = try request.serialize(true)
+        let requestJson = request.serialize(true)
         let re = try adapter.resolve(requestJson)
-        var response: ResolveResponse
+        var response = ResolveResponse()
         switch request.method {
         case DIDResolveRequest.METHOD_NAME: do {
-            response = DIDResolveResponse.parse(re)
+            response = try DIDResolveResponse.parse(re)
             break
         }
         case CredentialResolveRequest.METHOD_NAME: do {
@@ -254,16 +254,16 @@ public class DIDBackend: NSObject {
             Log.e(TAG, "INTERNAL - unknown resolve method ", request.method)
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Unknown resolve method: \(request.method)")
         }
-        
-        if response.responseId != request.requestId {
-            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Mismatched resolve result with request.")
-        }
+        //TODO:
+//        if response.responseId != request.requestId {
+//            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Mismatched resolve result with request.")
+//        }
         
         if response.result != nil {
             return response.result!
         }
         else {
-            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Server error: \(response.errorCode): \(response.errorMessage)")
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Server error: \(String(describing: response.errorCode)): \(String(describing: response.errorMessage))")
         }
     }
 
@@ -346,11 +346,11 @@ public class DIDBackend: NSObject {
         }
         let doc = tx!.request.document
         let metadata = DIDMetadata(doc!.subject)
-        try metadata.setTransactionId(tx!.getTransactionId())
-        try metadata.setSignature(doc!.proof.signature)
-        try metadata.setPublishTime(tx!.getTimestamp())
+        metadata.setTransactionId(tx!.getTransactionId())
+        metadata.setSignature(doc!.proof.signature)
+        metadata.setPublishTime(tx!.getTimestamp())
         if bio.status == DIDBiographyStatus.STATUS_DEACTIVATED {
-            try metadata.setDeactivated(true)
+            metadata.setDeactivated(true)
         }
         doc?.setMetadata(metadata)
         
@@ -365,7 +365,7 @@ public class DIDBackend: NSObject {
     }
     
     private func resolveCredentialBiography(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> CredentialBiography {
-        Log.i(TAG, "Resolving credential ", id, ", issuer=\(issuer)")
+        Log.i(TAG, "Resolving credential ", id, ", issuer=\(String(describing: issuer))")
         let request = CredentialResolveRequest(generateRequestId())
         if issuer == nil {
             request.setParameters(id)

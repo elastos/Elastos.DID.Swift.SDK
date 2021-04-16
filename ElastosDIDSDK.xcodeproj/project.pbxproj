@@ -67,7 +67,6 @@
 		119B29A72578ED220084B859 /* ECSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299C2578ED210084B859 /* ECSignature.swift */; };
 		119B29A82578ED220084B859 /* ECEncryptable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299D2578ED210084B859 /* ECEncryptable.swift */; };
 		119B29AD2578ED8D0084B859 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29AC2578ED8D0084B859 /* ByteBuffer.swift */; };
-		119B607C2624997A0099750F /* FirstExecuteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B607B2624997A0099750F /* FirstExecuteTest.swift */; };
 		119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
 		119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
 		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
@@ -428,7 +427,6 @@
 		119B299C2578ED210084B859 /* ECSignature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECSignature.swift; sourceTree = "<group>"; };
 		119B299D2578ED210084B859 /* ECEncryptable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECEncryptable.swift; sourceTree = "<group>"; };
 		119B29AC2578ED8D0084B859 /* ByteBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
-		119B607B2624997A0099750F /* FirstExecuteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstExecuteTest.swift; sourceTree = "<group>"; };
 		119F0C9225FF07ED006D4F75 /* TransferTicket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicket.swift; sourceTree = "<group>"; };
 		119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicketProof.swift; sourceTree = "<group>"; };
 		119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransactionAdapter.swift; sourceTree = "<group>"; };
@@ -871,7 +869,6 @@
 				11E09CBD23A8E033009B6A8D /* TestDataGenerator.swift */,
 				11D03AD323A9D05600549296 /* VerifiableCredentialTest.swift */,
 				11D03AD923A9D50200549296 /* VerifiablePresentationTest.swift */,
-				119B607B2624997A0099750F /* FirstExecuteTest.swift */,
 				1155D94A2352FACE00DF8C9D /* Info.plist */,
 			);
 			path = ElastosDIDSDKTests;
@@ -1609,7 +1606,6 @@
 				11054F1F239D2088008A4500 /* DIDTest.swift in Sources */,
 				11E7519F23A7570A0022C592 /* TestData.swift in Sources */,
 				11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */,
-				119B607C2624997A0099750F /* FirstExecuteTest.swift in Sources */,
 				11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */,
 				119338DD237E4DB800C4998E /* TestConfig.swift in Sources */,
 				11E09CBE23A8E033009B6A8D /* TestDataGenerator.swift in Sources */,

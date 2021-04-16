@@ -49,6 +49,14 @@ public class IDChainHeader: NSObject {
    
     init(_ operation: IDChainRequestOperation) {
         self._operation = operation
+        switch operation {
+        case .CREATE, .UPDATE, .TRANSFER, .DEACTIVATE:
+            _specification = IDChainRequest.DID_SPECIFICATION
+            break
+        case .DECLARE, .REVOKE:
+            _specification = IDChainRequest.CREDENTIAL_SPECIFICATION
+            break
+        }
     }
     
     /// Get the specification of this request.
@@ -80,5 +88,27 @@ public class IDChainHeader: NSObject {
     public var transferTicket: TransferTicket? {
         
         return _transferTicket
+    }
+    
+    func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        if let _ = specification {
+            generator.writeStringField("specification", specification!)
+        }
+        if let _ = operation {
+            generator.writeStringField("operation", operation!.description)
+        }
+        generator.writeEndObject()
+    }
+    
+    class func parse(_ content: JsonNode) -> IDChainHeader {
+        let specification = content.get(forKey: "specification")!.asString()
+        let operation = content.get(forKey: "operation")!.asString()
+//        let previousTxid = content.get(forKey: "previousTxid")?.asString()
+//        let ticket = content.get(forKey: "ticket")
+//        let transferTicket = content.get(forKey: "transferTicket")
+        let op = IDChainRequestOperation.valueOf(operation!)
+        
+      return IDChainHeader(op)
     }
 }

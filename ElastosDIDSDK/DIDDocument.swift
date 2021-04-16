@@ -1714,6 +1714,7 @@ public class DIDDocument: NSObject {
         }
         let doc = DIDDocument(self, false)
         let json = doc.toString(true)
+        print(json)
         let jsonData = json.data(using: .utf8)
         let digest = sha256Digest([jsonData!])
         
@@ -2412,7 +2413,7 @@ public class DIDDocument: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
         }
         Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
-        guard try isGenuine() else {
+        if try isGenuine() == false {
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
@@ -3019,9 +3020,12 @@ public class DIDDocument: NSObject {
         node = doc.get(forKey: Constants.AUTHENTICATION)
         let array: [JsonNode] = node?.asArray() ?? []
         for authentication in array {
-            let auth = authentication.asString()
+            var auth = authentication.asString()
             
             for pk in self._publickeys {
+                if auth!.hasPrefix("#") {
+                    auth = subject.toString() + auth!
+                }
                 let didURL = try DIDURL(auth!)
                 if pk.getId() == didURL {
                     let rf = PublicKeyReference(didURL, pk)
@@ -3152,9 +3156,12 @@ public class DIDDocument: NSObject {
         for node in array! {
             do {
                 // ADD
-                let key = node.toString()
+                var key = node.toString()
                 var _: PublicKey?
                 for pk in publicKeys {
+                    if key.hasPrefix("#") {
+                        key = subject.toString() + key
+                    }
                     let didURL = try DIDURL(key)
                     if pk.getId() == didURL {
                         let rf = PublicKeyReference(didURL, pk)
@@ -3477,7 +3484,7 @@ extension DIDDocument {
     /// - Returns: DIDDocument string
     @objc
     public func toString(_ force: Bool) -> String {
-        return (try? toJson(force, false)) ?? ""
+        return (try? toJson(force, force)) ?? ""
     }
 
     /// Get DID Document string from DIDDocument.

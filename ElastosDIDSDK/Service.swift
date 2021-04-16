@@ -66,7 +66,7 @@ public class Service: DIDObject {
     @objc public var properties: [String: Any] {
        let proStr = _properties.toString()
         
-        return proStr.stringValueToDic()
+        return proStr.toDictionary()
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> Service {

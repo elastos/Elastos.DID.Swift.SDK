@@ -35,11 +35,11 @@ public class IDChainRequest: NSObject {
     var _payload: String?
     var _proof: IDChainProof?
 
-    private let HEADER = "header"
+    let HEADER = "header"
     private let PAYLOAD = "payload"
     private let PROOF = "proof"
 
-    private let SPECIFICATION = "specification"
+    public let SPECIFICATION = "specification"
     private let OPERATION = "operation"
     private let PREVIOUS_TXID = "previousTxid"
     private let TICKET = "ticket"
@@ -112,6 +112,12 @@ public class IDChainRequest: NSObject {
     /// Get the payload of this ID chain request.
     public var payload: String? {
         return _payload
+    }
+    
+    /// Set the header for this ID chain request.
+    /// - Parameter header: the IDChainHeader format payload
+    func setHeader(_ header: IDChainHeader) {
+        self._header = header
     }
     
     /// Set the payload for this ID chain request.
@@ -192,17 +198,36 @@ public class IDChainRequest: NSObject {
     }
     
     func serialize(_ force: Bool) -> String {
+        let generator = JsonGenerator()
+        generator.writeStartObject()
+        generator.writeFieldName(HEADER)
+        header?.serialize(generator)
         
-        return "TODO:"
+        if let _ = payload {
+            generator.writeStringField(PAYLOAD, payload!)
+        }
+        generator.writeFieldName(PROOF)
+        proof?.serialize(generator)
+        generator.writeEndObject()
+
+        return generator.toString()
     }
     
     func sanitize() throws {
-        
+        print("TODO:")
     }
     
-    class func parse(_ content: JsonNode) -> IDChainRequest {
-        // TODO:
-        return IDChainRequest()
+    class func parse(_ content: JsonNode) throws -> IDChainRequest {
+
+        let header = IDChainHeader.parse(content.get(forKey: "header")!)
+        let payload = content.get(forKey: "payload")!.asString()
+        let proof = try IDChainProof.parse(content.get(forKey: "proof")!)
+        let request = IDChainRequest()
+        request.setHeader(header)
+        request.setProof(proof)
+        request.setPayload(payload!)
+        
+        return request
     }
 /*
     /// Constructs the 'create' IDChain Request.

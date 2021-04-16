@@ -29,7 +29,7 @@ public class VerifiableCredentialProof: NSObject {
     private var _type: String
     private var _verificationMethod: DIDURL
     private var _signature: String
-    private var _created: Date
+    private var _created: Date?
     
     /// Constructs the Proof object with the given values.
     /// - Parameters:
@@ -39,14 +39,13 @@ public class VerifiableCredentialProof: NSObject {
     init(_ type: String, _ method: DIDURL, _ created: Date?, _ signature: String) {
         self._type = type
         self._verificationMethod = method
-        self._created = created != nil ? created! : DateFormatter.currentDate()
+        self._created = created
         self._signature = signature
     }
     
     init(_ method: DIDURL, _ signature: String) {
         self._type = Constants.DEFAULT_PUBLICKEY_TYPE
         self._verificationMethod = method
-        self._created = DateFormatter.currentDate()
         self._signature = signature
     }
 
@@ -57,7 +56,7 @@ public class VerifiableCredentialProof: NSObject {
     }
     
     /// Get the created.
-    public var created: Date {
+    public var created: Date? {
         return _created
     }
     
@@ -93,8 +92,11 @@ public class VerifiableCredentialProof: NSObject {
                                 .withRef(Constants.CREATED)
                                 .withHint("created time")
                                 .withError(error)
-        let create = try serializer.getString(Constants.CREATED, options)
-
+        var create: String?
+        if let _ = node.get(forKey: Constants.CREATED) {
+            create = try serializer.getString(Constants.CREATED, options)
+        }
+        
         options = JsonSerializer.Options()
                                 .withRef(ref)
                                 .withHint("credential proof verificationMethod")
@@ -105,8 +107,8 @@ public class VerifiableCredentialProof: NSObject {
                                 .withHint("credential proof signature")
                                 .withError(error)
         let signature = try serializer.getString(Constants.SIGNATURE, options)
-
-        return VerifiableCredentialProof(type, method!, DateFormatter.convertToUTCDateFromString(create), signature)
+        
+        return VerifiableCredentialProof(type, method!, (create != nil ? DateFormatter.convertToUTCDateFromString(create!) : nil), signature)
     }
 
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
@@ -114,9 +116,10 @@ public class VerifiableCredentialProof: NSObject {
         if normalized || type != Constants.DEFAULT_PUBLICKEY_TYPE {
             generator.writeStringField(Constants.TYPE, type)
         }
-        
-        generator.writeFieldName(Constants.CREATED)
-        generator.writeString(DateFormatter.convertToUTCStringFromDate(self.created))
+        if let _ = created {
+            generator.writeFieldName(Constants.CREATED)
+            generator.writeString(DateFormatter.convertToUTCStringFromDate(self.created!))
+        }
 
         generator.writeFieldName(Constants.VERIFICATION_METHOD)
         generator.writeString(IDGetter(verificationMethod, ref).value(normalized))

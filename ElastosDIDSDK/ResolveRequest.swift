@@ -24,9 +24,9 @@ import Foundation
 
 public class ResolveRequest: NSObject {
   
-    private let ID = "id"
-    private let METHOD = "method"
-    private let PARAMETERS = "params"
+    let ID = "id"
+    let METHOD = "method"
+    let PARAMETERS = "params"
 
     private var _requestId: String
     private var _method: String
@@ -67,7 +67,7 @@ public class ResolveRequest: NSObject {
         return ResolveRequest("TODO:", "TODO:")// TODO:
     }
     
-    func serialize(_ force: Bool) throws -> String {
+    func serialize(_ force: Bool) -> String {
         // TODO:
         
         return "TODO:"

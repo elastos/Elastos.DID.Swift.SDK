@@ -39,7 +39,7 @@ public class DefaultDIDAdapter: DIDAdapter {
             self.resolver = TESTNET_RESOLVER
             break
         default:
-            self.resolver = TESTNET_RESOLVER
+            self.resolver = resolver
             break
         }
     }
@@ -51,14 +51,7 @@ public class DefaultDIDAdapter: DIDAdapter {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        let parameters = body.stringValueToDic()
-//        let parameters: [String: Any] = [
-//            "jsonrpc": "2.0",
-//            "method": "resolvedid",
-//            "params": ["did":did, "all": all],
-//            "id": requestId
-//        ]
-        
+        let parameters = body.toDictionary()
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: parameters as Any, options: .prettyPrinted)
         } catch {
@@ -84,6 +77,9 @@ public class DefaultDIDAdapter: DIDAdapter {
                 return
             }
             
+            let json = try! JSONSerialization.jsonObject(with: data!, options: [])
+            print(json)
+            
             result = data
             semaphore.signal()
         }
@@ -97,7 +93,6 @@ public class DefaultDIDAdapter: DIDAdapter {
         
         return result!
     }
-    
     
     public func resolve(_ request: String) throws -> Data {
         return try performRequest(resolver, request)

@@ -66,7 +66,7 @@ public class CredentialResolveRequest: ResolveRequest{
         return "TODO:"
     }
     
-    override func serialize(_ force: Bool) throws -> String {
+    override func serialize(_ force: Bool) -> String {
         // TODO:
         return "todo"
     }

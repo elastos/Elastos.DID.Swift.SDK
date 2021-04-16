@@ -9,12 +9,19 @@ class DIDDoucumentTests: XCTestCase {
     var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
 
     override func setUp() {
-        FirstExecuteTest().setUp()
         testData = TestData()
         store = testData?.store!
-        try! simulatedIDChain.httpServer.start(9999, forceIPv4: true)
+//        try! simulatedIDChain.httpServer.start(9996, forceIPv4: true)
+        simulatedIDChain.start()
+        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
+
     }
     
+    override func tearDownWithError() throws {
+        testData?.cleanup()
+        simulatedIDChain.httpServer.stop()
+        
+    }
     override func tearDown() {
         testData?.cleanup()
         simulatedIDChain.httpServer.stop()

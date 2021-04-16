@@ -7,7 +7,7 @@ public class SimulatedIDChain {
     
     let TAG = NSStringFromClass(SimulatedIDChain.self)
     let DEFAULT_HOST = "localhost"
-    let DEFAULT_PORT: Int = 9123
+    let DEFAULT_PORT: Int = 9999
 
     var host: String
     var port: Int
@@ -527,20 +527,81 @@ public class SimulatedIDChain {
      */
     func start() {
 
-        httpServer["/resolve"] = {
+        httpServer["/resolve"] = { [self] in
+            
+            do {
+                let json: Dictionary = try JSONSerialization.jsonObject(with: Data($0.body), options: []) as! Dictionary<String, Any>
+                let method: String = json["method"] as! String
+                print(method)
+                switch method {
+                case DIDResolveRequest.METHOD_NAME:
+                    let drr: DIDResolveRequest  = DIDResolveRequest(json["id"] as! String);
+                    let params: Dictionary = json["params"] as! Dictionary<String, Any>
+                    try! drr.setParameters(params["did"] as! String, false)
+                    let response = try! resolveDid(drr)
+                    
+                    var result: Dictionary<String, Any> = [:]
+                    result["id"] = response.responseId
+                    result["jsonrpc"] = "2.0"
+                    let bio = response.result as! DIDBiography
+                    var r1: Dictionary<String, Any> = [:]
+                    r1["did"] = bio.did.toString()
+                    r1["status"] = bio.status.rawValue
+
+                    result["result"] = r1
+                    let data = try JSONSerialization.data(withJSONObject: result, options: JSONSerialization.WritingOptions.prettyPrinted)
+                    return HttpResponse.ok(HttpResponseBody.data(data, contentType: "application/json"))
+                    break
+                    
+                default: break
+                    
+                }
+            } catch { print("erroMsg")
+                
+            }
+            
+            return HttpResponse.ok(.htmlBody("You 111111 for"))
+        }
+        
+        httpServer["/idtx"] = { [self] in
+            do {
+                
+                let json: Dictionary = try JSONSerialization.jsonObject(with: Data($0.body), options: []) as! Dictionary<String, Any>
+                print(json)
+                let header: Dictionary = json["header"] as! Dictionary<String, String>
+                let specification: String = header["specification"]!
+//                let op = header["operation"]
+                switch specification {
+                case IDChainRequest.DID_SPECIFICATION:
+                    let req: DIDRequest = try DIDRequest.parse(JsonNode(json)) as! DIDRequest
+                    try createDidTransaction(req)
+                    return HttpResponse.accepted
+                    print("1111111")
+                    break
+                default: break
+                    
+                }
+                
+                
+            } catch { print("erroMsg")
+                print("222222")
+
+            }
+            // TODO delete
+            print("3333333")
+
+            return HttpResponse.ok(.htmlBody("You 111111 for"))
+        }
+        
+        httpServer["/reset"] = {
             .ok(.htmlBody("You 111111 for \($0)"))
         }
         
-        httpServer["/idtx"] = {
-            .ok(.htmlBody("You 111111 for \($0)"))  }
-        
-        httpServer["/reset"] = {
-            .ok(.htmlBody("You 111111 for \($0)"))  }
-        
         httpServer["/shutdown"] = {
-            .ok(.htmlBody("You 111111 for \($0)"))  }
+            .ok(.htmlBody("You 111111 for \($0)"))
+        }
         
-        try! httpServer.start(9090, forceIPv4: true)
+        try! httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
 
     }
     
@@ -553,7 +614,7 @@ public class SimulatedIDChain {
     }
     
     func getAdapter() -> DIDAdapter {
-        return SimulatedIDChainAdapter("http://localhost:8080/")
+        return SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
     }
 }
 

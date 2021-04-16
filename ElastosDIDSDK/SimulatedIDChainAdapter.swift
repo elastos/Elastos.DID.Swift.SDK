@@ -7,8 +7,8 @@ class SimulatedIDChainAdapter: DefaultDIDAdapter {
     
     
     override init(_ endpoint: String) {
-        super.init(endpoint)
-        idtxEndpoint =  endpoint
+        super.init(endpoint + "resolve")
+        idtxEndpoint = endpoint + "idtx"
     }
     
     override func createIdTransaction(_ payload: String, _ memo: String?) throws {

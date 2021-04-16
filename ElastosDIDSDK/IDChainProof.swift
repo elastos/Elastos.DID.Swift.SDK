@@ -59,5 +59,22 @@ public class IDChainProof: NSObject {
     func qualifyVerificationMethod(_ ref: DID) {
         //TODO:
     }
+    
+    func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField("type", type)
+        generator.writeStringField("verificationMethod", verificationMethod.toString())
+        generator.writeStringField("signature", signature)
+        
+        generator.writeEndObject()
+    }
+    
+    class func parse(_ content: JsonNode) throws -> IDChainProof {
+        let type = content.get(forKey: "type")!.asString()
+        let signature = content.get(forKey: "signature")!.asString()
+        let verificationMethod = content.get(forKey: "verificationMethod")!.asString()
+        
+        return try IDChainProof(type!,DIDURL(verificationMethod!), signature!)
+    }
 }
 
