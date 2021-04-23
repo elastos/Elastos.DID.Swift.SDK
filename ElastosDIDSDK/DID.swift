@@ -62,7 +62,7 @@ public class DID: NSObject {
             if didError != nil {
                 errmsg = DIDError.desription(didError!)
             }
-            throw DIDError.malformedDID(errmsg)
+            throw DIDError.UncheckedError.IllegalArgumentError.MalformedDIDError(errmsg)
         }
     }
     
@@ -256,7 +256,7 @@ extension DID {
     }
 
     public static func == (lhs: DID, rhs: DID) -> Bool {
-        return lhs.equalsTo(rhs)
+        return try! lhs.compareTo(rhs) == ComparisonResult.orderedSame
     }
 
     public static func != (lhs: DID, rhs: DID) -> Bool {
@@ -310,3 +310,17 @@ extension DID {
         }
     }
 }
+
+extension DID {
+    
+    public func compareTo(_ did: DID) throws -> ComparisonResult {
+        
+        var result = self.method.compare(did.method)
+        if result == ComparisonResult.orderedSame {
+            result = self.methodSpecificId.compare(did.methodSpecificId)
+        }
+        return result
+    }
+
+}
+

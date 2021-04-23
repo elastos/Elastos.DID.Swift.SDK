@@ -340,6 +340,11 @@ extension DIDURL {
             return equalsTo(object as! String)
         }
     }
+    
+    @objc
+    public func compareTo(_ id: DIDURL) -> ComparisonResult {
+        return self.toString().compare(id.toString())
+    }
 }
 
 // DIDURL used as hash key.
