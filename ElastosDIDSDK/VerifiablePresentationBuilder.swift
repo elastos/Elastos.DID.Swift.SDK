@@ -52,6 +52,13 @@ public class VerifiablePresentationBuilder: NSObject {
         return try withId(DIDURL.valueOf(_holder.subject, id)!)
     }
     
+    public func withType(_ types: [String]) throws -> VerifiablePresentationBuilder {
+        try checkNotSealed()
+        presentation?._types = types
+        
+       return self
+    }
+    
     /// Set verifiable credentials for presentation.
     /// - Parameter credentials: Verifiable credentials
     /// - Throws: if an error occurred, throw error.
@@ -127,15 +134,15 @@ public class VerifiablePresentationBuilder: NSObject {
     }
 
     /// Finish modiy VerifiablePresentation.
-    /// - Parameter storePasswordword: Pass word to sign.
+    /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiablePresentation.
     @objc
-    public func sealed(using storePasswordword: String) throws -> VerifiablePresentation {
+    public func sealed(using storePassword: String) throws -> VerifiablePresentation {
         guard let _ = presentation else {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
-        guard !storePasswordword.isEmpty else {
+        guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
         guard _realm != nil && _nonce != nil else {
@@ -150,7 +157,7 @@ public class VerifiablePresentationBuilder: NSObject {
         if let nonce = _nonce {
             data.append(nonce.data(using: .utf8)!)
         }
-        let signature = try _holder.sign(_signKey, storePasswordword, data)
+        let signature = try _holder.sign(_signKey, storePassword, data)
 
         let proof = VerifiablePresentationProof(_signKey, _realm!, _nonce!, signature)
         presentation!.setProof(proof)

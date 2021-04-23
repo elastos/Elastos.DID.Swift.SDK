@@ -127,10 +127,6 @@ public class VerifiablePresentation: NSObject {
     /// Get Credential list for signing the Presentation.
     @objc
     public var credentials: Array<VerifiableCredential> {
-//        var credentials = Array<VerifiableCredential>()
-//        for credential in _verifiableCredentials.values {
-//            credentials.append(credential)
-//        }
         return _credentialsArray
     }
 
@@ -187,11 +183,11 @@ public class VerifiablePresentation: NSObject {
                 do {
                     try vc.sanitize()
                 } catch {
-                    throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Credential invalid: \(vc.id)")
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Credential invalid: \(String(describing: vc.id))")
                 }
                 
                 guard _verifiableCredentials[vc.id!] == nil else {
-                    throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Duplicated credential id: \(vc.id)")
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Duplicated credential id: \(String(describing: vc.id))")
 
                 }
                 
@@ -226,7 +222,7 @@ public class VerifiablePresentation: NSObject {
             return false
         }
         // Credential should be signed by authenticationKey.
-        guard holderDoc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
+        guard try holderDoc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
             return false
         }
 
@@ -286,7 +282,7 @@ public class VerifiablePresentation: NSObject {
             return false
         }
         // Credential should be signed by authenticationKey.
-        guard doc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
+        guard try doc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
             return false
         }
 
@@ -482,7 +478,7 @@ public class VerifiablePresentation: NSObject {
         if signKey == nil {
             useKey = holder!.defaultPublicKeyId()!
         } else {
-            guard holder!.containsAuthenticationKey(forId: signKey!) else {
+            guard try holder!.containsAuthenticationKey(forId: signKey!) else {
                 throw DIDError.illegalArgument("Not an authentication key.")
             }
             useKey = signKey!
@@ -526,7 +522,7 @@ public class VerifiablePresentation: NSObject {
 
 extension VerifiablePresentation {
     func toString() -> String {
-        return toJson(false)
+        return toJson(true)
     }
 
     /// Get string context from Presentation.
