@@ -239,15 +239,15 @@ public class DIDBackend: NSObject {
         var response = ResolveResponse()
         switch request.method {
         case DIDResolveRequest.METHOD_NAME: do {
-            response = try DIDResolveResponse.parse(re)
+            response = try DIDResolveResponse.deserialize(re)
             break
         }
         case CredentialResolveRequest.METHOD_NAME: do {
-            response = try CredentialResolveResponse.parse(re)
+            response = try CredentialResolveResponse.deserialize(re)
             break
         }
         case CredentialListRequest.METHOD_NAME: do {
-            response = try CredentialListResponse.parse(re)
+            response = try CredentialListResponse.deserialize(re)
             break
         }
         default:
@@ -274,9 +274,14 @@ public class DIDBackend: NSObject {
         if force {
             cache.removeValue(for: request)
         }
-        return try cache.getValue(for: request) { () -> ResolveResult? in
-            return try resolve(request)
-        } as! DIDBiography
+        let semaphore = DispatchSemaphore(value: 1)
+        var bio = cache.getValue(for: request)
+        if bio == nil {
+            bio = try resolve(request)
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return bio as! DIDBiography
     }
     
     ///  Resolve all DID transactions.
@@ -341,7 +346,7 @@ public class DIDBackend: NSObject {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, unknown operation.")
         }
         
-        if try (tx == nil ||  tx!.request.isValid()) {
+        if try (tx == nil || !tx!.request.isValid()) {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, signature mismatch.")
         }
         let doc = tx!.request.document

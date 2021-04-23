@@ -40,9 +40,9 @@ public class IDTransactionInfo: NSObject {
     ///   - request: The IDChainRequest content.
     @objc
     public init(_ transactionId: String, _ timestamp: Date, _ request: IDChainRequest) {
-        self._transactionId = transactionId;
-        self._timestamp = timestamp;
-        self._request = request;
+        self._transactionId = transactionId
+        self._timestamp = timestamp
+        self._request = request
     }
 
     /// Get transaction id.
@@ -130,4 +130,12 @@ public class IDTransactionInfo: NSObject {
 //        self._request.toJson(generator, false)
 //        generator.writeEndObject()
 //    }
+    
+    public func serialize(_ generator: JsonGenerator) {
+        
+    }
+    
+    public func serialize() -> String {
+        return "TODO:"
+    }
 }

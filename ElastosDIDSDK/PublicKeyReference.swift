@@ -23,20 +23,9 @@
 import Foundation
 import ObjectMapper
 
-public class PublicKeyReference: NSObject, Mappable {
+public class PublicKeyReference: NSObject {
      private var _id: DIDURL?
      private var _key: PublicKey?
-    
-    public required init?(map: Map) {
-        
-    }
-    
-    public func mapping(map: Map) {
-//        _subject = try! DID(map.value("id") as String)
-//        _publickeys <- map["publicKey"]
-//        _authentications <- map["authentication"]
-//        _services <- map["service"]
-    }
      
      init(_ id: DIDURL) {
          _id = id
@@ -80,5 +69,15 @@ public class PublicKeyReference: NSObject, Mappable {
          }
      }
      
+    
+    public func compareTo(_ ref: PublicKeyReference) throws -> ComparisonResult {
+        if self.publicKey != nil && ref.publicKey != nil {
+            return try self.publicKey!.compareTo(ref.publicKey!)
+        } else {
+            try checkNotNull(self.id == nil || ref.id == nil, "id is null")
+            return self.id!.compareTo(ref.id!)
+        }
+    }
+    
      // TODO: Serializer Deserializer
  }

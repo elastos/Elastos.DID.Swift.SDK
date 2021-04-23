@@ -122,7 +122,8 @@ final class LRUCache<Key: Hashable, Value> {
             }
             
             list.moveToHead(node!)
-            return node!.payload.value
+            let result = node!.payload.value
+            return result
         }
     }
 

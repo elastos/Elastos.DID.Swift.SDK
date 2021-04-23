@@ -93,4 +93,41 @@ public class DIDBiography: ResolveResult {
             }
         }
     }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        generator.writeStartObject()
+        generator.writeStringField(DID, did.toString())
+        generator.writeNumberField(STATUS, status.rawValue)
+        if count > 0 {
+            generator.writeFieldName("transaction")
+            generator.writeStartArray()
+            for tx in _txs {
+                tx.serialize(generator)
+            }
+            generator.writeEndArray()
+        }
+        generator.writeEndObject()
+        
+        return generator.toString()
+    }
+    
+    public class func deserialize(_ json: [String: Any]) throws -> DIDBiography {
+        print(json)
+        let did = json["did"] as! String
+        let s = json["status"] as! Int
+        let status = DIDBiographyStatus(rawValue: s)
+        let txs = json["transaction"] as? [[String: Any]]
+        var _txs: [DIDTransaction] = []
+        if let _ = txs {
+            for tx in txs! {
+                let didtx = try DIDTransaction.deserialize(tx)
+                _txs.append(didtx)
+            }
+        }
+        let bio = DIDBiography(try ElastosDIDSDK.DID(did), status!)
+        bio._txs = _txs
+        
+        return bio
+    }
 }

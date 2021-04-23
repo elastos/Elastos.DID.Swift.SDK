@@ -32,7 +32,7 @@ public class CredentialListResponse: ResolveResponse{
         super.init(responseId, code, message)
     }
     
-    class func parse(_ input: Data) throws -> CredentialListResponse {
+    class func deserialize(_ input: Data) throws -> CredentialListResponse {
         
         return try CredentialListResponse("TODO", CredentialList(DID()))
     }

@@ -126,7 +126,7 @@ public class TransferTicket: NSObject {
         guard try doc!.isGenuine() else {
             return false
         }
-        let tt = try TransferTicket(self, false)
+        let tt = TransferTicket(self, false)
         // Proofs count should match with multisig
         if ((doc!.controllerCount() > 1 && proofs?.count != doc!.multiSignature?.m) ||
                 (doc!.controllerCount() <= 1 && proofs?.count != 1)) {

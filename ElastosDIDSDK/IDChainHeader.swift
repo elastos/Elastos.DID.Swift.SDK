@@ -24,8 +24,8 @@ import Foundation
 
 /// Header class for the ID transaction request.
 public class IDChainHeader: NSObject {
-    private var _specification: String?
-    private var _operation: IDChainRequestOperation?
+    private var _specification: String? // must have value
+    private var _operation: IDChainRequestOperation? // must have value
     private var _previousTxid: String?
     private var _ticket: String?
     private var _transferTicket: TransferTicket?
@@ -37,6 +37,8 @@ public class IDChainHeader: NSObject {
     init(_ operation: IDChainRequestOperation, _ previousTxid: String) {
         self._operation = operation
         self._previousTxid = previousTxid
+        super.init()
+        initOperation()
     }
     
     init(_ operation: IDChainRequestOperation, _ ticket: TransferTicket) {
@@ -45,17 +47,25 @@ public class IDChainHeader: NSObject {
         // TODO:
 //        self.ticket =
         self._transferTicket = ticket
+        super.init()
+        initOperation()
     }
    
     init(_ operation: IDChainRequestOperation) {
         self._operation = operation
-        switch operation {
+        super.init()
+        initOperation()
+    }
+    
+    func initOperation() {
+        switch _operation {
         case .CREATE, .UPDATE, .TRANSFER, .DEACTIVATE:
             _specification = IDChainRequest.DID_SPECIFICATION
             break
         case .DECLARE, .REVOKE:
             _specification = IDChainRequest.CREDENTIAL_SPECIFICATION
             break
+        case .none: break
         }
     }
     
@@ -98,17 +108,24 @@ public class IDChainHeader: NSObject {
         if let _ = operation {
             generator.writeStringField("operation", operation!.description)
         }
+        if let _ = previousTxid {
+            generator.writeStringField("previousTxid", previousTxid!)
+        }
+
         generator.writeEndObject()
     }
     
     class func parse(_ content: JsonNode) -> IDChainHeader {
-        let specification = content.get(forKey: "specification")!.asString()
+//        let specification = content.get(forKey: "specification")!.asString()
         let operation = content.get(forKey: "operation")!.asString()
-//        let previousTxid = content.get(forKey: "previousTxid")?.asString()
+        let previousTxid = content.get(forKey: "previousTxid")?.asString()
 //        let ticket = content.get(forKey: "ticket")
 //        let transferTicket = content.get(forKey: "transferTicket")
-        let op = IDChainRequestOperation.valueOf(operation!)
         
+        let op = IDChainRequestOperation.valueOf(operation!)
+        if let _ = previousTxid {
+            return IDChainHeader(op, previousTxid!)
+        }
       return IDChainHeader(op)
     }
 }

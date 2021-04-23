@@ -34,6 +34,12 @@ extension NSObject {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
     }
+    
+    func checkNotNull(_ full: Bool, _ mesg: String) throws {
+        guard !full else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+        }
+    }
 }
 
 extension FileSystemStorage {
@@ -120,5 +126,12 @@ extension Data {
             throw DIDError.unknownFailure("Change json to [String: Any] failed.")
         }
         return dic!
+    }
+}
+
+extension Array where Element == UInt8 {
+    var hexString: String {
+        return self.compactMap { String(format: "%02x", $0).lowercased() }
+        .joined(separator: "")
     }
 }

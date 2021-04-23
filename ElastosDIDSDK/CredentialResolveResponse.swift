@@ -33,7 +33,7 @@ public class CredentialResolveResponse: ResolveResponse {
         super.init(responseId, code, message)
     }
     
-    class func parse(_ input: Data) throws -> CredentialResolveResponse {
+    class func deserialize(_ input: Data) throws -> CredentialResolveResponse {
         
         return try CredentialResolveResponse("TODO", CredentialBiography(DIDURL("TODO:")))
     }

@@ -66,7 +66,7 @@ class DIDStoreTests: XCTestCase {
             var store = try testData.setup(true)
             XCTAssertFalse(store.containsPrivateIdentity())
 
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePasswordword: storePassword)
+            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePassword: storePassword)
             XCTAssertTrue(store.containsPrivateIdentity())
 
             var path = storeRoot + "/" + "private" + "/" + "key"
@@ -100,7 +100,7 @@ class DIDStoreTests: XCTestCase {
             var store = try testData.setup(true)
             XCTAssertFalse(store.containsPrivateIdentity())
 
-            try store.initializePrivateIdentity(using: rootKey, storePasswordword: storePassword)
+            try store.initializePrivateIdentity(using: rootKey, storePassword: storePassword)
             XCTAssertTrue(store.containsPrivateIdentity())
 
             var path = storeRoot + "/" + "private" + "/" + "key"
@@ -572,7 +572,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePasswordword: storePassword, true)
+            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePassword, true)
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved!.toString())
@@ -608,7 +608,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store.storeDid(using: doc)
 
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePasswordword: storePassword, true)
+            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePassword, true)
 
             resolved = try doc.subject.resolve(true)
             XCTAssertNotNil(resolved)
@@ -719,7 +719,7 @@ class DIDStoreTests: XCTestCase {
             resolved = try target.subject.resolve()!
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved.toString())
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePasswordword: storePassword)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePassword)
             let did = target.subject
 
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -773,7 +773,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved!.toString())
             
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, using: id, storePasswordword: storePassword)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, using: id, storePassword: storePassword)
             let did = target.subject
 
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -830,7 +830,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertNotNil(resolved)
             XCTAssertEqual(target.toString(), resolved!.toString())
 
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePasswordword: storePassword)
+            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePassword)
 
             let did = target.subject
             XCTAssertThrowsError(try did.resolve(true)) { (error) in
@@ -1257,7 +1257,7 @@ class DIDStoreTests: XCTestCase {
             }
                         
             let mnemonic: String = try Mnemonic.generate("0")
-            try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passPhrase: passphrase, storePasswordword: storePassword)
+            try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passPhrase: passphrase, storePassword: storePassword)
             createDataForPerformanceTest(store)
             let dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
             XCTAssertEqual(10, dids.count)
@@ -1309,7 +1309,7 @@ class DIDStoreTests: XCTestCase {
                 let store = try DIDStore.open(atPath: storeRoot + String(i), withType: "filesystem", adapter: DummyAdapter())
                 stores.append(store)
                 let mnemonic: String = try Mnemonic.generate("0")
-                try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
+                try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passphrase: passphrase, storePassword: storePassword, true)
             }
             
             for i in 0..<10 {
@@ -1448,7 +1448,7 @@ class DIDStoreTests: XCTestCase {
             try create(exportPath, forWrite: true)
             let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
 
-            try store.exportDid(did, to: fileHndle, using: "password", storePasswordword: storePassword)
+            try store.exportDid(did, to: fileHndle, using: "password", storePassword: storePassword)
             let restorePath = tempDir + "/" + "restore"
             TestData.deleteFile(restorePath)
 
@@ -1492,7 +1492,7 @@ class DIDStoreTests: XCTestCase {
 
             let readerHndle = FileHandle(forReadingAtPath: exportPath)
             readerHndle?.seek(toFileOffset: 0)
-            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePasswordword: storePassword)
+            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePassword: storePassword)
 
             //            let didDirPath = storeRoot + "/private"
             let reDidDirPath = restorePath + "/private"

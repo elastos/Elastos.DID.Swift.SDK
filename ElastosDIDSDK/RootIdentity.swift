@@ -57,12 +57,12 @@ public class RootIdentity: NSObject {
     ///   - passphrase: the password for mnemonic to generate seed
     ///   - storePassword: the password for DIDStore
     public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
-        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
-        var _passphrase = passphrase == nil ? "" : passphrase
-        try checkArgument(Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
-        let identity = try RootIdentity(mnemonic, passphrase!)
-        if try store.containsRootIdentity(identity.id!) && !overwrite {
+        try checkArgument(mnemonic.isEmpty, "Invalid mnemonic")
+        try checkArgument(storePassword.isEmpty, "Invalid storePassword")
+        let _passphrase = passphrase == nil ? "" : passphrase
+        try checkArgument(!Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
+        let identity = try RootIdentity(mnemonic, _passphrase!)
+        if try store.containsRootIdentity(identity.getId()) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
         identity.metadata = RootIdentityMetadata(identity.id!, store)
@@ -119,16 +119,38 @@ public class RootIdentity: NSObject {
     }
     
     static func getId(_ key: [UInt8]) -> String {
-        // TODO:
-        return "TODO"
+        let md5 = MD5Helper()
+        var _key = key
+        md5.update(&_key)
+        let result = md5.finalize()
+        let hex = result.hexString
+        
+        return hex
     }
     
     func getId() throws -> String {
-        id = try RootIdentity.getId(preDerivedPublicKey.serializePublicKey())
-        
+        if id == nil {
+            id = try RootIdentity.getId(preDerivedPublicKey.serializePublicKey())
+        }
         return id!
     }
     
+    /*
+     let sha256 = SHA256Helper()
+     var bytes = [UInt8](password.data(using: .utf8)!)
+     sha256.update(&bytes)
+
+     protected static String getId(byte[] key) {
+         checkArgument(key != null && key.length > 0, "Invalid key bytes");
+
+         MD5Digest md5 = new MD5Digest();
+         byte[] digest = new byte[md5.getDigestSize()];
+         md5.update(key, 0, key.length);
+         md5.doFinal(digest, 0);
+
+         return Hex.toHexString(digest);
+     }
+     */
     public var alias: String? {
         set{
             metadata?.setAlias(newValue!)
@@ -164,7 +186,7 @@ public class RootIdentity: NSObject {
     }
     
     public func incrementIndex() throws -> Int {
-        
+        index = index + 1
         try store!.storeRootIdentity(self)
         
         return index
@@ -184,7 +206,7 @@ public class RootIdentity: NSObject {
     public static func lazyCreateDidPrivateKey(_ id: DIDURL, _ store: DIDStore, _ storePassword: String) throws -> Data? {
         let  doc = try store.loadDid(id.did!)
         guard let _ = doc else {
-            throw DIDError.CheckedError.DIDStoreError.MissingDocumentError("Missing document for DID: \(id.did)")
+            throw DIDError.CheckedError.DIDStoreError.MissingDocumentError("Missing document for DID: \(String(describing: id.did))")
         }
         let identity = doc?.getMetadata().rootIdentityId
         guard let _ = identity else {
@@ -196,7 +218,7 @@ public class RootIdentity: NSObject {
             throw DIDError.CheckedError.DIDStoreError.InvalidPublickeyError("Invalid public key: \(id)")
         }
         guard key!.getPublicKeyBase58() == pk?.publicKeyBase58 else {
-            throw DIDError.CheckedError.DIDStoreError.InvalidDIDMetadataError("Invalid DID metadata: \(id.did)")
+            throw DIDError.CheckedError.DIDStoreError.InvalidDIDMetadataError("Invalid DID metadata: \(String(describing: id.did))")
         }
         try store.storePrivateKey(for: id, privateKey: key!.serialize(), using: storePassword)
         let sk = try key!.serialize()
@@ -219,7 +241,7 @@ public class RootIdentity: NSObject {
             guard !doc!.isDeactivated else {
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
             }
-            guard !overwrite else {
+            guard overwrite else {
                 throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError("DID already exists in the store.")
             }
         }
@@ -229,7 +251,6 @@ public class RootIdentity: NSObject {
             guard !doc!.isDeactivated else {
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
             }
-            throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError("DID already published.")
         }
         Log.d(TAG, "Creating new DID ", did.toString(), " at index ", index)
         
@@ -238,8 +259,8 @@ public class RootIdentity: NSObject {
         let id = try DIDURL(did, "#primary")
         try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storePassword)
         let db = DIDDocumentBuilder(did, store!)
-        try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
-        try db.sealed(using: storePassword)
+        _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+        doc = try db.sealed(using: storePassword)
         try store?.storeDid(using: doc!)
         
         return doc!
@@ -312,8 +333,8 @@ public class RootIdentity: NSObject {
             }
         }
         let metadata = finalDoc!.getMetadata()
-        try metadata.setRootIdentityId(try getId())
-        try metadata.setIndex(index)
+        metadata.setRootIdentityId(try getId())
+        metadata.setIndex(index)
         try store!.storeDid(using: finalDoc!)
         
         return true

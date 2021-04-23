@@ -363,7 +363,7 @@ public class DIDDocument: NSObject {
         let id = try canonicalId(byId)
         var pks = self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
         pks.forEach { pk in
-            if pk.getId() != id || pk.getType() != andType {
+            if pk.getId() != id || (andType != nil && pk.getType() != andType) {
                 pks.append(pk)
             }
         }
@@ -400,7 +400,12 @@ public class DIDDocument: NSObject {
                 pks.append(pk)
             }
         }
-
+        if hasController() {
+            _controllerDocs.values.forEach({ doc in
+                pks.append(contentsOf: doc.selectAuthenticationKeys(byType: byType))
+            })
+        }
+        
         return pks
     }
 
@@ -414,7 +419,7 @@ public class DIDDocument: NSObject {
         if pk == nil && hasController() {
             let doc = controllerDocument(id.did!)
             if doc != nil {
-                pk = doc?.authenticationKey(ofId: id)
+                pk = try doc?.authenticationKey(ofId: id)
             }
         }
         
@@ -557,7 +562,7 @@ public class DIDDocument: NSObject {
         return publicKeyData.data(using: .utf8)!
     }
 
-    func keyPair_PrivateKey(ofId: DIDURL, using storePasswordword: String) throws -> Data {
+    func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
         guard try containsPublicKey(forId: ofId) else {
             throw DIDError.illegalArgument("Key no exist")
         }
@@ -572,7 +577,7 @@ public class DIDDocument: NSObject {
         let pubs = pubKey!.publicKeyBytes
         let pubData = Data(bytes: pubs, count: pubs.count)
         // 46 - 78
-        let privKey = try getMetadata().store!.loadPrivateKey(ofId, storePasswordword)
+        let privKey = try getMetadata().store!.loadPrivateKey(ofId, storePassword)
         let pkey = privKey![46..<78]
         let privateKeyData = try DIDHDKey.PEM_ReadPrivateKey(pubData, pkey)
 
@@ -582,15 +587,15 @@ public class DIDDocument: NSObject {
     /// The result is extended private key format, the real private key is 32 bytes long start from position 46.
     /// - Parameters:
     ///   - index: the index
-    ///   - storePasswordword: the password for DIDStore
+    ///   - storePassword: the password for DIDStore
     /// - Throws: the extended private key format. (the real private key is 32 bytes long start from position 46)
     /// - Returns: there is no DID store to get root private key
-    public func derive(index: Int, storePasswordword: String) throws -> String {
+    public func derive(index: Int, storePassword: String) throws -> String {
 
-        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         try checkIsPrimitive()
-        let key = DIDHDKey.deserialize((try getMetadata().store?.loadPrivateKey(defaultPublicKeyId()!, storePasswordword))!)
+        let key = DIDHDKey.deserialize((try getMetadata().store?.loadPrivateKey(defaultPublicKeyId()!, storePassword))!)
         // TODO:
         // HDKey key = HDKey.deserialize(getMetadata().getStore().loadPrivateKey(getDefaultPublicKeyId(), storePassword));
         return key.derive(index).serializeBase58()
@@ -662,7 +667,7 @@ public class DIDDocument: NSObject {
     }
 
     private func checkIsCustomized() throws {
-        guard !isCustomizedDid() else {
+        guard isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(subject.toString())
         }
     }
@@ -690,7 +695,7 @@ public class DIDDocument: NSObject {
             }
             return try self.keyPair_PublicKey(ofId: _id)
 
-        }) { (id, storePasswordword) -> Data in
+        }) { (id, storePassword) -> Data in
             var _id: DIDURL
 
             if id == nil {
@@ -698,7 +703,7 @@ public class DIDDocument: NSObject {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair_PrivateKey(ofId: _id, using: storePasswordword)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword)
         }
         return build.setIssuer(iss: subject.description)
     }
@@ -719,7 +724,7 @@ public class DIDDocument: NSObject {
             }
             return try self.keyPair_PublicKey(ofId: _id)
         }
-        builder.getPrivateKey = {(id, storePasswordword) in
+        builder.getPrivateKey = {(id, storePassword) in
 
             var _id: DIDURL
             if id == nil {
@@ -727,7 +732,7 @@ public class DIDDocument: NSObject {
             } else {
                 _id = try DIDURL(self.subject, id!)
             }
-            return try self.keyPair_PrivateKey(ofId: _id, using: storePasswordword)
+            return try self.keyPair_PrivateKey(ofId: _id, using: storePassword)
         }
         return builder
     }
@@ -748,6 +753,14 @@ public class DIDDocument: NSObject {
             }
         }
         publicKeyMap.append(publicKey)
+        
+        if (defaultPublicKey() == nil) {
+            let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
+            if (address == subject.methodSpecificId) {
+                _defaultPublicKey = publicKey
+                publicKey.setAuthenticationKey(true)
+            }
+        }
         
         return true
     }
@@ -861,11 +874,16 @@ public class DIDDocument: NSObject {
     /// A DID Document must include a authentication property.
     /// - Parameter ofId: the key id
     /// - Returns: the matched authentication key object
-    @objc
-    public func authenticationKey(ofId: DIDURL) -> PublicKey? {
-        return publicKeyMap.get(forKey: ofId) { value -> Bool in
-            return (value as PublicKey).isAuthenticationKey
-        }
+    public func authenticationKey(ofId: DIDURL) throws -> PublicKey? {
+        let pk = try publicKey(ofId: ofId)
+        
+//        return pk != nil && pk!.isAuthorizationKey ? pk : nil
+//        let p = publicKeyMap.get(forKey: ofId) { value -> Bool in
+//            return (value as PublicKey).isAuthenticationKey
+//        }
+        
+//        return p
+        return (pk != nil && pk!.isAuthenticationKey) ? pk : nil
     }
 
     /// Get authentication key with specified key id.
@@ -874,7 +892,7 @@ public class DIDDocument: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: the matched authentication key object
     public func authenticationKey(ofId: String) throws -> PublicKey?  {
-        return authenticationKey(ofId: try canonicalId(ofId)!)
+        return try authenticationKey(ofId: try canonicalId(ofId)!)
     }
     
     /// Get authentication key according to identifier of authentication key.
@@ -885,7 +903,7 @@ public class DIDDocument: NSObject {
     @objc
     public func authenticationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
-            return authenticationKey(ofId: try DIDURL(subject, ofId))
+            return try authenticationKey(ofId: try DIDURL(subject, ofId))
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
@@ -917,9 +935,8 @@ public class DIDDocument: NSObject {
     /// Check key if authentiacation key or not.
     /// - Parameter forId: An identifier of authentication key.
     /// - Returns: true if has authentication key, or false.
-    @objc
-    public func containsAuthenticationKey(forId: DIDURL) -> Bool {
-        return authenticationKey(ofId: forId) != nil
+    public func containsAuthenticationKey(forId: DIDURL) throws -> Bool {
+        return try authenticationKey(ofId: forId) != nil
     }
 
     /// Add public key to Authenticate.
@@ -1012,11 +1029,15 @@ public class DIDDocument: NSObject {
     /// Get authorization key according to identifier of key.
     /// - Parameter ofId: An identifier of authorization key.
     /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
-    @objc
-    public func authorizationKey(ofId: DIDURL) -> PublicKey? {
-        return publicKeyMap.get(forKey: ofId) { value -> Bool in
-            return (value as PublicKey).isAuthorizationKey
-        }
+    public func authorizationKey(ofId: DIDURL) throws -> PublicKey? {
+        
+        let pk = try publicKey(ofId: ofId)
+        
+        return (pk != nil && pk!.isAuthorizationKey) ? pk!  : nil
+        
+//        return publicKeyMap.get(forKey: ofId) { value -> Bool in
+//            return (value as PublicKey).isAuthorizationKey
+//        }
     }
 
     /// Get authorization key according to identifier of key.
@@ -1034,7 +1055,7 @@ public class DIDDocument: NSObject {
     @objc
     public func authorizationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
-            return authorizationKey(ofId: try canonicalId(ofId)!)
+            return try authorizationKey(ofId: try canonicalId(ofId)!)
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
@@ -1066,9 +1087,8 @@ public class DIDDocument: NSObject {
     /// Check key if authorization key or not.
     /// - Parameter forId: An identifier of authorization key.
     /// - Returns: true if has authorization key, or false.
-    @objc
-    public func containsAuthorizationKey(forId: DIDURL) -> Bool {
-        return authorizationKey(ofId: forId) != nil
+    public func containsAuthorizationKey(forId: DIDURL) throws -> Bool {
+        return try authorizationKey(ofId: forId) != nil
     }
 
     func appendAuthorizationKey(_ id: DIDURL) throws -> Bool {
@@ -1175,28 +1195,40 @@ public class DIDDocument: NSObject {
         }
     }
 
-    func appendCredential(_ vc: VerifiableCredential) -> Bool {
-        guard vc.subject!.did == subject else {
-            return false
+//    func appendCredential(_ vc: VerifiableCredential) -> Bool {
+//        guard vc.subject!.did == subject else {
+//            return false
+//        }
+//        let _vc = credential(ofId: vc.getId()!)
+//        guard _vc == nil else {
+//            Log.e(DIDDocument.TAG, "Credential \(String(describing: vc.getId())) already exist.")
+//            return false
+//        }
+//        credentialMap.append(vc)
+//        _credentials.append(vc)
+//        return true
+//    }
+    
+    func appendCredential(_ vc: VerifiableCredential) throws {
+        // Check the credential belongs to current DID.
+        guard vc.subject?.did == subject else {
+            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(vc.subject?.did.toString())
         }
-        let _vc = credential(ofId: vc.getId()!)
-        guard _vc == nil else {
-            // TODO: Throw ERROR
-            Log.e(DIDDocument.TAG, "Credential \(String(describing: vc.getId())) already exist.")
-            return false
+        guard credentialMap.get(forKey: vc.getId()!, { _ -> Bool in return true }) == nil else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError(vc.subject?.did.toString())
         }
         credentialMap.append(vc)
         _credentials.append(vc)
-        return true
     }
 
-    func removeCredential(_ id: DIDURL) -> Bool {
-        let vc = credential(ofId: id)
-        guard let _ = vc else {
-            return false
+    func removeCredential(_ id: DIDURL) throws {
+        guard credentialMap.count({ _ -> Bool in return true }) > 0 else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
 
-        return credentialMap.remove(id)
+        guard credentialMap.remove(try canonicalId(id)) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+        }
     }
 
     /// Get the count of service keys.
@@ -1347,7 +1379,7 @@ public class DIDDocument: NSObject {
         _controllerDocs = [: ]
         do {
            try _controllers.forEach({ did in
-                let doc = try did.resolve()
+            let doc = try did.resolve()
             guard doc != nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve controller: \(did)")
             }
@@ -1358,7 +1390,7 @@ public class DIDDocument: NSObject {
         }
         
         if _controllers.count == 1 {
-            guard _multisig != nil else {
+            guard _multisig == nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig property")
             }
         }
@@ -1371,7 +1403,10 @@ public class DIDDocument: NSObject {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid multisig property")
             }
         }
-//    TODO:    Collections.sort(controllers);
+
+//        try _controllers.sort { (didA, didB) -> Bool in
+//            return try didA.compareTo(didB) == ComparisonResult.orderedAscending
+//        }
 
         if _controllers.count == 1 {
             _effectiveController = _controllers[0]
@@ -1456,7 +1491,10 @@ public class DIDDocument: NSObject {
                 }
                 pk?.setAuthenticationKey(true)
             })
-//   TODO:         Collections.sort(_authentications)
+            
+            try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+            }
         }
         else {
             _authentications = [ ]
@@ -1612,7 +1650,7 @@ public class DIDDocument: NSObject {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing service endpoint.")
             }
             guard svcs.get(forKey: svc.getId()!, { value -> Bool in return true }) == nil else {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Service already exists: \(svc.getId())")
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Service already exists: \(String(describing: svc.getId()))")
             }
             svcs.append(svc)
         }
@@ -1626,7 +1664,6 @@ public class DIDDocument: NSObject {
         }
         
         try _proofs.forEach { proof in
-            // TODO:
             if proof.creator == nil {
                 if defaultPublicKey() != nil {
                     proof.setCreator(_defaultPublicKey!.getId()!)
@@ -1658,12 +1695,22 @@ public class DIDDocument: NSObject {
             
             _proofsDic[proof.creator!.did!] = proof
         }
-
+        self._proofs.removeAll()
         _proofsDic.values.forEach { proof in
-            self._proofs.removeAll()
             _proofs.append(proof)
         }
-        // TODO:  Collections.sort(this._proofs)
+        
+        // sort
+        _proofs.sort { (proofA, proofB) -> Bool in
+            
+            let compareResult = proofA.createdDate.compare(proofB.createdDate)
+            if compareResult == ComparisonResult.orderedSame {
+                
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
+            } else {
+                return compareResult == ComparisonResult.orderedAscending
+            }
+        }
     }
     
     /// Set DID Metadata object for did document.
@@ -1714,7 +1761,7 @@ public class DIDDocument: NSObject {
         }
         let doc = DIDDocument(self, false)
         let json = doc.toString(true)
-        print(json)
+        print("json == \(json)")
         let jsonData = json.data(using: .utf8)
         let digest = sha256Digest([jsonData!])
         
@@ -1729,7 +1776,8 @@ public class DIDDocument: NSObject {
             guard proof.creator == defaultPublicKeyId() else {
                 return false
             }
-            return try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
+            let result = try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
+            return result
         }
         else {
             for proof in _proofs {
@@ -1747,6 +1795,10 @@ public class DIDDocument: NSObject {
                 guard proof.creator == controllerDoc!.defaultPublicKeyId() else {
                     return false
                 }
+                print("data = \(json)")
+                print("proof.creator == \(proof.creator!)")
+                print("proof.signature == \(proof.signature)")
+                print("verifyDigest == \(try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest))")
                 guard try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest) else {
                     return false
                 }
@@ -1768,7 +1820,7 @@ public class DIDDocument: NSObject {
     /// Check that document is valid or not.
     /// true if document is valid, otherwise false.
     public func isValid() throws -> Bool {
-        if try isDeactivated || isExpired || isGenuine() {
+        if try isDeactivated || isExpired || !isGenuine() {
             return false
         }
         if hasController() {
@@ -1795,7 +1847,7 @@ public class DIDDocument: NSObject {
         doc.serviceMap = serviceMap
         doc._expires = _expires
         doc._proofsDic = _proofsDic
-        let metadata = try getMetadata().clone()
+        let metadata = getMetadata()
         doc.setMetadata(metadata)
         
         return doc
@@ -1839,80 +1891,80 @@ public class DIDDocument: NSObject {
     /// Sign data by DID.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    public func sign(using storePasswordword: String, for data: Data...) throws -> String {
-        return try sign(self.defaultPublicKeyId()!, storePasswordword, data)
+    public func sign(using storePassword: String, for data: Data...) throws -> String {
+        return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
     /// Sign data by DID.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
     @objc
-    public func sign(using storePasswordword: String, for data: [Data]) throws -> String {
-        return try sign(self.defaultPublicKeyId()!, storePasswordword, data)
+    public func sign(using storePassword: String, for data: [Data]) throws -> String {
+        return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
     /// Sign data by DID.
     /// - Parameters:
     ///   - withId: Public key to sign.
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    public func sign(withId: DIDURL, using storePasswordword: String, for data: Data...) throws -> String {
-        return try sign(withId, storePasswordword, data)
+    public func sign(withId: DIDURL, using storePassword: String, for data: Data...) throws -> String {
+        return try sign(withId, storePassword, data)
     }
 
     /// Sign data by DID.
     /// - Parameters:
     ///   - withId: Public key to sign.
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
     @objc
-    public func sign(withId: DIDURL, using storePasswordword: String, for data: [Data]) throws -> String {
-        return try sign(withId, storePasswordword, data)
+    public func sign(withId: DIDURL, using storePassword: String, for data: [Data]) throws -> String {
+        return try sign(withId, storePassword, data)
     }
 
     /// Sign data by DID.
     /// - Parameters:
     ///   - withId: Public key to sign.
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    public func sign(withId: String, using storePasswordword: String, for data: Data...) throws -> String {
-        return try sign(try DIDURL(self.subject, withId), storePasswordword, data)
+    public func sign(withId: String, using storePassword: String, for data: Data...) throws -> String {
+        return try sign(try DIDURL(self.subject, withId), storePassword, data)
     }
 
     /// Sign data by DID.
     /// - Parameters:
     ///   - withId: Public key to sign.
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - data: To sign of data list.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    @objc(sign:storePasswordword:data:error:)
-    public func sign(withId: String, using storePasswordword: String, for data: [Data]) throws -> String {
-        return try sign(try DIDURL(self.subject, withId), storePasswordword, data)
+    @objc(sign:storePassword:data:error:)
+    public func sign(withId: String, using storePassword: String, for data: [Data]) throws -> String {
+        return try sign(try DIDURL(self.subject, withId), storePassword, data)
     }
 
-    func sign(_ id: DIDURL, _ storePasswordword: String, _ data: [Data]) throws -> String {
+    func sign(_ id: DIDURL, _ storePassword: String, _ data: [Data]) throws -> String {
         guard data.count > 0 else {
             throw DIDError.illegalArgument()
         }
-        guard !storePasswordword.isEmpty else {
+        guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument()
         }
-        return try signDigest(withId: id, using: storePasswordword, for: sha256Digest(data))
+        return try signDigest(withId: id, using: storePassword, for: sha256Digest(data))
     }
 
     private func sha256Digest(_ data: [Data]) -> Data {
@@ -1942,39 +1994,35 @@ public class DIDDocument: NSObject {
     /// Sign digest by DID.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - digest: The digest to sign.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
     @objc
-    public func signDigest(using storePasswordword: String, for digest: Data) throws -> String {
-        return try signDigest(withId: self.defaultPublicKeyId()!, using: storePasswordword, for: digest)
+    public func signDigest(using storePassword: String, for digest: Data) throws -> String {
+        return try signDigest(withId: self.defaultPublicKeyId()!, using: storePassword, for: digest)
     }
 
     @objc
-    public func signDigest(withId: DIDURL, using storePasswordword: String, for digest: Data) throws -> String {
-        guard !storePasswordword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-        guard getMetadata().attachedStore else {
-            throw DIDError.didStoreError("Not attached with DID store")
-        }
+    public func signDigest(withId: DIDURL, using storePassword: String, for digest: Data) throws -> String {
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        try checkAttachedStore()
         
-        return try getMetadata().store!.sign(WithId: withId, using: storePasswordword, for: digest, _capacity)
+        return try getMetadata().store!.sign(WithId: withId, using: storePassword, for: digest, _capacity)
     }
 
     /// Sign digest by DID.
     /// - Parameters:
     ///   - withId: Public key to sign
-    ///   - storePasswordword: Pass word to sign.
+    ///   - storePassword: Pass word to sign.
     ///   - digest: The digest to sign.
     /// - Throws: If no error occurs, throw error.
     /// - Returns: The  string of signature data.
-    @objc(signDigest:storePasswordword:digest:error:)
-    public func signDigest(withId: String, using storePasswordword: String, for digest: Data) throws -> String {
+    @objc(signDigest:storePassword:digest:error:)
+    public func signDigest(withId: String, using storePassword: String, for digest: Data) throws -> String {
         let _id = try DIDURL(subject, withId)
 
-        return try signDigest(withId: _id, using: storePasswordword, for: digest)
+        return try signDigest(withId: _id, using: storePassword, for: digest)
     }
 
     /// verify data.
@@ -2224,9 +2272,9 @@ public class DIDDocument: NSObject {
         // TODO: LOG
         let db = DIDDocumentBuilder(did, self, store!)
         try ctrls.forEach { ctrl in
-            try db.appendController(with: ctrl)
+            _ = try db.appendController(with: ctrl)
         }
-        try db.setMultiSignature(multisig)
+        _ = try db.setMultiSignature(multisig)
         do {
             doc = try db.sealed(using: storePassword)
             try store!.storeDid(using: doc!)
@@ -2348,7 +2396,7 @@ public class DIDDocument: NSObject {
             sigK = defaultPublicKeyId()
         }
         else {
-            guard authenticationKey(ofId: sigK!) != nil else {
+            guard try authenticationKey(ofId: sigK!) != nil else {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(sigK!.toString())
             }
         }
@@ -2409,7 +2457,7 @@ public class DIDDocument: NSObject {
     public func publish(_ signKey: DIDURL?, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
-        guard defaultPublicKeyId() != nil else {
+        if signKey == nil && defaultPublicKeyId() == nil {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
         }
         Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
@@ -2467,7 +2515,7 @@ public class DIDDocument: NSObject {
             signK = defaultPublicKeyId()
         }
         else {
-            guard authenticationKey(ofId: signK!) != nil else {
+            guard try authenticationKey(ofId: signK!) != nil else {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signK?.toString())
             }
         }
@@ -2520,7 +2568,7 @@ public class DIDDocument: NSObject {
     ///            and must resolve at first.
     ///   - storePassword: the password for DIDStore
     public func publish(_ signKey: String, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) throws {
-        try publish(signKey == nil ? nil : canonicalId(signKey), force, storePassword, adapter)
+        try publish(canonicalId(signKey), force, storePassword, adapter)
     }
     
     /// Publish DID content(DIDDocument) to chain.
@@ -2686,7 +2734,7 @@ public class DIDDocument: NSObject {
             sigK = doc!.defaultPublicKeyId()
         }
         else {
-           if !doc!.containsAuthenticationKey(forId: sigK!) {
+            if try !doc!.containsAuthenticationKey(forId: sigK!) {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
             }
         }
@@ -2821,7 +2869,7 @@ public class DIDDocument: NSObject {
                 candidatePks = self.authenticationKeys()
             }
             else {
-                let pk = authorizationKey(ofId: signKey!)
+                let pk = try authorizationKey(ofId: signKey!)
                 guard let _ = pk else {
                     throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
                 }
@@ -2986,7 +3034,6 @@ public class DIDDocument: NSObject {
         node = doc.get(forKey: Constants.CONTROLLER)
         if let _ = node {
             try parseController(node!)
-            try sanitizeControllers()
         }
         
         // multisig
@@ -2997,10 +3044,9 @@ public class DIDDocument: NSObject {
         
         //publicKey
         node = doc.get(forKey: Constants.PUBLICKEY)
-        guard let _ = node else {
-            throw DIDError.malformedDocument("missing publicKey")
+        if let _ = node {
+            try parsePublicKeys(node!)
         }
-        try parsePublicKeys(node!)
 
         node = doc.get(forKey: Constants.AUTHENTICATION)
         if let _ = node {
@@ -3066,7 +3112,6 @@ public class DIDDocument: NSObject {
         try parseProof(node!)
     
         try sanitize()
-        print("000")
     }
     
     private func parseProof(_ arrayNode: JsonNode) throws {
@@ -3074,13 +3119,15 @@ public class DIDDocument: NSObject {
         let array = arrayNode.asArray()
         
         if array == nil {
-            let p = try DIDDocumentProof.fromJson(arrayNode, DIDURL(arrayNode.get(forKey: "creator")!.asString()!))
+            let value = arrayNode.get(forKey: "creator") != nil ? try DIDURL(arrayNode.get(forKey: "creator")!.asString()!) : nil
+            let p = try DIDDocumentProof.fromJson(arrayNode, value)
             _proofs = [p]
             return
         }
         
         try array?.forEach{ node in
-            let p = try DIDDocumentProof.fromJson(node, DIDURL(node.get(forKey: "creator")!.asString()!))
+            let value = arrayNode.get(forKey: "creator") != nil ? try DIDURL(arrayNode.get(forKey: "creator")!.asString()!) : nil
+            let p = try DIDDocumentProof.fromJson(node, value)
             _proofs.append(p)
         }
     }
@@ -3181,11 +3228,7 @@ public class DIDDocument: NSObject {
         }
 
         for node in array! {
-            do {
-                _ = appendCredential(try VerifiableCredential.fromJson(node, self.subject))
-            } catch {
-                throw DIDError.malformedDocument()
-            }
+            try appendCredential(try VerifiableCredential.fromJson(node, self.subject))
         }
     }
 
@@ -3297,27 +3340,62 @@ public class DIDDocument: NSObject {
         generator.writeFieldName(Constants.ID)
         generator.writeString(self.subject.toString())
 
-        // publicKey
-        generator.writeFieldName(Constants.PUBLICKEY)
-        generator.writeStartArray()
-        for pubKey in publicKeys() {
-            pubKey.toJson(generator, self.subject, normalized)
+        // controller
+        if _controllers.count > 0 {
+            if _controllers.count == 1 {
+                generator.writeFieldName(Constants.CONTROLLER)
+                generator.writeString(_controllers[0].toString())
+            }
+            else {
+                generator.writeFieldName(Constants.CONTROLLER)
+                generator.writeStartArray()
+                for c in _controllers {
+                    generator.writeString(c.toString())
+                }
+                generator.writeEndArray()
+            }
         }
-        generator.writeEndArray()
+        //multisig
+        if let _ = multiSignature {
+            generator.writeFieldName(MULTI_SIGNATURE)
+            generator.writeString(multiSignature!.description)
+        }
+        // publicKey
+        if _publickeys.count > 0 {
+            generator.writeFieldName(Constants.PUBLICKEY)
+            generator.writeStartArray()
+            for pubKey in _publickeys {
+                pubKey.toJson(generator, self.subject, normalized)
+            }
+            generator.writeEndArray()
+        }
 
         // authentication
-        generator.writeFieldName(Constants.AUTHENTICATION)
-        generator.writeStartArray()
-        for pubKey in authenticationKeys() {
-            var value: String
-            if normalized || pubKey.getId()?.did != self.subject {
-                value = pubKey.getId()!.toString()
-            } else {
-                value = "#" + pubKey.getId()!.fragment!
+        if _authentications.count > 0 {
+            generator.writeFieldName(Constants.AUTHENTICATION)
+            generator.writeStartArray()
+            for pubKey in _authentications {
+                var value: String
+                let pubkeyId = pubKey.id?.did != nil ? pubKey.id!.did! : pubKey.publicKey?.getId()?.did
+                if normalized || pubkeyId != self.subject {
+                    if let _ = pubKey.id {
+                        value = pubKey.id!.toString()
+                    }
+                    else {
+                        value = pubKey.publicKey!.getId()!.toString()
+                    }
+                } else {
+                    if let _ = pubKey.id {
+                        value = "#" + pubKey.id!.fragment!
+                    }
+                    else {
+                        value = "#" + pubKey.publicKey!.getId()!.fragment!
+                    }
+                }
+                generator.writeString(value)
             }
-            generator.writeString(value)
+            generator.writeEndArray()
         }
-        generator.writeEndArray()
 
         if self.authorizationKeyCount > 0 {
             generator.writeFieldName(Constants.AUTHORIZATION)
@@ -3335,7 +3413,7 @@ public class DIDDocument: NSObject {
             generator.writeEndArray()
         }
 
-        // credential
+        // verifiableCredential
         if self.credentialCount > 0 {
             generator.writeFieldName(Constants.VERIFIABLE_CREDENTIAL)
             generator.writeStartArray()
@@ -3358,10 +3436,29 @@ public class DIDDocument: NSObject {
             generator.writeFieldName(Constants.EXPIRES)
             generator.writeString(DateFormatter.convertToUTCStringFromDate(self.expirationDate!))
         }
-
-        if forSign {
+        
+        if _proofs.count != 0 {
+            _proofs.sort { (proofA, proofB) -> Bool in
+                
+                let compareResult = proofA.createdDate.compare(proofB.createdDate)
+                if compareResult == ComparisonResult.orderedSame {
+                    
+                    return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
+                } else {
+                    return compareResult == ComparisonResult.orderedAscending
+                }
+            }
             generator.writeFieldName(Constants.PROOF)
-            self.proof.toJson(generator, normalized)
+            if _proofs.count > 1 {
+                generator.writeStartArray()
+                _proofs.forEach { proof in
+                    proof.toJson(generator, normalized)
+                }
+                generator.writeEndArray()
+            }
+            else {
+                self.proof.toJson(generator, normalized)
+            }
         }
 
         generator.writeEndObject()
@@ -3474,7 +3571,7 @@ extension DIDDocument {
     /// - Returns: DIDDocument string
     @objc
     public func toString() -> String {
-        return (try? toJson(false, false)) ?? ""
+        return (try? toJson(true, false)) ?? ""
     }
 
     /// Get DID Document string from DIDDocument.
@@ -3484,7 +3581,7 @@ extension DIDDocument {
     /// - Returns: DIDDocument string
     @objc
     public func toString(_ force: Bool) -> String {
-        return (try? toJson(force, force)) ?? ""
+        return (try? toJson(force, false)) ?? ""
     }
 
     /// Get DID Document string from DIDDocument.

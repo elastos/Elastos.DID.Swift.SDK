@@ -156,7 +156,7 @@ public class CredentialRequest: IDChainRequest {
         case .REVOKE:
             break
         default:
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(header?.operation?.description)")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(String(describing: header?.operation?.description))")
         }
         
         guard payload == nil, payload!.isEmpty else {
@@ -187,7 +187,7 @@ public class CredentialRequest: IDChainRequest {
     }
     
     func seal(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
-        guard doc.containsAuthenticationKey(forId: signKey) else {
+        guard try doc.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
         }
         

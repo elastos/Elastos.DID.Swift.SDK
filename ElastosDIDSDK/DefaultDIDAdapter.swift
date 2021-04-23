@@ -77,8 +77,8 @@ public class DefaultDIDAdapter: DIDAdapter {
                 return
             }
             
-            let json = try! JSONSerialization.jsonObject(with: data!, options: [])
-            print(json)
+//            let json = try! JSONSerialization.jsonObject(with: data!, options: [])
+//            print(json)
             
             result = data
             semaphore.signal()

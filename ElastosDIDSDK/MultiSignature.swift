@@ -70,6 +70,6 @@ public class MultiSignature: NSObject {
     }
     
     public override var description: String {
-        return String("\(m)\(n)")
+        return String("\(m):\(n)")
     }
 }

@@ -62,6 +62,7 @@ public enum DIDError: Error {
             case NotControllerError(_ des: String? = nil)
             case IllegalUsageError(_ des: String? = nil)
             case InvalidExpires(_ des: String? = nil)
+            case NullPointerErroe(_ des: String? = nil)
         }
         
         public enum IllegalStateError {
@@ -153,6 +154,8 @@ extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
         case .IllegalUsageError(let des):
             return des
         case .InvalidExpires(let des):
+            return des
+        case .NullPointerErroe(let des):
             return des
         }
     }

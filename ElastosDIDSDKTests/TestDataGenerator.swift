@@ -18,7 +18,7 @@ class TestDataGenerator: XCTestCase {
         try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
 
         let mnemonic: String = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
-        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePasswordword: storePassword, true)
+        try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passphrase: passphrase, storePassword: storePassword, true)
         outputDir = tempDir + "/" + "DIDTestFiles"
         
         return mnemonic

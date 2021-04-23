@@ -245,7 +245,7 @@ public class DIDRequest: IDChainRequest {
     }
     
     func seal(_ signKey: DIDURL, _ storePassword: String) throws {
-        guard _doc!.containsAuthenticationKey(forId: signKey) else {
+        guard try _doc!.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
         }
         
@@ -257,10 +257,10 @@ public class DIDRequest: IDChainRequest {
     }
     
     func seal(_ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
-        guard _doc!.containsAuthorizationKey(forId: targetSignKey) else {
+        guard try _doc!.containsAuthorizationKey(forId: targetSignKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authorization key: \(targetSignKey).")
         }
-        guard _doc!.containsAuthenticationKey(forId: signKey) else {
+        guard try _doc!.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key: \(signKey).")
         }
         guard payload != nil, payload!.isEmpty else {
@@ -278,7 +278,12 @@ public class DIDRequest: IDChainRequest {
         return document
     }
     
-    override class func parse(_ content: JsonNode) throws -> DIDRequest {
+//    class func deserializeWithSanitize(_ content: JsonNode) throws -> DIDRequest {
+//        let request = try self.deserialize(content)
+//        try request.sanitize()
+//        return request
+//    }
+    override class func deserialize(_ content: JsonNode) throws -> DIDRequest {
 
         let header = IDChainHeader.parse(content.get(forKey: "header")!)
         let payload = content.get(forKey: "payload")!.asString()
@@ -290,4 +295,20 @@ public class DIDRequest: IDChainRequest {
         try request.sanitize()
         return request
     }
+    
+    public override func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeFieldName(HEADER)
+        header?.serialize(generator)
+        if let _ = payload {
+            generator.writeFieldName(PAYLOAD)
+            generator.writeString(payload!)
+        }
+        if let _ = proof {
+            generator.writeFieldName(PROOF)
+            proof?.serialize(generator)
+        }
+        generator.writeEndObject()
+    }
+
 }

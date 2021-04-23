@@ -188,13 +188,13 @@ public class DIDStore: NSObject {
     }
     
     
-    class func encryptToBase64(_ input: Data, _ storePasswordword: String) throws -> String {
+    class func encryptToBase64(_ input: Data, _ storePassword: String) throws -> String {
         let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return by
         }
         let capacity = input.count * 3
         let base64url = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let re = encrypt_to_base64(base64url, storePasswordword, cinput, input.count)
+        let re = encrypt_to_base64(base64url, storePassword, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError("encryptToBase64 error.")
         }
@@ -202,10 +202,10 @@ public class DIDStore: NSObject {
         return String(cString: base64url)
     }
 
-    class func decryptFromBase64(_ input: String, _ storePasswordword: String) throws -> Data {
+    class func decryptFromBase64(_ input: String, _ storePassword: String) throws -> Data {
         let capacity = input.count * 3
         let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let re = decrypt_from_base64(plain, storePasswordword, input)
+        let re = decrypt_from_base64(plain, storePassword, input)
         guard re >= 0 else {
             throw DIDError.didStoreError("decryptFromBase64 error.")
         }
@@ -876,18 +876,18 @@ public class DIDStore: NSObject {
     ///   - did: the owner of key
     ///   - id: the identifier of key
     ///   - privateKey: the original private key(32 bytes)
-    ///   - storePasswordword: the password for DIDStore
+    ///   - storePassword: the password for DIDStore
     /// - Throws: If error occurs, throw error.
     @objc
     public func storePrivateKey(for id: DIDURL,
                              privateKey: Data,
-                    using storePasswordword: String) throws {
+                    using storePassword: String) throws {
 
         try checkArgument(privateKey.count != 0, "Invalid private key")
-        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
 
         
-        let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePasswordword)
+        let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePassword)
         try storage!.storePrivateKey(id, encryptedKey)
     }
     
@@ -896,26 +896,26 @@ public class DIDStore: NSObject {
     ///   - did: The handle to DID.
     ///   - id: The handle to public key identifier.
     ///   - privateKey: Private key string.
-    ///   - storePasswordword: Password for DIDStore.
+    ///   - storePassword: Password for DIDStore.
     /// - Throws: If error occurs, throw error.
-    @objc(storePrivateKeyId:privateKey:storePasswordword:error:)
+    @objc(storePrivateKeyId:privateKey:storePassword:error:)
     public func storePrivateKey(for id: String,
                              privateKey: Data,
-                    using storePasswordword: String) throws {
+                    using storePassword: String) throws {
         let _key = try DIDURL.valueOf(id)
 
-        return try storePrivateKey(for: _key, privateKey: privateKey, using: storePasswordword)
+        return try storePrivateKey(for: _key, privateKey: privateKey, using: storePassword)
     }
     
-//    func loadPrivateKey(_ did: DID, _ byId: DIDURL, _ storePasswordword: String) throws -> Data {
+//    func loadPrivateKey(_ did: DID, _ byId: DIDURL, _ storePassword: String) throws -> Data {
 //        let encryptedKey = try storage.loadPrivateKey(did, byId)
-//        let keyBytes = try DIDStore.decryptFromBase64(encryptedKey, storePasswordword)
+//        let keyBytes = try DIDStore.decryptFromBase64(encryptedKey, storePassword)
 //
 //        // For backward compatible, convert to extended private key
 //        // TODO: Should be remove in the future
 //        var extendedKeyBytes: Data?
 //        if keyBytes.count == DIDHDKey.DID_PRIVATEKEY_BYTES {
-//            let identity = try? loadPrivateIdentity(storePasswordword)
+//            let identity = try? loadPrivateIdentity(storePassword)
 //            if identity != nil {
 //                for i in 0..<100 {
 //                    let path = DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(i)"
@@ -931,7 +931,7 @@ public class DIDStore: NSObject {
 //            if extendedKeyBytes == nil {
 //                extendedKeyBytes = DIDHDKey.paddingToExtendedPrivateKey(keyBytes)
 //            }
-//            try storePrivateKey(for: did, id: byId, privateKey: extendedKeyBytes!, using: storePasswordword)
+//            try storePrivateKey(for: did, id: byId, privateKey: extendedKeyBytes!, using: storePassword)
 //        }
 //        else {
 //            extendedKeyBytes = keyBytes
@@ -944,7 +944,7 @@ public class DIDStore: NSObject {
         let value = try cache.getValue(for: Key.forDidPrivateKey(id)) { () -> NSObject? in
             let encryptedKey = try storage!.loadPrivateKey(id)
             
-            return encryptedKey != nil ? encryptedKey as? NSObject : nil
+            return encryptedKey != "" ? encryptedKey as? NSObject : nil
         }
         
         return value == nil ? nil : value as? String
@@ -1043,14 +1043,14 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - did: the owner of sign key
     ///   - id: the identifier of sign key
-    ///   - storePasswordword: storePassword the password for DIDStore
+    ///   - storePassword: storePassword the password for DIDStore
     ///   - digest: the digest data
     /// - Returns: the signature string
-    func sign(WithId id: DIDURL, using storePasswordword: String, for digest: Data, _ capacity: Int) throws -> String {
-        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
+    func sign(WithId id: DIDURL, using storePassword: String, for digest: Data, _ capacity: Int) throws -> String {
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(digest.count > 0, "Invalid digest")
         
-        let key = try DIDHDKey.deserialize(loadPrivateKey(id, storePasswordword)!)
+        let key = try DIDHDKey.deserialize(loadPrivateKey(id, storePassword)!)
         let privatekeys = key.getPrivateKeyData()
         let toPPointer = privatekeys.toPointer()
         
@@ -1068,9 +1068,9 @@ public class DIDStore: NSObject {
         return sig
     }
 
-    func sign(WithId id: String, using storePasswordword: String, for digest: Data, capacity: Int) throws -> String {
+    func sign(WithId id: String, using storePassword: String, for digest: Data, capacity: Int) throws -> String {
 
-        return try sign(WithId: DIDURL.valueOf(id), using: storePasswordword, for: digest, capacity)
+        return try sign(WithId: DIDURL.valueOf(id), using: storePassword, for: digest, capacity)
     }
     
     ///  Change password for DIDStore.
@@ -1171,7 +1171,7 @@ public class DIDStore: NSObject {
 
     /// Synchronize DIDStore asynchronously.
     /// - Parameters:
-    ///   - storePasswordword: The pass word of DID holder.
+    ///   - storePassword: The pass word of DID holder.
     ///   - conflictHandler: The method to merge document.
     /// - Returns: Void
     @objc
@@ -1181,7 +1181,7 @@ public class DIDStore: NSObject {
     }
 
     /// Synchronize DIDStore asynchronously.
-    /// - Parameter storePasswordword: The pass word of DID holder.
+    /// - Parameter storePassword: The pass word of DID holder.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Void
     @objc
@@ -1199,18 +1199,18 @@ public class DIDStore: NSObject {
 
     /*
     /// export Mnemonic.
-    /// - Parameter storePasswordword: The password of DIDStore.
+    /// - Parameter storePassword: The password of DIDStore.
     /// - Throws: If error occurs, throw error.
     /// - Returns: Mnemonic string.
     @objc
-    public func exportMnemonic(using storePasswordword: String) throws -> String {
-        guard !storePasswordword.isEmpty else {
+    public func exportMnemonic(using storePassword: String) throws -> String {
+        guard !storePassword.isEmpty else {
             throw DIDError.illegalArgument("Invalid password.")
         }
 
         if storage.containsMnemonic() {
             let encryptedMnemonic = try storage.loadMnemonic()
-            let decryptedMnemonic = try DIDStore.decryptFromBase64(encryptedMnemonic, storePasswordword)
+            let decryptedMnemonic = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
             return String(data: decryptedMnemonic, encoding: .utf8)!
         }
         else {
@@ -1234,7 +1234,7 @@ public class DIDStore: NSObject {
     private func exportDid(_ did: DID,
                            _ generator: JsonGenerator,
                            _ password: String,
-                           _ storePasswordword: String) throws {
+                           _ storePassword: String) throws {
         // All objects should load directly from storage,
         // avoid affects the cached objects.
         var doc: DIDDocument? = nil
@@ -1347,7 +1347,7 @@ public class DIDStore: NSObject {
                 if storage.containsPrivateKey(did, id) {
                     Log.i(DIDStore.TAG, "Exporting private key {}...\(id.toString())")
                     var csk: String = try storage.loadPrivateKey(did, id)
-                    let cskData: Data = try DIDStore.decryptFromBase64(csk, storePasswordword)
+                    let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)
                     csk = try DIDStore.encryptToBase64(cskData, password)
                     
                     generator.writeStartObject()
@@ -1387,15 +1387,15 @@ public class DIDStore: NSObject {
     ///   - did: Load Document by did.
     ///   - output: Document storage location.
     ///   - password: Password for export.
-    ///   - storePasswordword: Password for store.
+    ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func exportDid(_ did: DID,
                       to output: OutputStream,
                  using password: String,
-                  storePasswordword: String) throws {
+                  storePassword: String) throws {
         let generator = JsonGenerator()
-        try exportDid(did, generator, password, storePasswordword)
+        try exportDid(did, generator, password, storePassword)
         let exportStr = generator.toString()
         output.open()
         self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
@@ -1407,14 +1407,14 @@ public class DIDStore: NSObject {
     ///   - did: Load Document by did.
     ///   - output: Document storage location.
     ///   - password: Password for export.
-    ///   - storePasswordword: Password for store.
+    ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
-    @objc(exportDid:output:password:storePasswordword:error:)
+    @objc(exportDid:output:password:storePassword:error:)
     public func exportDid(_ did: String,
                       to output: OutputStream,
                  using password: String,
-                  storePasswordword: String) throws {
-        try exportDid(DID(did), to: output, using: password, storePasswordword: storePasswordword)
+                  storePassword: String) throws {
+        try exportDid(DID(did), to: output, using: password, storePassword: storePassword)
     }
 
     /// Export Did.
@@ -1422,15 +1422,15 @@ public class DIDStore: NSObject {
     ///   - did: Load Document by did.
     ///   - fileHandle: Document storage location.
     ///   - password: Password for export.
-    ///   - storePasswordword: Password for store.
+    ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
-    @objc(exportDid:fileHandle:password:storePasswordword:error:)
+    @objc(exportDid:fileHandle:password:storePassword:error:)
     public func exportDid(_ did: DID,
                   to fileHandle: FileHandle,
                  using password: String,
-                  storePasswordword: String) throws {
+                  storePassword: String) throws {
         let generator = JsonGenerator()
-        try exportDid(did, generator, password, storePasswordword)
+        try exportDid(did, generator, password, storePassword)
         let exportStr = generator.toString()
         fileHandle.write(exportStr.data(using: .utf8)!)
     }
@@ -1440,19 +1440,19 @@ public class DIDStore: NSObject {
     ///   - did: Load Document by did.
     ///   - fileHandle: Document storage location.
     ///   - password: Password for export.
-    ///   - storePasswordword: Password for store.
+    ///   - storePassword: Password for store.
     /// - Throws: If error occurs, throw error.
-    @objc(exportDidWithDid:fileHandle:password:storePasswordword:error:)
+    @objc(exportDidWithDid:fileHandle:password:storePassword:error:)
     public func exportDid(_ did: String,
                   to fileHandle: FileHandle,
                  using password: String,
-                  storePasswordword: String) throws {
-        try exportDid(DID(did), to: fileHandle, using: password, storePasswordword: storePasswordword)
+                  storePassword: String) throws {
+        try exportDid(DID(did), to: fileHandle, using: password, storePassword: storePassword)
     }
 
     private func importDid(_ root: JsonNode,
                            _ password: String,
-                           _ storePasswordword: String) throws {
+                           _ storePassword: String) throws {
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         sha256.update(&bytes)
@@ -1596,7 +1596,7 @@ public class DIDStore: NSObject {
                 bytes = [UInt8](value.data(using: .utf8)!)
                 sha256.update(&bytes)
                 let sk = try DIDStore.decryptFromBase64(csk, password)
-                csk = try DIDStore.encryptToBase64(sk, storePasswordword)
+                csk = try DIDStore.encryptToBase64(sk, storePassword)
                 sks[id!] = csk
             }
         }
@@ -1645,58 +1645,58 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - data: The data of document content.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func importDid(from data: Data,
                      using password: String,
-                      storePasswordword: String) throws {
+                      storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
-        try importDid(jsonNode, password, storePasswordword)
+        try importDid(jsonNode, password, storePassword)
     }
 
     /// Import Did.
     /// - Parameters:
     ///   - input: The path of document content.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(importDid:password:storePasswordword:error:)
+    @objc(importDid:password:storePassword:error:)
     public func importDid(from input: InputStream,
                       using password: String,
-                       storePasswordword: String) throws {
+                       storePassword: String) throws {
         let data = try readData(input: input)
-        try importDid(from: data, using: password, storePasswordword: storePasswordword)
+        try importDid(from: data, using: password, storePassword: storePassword)
     }
 
     /// Import Did.
     /// - Parameters:
     ///   - handle: FileHandle of document content.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(importDidFrom:password:storePasswordword:error:)
+    @objc(importDidFrom:password:storePassword:error:)
     public func importDid(from handle: FileHandle,
                        using password: String,
-                        storePasswordword: String) throws {
+                        storePassword: String) throws {
         handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
-        try importDid(from: data, using: password, storePasswordword: storePasswordword)
+        try importDid(from: data, using: password, storePassword: storePassword)
     }
 
     private func exportPrivateIdentity(_ generator: JsonGenerator,
                                         _ password: String,
-                                   _ storePasswordword: String) throws {
+                                   _ storePassword: String) throws {
         var encryptedMnemonic = try storage.loadMnemonic()
-        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, storePasswordword)
+        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
         encryptedMnemonic = try DIDStore.encryptToBase64(plain, password)
         var encryptedSeed = try storage.loadPrivateIdentity()
         
-        plain = try DIDStore.decryptFromBase64(encryptedSeed, storePasswordword)
+        plain = try DIDStore.decryptFromBase64(encryptedSeed, storePassword)
         encryptedSeed = try DIDStore.encryptToBase64(plain, password)
         
         let pubKey = storage.containsPublicIdentity() ? try storage.loadPublicIdentity() : nil
@@ -1755,14 +1755,14 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - output: Private identity storage location.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func exportPrivateIdentity(to output: OutputStream,
                                      _ password: String,
-                                _ storePasswordword: String) throws {
+                                _ storePassword: String) throws {
         let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePasswordword)
+        try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
         output.open()
         self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
@@ -1773,14 +1773,14 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - handle: Private identity storage location.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(exportPrivateIdentity:password:storePasswordword:error:)
+    @objc(exportPrivateIdentity:password:storePassword:error:)
     public func exportPrivateIdentity(to handle: FileHandle,
                                      _ password: String,
-                                _ storePasswordword: String) throws {
+                                _ storePassword: String) throws {
         let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePasswordword)
+        try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
         handle.write(exportStr.data(using: .utf8)!)
     }
@@ -1788,21 +1788,21 @@ public class DIDStore: NSObject {
     /// Export private identity.
     /// - Parameters:
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     /// - Returns: The data of private identity content.
     @objc
     public func exportPrivateIdentity(_ password: String,
-                                 _ storePasswordword: String) throws -> Data {
+                                 _ storePassword: String) throws -> Data {
         let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePasswordword)
+        try exportPrivateIdentity(generator, password, storePassword)
         let exportStr = generator.toString()
         return exportStr.data(using: .utf8)!
     }
     
     private func importPrivateIdentity(_ root: JsonNode,
                                    _ password: String,
-                              _ storePasswordword: String) throws {
+                              _ storePassword: String) throws {
         let sha256 = SHA256Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         sha256.update(&bytes)
@@ -1827,7 +1827,7 @@ public class DIDStore: NSObject {
         sha256.update(&bytes)
         
         var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
-        encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePasswordword)
+        encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePassword)
         
         // Key
         options = JsonSerializer.Options().withHint("key")
@@ -1837,7 +1837,7 @@ public class DIDStore: NSObject {
         sha256.update(&bytes)
         
         plain = try DIDStore.decryptFromBase64(encryptedSeed, password)
-        encryptedSeed = try DIDStore.encryptToBase64(plain, storePasswordword)
+        encryptedSeed = try DIDStore.encryptToBase64(plain, storePassword)
         
         // Key.pub
         options = JsonSerializer.Options().withHint("key.pub")
@@ -1890,69 +1890,69 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - data: The data of private identity.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func importPrivateIdentity(from data: Data,
                                  using password: String,
-                                  storePasswordword: String) throws {
+                                  storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         let jsonNode = JsonNode(dic!)
-        try importPrivateIdentity(jsonNode, password, storePasswordword)
+        try importPrivateIdentity(jsonNode, password, storePassword)
     }
 
     /// Import private identity.
     /// - Parameters:
     ///   - input: The path of private identity.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(importPrivateIdentity:password:storePasswordword:error:)
+    @objc(importPrivateIdentity:password:storePassword:error:)
     public func importPrivateIdentity(from input: InputStream,
                                   using password: String,
-                                   storePasswordword: String) throws {
+                                   storePassword: String) throws {
         let data = try readData(input: input)
-        try importPrivateIdentity(from: data, using: password, storePasswordword: storePasswordword)
+        try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
     }
 
     /// Import private identity.
     /// - Parameters:
     ///   - handle: FileHandle of private identity.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(importPrivateIdentityFrom:password:storePasswordword:error:)
+    @objc(importPrivateIdentityFrom:password:storePassword:error:)
     public func importPrivateIdentity(from handle: FileHandle,
                                    using password: String,
-                                    storePasswordword: String) throws {
+                                    storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
-        try importPrivateIdentity(from: data, using: password, storePasswordword: storePasswordword)
+        try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
     }
 
     /// Export store.
     /// - Parameters:
     ///   - output: Load Document by store.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func exportStore(to output: OutputStream,
                            _ password: String,
-                      _ storePasswordword: String) throws {
+                      _ storePassword: String) throws {
         var exportStr = ""
         if containsPrivateIdentity() {
             let generator = JsonGenerator()
-            try exportPrivateIdentity(generator, password, storePasswordword)
+            try exportPrivateIdentity(generator, password, storePassword)
             exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
         }
         let dids = try listDids(using: DIDStore.DID_ALL)
         for did in dids {
             let didstr = did.methodSpecificId
             let generator = JsonGenerator()
-            try exportDid(did, generator, password, storePasswordword)
+            try exportDid(did, generator, password, storePassword)
             exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
         }
         output.open()
@@ -1964,23 +1964,23 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - handle: Load Document by store.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(exportStore:password:storePasswordword:error:)
+    @objc(exportStore:password:storePassword:error:)
     public func exportStore(to handle: FileHandle,
                            _ password: String,
-                      _ storePasswordword: String) throws {
+                      _ storePassword: String) throws {
         var exportStr = ""
         if containsPrivateIdentity() {
             let generator = JsonGenerator()
-            try exportPrivateIdentity(generator, password, storePasswordword)
+            try exportPrivateIdentity(generator, password, storePassword)
             exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
         }
         let dids = try listDids(using: DIDStore.DID_ALL)
         for did in dids {
             let didstr = did.methodSpecificId
             let generator = JsonGenerator()
-            try exportDid(did, generator, password, storePasswordword)
+            try exportDid(did, generator, password, storePassword)
             exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
         }
         handle.write(exportStr.data(using: .utf8)!)
@@ -1990,12 +1990,12 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - input: The data of store content.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
     @objc
     public func importStore(from input: InputStream,
                             _ password: String,
-                       _ storePasswordword: String) throws {
+                       _ storePassword: String) throws {
         let data = try readData(input: input)
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
@@ -2005,16 +2005,16 @@ public class DIDStore: NSObject {
         let privateIdentity = dic!["privateIdentity"] as? [String: Any]
         if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
             let node = JsonNode(privateIdentity!)
-            try importPrivateIdentity(node, password, storePasswordword)
+            try importPrivateIdentity(node, password, storePassword)
         }
         try dic!.forEach{ key, value in
             if key == "privateIdentity" {
                 let node = JsonNode(value)
-                try importPrivateIdentity(node, password, storePasswordword)
+                try importPrivateIdentity(node, password, storePassword)
             }
             else {
                 let node = JsonNode(value)
-                try importDid(node, password, storePasswordword)
+                try importDid(node, password, storePassword)
             }
         }
     }
@@ -2023,12 +2023,12 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - handle: The handle of store content.
     ///   - password: The password of export.
-    ///   - storePasswordword: The password of store.
+    ///   - storePassword: The password of store.
     /// - Throws: If error occurs, throw error.
-    @objc(importStore:password:storePasswordword:error:)
+    @objc(importStore:password:storePassword:error:)
     public func importStore(from handle: FileHandle,
                              _ password: String,
-                        _ storePasswordword: String) throws {
+                        _ storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
@@ -2038,16 +2038,16 @@ public class DIDStore: NSObject {
         let privateIdentity = dic!["privateIdentity"] as? [String: Any]
         if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
             let node = JsonNode(privateIdentity!)
-            try importPrivateIdentity(node, password, storePasswordword)
+            try importPrivateIdentity(node, password, storePassword)
         }
         try dic!.forEach{ key, value in
             if key == "privateIdentity" {
                 let node = JsonNode(dic as Any)
-                try importPrivateIdentity(node, password, storePasswordword)
+                try importPrivateIdentity(node, password, storePassword)
             }
             else {
                 let node = JsonNode(dic as Any)
-                try importDid(node, password, storePasswordword)
+                try importDid(node, password, storePassword)
             }
         }
     }

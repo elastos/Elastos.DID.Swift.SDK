@@ -79,12 +79,7 @@ public class ResolverCache: NSObject {
     /// - Returns: If no error occurs, return the handle to ResolveResult. Otherwise, return nil.
     @objc
     public class func load(_ did: DID, _ ttl: Int, error: NSErrorPointer) -> ResolveResult? {
-        do {
-            return try load(did, ttl, error: error)
-        } catch let aError as NSError {
-            error?.pointee = aError
-            return nil
-        }
+        return load(did, ttl, error: error)
     }
     
     // temp add

@@ -41,3 +41,23 @@ class SHA256Helper {
         return hash
     }
 }
+
+class MD5Helper {
+    
+    private var context = CC_MD5_CTX()
+
+    init() {
+        CC_MD5_Init(&context)
+    }
+    
+    func update(_ data: inout [UInt8]) {
+
+        CC_MD5_Update(&context, &data, CC_LONG(data.count))
+    }
+
+    func finalize() -> [UInt8] {
+        var hash = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
+        CC_MD5_Final(&hash, &context)
+        return hash
+    }
+}

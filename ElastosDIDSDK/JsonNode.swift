@@ -123,6 +123,8 @@ public class JsonNode: NSObject {
             let data = try! JSONSerialization.data(withJSONObject: result, options: [])
             resultString = String(data: data, encoding: String.Encoding.utf8)!
             resultString = resultString.replacingOccurrences(of: "\\\"", with: "\"")
+            resultString = resultString.replacingOccurrences(of: "\"{", with: "{")
+            resultString = resultString.replacingOccurrences(of: "}\"", with: "}")
             return resultString;
 
         } else {

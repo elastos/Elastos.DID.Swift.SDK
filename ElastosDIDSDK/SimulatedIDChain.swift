@@ -3,11 +3,14 @@ import Foundation
 import Swifter
 
 // For mini HTTP server
+let DEFAULT_PORT: Int = 9996
+//   let DEFAULT_PORT: Int = 9123
 public class SimulatedIDChain {
     
     let TAG = NSStringFromClass(SimulatedIDChain.self)
     let DEFAULT_HOST = "localhost"
-    let DEFAULT_PORT: Int = 9999
+//    let DEFAULT_PORT: Int = 9999
+//    let DEFAULT_PORT: Int = 9123
 
     var host: String
     var port: Int
@@ -72,7 +75,7 @@ public class SimulatedIDChain {
     
     func getLastDidTransaction(_ did: DID) -> DIDTransaction? {
         for tx in idtxs {
-            if tx.did == did {
+            if try! tx.did?.compareTo(did) == ComparisonResult.orderedSame {
                 return tx
             }
         }
@@ -242,7 +245,7 @@ public class SimulatedIDChain {
                 throw DIDError.CheckedError.DIDBackendError.DIDTransactionError("DID not exist.")
             }
 
-            if (tx!.request.document!.containsAuthorizationKey(forId: request.proof!.verificationMethod)) {
+            if (try tx!.request.document!.containsAuthorizationKey(forId: request.proof!.verificationMethod)) {
                 _ = stat.deactivateDidByAuthroization()
             }
             else {
@@ -545,19 +548,14 @@ public class SimulatedIDChain {
                     result["jsonrpc"] = "2.0"
                     let bio = response.result as! DIDBiography
                     var r1: Dictionary<String, Any> = [:]
-                    r1["did"] = bio.did.toString()
-                    r1["status"] = bio.status.rawValue
-
+                    r1 = bio.serialize().toDictionary()
                     result["result"] = r1
                     let data = try JSONSerialization.data(withJSONObject: result, options: JSONSerialization.WritingOptions.prettyPrinted)
                     return HttpResponse.ok(HttpResponseBody.data(data, contentType: "application/json"))
-                    break
-                    
                 default: break
                     
                 }
             } catch { print("erroMsg")
-                
             }
             
             return HttpResponse.ok(.htmlBody("You 111111 for"))
@@ -570,26 +568,17 @@ public class SimulatedIDChain {
                 print(json)
                 let header: Dictionary = json["header"] as! Dictionary<String, String>
                 let specification: String = header["specification"]!
-//                let op = header["operation"]
                 switch specification {
                 case IDChainRequest.DID_SPECIFICATION:
-                    let req: DIDRequest = try DIDRequest.parse(JsonNode(json)) as! DIDRequest
+                    let req: DIDRequest = try DIDRequest.deserialize(JsonNode(json))
                     try createDidTransaction(req)
                     return HttpResponse.accepted
-                    print("1111111")
-                    break
                 default: break
                     
                 }
-                
-                
             } catch { print("erroMsg")
-                print("222222")
-
             }
             // TODO delete
-            print("3333333")
-
             return HttpResponse.ok(.htmlBody("You 111111 for"))
         }
         

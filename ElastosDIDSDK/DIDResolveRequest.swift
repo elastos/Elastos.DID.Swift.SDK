@@ -68,7 +68,7 @@ public class DIDResolveRequest: ResolveRequest {
             generator.writeStartObject()
             generator.writeStringField(PARAMETER_DID, did!.toString())
             if let _ = isResolveAll {
-                generator.writeBoolField(PARAMETER_ALL, isResolveAll!)
+//                generator.writeBoolField(PARAMETER_ALL, isResolveAll!)
             }
             generator.writeEndObject()
         }

@@ -30,7 +30,7 @@ public class DIDDocumentProof: NSObject {
     private var _creator: DIDURL?
     private var _signature: String?
     
-    init(_ type: String, _ createdDate: Date, _ creator: DIDURL, _ signature: String) {
+    init(_ type: String, _ createdDate: Date, _ creator: DIDURL?, _ signature: String) {
         self._type = type
         self._createdDate = createdDate
         self._creator = creator
@@ -71,7 +71,7 @@ public class DIDDocumentProof: NSObject {
         return self._signature!
     }
 
-    class func fromJson(_ node: JsonNode, _ refSginKey: DIDURL) throws -> DIDDocumentProof {
+    class func fromJson(_ node: JsonNode, _ refSginKey: DIDURL?) throws -> DIDDocumentProof {
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
 
@@ -88,7 +88,7 @@ public class DIDDocumentProof: NSObject {
 
         options = JsonSerializer.Options()
                                 .withOptional()
-                                .withRef(refSginKey.did)
+                                .withRef(refSginKey?.did)
                                 .withHint("document proof creator")
         var creator = try serializer.getDIDURL(Constants.CREATOR, options)
         if  creator == nil {
@@ -99,7 +99,7 @@ public class DIDDocumentProof: NSObject {
                                 .withHint("document proof signature")
         let signature = try serializer.getString(Constants.SIGNATURE_VALUE, options)
 
-        return DIDDocumentProof(type, created, creator!, signature)
+        return DIDDocumentProof(type, created, creator, signature)
     }
 
     func toJson(_ generator: JsonGenerator, _ normalized: Bool) {
@@ -116,7 +116,7 @@ public class DIDDocumentProof: NSObject {
         generator.writeString(DateFormatter.convertToUTCStringFromDate(self.createdDate))
 
         // creator
-        if normalized {
+        if let _ = creator {
             generator.writeFieldName(Constants.CREATOR)
             generator.writeString(self.creator!.toString())
         }

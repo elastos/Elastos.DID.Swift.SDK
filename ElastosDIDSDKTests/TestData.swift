@@ -366,6 +366,7 @@ public class CompatibleData {
             try doc.publish(getDocument("user1").defaultPublicKeyId()!, storePassword)
             break
         default:
+            print("09090909090909")
             try doc.publish(storePassword)
             break
         }
@@ -393,14 +394,15 @@ public class CompatibleData {
     
     func getCredential(_ did: String, _ vc: String, _ type: String?) throws -> VerifiableCredential {
         // Load DID document first for verification
-        let doc = try getDocument(did)
+        _ = try getDocument(did)
         let baseKey = "res:vc:" + did + ":" + vc
         let key = type != nil ? baseKey + ":" + type! : baseKey
         if (data.keys.contains(key)) {
             return data[key] as! VerifiableCredential
         }
         // load the credential
-        let credential = try VerifiableCredential.fromJson(for: getCredentialFile(did, vc, type))
+        let path = getCredentialFile(did, vc, type)
+        let credential = try VerifiableCredential.fromJson(for: loadText(path))
         // If not stored before, store it
         
         if (!data.keys.contains(baseKey)) {
@@ -431,7 +433,7 @@ public class CompatibleData {
     
     func getPresentation(_ did: String, _ vp: String, _ type: String?) throws -> VerifiablePresentation {
         // Load DID document first for verification
-        try getDocument(did)
+        _ = try getDocument(did)
 
         let baseKey = "res:vp:" + did + ":" + vp
         let key = type != nil ? baseKey + ":" + type! : baseKey
@@ -465,18 +467,18 @@ public class CompatibleData {
     }
     
     func loadAll() throws {
-        try getDocument("issuer")
-        try getDocument("user1")
-        try getDocument("user2")
-        try getDocument("user3")
+        _ = try getDocument("issuer")
+        _ = try getDocument("user1")
+        _ = try getDocument("user2")
+        _ = try getDocument("user3")
 
         if (version == 2) {
-            try getDocument("user4")
-            try getDocument("examplecorp")
-            try getDocument("foobar")
-            try getDocument("foo")
-            try getDocument("bar")
-            try getDocument("baz")
+            _ = try getDocument("user4")
+            _ = try getDocument("examplecorp")
+            _ = try getDocument("foobar")
+            _ = try getDocument("foo")
+            _ = try getDocument("bar")
+            _ = try getDocument("baz")
         }
     }
 }
@@ -523,7 +525,7 @@ class InstantData {
     
     func getIssuerDocument() throws -> DIDDocument {
         if idIssuer == nil {
-            try testData.getRootIdentity()
+            _ = try testData.getRootIdentity()
             
             var doc = try testData.identity!.newDid(storePassword)
             doc.getMetadata().setAlias("Issuer")
@@ -540,22 +542,22 @@ class InstantData {
                 .sealed(using: storePassword)
             
             let db = try doc.editing()
-            try db.appendCredential(with: vc)
+            _ = try db.appendCredential(with: vc)
             
             var key = try TestData.generateKeypair()
             var id = try DIDURL(doc.subject, "#key2")
-            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
             
             // No private key for testKey
             key = try TestData.generateKeypair()
             id = try DIDURL(doc.subject, "#testKey")
-            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             
             // No private key for recovery
             key = try TestData.generateKeypair()
             id = try DIDURL(doc.subject, "#recovery")
-            try db.appendAuthorizationKey(id, DID("did:elastos:\(key.getAddress())"), key.getPublicKeyBase58())
+            _ = try db.appendAuthorizationKey(id, DID("did:elastos:\(key.getAddress())"), key.getPublicKeyBase58())
             
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
@@ -568,7 +570,7 @@ class InstantData {
     
     func getUser1Document() throws -> DIDDocument {
         if idUser1 == nil {
-            try getIssuerDocument()
+            _ = try getIssuerDocument()
             
             var doc = try testData.identity!.newDid(storePassword)
             doc.getMetadata().setAlias("User1")
@@ -577,25 +579,25 @@ class InstantData {
             let db = try doc.editing()
 
             var temp = try TestData.generateKeypair()
-            try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key2"),
                                             privateKey: temp.serialize(),
                                             using: storePassword)
             
             temp = try TestData.generateKeypair()
-            try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key3"),
                                             privateKey: temp.serialize(),
                                             using: storePassword)
 
             temp = try TestData.generateKeypair()
-            try db.appendAuthorizationKey(with: "#recovery", controller: "did:elastos:\(temp.getAddress())", keyBase58: temp.getPublicKeyBase58())
+            _ = try db.appendAuthorizationKey(with: "#recovery", controller: "did:elastos:\(temp.getAddress())", keyBase58: temp.getPublicKeyBase58())
             
-            try db.appendService(with: "#openid", type: "OpenIdConnectVersion1.0Service", endpoint: "https://openid.example.com/")
-            try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
+            _ = try db.appendService(with: "#openid", type: "OpenIdConnectVersion1.0Service", endpoint: "https://openid.example.com/")
+            _ = try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
                              endpoint: "https://did.example.com/credentials")
 
-            var map = ["abc": "helloworld",
+            let map = ["abc": "helloworld",
                        "foo": 123,
                        "bar": "foobar",
                        "foobar": "lalala...",
@@ -604,7 +606,7 @@ class InstantData {
                        "FOO": 678,
                        "BAR": "Foobar",
                        "DATE": DateFormatter.currentDate()] as [String : Any]
-            var props = ["abc": "helloworld",
+            let props = ["abc": "helloworld",
                          "foo": 123,
                          "bar": "foobar",
                          "foobar": "lalala...",
@@ -616,7 +618,7 @@ class InstantData {
                          "FOOBAR": "Lalala...",
                          "DATE": DateFormatter.currentDate(),
                          "MAP": map] as [String : Any]
-            try db.appendService(with: "#carrier", type: "CarrierAddress", endpoint: "carrier://X2tDd1ZTErwnHNot8pTdhp7C7Y9FxMPGD8ppiasUT4UsHH2BpF1d", properties: map)
+            _ = try db.appendService(with: "#carrier", type: "CarrierAddress", endpoint: "carrier://X2tDd1ZTErwnHNot8pTdhp7C7Y9FxMPGD8ppiasUT4UsHH2BpF1d", properties: map)
             let selfIssuer = try VerifiableCredentialIssuer(doc)
             var cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             var prop: [String: String] = [: ]
@@ -643,8 +645,8 @@ class InstantData {
                     .withProperties(prop)
                 .sealed(using: storePassword)
 
-            try db.appendCredential(with: vcProfile)
-            try db.appendCredential(with: vcEmail)
+            _ = try db.appendCredential(with: vcProfile)
+            _ = try db.appendCredential(with: vcEmail)
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(storePassword)
@@ -729,7 +731,7 @@ class InstantData {
     
     func getUser1JobPositionCredential() throws -> VerifiableCredential {
         if (vcUser1JobPosition == nil) {
-            try getExampleCorpDocument()
+            _ = try getExampleCorpDocument()
             
             let doc = try getUser1Document()
             
@@ -799,7 +801,7 @@ class InstantData {
 
             let props = ["name": "John", "gender": "Male", "nation": "Singapore", "language": "English", "email": "john@example.com", "twitter": "@john"]
 
-            try db.appendCredential(with: "#profile", subject: props, using: storePassword)
+            _ = try db.appendCredential(with: "#profile", subject: props, using: storePassword)
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(storePassword)
@@ -836,7 +838,7 @@ class InstantData {
     
     func getExampleCorpDocument() throws -> DIDDocument {
         if (idExampleCorp == nil) {
-            try getIssuerDocument()
+            _ = try getIssuerDocument()
             
             let did = try DID("did:elastos:example")
             var doc = try idIssuer!.newCustomizedDid(did, storePassword)
@@ -852,17 +854,17 @@ class InstantData {
                 .sealed(using: storePassword)
             
             let db = try doc.editing()
-            try db.appendCredential(with: vc)
+            _ = try db.appendCredential(with: vc)
             
             var key = try TestData.generateKeypair()
             var id = try DIDURL(doc.subject, "#key2")
-            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
             
             // No private key for testKey
             key = try TestData.generateKeypair()
             id = try DIDURL(doc.subject, "#testKey")
-            try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
@@ -876,10 +878,10 @@ class InstantData {
     
     func getFooBarDocument() throws -> DIDDocument {
         if (idFooBar == nil) {
-            try getExampleCorpDocument()
-            try getUser1Document()
-            try getUser2Document()
-            try getUser3Document()
+            _ = try getExampleCorpDocument()
+            _ = try getUser1Document()
+            _ = try getUser2Document()
+            _ = try getUser3Document()
             
             let controllers = [idUser1!.subject, idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:foobar")
@@ -890,23 +892,23 @@ class InstantData {
             let db = try doc.editing(idUser1!)
             
             var temp = try TestData.generateKeypair()
-            try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: temp.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key2"),
                                                 privateKey: temp.serialize(), using: storePassword)
             
             temp = try TestData.generateKeypair()
-            try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
+            _ = try db.appendAuthenticationKey(with: "#key3", keyBase58: temp.getPublicKeyBase58())
             try testData.store!.storePrivateKey(for: DIDURL(doc.subject, "#key3"),
                                                 privateKey: try temp.serialize(), using: storePassword)
             
-            try db.appendService(with: "#vault", type: "Hive.Vault.Service",
+            _ = try db.appendService(with: "#vault", type: "Hive.Vault.Service",
                                  endpoint: "https://foobar.com/vault")
             
             let map = ["abc": "helloworld", "foo": 123, "bar": "foobar", "foobar": "lalala...", "date": DateFormatter.currentDate(), "ABC": "Helloworld", "FOO": 678, "BAR": "Foobar", "DATE": DateFormatter.currentDate()] as [String : Any]
             
             let props = ["abc": "helloworld", "foo": 123, "bar": "foobar", "foobar": "lalala...", "date": DateFormatter.currentDate(),"map": map, "ABC": "Helloworld", "FOO": 678, "BAR": "Foobar", "DATE": DateFormatter.currentDate(), "MAP": map] as [String : Any]
             
-            try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
+            _ = try db.appendService(with: "#vcr", type: "CredentialRepositoryService",
                                  endpoint: "https://foobar.com/credentials", properties: props)
             
             let selfIssuer = try VerifiableCredentialIssuer(doc, signKey!)
@@ -931,8 +933,8 @@ class InstantData {
                 .withProperties(pr)
                 .sealed(using: storePassword)
             
-            try db.appendCredential(with: vcProfile)
-            try db.appendCredential(with: vcEmail)
+            _ = try db.appendCredential(with: vcProfile)
+            _ = try db.appendCredential(with: vcEmail)
             doc = try db.sealed(using: storePassword)
             doc = try idUser3!.sign(doc, storePassword)
             try testData.store!.storeDid(using: doc)
@@ -969,10 +971,10 @@ class InstantData {
     
     func getFooBarLicenseCredential() throws -> VerifiableCredential {
         if (vcFooBarLicense == nil) {
-            try getExampleCorpDocument()
-            try getUser1Document()
-            try getUser2Document()
-            try getUser3Document()
+            _ = try getExampleCorpDocument()
+            _ = try getUser1Document()
+            _ = try getUser2Document()
+            _ = try getUser3Document()
             
             let doc = try getFooBarDocument()
             
@@ -1048,8 +1050,8 @@ class InstantData {
     
     func getFooDocument() throws -> DIDDocument {
         if (idFoo == nil) {
-            try getUser1Document()
-            try getUser2Document()
+            _ = try getUser1Document()
+            _ = try getUser2Document()
 
             let controllers = [idUser2!.subject]
             let did = try DID("did:elastos:foo")
@@ -1069,7 +1071,7 @@ class InstantData {
     
     func getFooEmailCredential() throws -> VerifiableCredential {
         if (vcFooEmail == nil) {
-            try getIssuerDocument()
+            _ = try getIssuerDocument()
             
             let doc = try getFooDocument()
             
@@ -1094,9 +1096,9 @@ class InstantData {
     
     func getBarDocument() throws -> DIDDocument {
         if (idBar == nil) {
-            try getUser1Document()
-            try getUser2Document()
-            try getUser3Document()
+            _ = try getUser1Document()
+            _ = try getUser2Document()
+            _ = try getUser3Document()
             
             let controllers = [idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:bar")
@@ -1114,9 +1116,9 @@ class InstantData {
     
     func getBazDocument() throws -> DIDDocument {
         if (idBaz == nil) {
-            try getUser1Document()
-            try getUser2Document()
-            try getUser3Document()
+            _ = try getUser1Document()
+            _ = try getUser2Document()
+            _ = try getUser3Document()
 
             let controllers = [idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:baz")

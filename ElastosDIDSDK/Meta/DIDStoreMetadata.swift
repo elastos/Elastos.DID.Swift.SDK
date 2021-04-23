@@ -65,9 +65,9 @@ public class DIDStoreMetadata: AbstractMetadata {
         put(DEFAULT_ROOT_IDENTITY, id)
     }
     
-    public var defaultRootIdentity: String {
+    public var defaultRootIdentity: String? {
        
-        return get(DEFAULT_ROOT_IDENTITY)!
+        return get(DEFAULT_ROOT_IDENTITY)
     }
     
     override func save() {

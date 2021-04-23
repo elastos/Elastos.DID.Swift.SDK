@@ -26,23 +26,7 @@ import ObjectMapper
 /// Public keys are used for digital signatures, encryption and other cryptographic operations,
 /// which are the basis for purposes such as authentication or establishing secure communication with service endpoints.
 @objc(PublicKey)
-public class PublicKey: DIDObject, Mappable {
-    
-    public required init?(map: Map) {
-//        try! self._controller = map.value("controller")
-//        try! self._keyBase58 = map.value("publicKeyBase58")
-//        try! self.authenticationKey = map.value("controller")
-//        try! self.authorizationKey = map.value("controller")
-        super.init()
-    }
-    
-    public func mapping(map: Map) {
-//        _id <- map["id"]
-        _keyBase58 <- map["publicKeyBase58"]
-        
-        _id = try! DIDURL(map.value("id"))
-
-    }
+public class PublicKey: DIDObject {
     
     private var _controller: DID?
     private var _keyBase58: String?
@@ -182,4 +166,54 @@ extension PublicKey {
     public override func isEqual(_ object: Any?) -> Bool {
         return equalsTo(object as! DIDObject)
     }
+    
+    public func compareTo(_ key: PublicKey) throws -> ComparisonResult {
+        
+        try checkNotNull(self.getId() == nil || key.getId() == nil, "id is nil")
+        var result = self.getId()!.compareTo(key.getId()!)
+        
+        try checkNotNull(self.publicKeyBase58 == nil || key.publicKeyBase58 == nil, "publicKeyBase58 is nil")
+        if result == ComparisonResult.orderedSame {
+            result = self.publicKeyBase58.compare(key.publicKeyBase58)
+        } else {
+            return result
+        }
+        
+        try checkNotNull(self.getType() == nil || key.getType() == nil, "type is nil")
+        if result == ComparisonResult.orderedSame {
+            result = self.getType()!.compare(key.getType()!)
+        } else {
+            return result
+        }
+        
+        if result == ComparisonResult.orderedSame {
+            
+            try checkNotNull(self.controller == nil || key.controller == nil, "controller is nil")
+            return try self.controller!.compareTo(self.controller!)
+        } else {
+            return result
+        }
+    }
+     
+    
+//    @Override
+//            public int compareTo(PublicKey key) {
+//                int rc = id.compareTo(key.id);
+//
+//                if (rc != 0)
+//                    return rc;
+//                else
+//                    rc = keyBase58.compareTo(key.keyBase58);
+//
+//                if (rc != 0)
+//                    return rc;
+//                else
+//                    rc = type.compareTo(key.type);
+//
+//                if (rc != 0)
+//                    return rc;
+//                else
+//                    return controller.compareTo(key.controller);
+//            }
+
 }
