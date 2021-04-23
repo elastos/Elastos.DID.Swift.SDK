@@ -121,11 +121,12 @@ public class VerifiableCredentialBuilder: NSObject {
     @objc
     public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
-        guard !DateFormatter.isExpired(expirationDate, maxExpirationDate()) else {
-            throw DIDError.illegalArgument()
+        var _expirationDate = expirationDate
+
+        if _expirationDate > maxExpirationDate() {
+            _expirationDate = maxExpirationDate()
         }
 
-        // TODO: check
         _credential!.setExpirationDate(expirationDate)
         return self
     }
@@ -206,13 +207,13 @@ public class VerifiableCredentialBuilder: NSObject {
     }
 
     /// Finish modiy VerifiableCredential.
-    /// - Parameter storePasswordword: Pass word to sign.
+    /// - Parameter storePassword: Pass word to sign.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to VerifiableCredential.
     @objc
-    public func sealed(using storePasswordword: String) throws -> VerifiableCredential {
+    public func sealed(using storePassword: String) throws -> VerifiableCredential {
         try checkNotSealed()
-        try checkArgument(!storePasswordword.isEmpty, "Invalid storePassword")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         guard _credential!.checkIntegrity() else {
             throw DIDError.malformedCredential("imcomplete credential")
         }
@@ -226,7 +227,7 @@ public class VerifiableCredentialBuilder: NSObject {
         guard let data = _credential!.toJson(true, true).data(using: .utf8) else {
             throw DIDError.illegalArgument("credential is nil")
         }
-        let signature = try _forDoc.sign(_signKey, storePasswordword, [data])
+        let signature = try _forDoc.sign(_signKey, storePassword, [data])
         let proof = VerifiableCredentialProof(_signKey, signature)
 
         _credential!.setProof(proof)
@@ -239,7 +240,8 @@ public class VerifiableCredentialBuilder: NSObject {
     }
 
     private func maxExpirationDate() -> Date {
-        guard _credential?.getIssuanceDate() != nil else {
+        
+        guard _credential?.getIssuanceDate() == nil else {
             return DateFormatter.convertToWantDate(_credential!.getIssuanceDate()!, Constants.MAX_VALID_YEARS)
         }
         return DateFormatter.convertToWantDate(Date(), Constants.MAX_VALID_YEARS)

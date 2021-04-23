@@ -38,17 +38,35 @@ public class VerifiableCredentialIssuer: NSObject {
         // builder to create a new verifiable credential. So,
         // should make sure the key would be authenticationKey and
         // has corresponding private key to make sign.
-        guard doc.containsAuthenticationKey(forId: key!) else {
-            throw DIDError.illegalArgument()
+        guard try doc.containsAuthenticationKey(forId: key!) else {
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError()
         }
         guard try doc.containsPrivateKey(forId: key!) else {
-            throw DIDError.illegalArgument(Errors.NO_PRIVATE_KEY_EXIST)
+            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(Errors.NO_PRIVATE_KEY_EXIST)
         }
 
         self._issuerDoc = doc
         self._signKey = key!
     }
+/*
+     private void init(DIDDocument doc, DIDURL signKey) throws DIDStoreException {
+         this.self = doc;
 
+         if (signKey == null) {
+             signKey = self.getDefaultPublicKeyId();
+             if (signKey == null)
+                 throw new InvalidKeyException("Need explict sign key or effective controller");
+         } else {
+             if (!self.isAuthenticationKey(signKey))
+                 throw new InvalidKeyException(signKey.toString());
+         }
+
+         if (!doc.hasPrivateKey(signKey))
+             throw new InvalidKeyException("No private key: " + signKey);
+
+         this.signKey = signKey;
+     }
+     */
     private convenience init(_ did: DID, signKey: DIDURL? , _ store: DIDStore) throws {
         let doc: DIDDocument?
         do {

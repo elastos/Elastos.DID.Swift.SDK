@@ -404,7 +404,7 @@ public class VerifiableCredential: DIDObject, Mappable {
     /// Issuance always occurs before any other actions involving a credential.
     /// return: flase if not genuine, true if genuine.
     public func isGenuine() throws -> Bool {
-        guard id == subject?.did else {
+        guard id?.did == subject?.did else {
             return false
         }
         let issuerDoc = try issuer?.resolve()
@@ -415,7 +415,7 @@ public class VerifiableCredential: DIDObject, Mappable {
             return false
         }
         // Credential should signed by any authentication key.
-        guard issuerDoc!.containsAuthenticationKey(forId: proof!.verificationMethod) else {
+        guard try issuerDoc!.containsAuthenticationKey(forId: proof!.verificationMethod) else {
             return false
         }
         // Unsupported public key type
@@ -521,7 +521,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         return false
     }
     
-    private func declare(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    private func declare(signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         guard try isGenuine() else {
@@ -555,7 +555,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         var sk = signKey
         if (signKey != nil) {
-            if (!owner!.containsAuthenticationKey(forId: signKey!)) {
+            if (try !owner!.containsAuthenticationKey(forId: signKey!)) {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
             }
         } else {
@@ -565,31 +565,31 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     public func declare(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try declare(signKey, storePassword, adapter)
+        try declare(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func declare(_ signKey: DIDURL, _ storePassword: String) throws {
-        try declare(signKey, storePassword, nil)
+        try declare(signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
     public func declare(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try declare(DIDURL.valueOf(subject!.did, signKey), storePassword, adapter)
+        try declare(signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter)
     }
     
     public func declare(_ signKey: String, _ storePassword: String) throws {
-        try declare(DIDURL.valueOf(subject!.did, signKey), storePassword, nil)
+        try declare(signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: nil)
     }
     
     public func declare(_ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try declare(nil, storePassword, adapter)
+        try declare(signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
     public func declare(_ storePassword: String) throws {
-        try declare(nil, storePassword, nil)
+        try declare(signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
     public func declareAsync(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storePassword, adapter) }
+        return DispatchQueue.global().async(.promise){ [self] in try declare(signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
     public func declareAsync(_ signKey: DIDURL?, _ storePassword: String) -> Promise<Void> {
@@ -612,7 +612,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         return DispatchQueue.global().async(.promise){ [self] in try declare(storePassword) }
     }
     
-    private func revoke(_ signer: DIDDocument?, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    private func revoke(signer: DIDDocument?, signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         let owner = try subject?.did.resolve()
@@ -654,7 +654,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         var sk = signKey
         if signKey != nil{
-            guard sg!.containsAuthenticationKey(forId: signKey!) else {
+            guard try sg!.containsAuthenticationKey(forId: signKey!) else {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
             }
         }
@@ -665,31 +665,31 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(signer, signKey, storePassword, adapter)
+        try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
-        try revoke(signer, signKey, storePassword, nil)
+        try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
     public func revoke(_ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(signer, nil, storePassword, adapter)
+        try revoke(signer: signer, signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signer: DIDDocument, _ storePassword: String) throws {
-        try revoke(signer, nil, storePassword, nil)
+        try revoke(signer: signer, signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
     public func revoke(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(nil, signKey, storePassword, adapter)
+        try revoke(signer: nil, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signKey: DIDURL, _ storePassword: String) throws {
-        try revoke(nil, signKey, storePassword, nil)
+        try revoke(signer: nil, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
     private func revoke(_ signer: DIDDocument?, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
-        try revoke(signer, DIDURL.valueOf(subject!.did, signKey), storePassword, adapter)
+        try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
@@ -709,15 +709,15 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     public func revoke(_ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(nil, nil, storePassword, adapter)
+        try revoke(signer: nil, signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ storePassword: String) throws {
-        try revoke(nil, nil, storePassword, nil)
+        try revoke(signer: nil, signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
     private func revokeAsync(_ signer: DIDDocument?, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer, signKey, storePassword, adapter) }
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
@@ -744,24 +744,24 @@ public class VerifiableCredential: DIDObject, Mappable {
         return revokeAsync(nil, signKey, storePassword, nil)
     }
     
-    private func revokeAsync(_ signer: DIDDocument?, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer, DIDURL.valueOf(subject!.did, signKey), storePassword, adapter) }
+    private func revokeAsync(signer: DIDDocument?, signKey: String, storePassword: String, adapter: DIDTransactionAdapter?) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter) }
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(signer, signKey, storePassword, adapter)
+        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(signer, signKey, storePassword, nil)
+        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
     public func revokeAsync(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(nil, signKey, storePassword, adapter)
+        return revokeAsync(signer: nil, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(nil, signKey, storePassword, nil)
+        return revokeAsync(signer: nil, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
     public func revokeAsync(_ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
@@ -794,7 +794,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         var sk = signKey
         if signKey != nil {
-            guard signer.containsAuthenticationKey(forId: signKey!) else {
+            guard try signer.containsAuthenticationKey(forId: signKey!) else {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
             }
         }
@@ -1198,9 +1198,9 @@ public class VerifiableCredential: DIDObject, Mappable {
         subject!.toJson(generator, ref, normalized)
 
         // proof
-        if !forSign {
+        if let _ = proof {
             generator.writeFieldName(Constants.PROOF)
-            proof!.toJson(generator, issuer, normalized)
+            proof!.toJson(generator, ref, normalized)
         }
 
         generator.writeEndObject()

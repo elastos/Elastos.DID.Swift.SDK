@@ -86,7 +86,9 @@ public class VerifiableCredentialSubject: NSObject, Mappable {
     /// - Returns: Array of credential
     @objc
     public func properties() -> [String: Any]? {
-        return self._properties.deepCopy()?.asDictionary()
+        let proStr = _properties.toString()
+        
+        return proStr.toDictionary()
     }
 
     /// Get specified subject property according to the key of property.
@@ -146,9 +148,9 @@ public class VerifiableCredentialSubject: NSObject, Mappable {
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
         generator.writeStartObject()
 
-        if normalized || ref == nil || self.did != ref {
-            generator.writeStringField(Constants.ID, self.did.toString())
-        }
+//        if normalized || ref == nil || self.did != ref! {
+        generator.writeStringField(Constants.ID, self.did.toString())
+//        }
 
         if self.propertyCount > 0 {
             toJson(generator, self._properties, true)
