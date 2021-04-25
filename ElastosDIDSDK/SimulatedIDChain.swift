@@ -283,20 +283,21 @@ public class SimulatedIDChain {
                 bio.setStatus(DIDBiographyStatus.STATUS_DEACTIVATED)
                 limit = request.isResolveAll! ? -1 : 2
             } else {
-                bio.setStatus(DIDBiographyStatus.STATUS_VALID);
-                limit = request.isResolveAll! ? -1 : 1;
+                bio.setStatus(DIDBiographyStatus.STATUS_VALID)
+                limit = request.isResolveAll! ? -1 : 1
             }
 
+            print("idtxs.count = \(idtxs.count)")
             for tx in idtxs {
                 if tx.did == request.did {
                     bio.appendTransaction(tx)
-                }
-                if limit < 0 {
-                    continue
-                }
-                if limit == 0 {
+                    if limit < 0 {
+                        continue
+                    }
                     limit = limit - 1
-                    break
+                    if limit == 0 {
+                        break
+                    }
                 }
             }
         } else {

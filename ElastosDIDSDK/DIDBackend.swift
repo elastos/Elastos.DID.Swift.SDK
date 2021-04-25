@@ -316,9 +316,6 @@ public class DIDBackend: NSObject {
             tx = bio.getTransaction(0)
             break
         case .STATUS_DEACTIVATED:
-            let t0 = bio.getTransaction(0)._request.header
-            let t1 = bio.getTransaction(1)._request.header
-            let t2 = bio.getTransaction(2)._request.header
             guard bio.count == 2 else {
                 throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong transaction count.")
             }
