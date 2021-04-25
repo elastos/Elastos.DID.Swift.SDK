@@ -145,7 +145,9 @@ public class DIDDocument: NSObject {
                 return result
             }
 
-            for value in map!.values {
+            for value in self.values({ _proofs -> Bool in
+                return true
+            }) {
                 if id != nil && value.getId() != id! {
                     continue
                 }
@@ -780,7 +782,7 @@ public class DIDDocument: NSObject {
         }
         
         _ = publicKeyMap.remove(id)
-        _ = getMetadata().store!.deletePrivateKey(for: id)
+        _ = getMetadata().store?.deletePrivateKey(for: id)
         return true
     }
 ///////////////////////// 1111 = end ---------------------------
@@ -1700,9 +1702,9 @@ public class DIDDocument: NSObject {
                 .compare(DateFormatter.convertToUTCStringFromDate(proofB.createdDate))
             if compareResult == ComparisonResult.orderedSame {
 
-                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedDescending
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
             } else {
-                return compareResult == ComparisonResult.orderedDescending
+                return compareResult == ComparisonResult.orderedAscending
             }
         }
         
@@ -2738,7 +2740,7 @@ public class DIDDocument: NSObject {
             else {
                 // the signKey should be controller's default key
                 let controller = doc?.controllerDocument(sigK!.did!)
-                if controller == nil || controller!.defaultPublicKeyId() == sigK {
+                if controller == nil || controller!.defaultPublicKeyId() != sigK {
                     throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
                 }
             }
@@ -2875,7 +2877,7 @@ public class DIDDocument: NSObject {
                 candidatePks = self.authenticationKeys()
             }
             else {
-                let pk = try authorizationKey(ofId: signKey!)
+                let pk = try authenticationKey(ofId: signKey!)
                 guard let _ = pk else {
                     throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
                 }
@@ -2893,13 +2895,14 @@ public class DIDDocument: NSObject {
                     if pk.publicKeyBase58 == candidatePk.publicKeyBase58 {
                         realSignKey = candidatePk.getId()
                         targetSignKey = pk.getId()
+                        break
                     }
                 }
             }
             guard realSignKey != nil , targetSignKey != nil else {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("No matched authorization key.")
             }
-            try DIDBackend.sharedInstance().deactivateDid(targetDoc!, targetSignKey!, self, realSignKey!, storePassword, adapter!)
+            try DIDBackend.sharedInstance().deactivateDid(targetDoc!, targetSignKey!, self, realSignKey!, storePassword, adapter)
         }
         else {
             guard targetDoc!.hasController(subject) else {
@@ -2912,8 +2915,9 @@ public class DIDDocument: NSObject {
                 guard _signKey == defaultPublicKeyId() else {
                     throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(_signKey!.toString())
                 }
-                try DIDBackend.sharedInstance().deactivateDid(targetDoc!, _signKey!, storePassword, adapter!)
             }
+            
+            try DIDBackend.sharedInstance().deactivateDid(targetDoc!, _signKey!, storePassword, adapter)
             
             if try store!.containsDid(target) {
                 try store?.storeDid(using: targetDoc!)

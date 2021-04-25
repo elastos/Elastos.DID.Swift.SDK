@@ -113,20 +113,20 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the previous document signature from the previous transaction.
     /// - Returns: the signature string
     var previousSignature: String? {
-        return get(PREV_SIGNATURE)
+        return get(PREV_SIGNATURE)!.count > 0 ? get(PREV_SIGNATURE) : nil
     }
     
     /// Set the latest signature of the DID document that associated with this
     /// metadata object.
     /// - Parameter signature: the signature string
-    func setSignature(_ signature: String) {
-        put(SIGNATURE, signature)
+    func setSignature(_ signature: String?) {
+        put(SIGNATURE, signature ?? "")
     }
     
     /// Get the signature of the DID document that kept in this metadata object.
     /// - Returns: the signature string
     var signature: String? {
-        return get(SIGNATURE)
+        return get(SIGNATURE)!.count > 0 ? get(SIGNATURE) : nil
     }
     
     /// Set the publish time of the DID that associated with this

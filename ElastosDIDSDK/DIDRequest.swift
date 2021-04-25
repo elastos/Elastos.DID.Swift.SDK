@@ -259,10 +259,10 @@ public class DIDRequest: IDChainRequest {
         guard try _doc!.containsAuthorizationKey(forId: targetSignKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authorization key: \(targetSignKey).")
         }
-        guard try _doc!.containsAuthenticationKey(forId: signKey) else {
+        guard try doc.containsAuthenticationKey(forId: signKey) else {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key: \(signKey).")
         }
-        guard payload != nil, payload!.isEmpty else {
+        guard payload != nil, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
         let signature = try _doc!.sign(signKey, storePassword, getSigningInputs())

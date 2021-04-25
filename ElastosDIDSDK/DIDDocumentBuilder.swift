@@ -161,12 +161,17 @@ public class DIDDocumentBuilder: NSObject {
 
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
-    
-        guard let _ = document else {
+        try checkNotSealed()
+        let key = try document!.publicKey(ofId: id)
+        guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
+        guard document!.publicKeyCount != 0 else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+        }
+        
         guard try document!.removePublicKey(id, force) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
+            throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(id.toString() + "is default key")
         }
 
         invalidateProof()
@@ -391,6 +396,7 @@ public class DIDDocumentBuilder: NSObject {
         let key = PublicKey(id, controller, keyBase58)
         key.setAuthorizationKey(true)
         _ = document!.appendPublicKey(key)
+        invalidateProof()
 
         return self
     }
@@ -477,7 +483,8 @@ public class DIDDocumentBuilder: NSObject {
         let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
         pk.setAuthorizationKey(true)
         _ = document!.appendPublicKey(pk)
-
+        invalidateProof()
+        
         return self
     }
 
@@ -1136,9 +1143,9 @@ public class DIDDocumentBuilder: NSObject {
                 .compare(DateFormatter.convertToUTCStringFromDate(proofB.createdDate))
             if compareResult == ComparisonResult.orderedSame {
                 
-                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedDescending
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
             } else {
-                return compareResult == ComparisonResult.orderedDescending
+                return compareResult == ComparisonResult.orderedAscending
             }
         })
         

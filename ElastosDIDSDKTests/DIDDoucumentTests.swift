@@ -462,7 +462,7 @@ class DIDDoucumentTests: XCTestCase {
             let id = try DIDURL(doc.subject, "#recovery")
             XCTAssertThrowsError(_ = try db.removePublicKey(with: id)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError:
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError("\(id.toString())is default key"):
                     XCTAssertTrue(true)
                     break
                 default:
@@ -1251,7 +1251,7 @@ class DIDDoucumentTests: XCTestCase {
         for pk in pks {
             XCTAssertEqual(doc.subject, pk.getId()?.did)
             XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
-            XCTAssertEqual(doc.subject, pk.controller)
+            XCTAssertNotEqual(doc.subject, pk.controller)
             XCTAssertEqual(pk.getId()?.fragment, "recovery")
         }
 
@@ -2358,13 +2358,15 @@ class DIDDoucumentTests: XCTestCase {
         // Try to select new added 2 services
         let svcs = doc.selectServices(byType: "Service.Testing")
         XCTAssertEqual(3, svcs.count)
-        let re1 = !svcs[0].properties.isEmpty || !svcs[1].properties.isEmpty || !svcs[2].properties.isEmpty
-        let re2 = svcs[1].properties.isEmpty || svcs[1].properties.isEmpty || svcs[0].properties.isEmpty
+//        let re1 = !svcs[0].properties.isEmpty || !svcs[1].properties.isEmpty || !svcs[2].properties.isEmpty
+//        let re2 = svcs[1].properties.isEmpty || svcs[1].properties.isEmpty || svcs[0].properties.isEmpty
+        
         XCTAssertEqual("Service.Testing", svcs[0].getType())
+        XCTAssertTrue(svcs[0].properties.isEmpty == false)
         XCTAssertEqual("Service.Testing", svcs[1].getType())
+        XCTAssertTrue(svcs[1].properties.isEmpty == false)
         XCTAssertEqual("Service.Testing", svcs[2].getType())
-        XCTAssertTrue(re1)
-        XCTAssertTrue(re2)
+        XCTAssertTrue(svcs[2].properties.isEmpty == true)
     }
     
     func testAddServiceWithCid() {
@@ -3728,7 +3730,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved?.toString())
 
-//            doc.getMetadata().setSignature(null)
+            doc.getMetadata().setSignature(nil)
 
             // Update again
             db = try doc.editing()
@@ -3740,14 +3742,26 @@ class DIDDoucumentTests: XCTestCase {
             try store!.storeDid(using: doc)
 
             let d = doc
-            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError()) { e in
-                do {
-                    try d.publish(storePassword)
-                }
-                catch {
-//                    XCTAssertEqual(d.subject.toString(), e) //TODO:
+//            do {
+//                try d.publish(storePassword)
+//            }
+//            catch {
+//                print(error)
+//            }
+//            try d.publish(storePassword)
+            
+            XCTAssertThrowsError(_ = try d.publish(storePassword)){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError: break
+                default:
+                    XCTFail()
                 }
             }
+            
+//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError()) { e in
+//                try d.publish(storePassword)
+//
+//            }
         } catch {
             XCTFail()
         }
