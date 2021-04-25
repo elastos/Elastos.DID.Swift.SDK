@@ -170,11 +170,23 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
         
-        guard try document!.removePublicKey(id, force) else {
+        if document!.defaultPublicKey() != nil && document!.defaultPublicKey()?.getId() == id {
             throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(id.toString() + "is default key")
         }
+        if !force {
+           if key!.isAuthenticationKey || key!.isAuthorizationKey {
+                throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(id.toString())
+            }
+        }
+        
+        if document!.publicKeyMap.remove(id) {
+            // TODO: should delete the loosed private key when store the document
+            if (document!.getMetadata().attachedStore) {
+                _ = document!.getMetadata().store?.deletePrivateKey(for: id)
+            }
+            invalidateProof()
+        }
 
-        invalidateProof()
         return self
     }
 
@@ -230,10 +242,15 @@ public class DIDDocumentBuilder: NSObject {
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
-        guard try document!.appendAuthenticationKey(id) else {
+        // Check the controller is current DID subject
+        guard try key!.controller == getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
         }
-
+        if (!key!.isAuthenticationKey) {
+            key!.setAuthenticationKey(true)
+            invalidateProof()
+        }
+        
         return self
     }
 
@@ -310,14 +327,27 @@ public class DIDDocumentBuilder: NSObject {
     }
 
     private func removeAuthenticationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
-        guard let _ = document else {
+        try checkNotSealed()
+        if document!.publicKeys().isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
-        guard try document!.removeAuthenticationKey(id) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
+
+        let key = document!.publicKeyMap.get(forKey: try canonicalId(id)!) { value -> Bool in return true }
+        guard let _ = key, key!.isAuthenticationKey else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
-        invalidateProof()
         
+        // Can not remove default public key
+        if (document!.defaultPublicKey() != nil && document!.defaultPublicKey()!.getId() == id ) {
+            throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(
+                "Cannot remove the default PublicKey from authentication.")
+        }
+
+        if (key!.isAuthenticationKey) {
+            key!.setAuthenticationKey(false)
+            invalidateProof()
+        }
+
         return self
     }
 
@@ -341,17 +371,28 @@ public class DIDDocumentBuilder: NSObject {
 
     private func appendAuthorizationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        try checkIsCustomized()
-
+        guard !document!.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(id.toString())
+        }
+        
+        guard !document!.publicKeys().isEmpty else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+        }
+        
         let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
         }
-        // use the ref "key" rather than parameter "id".
-        guard try document!.appendAuthorizationKey(id) else {
+        // Can not authorize to self
+        guard try key!.controller != getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
         }
-        invalidateProof()
+        
+        if !key!.isAuthorizationKey {
+            key?.setAuthorizationKey(true)
+            invalidateProof()
+        }
+
         return self
     }
 

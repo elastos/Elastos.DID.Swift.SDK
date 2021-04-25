@@ -1420,9 +1420,7 @@ public class DIDDocument: NSObject {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(String(describing: pk.getId()))")
                     }
                 }
-                guard pks.get(forKey: pk.getId()!, { vault -> Bool in
-                    return true
-                }) == nil else {
+                guard pks.get(forKey: pk.getId()!, { vault -> Bool in return true }) == nil else {
                     throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk.getId()))")
                 }
                 guard !pk.publicKeyBase58.isEmpty else {
@@ -1450,9 +1448,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in
-                        return true
-                    })
+                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in return true })
                     guard pk != nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
@@ -1468,9 +1464,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in
-                        return true
-                    })  == nil else {
+                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in return true })  == nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 != nil || !pk!.publicKeyBase58.isEmpty else {
@@ -3278,7 +3272,6 @@ public class DIDDocument: NSObject {
         let node: Dictionary<String, Any>?
         
         do {
-            let dic: [String: Any] = try data.dataToDictionary()
             node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
         } catch {
             throw DIDError.malformedDocument()

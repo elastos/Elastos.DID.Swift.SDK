@@ -462,7 +462,7 @@ class DIDDoucumentTests: XCTestCase {
             let id = try DIDURL(doc.subject, "#recovery")
             XCTAssertThrowsError(_ = try db.removePublicKey(with: id)){ error in
                 switch error {
-                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError("\(id.toString())is default key"):
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError:
                     XCTAssertTrue(true)
                     break
                 default:
@@ -490,7 +490,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removePublicKey(with: d.defaultPublicKeyId()!, true)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
                 default:
                     XCTFail()
                 }
@@ -537,7 +537,7 @@ class DIDDoucumentTests: XCTestCase {
             let key2 = try DIDURL(user1.subject, "#key2")
             XCTAssertThrowsError(_ = try db.removePublicKey(with: key2)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
                 default:
                     XCTFail()
                 }
@@ -547,7 +547,7 @@ class DIDDoucumentTests: XCTestCase {
             let id = try DIDURL(doc.subject, "#key2")
             XCTAssertThrowsError(_ = try db.removePublicKey(with: id)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
                 default:
                     XCTFail()
                 }
@@ -561,7 +561,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removePublicKey(with: "#notExistKey", true)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1117,7 +1117,7 @@ class DIDDoucumentTests: XCTestCase {
         // Key not exist, should fail.
         XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: "#notExistKey")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
             default:
                 XCTFail()
             }
@@ -1127,7 +1127,7 @@ class DIDDoucumentTests: XCTestCase {
         let id = doc.defaultPublicKeyId()
         XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: id!)){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+            case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
             default:
                 XCTFail()
             }
@@ -1183,7 +1183,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: "#notExistKey")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1193,7 +1193,7 @@ class DIDDoucumentTests: XCTestCase {
             let key2 = try DIDURL(user1.subject, "#key2")
             XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: key2)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -3449,11 +3449,11 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertFalse(try doc.isValid())
 
             _ = doc
-//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
-//                do {
-//                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
-//                }
-//                catch {
+            
+//            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
+//                switch error {
+//                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
+//                default:
 //                    XCTFail()
 //                }
 //            }
