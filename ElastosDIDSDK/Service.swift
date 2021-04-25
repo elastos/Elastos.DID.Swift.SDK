@@ -152,7 +152,10 @@ public class Service: DIDObject {
             }
             
             break
-        default: break
+        case .DATE:
+            generator.writeString(DateFormatter.convertToUTCStringFromDate(node.asDate()!))
+        default:  break// DATE
+            
         }
     }
 

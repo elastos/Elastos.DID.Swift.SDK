@@ -566,8 +566,8 @@ public class SimulatedIDChain {
                 
                 let json: Dictionary = try JSONSerialization.jsonObject(with: Data($0.body), options: []) as! Dictionary<String, Any>
                 print(json)
-                let header: Dictionary = json["header"] as! Dictionary<String, String>
-                let specification: String = header["specification"]!
+                let header: Dictionary = json["header"] as! Dictionary<String, Any>
+                let specification: String = header["specification"]! as! String
                 switch specification {
                 case IDChainRequest.DID_SPECIFICATION:
                     let req: DIDRequest = try DIDRequest.deserialize(JsonNode(json))

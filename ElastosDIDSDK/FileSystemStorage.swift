@@ -491,6 +491,7 @@ public class FileSystemStorage: DIDStorage {
 
     func storeDid(_ doc: DIDDocument) throws {
         let path = try getDidFile(doc.subject, true)
+        print("path = \(path)")
         try doc.convertFromDIDDocument(true, asFileAtPath: path)
     }
 

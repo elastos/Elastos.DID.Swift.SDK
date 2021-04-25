@@ -25,6 +25,11 @@ import Foundation
 /// The proof information for DID transfer ticket.
 /// The default proof type is ECDSAsecp256r1.
 public class TransferTicketProof: NSObject {
+    private static let TYPE = "type"
+    private static let CREATED = "created"
+    private static let VERIFICATION_METHOD = "verificationMethod"
+    private static let SIGNATURE = "signature"
+
     var _type: String
     var _created: Date
     var _verificationMethod: DIDURL
@@ -69,6 +74,35 @@ public class TransferTicketProof: NSObject {
     /// Get the signature encoded in URL safe base64 string
     var signature: String {
         return _signature
+    }
+
+    public func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(TransferTicketProof.TYPE, type)
+        generator.writeStringField(TransferTicketProof.CREATED, DateFormatter.convertToUTCStringFromDate(created))
+        generator.writeStringField(TransferTicketProof.VERIFICATION_METHOD, verificationMethod.toString())
+        generator.writeStringField(TransferTicketProof.SIGNATURE, signature)
+        generator.writeEndObject()
+    }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString()
+    }
+    
+    /// Parse a TransferTicket object from from a string JSON representation.
+    /// - Parameter content: the string JSON content for building the object
+    /// - Returns: the TransferTicket object
+    public class func deserialize(_ content: [String: Any]) throws -> TransferTicketProof {
+        let type = content[TYPE] as! String
+        let created = DateFormatter.convertToUTCDateFromString(content[CREATED] as! String)
+        let signature = content[SIGNATURE] as! String
+        let verificationMethod = try DIDURL(content[VERIFICATION_METHOD] as! String)
+        let tf = TransferTicketProof(type, verificationMethod, created!, signature)
+        
+       return tf
     }
 
     public func compareTo(_ proof: TransferTicketProof) -> Int {

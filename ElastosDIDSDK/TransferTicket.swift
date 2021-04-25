@@ -46,9 +46,9 @@ public class TransferTicket: NSObject {
     var to: DID
     
     var txid: String
-    var _proofs: [TransferTicketProof]?
+    var _proofs: [TransferTicketProof] = []
 
-    var proofs: [DID: TransferTicketProof]?
+    var proofs: [DID: TransferTicketProof] = [: ]
     
     /// Transfer ticket constructor.
     /// - Parameters:
@@ -100,7 +100,7 @@ public class TransferTicket: NSObject {
     
     /// Get first Proof object.
     public var proof: TransferTicketProof? {
-        return _proofs?[0]
+        return _proofs[0]
     }
   
     /// Get all Proof objects.
@@ -128,16 +128,18 @@ public class TransferTicket: NSObject {
         }
         let tt = TransferTicket(self, false)
         // Proofs count should match with multisig
-        if ((doc!.controllerCount() > 1 && proofs?.count != doc!.multiSignature?.m) ||
-                (doc!.controllerCount() <= 1 && proofs?.count != 1)) {
+        if ((doc!.controllerCount() > 1 && proofs.count != doc!.multiSignature?.m) ||
+                (doc!.controllerCount() <= 1 && proofs.count != 1)) {
             
             return false
         }
-        let json = tt.serialize(true)
-//        byte[] digest = EcdsaSigner.sha256Digest(json.getBytes());
+
+        let json = tt.serialize()
+        let digest = EcdsaSigner.sha256Digest([json.data(using: .utf8)!])
+
         var checkedControllers: [DID] = []
-        for proof in _proofs! {
-            if proof.type == Constants.DEFAULT_PUBLICKEY_TYPE {
+        for proof in _proofs {
+            guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
                 return false
             }
             let controllerDoc = doc!.controllerDocument(proof.verificationMethod.did!)
@@ -155,6 +157,11 @@ public class TransferTicket: NSObject {
             guard proof.verificationMethod == controllerDoc?.defaultPublicKeyId() else {
                 return false
             }
+            
+            guard try doc!.verifyDigest(withId: proof.verificationMethod, using: proof.signature, for: digest) else {
+                return false
+            }
+
             checkedControllers.append(proof.verificationMethod.did!)
         }
         return true
@@ -186,42 +193,41 @@ public class TransferTicket: NSObject {
     /// check will only check the number of signatures meet the requirement.
     /// - Returns: true is the ticket is qualified else false
     public func isQualified() throws -> Bool {
-        if proofs == nil || proofs!.isEmpty {
+        if proofs.isEmpty {
             return false
         }
         let multisig = try document()?.multiSignature
-        return proofs?.count == (multisig == nil ? 1 : multisig!.m)
+        return proofs.count == (multisig == nil ? 1 : multisig!.m)
     }
     
     /// Sanitize routine before sealing or after deserialization.
     func sanitize() throws {
-        guard _proofs != nil , !_proofs!.isEmpty else {
+        guard !_proofs.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Missing ticket proof")
         }
         // CAUTION: can not resolve the target document here!
         //          will cause recursive resolve.
         proofs = [: ]
-        for proof in _proofs! {
-            guard proof.verificationMethod != nil else {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Missing verification method")
-            }
+        for proof in _proofs {
+//            guard proof.verificationMethod != nil else {
+//                throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Missing verification method")
+//            }
             guard proof.verificationMethod.did != nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Invalid verification method")
             }
             
-            guard proofs![proof.verificationMethod.did!] == nil else {
+            guard proofs[proof.verificationMethod.did!] == nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Aleady exist proof from \(proof.verificationMethod.did!)")
             }
-            proofs![proof.verificationMethod.did!] = proof
+            proofs[proof.verificationMethod.did!] = proof
         }
         var ps: [TransferTicketProof] = [ ]
-            _proofs?.forEach({ tp in
-                ps.append(tp)
-        })
+        proofs.values.forEach{ tp in
+            ps.append(tp)
+        }
         self._proofs = ps
-//        Collections.sort(this._proofs); // TODO:
     }
-    
+
     func seal(_ controller: DIDDocument, _ storePassword: String) throws {
         do {
             guard try !isQualified() else {
@@ -239,41 +245,83 @@ public class TransferTicket: NSObject {
                 }
             }
         } catch {
-            // TODO:
             throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
         }
         
         let signKey = controller.defaultPublicKeyId()
-        if proofs == nil {
-            proofs = [: ]
+        
+        guard proofs[signKey!.did!] == nil else {
+            throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(signKey?.did?.toString())
         }
-        else {
-            guard proofs![signKey!.did!] == nil else {
-                throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(signKey?.did?.toString())
-            }
-        }
-        _proofs = nil
-//        let json = serialize(true)
-        let json = ""
+        _proofs = []
+        let json = serialize()
         let sig = try controller.sign(using: storePassword, for: [json.data(using: .utf8)!])
         let proof = TransferTicketProof(signKey!, sig)
-        proofs![proof.verificationMethod.did!] = proof
-        proofs?.values.forEach({ tp in
-            self._proofs?.append(tp)
+        proofs[proof.verificationMethod.did!] = proof
+        proofs.values.forEach({ tp in
+            self._proofs.append(tp)
         })
-//        Collections.sort(this._proofs) //TODO:
+        
+        // sort
+        _proofs.sort { (proofA, proofB) -> Bool in
+            let compareResult = proofA.compareTo(proofB)
+            return compareResult == ComparisonResult.orderedAscending.rawValue
+        }
     }
     
-    public func serialize(_ force: Bool) -> String {
+    public func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(ID, id.toString())
+        generator.writeStringField(TO, to.toString())
+        generator.writeStringField(TXID, txid)
+        if _proofs.count > 0 {
+            generator.writeFieldName(PROOF)
+            generator.writeStartArray()
+            _proofs.forEach { tf in
+                tf.serialize(generator)
+            }
+            generator.writeEndArray()
+        }
+        generator.writeEndObject()
+    }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
         
-        return "TODO:"
+        return generator.toString()
     }
     
     /// Parse a TransferTicket object from from a string JSON representation.
     /// - Parameter content: the string JSON content for building the object
     /// - Returns: the TransferTicket object
-    public class func fromJson(_ content: Dictionary<String, Any>) throws -> TransferTicket {
-//        return try parse(content)
-        return try TransferTicket(DIDDocument(), DID()) // TODO:
+    public class func deserialize(_ content: String) throws -> TransferTicket {
+        let capacity = content.count * 3
+        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let cp = content.toUnsafePointerInt8()
+        let c = base64_url_decode(buffer, cp)
+        buffer[c] = 0
+        let jsonStr: String = String(cString: buffer)
+        let json = jsonStr.toDictionary()
+        let id = json["id"] as? String
+        let to = json["to"] as? String
+        let txid = json["txid"] as? String
+        let proofs = json["proof"] as? [[String: Any]] ?? [ ]
+        var ps: [TransferTicketProof] = [ ]
+        if proofs.count > 0 {
+            for pf in proofs {
+                let tf = try TransferTicketProof.deserialize(pf)
+                ps.append(tf)
+            }
+        }
+
+        var transferTicket: TransferTicket?
+        if id != nil && to != nil && txid != nil  {
+            transferTicket = try TransferTicket(DID(id!), DID(to!), txid!)
+            transferTicket?._proofs = ps
+        }
+        
+        try transferTicket?.sanitize()
+        return transferTicket!
     }
 }

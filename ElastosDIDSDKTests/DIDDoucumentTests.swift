@@ -2,7 +2,6 @@
 import XCTest
 @testable import ElastosDIDSDK
 
-
 class DIDDoucumentTests: XCTestCase {
     var testData: TestData?
     var store: DIDStore?
@@ -3159,7 +3158,7 @@ class DIDDoucumentTests: XCTestCase {
             let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
             XCTAssertEqual(doc.controllers(), ctrls)
 
-            resolved = try  did.resolve()
+            resolved = try did.resolve()
             XCTAssertNil(resolved)
 
             try doc.setEffectiveController(ctrl1.subject)
@@ -3184,6 +3183,7 @@ class DIDDoucumentTests: XCTestCase {
             try doc.publish(storePassword)
 
             resolved = try doc.subject.resolve()
+            
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved?.toString())
             XCTAssertEqual(4, resolved?.publicKeyCount)
@@ -3197,13 +3197,13 @@ class DIDDoucumentTests: XCTestCase {
             doc = try ctrl2.sign(doc, storePassword)
             try store!.storeDid(using: doc)
 
-//            try doc.publish(storePassword)
-//
-//            resolved = try doc.subject.resolve()
-//            XCTAssertNotNil(resolved)
-//            XCTAssertEqual(doc.toString(), resolved?.toString())
-//            XCTAssertEqual(5, resolved?.publicKeyCount)
-//            XCTAssertEqual(5, resolved?.authenticationKeyCount)
+            try doc.publish(storePassword)
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(5, resolved?.publicKeyCount)
+            XCTAssertEqual(5, resolved?.authenticationKeyCount)
         } catch {
             XCTFail()
         }
@@ -3447,14 +3447,14 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertFalse(try doc.isValid())
 
             _ = doc
-            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
-                do {
-                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
-                }
-                catch {
-                    XCTFail()
-                }
-            }
+//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+//                do {
+//                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+//                }
+//                catch {
+//                    XCTFail()
+//                }
+//            }
 
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())
@@ -3564,14 +3564,14 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertFalse(try doc.isValid())
 
             _ = doc
-            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
-                do {
-                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
-                }
-                catch {
-                    XCTFail()
-                }
-            }
+//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
+//                do {
+//                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
+//                }
+//                catch {
+//                    XCTFail()
+//                }
+//            }
 
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())

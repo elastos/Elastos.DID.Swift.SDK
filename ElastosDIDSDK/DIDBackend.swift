@@ -316,11 +316,14 @@ public class DIDBackend: NSObject {
             tx = bio.getTransaction(0)
             break
         case .STATUS_DEACTIVATED:
+            let t0 = bio.getTransaction(0)._request.header
+            let t1 = bio.getTransaction(1)._request.header
+            let t2 = bio.getTransaction(2)._request.header
             guard bio.count == 2 else {
                 throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong transaction count.")
             }
             tx = bio.getTransaction(0)
-            guard tx?.request.operation == IDChainRequestOperation.DECLARE else {
+            guard tx?.request.operation == IDChainRequestOperation.DEACTIVATE else {
                 throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong status.")
             }
             let doc = bio.getTransaction(1).request.document
@@ -540,7 +543,7 @@ public class DIDBackend: NSObject {
         invalidDidCache(doc.subject)
     }
     
-    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+    func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.transfer(doc, ticket, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
@@ -551,7 +554,7 @@ public class DIDBackend: NSObject {
     ///   - doc: the DIDDocument object
     ///   - signKey: the key to sign
     ///   - storePassword: the password for DIDStore
-    func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+    func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.deactivate(doc, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
@@ -564,7 +567,7 @@ public class DIDBackend: NSObject {
     ///   - signer: the signer's DIDDocument object
     ///   - signKey: the key to sign
     ///   - storePassword: the password for DIDStore
-    func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+    func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.deactivate(target, targetSignKey, signer, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(target.subject)

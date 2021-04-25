@@ -39,6 +39,7 @@
 		11641BB523B702FC0037016B /* AbstractAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BB423B702FC0037016B /* AbstractAdapter.swift */; };
 		11641BBB23B715CF0037016B /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BBA23B715CF0037016B /* TestError.swift */; };
 		116F71A025F1D5F20041D983 /* AbstractMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116F719F25F1D5F20041D983 /* AbstractMetadata.swift */; };
+		116FA91D263491690021A46F /* EcdsaSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116FA91C263491690021A46F /* EcdsaSigner.swift */; };
 		11782AC6242130C4009A1F5A /* DIDURLLexer.tokens in Resources */ = {isa = PBXBuildFile; fileRef = 11782ABB242130C3009A1F5A /* DIDURLLexer.tokens */; };
 		11782AC7242130C4009A1F5A /* DIDURLLexer.interp in Resources */ = {isa = PBXBuildFile; fileRef = 11782ABC242130C3009A1F5A /* DIDURLLexer.interp */; };
 		11782AC8242130C4009A1F5A /* DIDURLBaseListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11782ABD242130C3009A1F5A /* DIDURLBaseListener.swift */; };
@@ -396,6 +397,7 @@
 		11641BB423B702FC0037016B /* AbstractAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractAdapter.swift; sourceTree = "<group>"; };
 		11641BBA23B715CF0037016B /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
 		116F719F25F1D5F20041D983 /* AbstractMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractMetadata.swift; sourceTree = "<group>"; };
+		116FA91C263491690021A46F /* EcdsaSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EcdsaSigner.swift; path = Util/EcdsaSigner.swift; sourceTree = "<group>"; };
 		11782ABB242130C3009A1F5A /* DIDURLLexer.tokens */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURLLexer.tokens; path = Parser/DIDURLLexer.tokens; sourceTree = "<group>"; };
 		11782ABC242130C3009A1F5A /* DIDURLLexer.interp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURLLexer.interp; path = Parser/DIDURLLexer.interp; sourceTree = "<group>"; };
 		11782ABD242130C3009A1F5A /* DIDURLBaseListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDURLBaseListener.swift; path = Parser/DIDURLBaseListener.swift; sourceTree = "<group>"; };
@@ -1290,6 +1292,7 @@
 				A31801AA240281B00087E074 /* LRUCache.swift */,
 				A31ACE3523F19A22008EC032 /* PathExtracter.swift */,
 				11BE33DD260984C600DEBD00 /* Extension.swift */,
+				116FA91C263491690021A46F /* EcdsaSigner.swift */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -1852,6 +1855,7 @@
 				11CACABA2612E051004145CB /* CredentialResolveResponse.swift in Sources */,
 				11D1F74D257F3A5400BC5A54 /* Recognizer.swift in Sources */,
 				11D1F728257F3A5400BC5A54 /* ParseTree.swift in Sources */,
+				116FA91D263491690021A46F /* EcdsaSigner.swift in Sources */,
 				A31ACE1C23F199BA008EC032 /* VerifiableCredentialProof.swift in Sources */,
 				11D1F777257F3A5400BC5A54 /* PredictionContextCache.swift in Sources */,
 				11D1F751257F3A5400BC5A54 /* ANTLRFileStream.swift in Sources */,

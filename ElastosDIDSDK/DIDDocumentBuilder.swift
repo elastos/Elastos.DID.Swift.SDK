@@ -623,6 +623,7 @@ public class DIDDocumentBuilder: NSObject {
             .withExpirationDate(realExpires)
             .sealed(using: storePassword)
         try document!.appendCredential(credential)
+        invalidateProof()
         
         return self
     }
@@ -1129,13 +1130,15 @@ public class DIDDocumentBuilder: NSObject {
         values.forEach { df in
             document!._proofs.append(df)
         }
+        
         document?._proofs.sort(by: { (proofA, proofB) -> Bool in
-            let compareResult = proofA.createdDate.compare(proofB.createdDate)
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.createdDate)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.createdDate))
             if compareResult == ComparisonResult.orderedSame {
                 
-                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedDescending
             } else {
-                return compareResult == ComparisonResult.orderedAscending
+                return compareResult == ComparisonResult.orderedDescending
             }
         })
         

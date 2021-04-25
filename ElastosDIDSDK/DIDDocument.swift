@@ -876,13 +876,6 @@ public class DIDDocument: NSObject {
     /// - Returns: the matched authentication key object
     public func authenticationKey(ofId: DIDURL) throws -> PublicKey? {
         let pk = try publicKey(ofId: ofId)
-        
-//        return pk != nil && pk!.isAuthorizationKey ? pk : nil
-//        let p = publicKeyMap.get(forKey: ofId) { value -> Bool in
-//            return (value as PublicKey).isAuthenticationKey
-//        }
-        
-//        return p
         return (pk != nil && pk!.isAuthenticationKey) ? pk : nil
     }
 
@@ -1702,15 +1695,17 @@ public class DIDDocument: NSObject {
         
         // sort
         _proofs.sort { (proofA, proofB) -> Bool in
-            
-            let compareResult = proofA.createdDate.compare(proofB.createdDate)
+
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.createdDate)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.createdDate))
             if compareResult == ComparisonResult.orderedSame {
-                
-                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
+
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedDescending
             } else {
-                return compareResult == ComparisonResult.orderedAscending
+                return compareResult == ComparisonResult.orderedDescending
             }
         }
+        
     }
     
     /// Set DID Metadata object for did document.
@@ -1961,34 +1956,9 @@ public class DIDDocument: NSObject {
         guard data.count > 0 else {
             throw DIDError.illegalArgument()
         }
-        guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-        return try signDigest(withId: id, using: storePassword, for: sha256Digest(data))
-    }
-
-    private func sha256Digest(_ data: [Data]) -> Data {
-        var cinputs: [CVarArg] = []
-        var capacity: Int = 0
-        data.forEach { data in
-            let json = String(data: data, encoding: .utf8)
-            if json != "" {
-                let cjson = json!.toUnsafePointerInt8()!
-                cinputs.append(cjson)
-                cinputs.append(json!.lengthOfBytes(using: .utf8))
-                capacity += json!.count * 3
-            }
-        }
-
-        let c_inputs = getVaList(cinputs)
-        let count = cinputs.count / 2
-        _capacity = capacity
-        // digest
-        let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let size = sha256v_digest(cdigest, Int32(count), c_inputs)
-        let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
-
-        return Data(buffer: cdigestPointerToArry)
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        let digest = sha256Digest(data)
+        return try signDigest(withId: id, using: storePassword, for: digest)
     }
 
     /// Sign digest by DID.
@@ -2009,6 +1979,31 @@ public class DIDDocument: NSObject {
         try checkAttachedStore()
         
         return try getMetadata().store!.sign(WithId: withId, using: storePassword, for: digest, _capacity)
+    }
+    
+    func sha256Digest(_ data: [Data]) -> Data {
+        var cinputs: [CVarArg] = []
+        var capacity: Int = 0
+        data.forEach { data in
+            let json = String(data: data, encoding: .utf8)
+            if json != "" {
+                let cjson = json!.toUnsafePointerInt8()!
+                cinputs.append(cjson)
+                cinputs.append(json!.lengthOfBytes(using: .utf8))
+                capacity += json!.count * 3
+            }
+        }
+
+        let c_inputs = getVaList(cinputs)
+        let count = cinputs.count / 2
+        _capacity = capacity
+        
+        // digest
+        let cdigest = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let size = sha256v_digest(cdigest, Int32(count), c_inputs)
+        let cdigestPointerToArry: UnsafeBufferPointer<UInt8> = UnsafeBufferPointer(start: cdigest, count: size)
+
+        return Data(buffer: cdigestPointerToArry)
     }
 
     /// Sign digest by DID.
@@ -2401,7 +2396,7 @@ public class DIDDocument: NSObject {
             }
         }
         
-        try DIDBackend.sharedInstance().transferDid(self, ticket, sigK!, storePassword, adapter as! DIDAdapter)
+        try DIDBackend.sharedInstance().transferDid(self, ticket, sigK!, storePassword, adapter as? DIDAdapter)
     }     
     
     public func publish(_ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String) throws {
@@ -2734,11 +2729,22 @@ public class DIDDocument: NSObject {
             sigK = doc!.defaultPublicKeyId()
         }
         else {
-            if try !doc!.containsAuthenticationKey(forId: sigK!) {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+            if !doc!.isCustomizedDid() {
+                // the signKey should be default key or authorization key
+                if try doc?.defaultPublicKeyId() != sigK && doc?.authorizationKey(ofId: sigK!) == nil {
+                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+                }
+            }
+            else {
+                // the signKey should be controller's default key
+                let controller = doc?.controllerDocument(sigK!.did!)
+                if controller == nil || controller!.defaultPublicKeyId() == sigK {
+                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+                }
             }
         }
         
+        try DIDBackend.sharedInstance().deactivateDid(doc!, sigK!, storePassword, adapter)
         if signature != doc!.signature {
             try store?.storeDid(using: doc!)
         }
@@ -3129,6 +3135,7 @@ public class DIDDocument: NSObject {
             let value = arrayNode.get(forKey: "creator") != nil ? try DIDURL(arrayNode.get(forKey: "creator")!.asString()!) : nil
             let p = try DIDDocumentProof.fromJson(node, value)
             _proofs.append(p)
+            
         }
     }
     
@@ -3267,6 +3274,7 @@ public class DIDDocument: NSObject {
         let node: Dictionary<String, Any>?
         
         do {
+            let dic: [String: Any] = try data.dataToDictionary()
             node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
         } catch {
             throw DIDError.malformedDocument()
@@ -3438,16 +3446,6 @@ public class DIDDocument: NSObject {
         }
         
         if _proofs.count != 0 {
-            _proofs.sort { (proofA, proofB) -> Bool in
-                
-                let compareResult = proofA.createdDate.compare(proofB.createdDate)
-                if compareResult == ComparisonResult.orderedSame {
-                    
-                    return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
-                } else {
-                    return compareResult == ComparisonResult.orderedAscending
-                }
-            }
             generator.writeFieldName(Constants.PROOF)
             if _proofs.count > 1 {
                 generator.writeStartArray()

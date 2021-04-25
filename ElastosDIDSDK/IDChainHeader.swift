@@ -43,12 +43,22 @@ public class IDChainHeader: NSObject {
     
     init(_ operation: IDChainRequestOperation, _ ticket: TransferTicket) {
         self._operation = operation
-//        let json = ticket.toString(true)
-        // TODO:
-//        self.ticket =
         self._transferTicket = ticket
         super.init()
+        parseTicket(ticket)
         initOperation()
+    }
+    
+    private func parseTicket(_ ticket: TransferTicket) {
+        
+        let json = ticket.serialize()
+        let capacity = json.count * 3
+
+        let cInput = json.toUnsafePointerUInt8()
+        let cPayload = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        let re = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
+        cPayload[re] = 0
+        self._ticket = String(cString: cPayload)
     }
    
     init(_ operation: IDChainRequestOperation) {
@@ -91,7 +101,6 @@ public class IDChainHeader: NSObject {
     }
     
     func setTicket(_ ticket: String) {
-        /// TODO:
         self._ticket = ticket
     }
     
@@ -112,20 +121,30 @@ public class IDChainHeader: NSObject {
             generator.writeStringField("previousTxid", previousTxid!)
         }
 
+        if let _ = ticket  {
+            generator.writeFieldName("ticket")
+            generator.writeString(ticket!)
+        }
         generator.writeEndObject()
     }
     
     class func parse(_ content: JsonNode) -> IDChainHeader {
-//        let specification = content.get(forKey: "specification")!.asString()
         let operation = content.get(forKey: "operation")!.asString()
         let previousTxid = content.get(forKey: "previousTxid")?.asString()
-//        let ticket = content.get(forKey: "ticket")
-//        let transferTicket = content.get(forKey: "transferTicket")
+        let ticket = content.get(forKey: "ticket")
+        var transferTicket: TransferTicket?
+        if let _ = ticket {
+            transferTicket = try! TransferTicket.deserialize(ticket!.toString())
+        }
         
         let op = IDChainRequestOperation.valueOf(operation!)
         if let _ = previousTxid {
             return IDChainHeader(op, previousTxid!)
         }
+        if let _ = transferTicket {
+            return IDChainHeader(op, transferTicket!)
+        }
+        
       return IDChainHeader(op)
     }
 }

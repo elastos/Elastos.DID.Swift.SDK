@@ -191,7 +191,6 @@ public class DIDRequest: IDChainRequest {
     /// deserialized the DIDRequest object from JSON.
     /// - Throws: MalformedIDChainTransactionError if the object is invalid
     override func sanitize() throws {
-        // TODO:
         guard header?.specification != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing specification")
         }
@@ -293,6 +292,7 @@ public class DIDRequest: IDChainRequest {
         request.setProof(proof)
         request.setPayload(payload!)
         try request.sanitize()
+        
         return request
     }
     
