@@ -42,22 +42,17 @@ public class VerifiablePresentation: NSObject {
     var _types: [String] = []
     var _holder: DID?
     var _credentialsArray: [VerifiableCredential] = [ ]
-//    private var _type: String
     private var _createdDate: Date
     private var _verifiableCredentials: [DIDURL: VerifiableCredential] = [: ]
     private var _proof: VerifiablePresentationProof?
     
     override init() {
-//        self._type = Constants.DEFAULT_PRESENTATION_TYPE
         self._createdDate = DateFormatter.currentDate()
-        self._verifiableCredentials = Dictionary<DIDURL, VerifiableCredential>()
     }
     
     init(_ holder: DID) {
         self._holder = holder
-//        self._type = Constants.DEFAULT_PRESENTATION_TYPE
         self._createdDate = DateFormatter.currentDate()
-        self._verifiableCredentials = Dictionary<DIDURL, VerifiableCredential>()
     }
     
     init(_ vp: VerifiablePresentation, _ withProof: Bool) {
@@ -70,7 +65,6 @@ public class VerifiablePresentation: NSObject {
         if (withProof) {
             self._proof = vp.proof
         }
-//        self._type = Constants.DEFAULT_PRESENTATION_TYPE
     }
 
     public var id: DIDURL? {
@@ -85,17 +79,12 @@ public class VerifiablePresentation: NSObject {
         return _types
     }
     
-    /// Get Presentation Type.
-//    @objc
-//    public var type: String {
-//        return _type
-//    }
-//
-//    func setType(_ type: String) {
-//        self._type = type
-//    }
+    public var credentialCount: Int {
+        
+        return credentials.count
+    }
     
-    public var holder: DID {
+    public var holder: DID? {
         // NOTICE:
         //
         // DID 2 SDK should add the holder field as a mandatory field when
@@ -105,7 +94,7 @@ public class VerifiablePresentation: NSObject {
         // This will ensure compatibility with the presentations that
         // created by the old SDK.
         let h = _holder != nil ? _holder : proof.verificationMethod.did
-        return h!
+        return h
     }
 
     /// Get time created Presentation.
@@ -143,7 +132,7 @@ public class VerifiablePresentation: NSObject {
     public func credential(ofId: DIDURL) throws -> VerifiableCredential? {
         var id = ofId
         if id.did == nil {
-            id = try DIDURL(holder, id)
+            id = try DIDURL(holder!, id)
         }
         return self._verifiableCredentials[id]
     }
@@ -153,7 +142,7 @@ public class VerifiablePresentation: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: The handle to Credential
     public func credential(ofId: String) throws -> VerifiableCredential? {
-        return self._verifiableCredentials[try DIDURL(self.holder, ofId)]
+        return self._verifiableCredentials[try DIDURL(self.holder!, ofId)]
     }
 
     /// Get Credential list for signing the Presentation.
@@ -163,7 +152,7 @@ public class VerifiablePresentation: NSObject {
     @objc
     public func credential(ofId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
-            return self._verifiableCredentials[try DIDURL(self.holder, ofId)]
+            return self._verifiableCredentials[try DIDURL(self.holder!, ofId)]
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
@@ -175,9 +164,6 @@ public class VerifiablePresentation: NSObject {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation type")
         }
         
-        guard createdDate != nil else {
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation create timestamp")
-        }
         if _credentialsArray.count > 0 {
             for vc in _credentialsArray {
                 do {
@@ -188,17 +174,12 @@ public class VerifiablePresentation: NSObject {
                 
                 guard _verifiableCredentials[vc.id!] == nil else {
                     throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Duplicated credential id: \(String(describing: vc.id))")
-
                 }
                 
                 _verifiableCredentials[vc.id!] = vc
             }
         }
         
-        guard proof != nil else {
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation proof")
-
-        }
         guard proof.verificationMethod.did != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Invalid verification method")
 
@@ -207,7 +188,7 @@ public class VerifiablePresentation: NSObject {
 
     /// Check whether the Presentation is genuine or not.
     public func isGenuine() throws -> Bool {
-        let holderDoc = try holder.resolve()
+        let holderDoc = try holder!.resolve()
 
         guard let _ = holderDoc else {
             return false
@@ -268,7 +249,7 @@ public class VerifiablePresentation: NSObject {
     public func isValid() throws -> Bool {
         let doc: DIDDocument?
         do {
-            doc = try holder.resolve()
+            doc = try holder!.resolve()
         } catch {
             doc = nil
         }
@@ -343,19 +324,40 @@ public class VerifiablePresentation: NSObject {
         let error = { (des) -> DIDError in
             return DIDError.malformedPresentation(des)
         }
+        
+        let id = node.get(forKey: ID)?.asString()
+        if let _ = id {
+            _id = try DIDURL(id!)
+        }
 
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
-
+        // _holder
         options = JsonSerializer.Options()
-                                .withHint("presentation type")
+                                .withHint("holder")
                                 .withError(error)
-        let type = try serializer.getString(Constants.TYPE, options)
-        guard type == Constants.DEFAULT_PRESENTATION_TYPE else {
-            throw DIDError.malformedPresentation("unkown presentation type:\(type)")
+        let holder = try serializer.getString(HOLDER, options)
+        if holder != "" {
+            _holder = try DID(holder)
         }
-//        setType(type)
 
+        let types = node.get(forKey: TYPE)?.asArray()
+        if let _ = types {
+            types?.forEach{ v in
+                _types.append(v.asString()!)
+            }
+        }
+        else {
+            options = JsonSerializer.Options()
+                .withHint("presentation type")
+                .withError(error)
+            let type = try serializer.getString(Constants.TYPE, options)
+            guard type == Constants.DEFAULT_PRESENTATION_TYPE else {
+                throw DIDError.malformedPresentation("unkown presentation type:\(type)")
+            }
+            _types.append(type)
+        }
+        
         options = JsonSerializer.Options()
                                 .withHint("presentation created date")
                                 .withError(error)
@@ -368,7 +370,7 @@ public class VerifiablePresentation: NSObject {
         }
 
         for node in arrayNode! {
-            appendCredential(try VerifiableCredential.fromJson(node, nil))
+            _credentialsArray.append(try VerifiableCredential.fromJson(node, nil))
         }
 
         let subNode = node.get(forKey: Constants.PROOF)
@@ -378,6 +380,8 @@ public class VerifiablePresentation: NSObject {
 
         let proof = try VerifiablePresentationProof.fromJson(subNode!, nil)
         setProof(proof)
+        
+        try sanitize()
     }
 
     /// Get Presentation from json context.
@@ -420,10 +424,33 @@ public class VerifiablePresentation: NSObject {
      */
     func toJson(_ generator: JsonGenerator, _ forSign: Bool) {
         generator.writeStartObject()
+        
+        if let _ = id {
+            generator.writeStringField(Constants.ID, id!.toString())
+        }
 
-//        generator.writeStringField(Constants.TYPE, self.type)
+        if types.count > 1 {
+            generator.writeFieldName(TYPE)
+            generator.writeStartArray()
+            types.forEach { type in
+                generator.writeString(type)
+            }
+            generator.writeEndArray()
+        }
+        else {
+            if types.count == 1 {
+                generator.writeStringField(Constants.TYPE, types[0])
+            }
+        }
+        
+        // holder
+        if let _ = _holder {
+            generator.writeStringField(HOLDER, holder!.toString())
+        }
+
+        // created
         generator.writeStringField(Constants.CREATED, DateFormatter.convertToUTCStringFromDate(self.createdDate))
-
+        
         // verifiable credentials
         generator.writeFieldName(Constants.VERIFIABLE_CREDENTIAL)
         generator.writeStartArray()
@@ -455,7 +482,8 @@ public class VerifiablePresentation: NSObject {
     }
 
     func toJson(_ forSign: Bool) -> Data {
-        return toJson(forSign).data(using: .utf8)!
+        let json: String = toJson(forSign)
+        return json.data(using: .utf8)!
     }
 
     private class func editing(_ did: DID, _ signKey: DIDURL?,
@@ -522,7 +550,7 @@ public class VerifiablePresentation: NSObject {
 
 extension VerifiablePresentation {
     func toString() -> String {
-        return toJson(true)
+        return toJson(false)
     }
 
     /// Get string context from Presentation.

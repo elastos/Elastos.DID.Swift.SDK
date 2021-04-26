@@ -50,7 +50,7 @@ class JsonSerializer {
         guard !(value?.isEmpty ?? false) else {
             throw options.error("invalid \(options.hint)")
         }
-        return value!
+        return value ?? ""
     }
 
     func getInteger(_ keyName: String, _ options: Options) throws -> Int {

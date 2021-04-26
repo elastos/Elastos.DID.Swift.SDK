@@ -24,6 +24,7 @@ import Foundation
 
 @objc(VerifiablePresentationBuilder)
 public class VerifiablePresentationBuilder: NSObject {
+    private let DEFAULT_PRESENTATION_TYPE = "VerifiablePresentation"
     private let _holder: DIDDocument
     private let _signKey: DIDURL
     private var _realm: String?
@@ -52,11 +53,24 @@ public class VerifiablePresentationBuilder: NSObject {
         return try withId(DIDURL.valueOf(_holder.subject, id)!)
     }
     
-    public func withType(_ types: [String]) throws -> VerifiablePresentationBuilder {
+    public func withType(_ type: String) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
-        presentation?._types = types
+        presentation!._types.append(type)
         
        return self
+    }
+   
+    public func withTypes(_ types: Array<String>) throws -> VerifiablePresentationBuilder {
+
+        try checkNotSealed()
+        try checkArgument(types.count > 0, "Invalid types")
+        presentation?._types.append(contentsOf: types)
+        return self
+     }
+    
+    public func withTypes(_ types: String...) throws -> VerifiablePresentationBuilder {
+        
+        return try withTypes(types)
     }
     
     /// Set verifiable credentials for presentation.
@@ -82,12 +96,12 @@ public class VerifiablePresentationBuilder: NSObject {
             // Presentation should be signed by the subject of Credentials
             guard credential.subject!.did == self._holder.subject else {
                 throw DIDError.illegalArgument(
-                    "Credential \(credential.getId()) not match with requested id")
+                    "Credential \(String(describing: credential.getId())) not match with requested id")
             }
             guard credential.checkIntegrity() else {
                 throw DIDError.illegalArgument("incomplete credential \(credential.toString())")
             }
-
+            presentation!._credentialsArray.append(credential)
             presentation!.appendCredential(credential)
         }
         return self
@@ -139,6 +153,7 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Returns: A handle to VerifiablePresentation.
     @objc
     public func sealed(using storePassword: String) throws -> VerifiablePresentation {
+    
         guard let _ = presentation else {
             throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
         }
@@ -147,6 +162,12 @@ public class VerifiablePresentationBuilder: NSObject {
         }
         guard _realm != nil && _nonce != nil else {
             throw DIDError.invalidState("Missing realm and nonce")
+        }
+        if presentation!.types.count == 0 {
+            presentation!._types.append(DEFAULT_PRESENTATION_TYPE)
+        } else {
+            let t = presentation!._types.sorted()
+            presentation!._types = t
         }
 
         var data: [Data] = []

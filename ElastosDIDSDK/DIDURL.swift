@@ -247,15 +247,6 @@ public class DIDURL: NSObject {
         }
         return self._metadata!
     }
-
-//    /// Save Credential(DIDURL) MetaData.
-//    /// - Throws: If error occurs, throw error.
-//    @objc
-//    public func saveMetadata() throws {
-//        if (_metadata != nil && _metadata!.attachedStore) {
-//            try _metadata!.store!.storeCredentialMetadata(did, _metadata!)
-//        }
-//    }
 }
 
 extension DIDURL {

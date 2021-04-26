@@ -442,7 +442,8 @@ public class CompatibleData {
         }
 
         // load the presentation
-        let presentation = try VerifiablePresentation.fromJson(getPresentationFile(did, vp, type))
+        let json = try loadText(getPresentationFile(did, vp, type))
+        let presentation = try VerifiablePresentation.fromJson(json)
 
         data[key] = presentation
         

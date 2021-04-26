@@ -34,16 +34,16 @@ class VerifiablePresentationTest: XCTestCase {
             let cd = try testData!.getCompatibleData(version)
 
             // For integrity check
-            try cd.getDocument("issuer")
+            _ = try cd.getDocument("issuer")
             let user = try cd.getDocument("user1");
             let vp = try cd.getPresentation("user1", "nonempty");
-
-        XCTAssertNil(vp.id)
+            
+            XCTAssertNil(vp.id)
             XCTAssertEqual(1, vp.types.count)
             XCTAssertEqual("VerifiablePresentation", vp.types[0])
             XCTAssertEqual(user.subject, vp.holder)
-
-//            XCTAssertEqual(4, vp.getCredentialCount())
+            
+            XCTAssertEqual(4, vp.credentialCount)
             let vcs = vp.credentials
             for vc in vcs {
                 XCTAssertEqual(user.subject, vc.subject?.did)
@@ -52,15 +52,16 @@ class VerifiablePresentationTest: XCTestCase {
                 XCTAssertTrue(re)
             }
 
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#profile")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#email")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#twitter")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#passport")))
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
 
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#profile")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#email")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#twitter")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#passport")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
             XCTAssertTrue(try vp.isGenuine())
             XCTAssertTrue(try vp.isValid())
         } catch {
+            XCTFail()
         }
     }
     
@@ -77,7 +78,7 @@ class VerifiablePresentationTest: XCTestCase {
             let cd = try testData!.getCompatibleData(version)
 
            // For integrity check
-            try cd.getDocument("issuer")
+            _ = try cd.getDocument("issuer")
             let user = try cd.getDocument("user1")
             let vp = try cd.getPresentation("user1", "empty")
 
@@ -87,7 +88,7 @@ class VerifiablePresentationTest: XCTestCase {
             XCTAssertEqual(user.subject, vp.holder)
 
             XCTAssertEqual(0, vp.credentials.count)
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
 
             XCTAssertTrue(try vp.isGenuine())
             XCTAssertTrue(try vp.isValid())
@@ -142,6 +143,7 @@ class VerifiablePresentationTest: XCTestCase {
            XCTAssertEqual(normalizedJson, normalized.toString())
             XCTAssertEqual(normalizedJson, vp.toString())
         } catch {
+            XCTFail()
         }
     }
     
@@ -153,33 +155,33 @@ class VerifiablePresentationTest: XCTestCase {
             let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: store!)
             let vp = try pb
                 .withCredentials(try doc.credential(ofId: "#profile")!, doc.credential(ofId: "#email")!, td.getUser1TwitterCredential(), td.getUser1PassportCredential())
-                    .withRealm("https://example.com/")
-                    .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
-
+                .withRealm("https://example.com/")
+                .withNonce("873172f58701a9ee686f0630204fee59")
+                .sealed(using: storePassword)
+            
             XCTAssertNotNil(vp)
 
             XCTAssertNil(vp.id)
             XCTAssertEqual(1, vp.types.count)
-//            XCTAssertEqual(Constants.DEFAULT_PRESENTATION_TYPE, vp.types[0])
+            XCTAssertEqual(Constants.DEFAULT_PRESENTATION_TYPE, vp.types[0])
             XCTAssertEqual(doc.subject, vp.holder)
 
-            XCTAssertEqual(4, vp.credentials.count)
+            XCTAssertEqual(4, vp.credentialCount)
             let vcs = vp.credentials
             for vc in vcs {
                 XCTAssertEqual(doc.subject, vc.subject?.did)
-                let re = vc.id?.fragment == "#profile" || vc.id?.fragment == "#email" || vc.id?.fragment == "#twitter" || vc.id?.fragment == "#passport" || vc.id?.fragment == "#notExist"
+                let re = vc.id?.fragment == "profile" || vc.id?.fragment == "email" || vc.id?.fragment == "twitter" || vc.id?.fragment == "passport" || vc.id?.fragment == "notExist"
                 XCTAssertTrue(re)
             }
 
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#profile")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#email")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#twitter")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#passport")))
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#profile")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#email")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#twitter")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#passport")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
 
             XCTAssertTrue(try vp.isGenuine())
-//            XCTAssertTrue(try vp.isValid())
+            XCTAssertTrue(try vp.isValid())
         } catch {
             XCTFail()
         }
@@ -192,13 +194,13 @@ class VerifiablePresentationTest: XCTestCase {
 
             let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: store!)
             let vp = try pb
-                    .withId("#test-vp")
-                    .withType(["Trail", "TestPresentation"])
+                .withId("#test-vp")
+                .withTypes("Trail", "TestPresentation")
                 .withCredentials(try doc.credential(ofId: "#profile")!, doc.credential(ofId: "#email")!, td.getUser1TwitterCredential(), td.getUser1PassportCredential())
-                    .withRealm("https://example.com/")
-                    .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
-
+                .withRealm("https://example.com/")
+                .withNonce("873172f58701a9ee686f0630204fee59")
+                .sealed(using: storePassword)
+            
             XCTAssertNotNil(vp)
 
             XCTAssertEqual(try DIDURL(doc.subject, "#test-vp"), vp.id)
@@ -215,14 +217,14 @@ class VerifiablePresentationTest: XCTestCase {
                 XCTAssertTrue(re)
             }
 
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#profile")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#email")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#twitter")))
-            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder, "#passport")))
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#profile")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#email")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#twitter")))
+            XCTAssertNotNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#passport")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
 
             XCTAssertTrue(try vp.isGenuine())
-//            XCTAssertTrue(try vp.isValid())
+            XCTAssertTrue(try vp.isValid())
         } catch {
             XCTFail()
         }
@@ -242,14 +244,14 @@ class VerifiablePresentationTest: XCTestCase {
 
             XCTAssertNil(vp.id)
             XCTAssertEqual(1, vp.types.count)
-//            XCTAssertEqual(Constants.DEFAULT_PRESENTATION_TYPE, vp.types[0])
+            XCTAssertEqual(Constants.DEFAULT_PRESENTATION_TYPE, vp.types[0])
             XCTAssertEqual(doc.subject, vp.holder)
 
             XCTAssertEqual(0, vp.credentials.count)
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
 
             XCTAssertTrue(try vp.isGenuine())
-//            XCTAssertTrue(try vp.isValid())
+            XCTAssertTrue(try vp.isValid())
         } catch {
             XCTFail()
         }
@@ -262,7 +264,7 @@ class VerifiablePresentationTest: XCTestCase {
             let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: store!)
             let vp = try pb
                     .withId("#test-vp")
-                    .withType(["HelloWorld", "FooBar", "Baz"])
+                    .withTypes("HelloWorld", "FooBar", "Baz")
                     .withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
                     .sealed(using: storePassword)
@@ -277,10 +279,10 @@ class VerifiablePresentationTest: XCTestCase {
             XCTAssertEqual(doc.subject, vp.holder)
 
             XCTAssertEqual(0, vp.credentials.count)
-            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder, "#notExist")))
+            XCTAssertNil(try vp.credential(ofId: try DIDURL(vp.holder!, "#notExist")))
 
             XCTAssertTrue(try vp.isGenuine())
-//            XCTAssertTrue(try vp.isValid())
+            XCTAssertTrue(try vp.isValid())
         } catch {
             XCTFail()
         }
