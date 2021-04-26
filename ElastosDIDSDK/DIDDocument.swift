@@ -145,9 +145,7 @@ public class DIDDocument: NSObject {
                 return result
             }
 
-            for value in self.values({ _proofs -> Bool in
-                return true
-            }) {
+            for value in map!.values {
                 if id != nil && value.getId() != id! {
                     continue
                 }
@@ -782,7 +780,7 @@ public class DIDDocument: NSObject {
         }
         
         _ = publicKeyMap.remove(id)
-        _ = getMetadata().store?.deletePrivateKey(for: id)
+        _ = getMetadata().store!.deletePrivateKey(for: id)
         return true
     }
 ///////////////////////// 1111 = end ---------------------------
@@ -1420,7 +1418,9 @@ public class DIDDocument: NSObject {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(String(describing: pk.getId()))")
                     }
                 }
-                guard pks.get(forKey: pk.getId()!, { vault -> Bool in return true }) == nil else {
+                guard pks.get(forKey: pk.getId()!, { vault -> Bool in
+                    return true
+                }) == nil else {
                     throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk.getId()))")
                 }
                 guard !pk.publicKeyBase58.isEmpty else {
@@ -1448,7 +1448,9 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in return true })
+                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in
+                        return true
+                    })
                     guard pk != nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
@@ -1464,7 +1466,9 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in return true })  == nil else {
+                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in
+                        return true
+                    })  == nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 != nil || !pk!.publicKeyBase58.isEmpty else {
@@ -1698,7 +1702,7 @@ public class DIDDocument: NSObject {
 
                 return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
             } else {
-                return compareResult == ComparisonResult.orderedAscending
+                return compareResult == ComparisonResult.orderedDescending
             }
         }
         
@@ -2889,7 +2893,6 @@ public class DIDDocument: NSObject {
                     if pk.publicKeyBase58 == candidatePk.publicKeyBase58 {
                         realSignKey = candidatePk.getId()
                         targetSignKey = pk.getId()
-                        break
                     }
                 }
             }

@@ -2,16 +2,18 @@
 import XCTest
 @testable import ElastosDIDSDK
 class VerifiableCredentialTest: XCTestCase {
-    var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
+    static var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
     var testData: TestData?
-
+    override class func setUp() {
+        simulatedIDChain = SimulatedIDChain()
+        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+        simulatedIDChain.start()
+    }
+    
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         testData = TestData()
-        
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-        try! DIDBackend.initialize(simulatedIDChain.getAdapter())
+        try! DIDBackend.initialize(VerifiableCredentialTest.simulatedIDChain.getAdapter())
     }
     
     override func tearDown() {
@@ -257,7 +259,7 @@ class VerifiableCredentialTest: XCTestCase {
         ParseAndSerializeJsonCredential(2, "foobar", "services")
     }
     func testParseAndSerializeJsonCredential9() {
-        ParseAndSerializeJsonCredential(2, "foobar", "email")
+        ParseAndSerializeJsonCredential(2, "foo", "email")
     }
     
     func ParseAndSerializeJsonCredential(_ version: Int, _ did: String, _ vc: String) {
@@ -317,7 +319,7 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareCrendential(2, "foobar", "services")
     }
     func testDeclareCrendential9() {
-        DeclareCrendential(2, "foobar", "email")
+        DeclareCrendential(2, "foo", "email")
     }
     
     func DeclareCrendential(_ version: Int, _ did: String, _ vc: String) {
@@ -330,13 +332,17 @@ class VerifiableCredentialTest: XCTestCase {
             let doc = try credential.subject?.did.resolve()
             var signKey: DIDURL? = nil
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                let index = 0
-                signKey = try doc?.controllers()[index].resolve()?.defaultPublicKeyId()
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
-            try credential.declare(signKey!, storePassword)
+            if signKey == nil {
+                try credential.declare(storePassword)
+            }
+            else {
+                try credential.declare(signKey!, storePassword)
+            }
             
             let id = credential.getId()
             let resolved = try VerifiableCredential.resolve(id!)
@@ -362,13 +368,15 @@ class VerifiableCredentialTest: XCTestCase {
     func testDeclareCrendentials() {
         let sd = testData!.sharedInstantData()
         let vcds = [
-            [ "user1": "twitter" ],
-            [ "user1": "passport" ],
-            ["user1": "json" ],
-            [ "user1": "jobposition" ],
-            [ "foobar": "license" ],
-            [ "foobar": "services" ],
-            [ "foo" : "email" ]]
+            [ "user1": "passport" ]]
+//        let vcds = [
+//            [ "user1": "twitter" ],
+//            [ "user1": "passport" ],
+//            ["user1": "json" ],
+//            [ "user1": "jobposition" ],
+//            [ "foobar": "license" ],
+//            [ "foobar": "services" ],
+//            [ "foo" : "email" ]]
         
         for vcd in vcds {
             do {
@@ -377,15 +385,18 @@ class VerifiableCredentialTest: XCTestCase {
                 let credential = try sd.getCredential(key, vaule!)
                 // Sign key for customized DID
                 let doc = try credential?.subject?.did.resolve()
-                let signKey: DIDURL? = nil
+                var signKey: DIDURL? = nil
                 if (doc!.controllerCount() > 1) {
-                    //                 Random rnd = new Random();
-                    //                 int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                    //                 signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                    let rnd = Int(arc4random())
+                    let index = rnd % doc!.controllerCount()
+                    signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
                 }
-                
-                try credential!.declare(signKey!, storePassword)
-                
+                if let _ = signKey {
+                    try credential!.declare(signKey!, storePassword)
+                }
+                else {
+                    try credential!.declare(storePassword)
+                }
                 let id = credential!.getId()
                 let resolved = try VerifiableCredential.resolve(id!)
                 XCTAssertNotNil(resolved)
@@ -432,7 +443,7 @@ class VerifiableCredentialTest: XCTestCase {
         RevokeCrendential(2, "foobar", "services")
     }
     func testRevokeCrendential9() {
-        RevokeCrendential(2, "foobar", "email")
+        RevokeCrendential(2, "foo", "email")
     }
     
     func RevokeCrendential(_ version: Int, _ did: String, _ vc: String) {
@@ -445,14 +456,19 @@ class VerifiableCredentialTest: XCTestCase {
             
             // Sign key for customized DID
             let doc = try credential.subject?.did.resolve()
-            let signKey: DIDURL? = nil
+            var signKey: DIDURL? = nil
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
-            try credential.declare(signKey!, storePassword)
+            if let _ = signKey {
+                try credential.declare(signKey!, storePassword)
+            }
+            else {
+                try credential.declare(storePassword)
+            }
             
             let id = credential.getId()
             var resolved = try VerifiableCredential.resolve(id!)
@@ -467,8 +483,12 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertFalse(try resolved!.isRevoked())
             
             XCTAssertTrue(try credential.wasDeclared())
-            
-            try credential.revoke(signKey!, storePassword)
+            if let _ = signKey {
+                try credential.revoke(signKey!, storePassword)
+            }
+            else {
+                try credential.revoke(storePassword)
+            }
             
             resolved = try VerifiableCredential.resolve(id!)
             XCTAssertNotNil(resolved)
@@ -516,7 +536,7 @@ class VerifiableCredentialTest: XCTestCase {
         IllegalRevoke(2, "foobar", "services")
     }
     func testIllegalRevoke9() {
-        IllegalRevoke(2, "foobar", "email")
+        IllegalRevoke(2, "foo", "email")
     }
     
     func IllegalRevoke(_ version: Int, _ did: String, _ vc: String) {
@@ -529,14 +549,18 @@ class VerifiableCredentialTest: XCTestCase {
             
             // Sign key for customized DID
             let doc = try credential.subject?.did.resolve()
-            let signKey: DIDURL? = nil
+            var signKey: DIDURL? = nil
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
-            
-            try credential.declare(signKey!, storePassword)
+            if let _ = signKey {
+                try credential.declare(signKey!, storePassword)
+            }
+            else {
+                try credential.declare(storePassword)
+            }
             
             let id = credential.getId()
             var resolved = try VerifiableCredential.resolve(id!)
@@ -554,9 +578,10 @@ class VerifiableCredentialTest: XCTestCase {
             let sd = testData?.sharedInstantData()
             let d = try sd!.getUser1Document()
             
+            //TODO:
             XCTAssertThrowsError(_ = try VerifiableCredential.revoke(credential.getId()!, d, storePassword)){ error in
                 switch error {
-                case DIDError.CheckedError.DIDBackendError.DIDTransactionError: break
+                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
                 default:
                     XCTFail()
                 }
@@ -603,11 +628,10 @@ class VerifiableCredentialTest: XCTestCase {
             // Sign key for customized DID
             let doc = try credential.subject?.did.resolve()
             var signKey: DIDURL? = nil
-            var index = 0
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random()
-                //             index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount()
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId()
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
             try credential.declare(signKey!, storePassword)
@@ -627,8 +651,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(try credential.wasDeclared())
             
             if (doc!.controllerCount() > 1) {
-                //             index = ++index % doc.getControllerCount()
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId()
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
             try credential.revoke(signKey!, storePassword)
@@ -679,7 +704,7 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterDeclare(2, "foobar", "services")
     }
     func testDeclareAfterDeclare9() {
-        DeclareAfterDeclare(2, "foobar", "email")
+        DeclareAfterDeclare(2, "foo", "email")
     }
     
     func DeclareAfterDeclare(_ version: Int, _ did: String, _ vc: String) {
@@ -695,21 +720,25 @@ class VerifiableCredentialTest: XCTestCase {
             let doc = try credential.subject?.did.resolve()
             var signKey: DIDURL? = nil
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
-            
-            try credential.declare(signKey!, storePassword)
+            if let _ = signKey {
+                try credential.declare(signKey!, storePassword)
+            }
+            else {
+                try credential.declare(storePassword)
+            }
             let resolved = try VerifiableCredential.resolve(credential.id!)
             XCTAssertNotNil(resolved)
             XCTAssertTrue(try credential.wasDeclared())
             XCTAssertFalse(try credential.isRevoked())
             
             var key: DIDURL? = signKey
-            XCTAssertThrowsError(_ = try credential.declare(key!, storePassword)) { error in
+            XCTAssertThrowsError(_ = try credential.declare(storePassword)) { error in
                 switch error {
-                case DIDError.CheckedError.DIDBackendError.DIDTransactionError: break
+                case DIDError.UncheckedError.IllegalStateError.CredentialAlreadyExistError: break
                 default:
                     XCTFail()
                 }
@@ -749,7 +778,7 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevoke(2, "foobar", "services")
     }
     func testDeclareAfterRevoke9() {
-        DeclareAfterRevoke(2, "foobar", "email")
+        DeclareAfterRevoke(2, "foo", "email")
     }
     
     func DeclareAfterRevoke(_ version: Int, _ did: String, _ vc: String) {
@@ -765,12 +794,16 @@ class VerifiableCredentialTest: XCTestCase {
             let doc = try credential.subject?.did.resolve()
             var signKey: DIDURL? = nil
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
-            
-            try credential.revoke(signKey!, storePassword)
+            if let _ = signKey {
+                try credential.revoke(signKey!, storePassword)
+            }
+            else {
+                try credential.revoke(storePassword)
+            }
             
             XCTAssertFalse(try credential.wasDeclared())
             XCTAssertTrue(try credential.isRevoked())
@@ -778,10 +811,10 @@ class VerifiableCredentialTest: XCTestCase {
             let resolved = try VerifiableCredential.resolve(credential.id!)
             XCTAssertNil(resolved)
             
-            var key: DIDURL? = signKey
-            XCTAssertThrowsError(_ = try credential.declare(key!, storePassword)) { error in
+            var _: DIDURL? = signKey
+            XCTAssertThrowsError(_ = try credential.declare(storePassword)) { error in
                 switch error {
-                case DIDError.CheckedError.DIDBackendError.DIDTransactionError: break
+                case DIDError.UncheckedError.IllegalStateError.CredentialRevokedError: break
                 default:
                     XCTFail()
                 }
@@ -803,7 +836,7 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevokeWithDifferentKey(2, "foobar", "services")
     }
     func testDeclareAfterRevokeWithDifferentKey3() {
-        DeclareAfterRevokeWithDifferentKey(2, "foobar", "email")
+        DeclareAfterRevokeWithDifferentKey(2, "foo", "email")
     }
     
     func DeclareAfterRevokeWithDifferentKey(_ version: Int, _ did: String, _ vc: String) {
@@ -819,11 +852,10 @@ class VerifiableCredentialTest: XCTestCase {
             // Sign key for customized DID
             let doc = try credential.subject?.did.resolve()
             var signKey: DIDURL? = nil
-            var index = 0
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
             try credential.revoke(signKey!, storePassword)
@@ -835,11 +867,12 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNil(resolved);
             
             if (doc!.controllerCount() > 1) {
-                //             index = ++index % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
-            var key = signKey
+            let key = signKey
             XCTAssertThrowsError(_ = try credential.declare(key!, storePassword)) { error in
                 switch error {
                 case DIDError.UncheckedError.IllegalStateError.CredentialRevokedError: break
@@ -882,7 +915,7 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevokeByIssuer(2, "foobar", "services")
     }
     func testDeclareAfterRevokeByIssuer9() {
-        DeclareAfterRevokeByIssuer(2, "foobar", "email")
+        DeclareAfterRevokeByIssuer(2, "foo", "email")
     }
     
     func DeclareAfterRevokeByIssuer(_ version: Int, _ did: String, _ vc: String) {
@@ -898,9 +931,9 @@ class VerifiableCredentialTest: XCTestCase {
             let issuer = try credential.getIssuer()!.resolve()
             var signKey: DIDURL? = nil
             if (issuer!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % issuer.getControllerCount();
-                //             signKey = issuer.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % issuer!.controllerCount()
+                signKey = try issuer!.controllers()[index].resolve()?.defaultPublicKeyId()
             } else {
                 signKey = issuer?.defaultPublicKeyId()
             }
@@ -915,9 +948,9 @@ class VerifiableCredentialTest: XCTestCase {
             
             let doc = try credential.subject?.did.resolve()
             if (doc!.controllerCount() > 1) {
-                //             Random rnd = new Random();
-                //             int index = (rnd.nextInt() & Integer.MAX_VALUE) % doc.getControllerCount();
-                //             signKey = doc.getControllers().get(index).resolve().getDefaultPublicKeyId();
+                let rnd = Int(arc4random())
+                let index = rnd % doc!.controllerCount()
+                signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
             var key: DIDURL? = signKey

@@ -210,9 +210,7 @@ public class VerifiableCredential: DIDObject, Mappable {
 
     func getMetadata() -> CredentialMetadata {
         if  self._metadata == nil {
-            self._metadata = CredentialMetadata()
-
-            getId()!.setMetadata(_metadata!)
+            self._metadata = CredentialMetadata(id!)
         }
         return self._metadata!
     }
@@ -554,7 +552,7 @@ public class VerifiableCredential: DIDObject, Mappable {
             throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key.")
         }
         var sk = signKey
-        if (signKey != nil) {
+        if (sk != nil) {
             if (try !owner!.containsAuthenticationKey(forId: signKey!)) {
                 throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
             }
@@ -869,8 +867,14 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     private class func resolve(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> VerifiableCredential? {
-        let vc = try DIDBackend.sharedInstance().resolveCredential(
-            id, issuer!, force)
+        var vc: VerifiableCredential? = nil
+        if let _ = issuer {
+            vc = try DIDBackend.sharedInstance().resolveCredential(id, issuer!, force)
+        }
+        else {
+            vc = try DIDBackend.sharedInstance().resolveCredential(id, force)
+        }
+
         if vc != nil {
             id.setMetadata(vc!.getMetadata())
         }
@@ -1024,7 +1028,7 @@ public class VerifiableCredential: DIDObject, Mappable {
 
         let arrayNode = node.get(forKey: Constants.TYPE)?.asArray()
         guard let _ = arrayNode else {
-            throw DIDError.malformedCredential("missing credential type")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("missing credential type")
         }
         for item in arrayNode! {
             appendType(item.toString())
@@ -1033,31 +1037,35 @@ public class VerifiableCredential: DIDObject, Mappable {
         options = JsonSerializer.Options()
             .withHint("credential expirationDate")
             .withError(error)
+
         let expirationDate = try serializer.getDate(Constants.EXPIRATION_DATE, options)
 
+        var subNode = node.get(forKey: Constants.CREDENTIAL_SUBJECT)
+        guard let _ = subNode else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("missing credential subject.")
+        }
+        let subject = try VerifiableCredentialSubject.fromJson(subNode!, ref)
+        var _ref: DID? = ref
+        if _ref == nil {
+            _ref = subject.did
+        }
         options = JsonSerializer.Options()
-            .withRef(ref)
+            .withRef(_ref)
             .withHint("credential id")
             .withError(error)
         let id = try serializer.getDIDURL(Constants.ID, options)
 
-        var subNode = node.get(forKey: Constants.CREDENTIAL_SUBJECT)
-        guard let _ = subNode else {
-            throw DIDError.malformedCredential("missing credential subject.")
-        }
-        let subject = try VerifiableCredentialSubject.fromJson(subNode!, ref)
-
         subNode = node.get(forKey: Constants.PROOF)
         guard let _ = subNode else {
-            throw DIDError.malformedCredential("missing credential proof")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("missing credential proof")
         }
 
         options = JsonSerializer.Options()
             .withOptional()
             .withHint("credential issuer")
             .withError(error)
-        if ref != nil {
-            options.withRef(ref)
+        if _ref != nil {
+            options.withRef(_ref)
         }
         var issuer = try? serializer.getDID(Constants.ISSUER, options)
         options = JsonSerializer.Options()
@@ -1095,9 +1103,7 @@ public class VerifiableCredential: DIDObject, Mappable {
     /// - Returns: VerifiableCredential instance.
     @objc
     public class func fromJson(_ json: Data) throws -> VerifiableCredential {
-        guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(json.isEmpty, "Invalid json")
 
         let data: [String: Any]?
         do {
@@ -1164,7 +1170,7 @@ public class VerifiableCredential: DIDObject, Mappable {
 
         // id
         generator.writeFieldName(Constants.ID)
-        generator.writeString(IDGetter(getId()!, ref).value(normalized))
+        generator.writeString(IDGetter(getId()!, subject?.did).value(normalized))
 
         // type
         generator.writeFieldName(Constants.TYPE)
@@ -1200,7 +1206,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         // proof
         if let _ = proof {
             generator.writeFieldName(Constants.PROOF)
-            proof!.toJson(generator, ref, normalized)
+            proof!.toJson(generator, subject?.did, normalized)
         }
 
         generator.writeEndObject()

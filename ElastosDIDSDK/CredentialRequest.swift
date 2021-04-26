@@ -121,7 +121,7 @@ public class CredentialRequest: IDChainRequest {
         self.id = vc.getId()
         self.vc = vc
         if header?.operation == .DECLARE {
-            let json = vc.toString()
+            let json = vc.toString(true)
             let capacity = json.count * 3
 
             let cInput = json.toUnsafePointerUInt8()
@@ -159,10 +159,10 @@ public class CredentialRequest: IDChainRequest {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid operation \(String(describing: header?.operation?.description))")
         }
         
-        guard payload == nil, payload!.isEmpty else {
+        guard let _ = payload, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")
         }
-        guard proof == nil else {
+        guard let _ = proof else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing proof")
         }
         
@@ -218,5 +218,45 @@ public class CredentialRequest: IDChainRequest {
         }
         
         return signer
+    }
+    
+    override class func deserialize(_ content: JsonNode) throws -> CredentialRequest {
+
+        return try deserialize(content.toString().toDictionary())
+    }
+    
+    
+    class func deserialize(_ content: [String: Any]) throws -> CredentialRequest {
+        let h = content["header"] as? [String: Any]
+        let header = IDChainHeader.parse(JsonNode(h!))
+    
+        let payload = content["payload"] as? String
+        let request = CredentialRequest(header.operation!)
+        if let _ = payload {
+            request._payload = payload
+        }
+        let p = content["proof"] as? [String: Any]
+        if let _ = p {
+           let proof = try IDChainProof.parse(JsonNode(p!))
+            request._proof = proof
+        }
+        try request.sanitize()
+        
+        return request
+    }
+
+    public override func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeFieldName(HEADER)
+        header?.serialize(generator)
+        if let _ = payload {
+            generator.writeFieldName(PAYLOAD)
+            generator.writeString(payload!)
+        }
+        if let _ = proof {
+            generator.writeFieldName(PROOF)
+            proof?.serialize(generator)
+        }
+        generator.writeEndObject()
     }
 }

@@ -62,14 +62,20 @@ public class ResolveRequest: NSObject {
             return false
         }
     }
-    
-    public class func parse(_ content: JsonNode) -> ResolveRequest {
-        return ResolveRequest("TODO:", "TODO:")// TODO:
+
+    func serialize(_ generator: JsonGenerator) {
+        
     }
     
     func serialize(_ force: Bool) -> String {
-        // TODO:
+        let generator = JsonGenerator()
+        serialize(generator)
         
-        return "TODO:"
+        return generator.toString()
+    }
+    
+    func serialize() -> String {
+        
+        return serialize(false)
     }
 }

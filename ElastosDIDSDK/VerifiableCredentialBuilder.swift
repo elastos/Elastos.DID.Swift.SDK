@@ -163,7 +163,7 @@ public class VerifiableCredentialBuilder: NSObject {
         // TODO: CHECK
         let dic = try (JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [JSONSerialization.ReadingOptions.init(rawValue: 0)]) as? [String: Any])
         guard let _ = dic else {
-            throw DIDError.malformedCredential("properties data formed error.")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("properties data formed error.")
         }
         let jsonNode = JsonNode(dic!)
         let subject = VerifiableCredentialSubject(_target)
@@ -215,7 +215,7 @@ public class VerifiableCredentialBuilder: NSObject {
         try checkNotSealed()
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         guard _credential!.checkIntegrity() else {
-            throw DIDError.malformedCredential("imcomplete credential")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("imcomplete credential")
         }
         try sanitize()
         

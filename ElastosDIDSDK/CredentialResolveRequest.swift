@@ -25,7 +25,7 @@ import Foundation
 public class CredentialResolveRequest: ResolveRequest{
     private let PARAMETER_ID = "id"
     private let PARAMETER_ISSUER = "issuer"
-    public static let METHOD_NAME = "resolvecredential"
+    public static let METHOD_NAME = "did_resolveCredential"
 
     private var _params: CredentialParameters?
     
@@ -63,17 +63,56 @@ public class CredentialResolveRequest: ResolveRequest{
     
     public override var description: String {
         
-        return "TODO:"
+        return serialize(false)
     }
     
     override func serialize(_ force: Bool) -> String {
-        // TODO:
-        return "todo"
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString()
+    }
+    
+    public override func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(ID, requestId)
+        generator.writeStringField(METHOD, method)
+        if let _ = params {
+            generator.writeFieldName(PARAMETERS)
+            generator.writeStartArray()
+            params!.serialize(generator)
+            generator.writeEndArray()
+        }
+        
+        generator.writeEndObject()
+    }
+    
+    public class func deserialize(_ content: String) throws -> CredentialResolveRequest  {
+        return try deserialize(content.toDictionary())
+    }
+    
+    public class func deserialize(_ content: [String: Any]) throws -> CredentialResolveRequest {
+        let id = content["id"] as? String
+        let method = content["method"] as! String
+        let param = content["params"] as? [[String: Any]]
+        let cr = CredentialResolveRequest(id!)
+        if let _ = param {
+            let cp = try CredentialParameters.deserialize(param![0])
+            cr._params = cp
+        }
+        
+        return cr
+    }
+    
+    public class func deserialize(_ content: JsonNode) throws -> CredentialResolveRequest {
+        return try deserialize(content.toString().toDictionary())
     }
 }
 
 
 public class CredentialParameters: NSObject {
+    private let ID = "id"
+    private let ISSUER = "issuer"
     private var _id: DIDURL
     private var _issuer: DID?
     
@@ -92,6 +131,32 @@ public class CredentialParameters: NSObject {
     
     public var issuer: DID? {
         return _issuer
+    }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString()
+    }
+    
+    public func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(ID, id.toString())
+        if let _ = issuer {
+            generator.writeStringField(ISSUER, issuer!.toString())
+        }
+        generator.writeEndObject()
+    }
+    
+    public class func deserialize(_ content: [String: Any]) throws -> CredentialParameters {
+        let id = content["id"] as! String
+        let iss = content["issuer"] as? String
+        if let _ = iss {
+            return try CredentialParameters(DIDURL(id), DID(iss!))
+        }
+        
+        return try CredentialParameters(DIDURL(id))
     }
     
     public override var hash: Int {

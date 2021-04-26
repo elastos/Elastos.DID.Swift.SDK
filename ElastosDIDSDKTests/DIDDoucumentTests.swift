@@ -2282,91 +2282,89 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testAddServiceWithDescription1() {
-        do {
-            try AddServiceWithDescription(1)
-        } catch {
-            XCTFail()
-        }
+        AddServiceWithDescription(1)
     }
     
     func testAddServiceWithDescription2() {
+        AddServiceWithDescription(2)
+    }
+    
+    func AddServiceWithDescription(_ version: Int) {
         do {
-            try AddServiceWithDescription(2)
+            _ = try testData!.getRootIdentity()
+            
+            let map = ["abc": "helloworld",
+                       "foo": 123,
+                       "bar": "foobar",
+                       "foobar": "lalala...",
+                       "date": DateFormatter.currentDate(),
+                       "ABC": "Helloworld",
+                       "FOO": 678,
+                       "BAR": "Foobar",
+                       "FOOBAR": "Lalala...",
+                       "DATE": DateFormatter.currentDate()] as [String : Any]
+            let props = ["abc": "helloworld",
+                         "foo": 123,
+                         "bar": "foobar",
+                         "foobar": "lalala...",
+                         "date": DateFormatter.currentDate(),
+                         "map": map,
+                         "ABC": "Helloworld",
+                         "FOO": 678,
+                         "BAR": "Foobar",
+                         "FOOBAR": "Lalala...",
+                         "DATE": DateFormatter.currentDate(),
+                         "MAP": map] as [String : Any]
+            
+            var doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            let db = try doc.editing()
+            
+            // Add services
+            _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
+                                     endpoint: "https://www.elastos.org/testing1", properties: props)
+            
+            _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
+                                     type: "Service.Testing", endpoint: "https://www.elastos.org/testing2", properties: props)
+            
+            _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-3"),
+                                     type: "Service.Testing", endpoint: "https://www.elastos.org/testing3")
+            
+            // Service id already exist, should failed.
+            XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            doc = try db.sealed(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            // Check the final count
+            XCTAssertEqual(6, doc.serviceCount)
+            
+            // Try to select new added 2 services
+            let svcs = doc.selectServices(byType: "Service.Testing")
+            XCTAssertEqual(3, svcs.count)
+            let re1 = !svcs[0].properties.isEmpty || !svcs[1].properties.isEmpty || !svcs[2].properties.isEmpty
+            let re2 = svcs[2].properties.isEmpty || svcs[1].properties.isEmpty || svcs[0].properties.isEmpty
+            
+            XCTAssertEqual("Service.Testing", svcs[0].getType())
+            XCTAssertTrue(re1)
+            XCTAssertTrue(re2)
+//            XCTAssertTrue(svcs[0].properties.isEmpty == false)
+            XCTAssertEqual("Service.Testing", svcs[1].getType())
+//            XCTAssertTrue(svcs[1].properties.isEmpty == false)
+            XCTAssertEqual("Service.Testing", svcs[2].getType())
+//            XCTAssertTrue(svcs[2].properties.isEmpty == true)
         } catch {
             XCTFail()
         }
-    }
-    
-    func AddServiceWithDescription(_ version: Int) throws {
-        _ = try testData!.getRootIdentity();
-
-        let map = ["abc": "helloworld",
-                   "foo": 123,
-                   "bar": "foobar",
-                   "foobar": "lalala...",
-                   "date": DateFormatter.currentDate(),
-                   "ABC": "Helloworld",
-                   "FOO": 678,
-                   "BAR": "Foobar",
-                   "FOOBAR": "Lalala...",
-                   "DATE": DateFormatter.currentDate()] as [String : Any]
-        let props = ["abc": "helloworld",
-                     "foo": 123,
-                     "bar": "foobar",
-                     "foobar": "lalala...",
-                     "date": DateFormatter.currentDate(),
-                     "map": map,
-                     "ABC": "Helloworld",
-                     "FOO": 678,
-                     "BAR": "Foobar",
-                     "FOOBAR": "Lalala...",
-                     "DATE": DateFormatter.currentDate(),
-                     "MAP": map] as [String : Any]
-
-        var doc = try testData!.getCompatibleData(version).getDocument("user1")
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        let db = try doc.editing()
-
-        // Add services
-        _ = try db.appendService(with: "#test-svc-1", type: "Service.Testing",
-                         endpoint: "https://www.elastos.org/testing1", properties: props)
-
-        _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-2"),
-                         type: "Service.Testing", endpoint: "https://www.elastos.org/testing2", properties: props)
-
-        _ = try db.appendService(with: try DIDURL(doc.subject, "#test-svc-3"),
-                         type: "Service.Testing", endpoint: "https://www.elastos.org/testing3")
-
-        // Service id already exist, should failed.
-        XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")){ error in
-            switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
-            default:
-                XCTFail()
-            }
-        }
-
-        doc = try db.sealed(using: storePassword)
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        // Check the final count
-        XCTAssertEqual(6, doc.serviceCount)
-
-        // Try to select new added 2 services
-        let svcs = doc.selectServices(byType: "Service.Testing")
-        XCTAssertEqual(3, svcs.count)
-//        let re1 = !svcs[0].properties.isEmpty || !svcs[1].properties.isEmpty || !svcs[2].properties.isEmpty
-//        let re2 = svcs[1].properties.isEmpty || svcs[1].properties.isEmpty || svcs[0].properties.isEmpty
-        
-        XCTAssertEqual("Service.Testing", svcs[0].getType())
-        XCTAssertTrue(svcs[0].properties.isEmpty == false)
-        XCTAssertEqual("Service.Testing", svcs[1].getType())
-        XCTAssertTrue(svcs[1].properties.isEmpty == false)
-        XCTAssertEqual("Service.Testing", svcs[2].getType())
-        XCTAssertTrue(svcs[2].properties.isEmpty == true)
     }
     
     func testAddServiceWithCid() {
@@ -2606,119 +2604,79 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testParseAndSerializeDocument1() {
-        do {
-            try ParseAndSerializeDocument(1, "issuer")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(1, "issuer")
     }
     
     func testParseAndSerializeDocument2() {
-        do {
-            try ParseAndSerializeDocument(1, "user1")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(1, "user1")
     }
     
     func testParseAndSerializeDocument3() {
-        do {
-            try ParseAndSerializeDocument(1, "user2")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(1, "user2")
     }
     
     func testParseAndSerializeDocument4() {
-        do {
-            try ParseAndSerializeDocument(1, "user3")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(1, "user3")
     }
     
     func testParseAndSerializeDocument5() {
-        do {
-            try ParseAndSerializeDocument(2, "examplecorp")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(2, "examplecorp")
     }
     
     func testParseAndSerializeDocument6() {
-        do {
-            try ParseAndSerializeDocument(2, "foobar")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(2, "foobar")
     }
     
     func testParseAndSerializeDocument7() {
-        do {
-            try ParseAndSerializeDocument(2, "foo")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(2, "foo")
     }
     
     func testParseAndSerializeDocument8() {
-        do {
-            try ParseAndSerializeDocument(2, "bar")
-        }
-        catch {
-            XCTFail()
-        }
+        ParseAndSerializeDocument(2, "bar")
     }
     
     func testParseAndSerializeDocument9() {
+        ParseAndSerializeDocument(2, "baz")
+    }
+    
+    func ParseAndSerializeDocument(_ version: Int, _ did: String) {
         do {
-            try ParseAndSerializeDocument(2, "baz")
+            let cd = try testData!.getCompatibleData(version)
+            try cd.loadAll()
+            
+            let compactJson = try cd.getDocumentJson(did, "compact")
+            let compact = try DIDDocument.convertToDIDDocument(fromJson: compactJson)
+            XCTAssertNotNil(compact)
+            XCTAssertTrue(try compact.isValid())
+            
+            let normalizedJson = try cd.getDocumentJson(did, "normalized")
+            let normalized = try DIDDocument.convertToDIDDocument(fromJson: normalizedJson)
+            XCTAssertNotNil(normalized)
+            XCTAssertTrue(try normalized.isValid())
+            
+            let doc = try cd.getDocument(did)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            let compactStr = compact.toString(true)
+            let normalizedStr = normalized.toString(true)
+            let docStr = doc.toString(true)
+            XCTAssertEqual(normalizedJson, compactStr)
+            XCTAssertEqual(normalizedJson, normalizedStr)
+            XCTAssertEqual(normalizedJson, docStr)
+            
+            // Don't check the compact mode for the old versions
+            if (cd.isLatestVersion) {
+                let compactStrfalse = compact.toString(false)
+                let normalizedStrfalse = normalized.toString(false)
+                let docStrfalse = doc.toString(false)
+                XCTAssertEqual(compactJson, compactStrfalse)
+                XCTAssertEqual(compactJson, normalizedStrfalse)
+                XCTAssertEqual(compactJson, docStrfalse)
+            }
         }
         catch {
             XCTFail()
-        }
-    }
-    
-    func ParseAndSerializeDocument(_ version: Int, _ did: String) throws {
-        let cd = try testData!.getCompatibleData(version)
-        try cd.loadAll()
-
-        let compactJson = try cd.getDocumentJson(did, "compact")
-        let compact = try DIDDocument.convertToDIDDocument(fromJson: compactJson)
-        XCTAssertNotNil(compact)
-        XCTAssertTrue(try compact.isValid())
-        
-        let normalizedJson = try cd.getDocumentJson(did, "normalized")
-        let normalized = try DIDDocument.convertToDIDDocument(fromJson: normalizedJson)
-        XCTAssertNotNil(normalized)
-        XCTAssertTrue(try normalized.isValid())
-
-        let doc = try cd.getDocument(did)
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        let compactStr = compact.toString(true)
-        let normalizedStr = normalized.toString(true)
-        let docStr = doc.toString(true)
-        XCTAssertEqual(normalizedJson, compactStr)
-        XCTAssertEqual(normalizedJson, normalizedStr)
-        XCTAssertEqual(normalizedJson, docStr)
-        
-        // Don't check the compact mode for the old versions
-        if (cd.isLatestVersion) {
-            let compactStrfalse = compact.toString(false)
-            let normalizedStrfalse = normalized.toString(false)
-            let docStrfalse = doc.toString(false)
-            XCTAssertEqual(compactJson, compactStrfalse)
-            XCTAssertEqual(compactJson, normalizedStrfalse)
-            XCTAssertEqual(compactJson, docStrfalse)
         }
     }
     
@@ -2728,29 +2686,29 @@ class DIDDoucumentTests: XCTestCase {
             let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid())
-
-//            let data = byte[1024]
+            
+            //            let data = byte[1024]
             _ = try DIDURL(doc.subject, "#primary")
-
-//            for i in 0...10 {
-////                Arrays.fill(data, (byte) i);
-//
-//                let sig = doc.sign(pkid, storePassword, data)
-//                let result = doc.verify(pkid, sig, data)
-//                XCTAssertTrue(result)
-//
-//                data[0] = 0xF
-//                result = doc.verify(pkid, sig, data)
-//                XCTAssertFalse(result)
-//
-//                sig = doc.sign(storePassword, data)
-//                result = doc.verify(sig, data)
-//                assertTrue(result)
-//
-//                data[0] =  i
-//                result = doc.verify(sig, data)
-//                XCTAssertFalse(result)
-//            }
+            
+            //            for i in 0...10 {
+            ////                Arrays.fill(data, (byte) i);
+            //
+            //                let sig = doc.sign(pkid, storePassword, data)
+            //                let result = doc.verify(pkid, sig, data)
+            //                XCTAssertTrue(result)
+            //
+            //                data[0] = 0xF
+            //                result = doc.verify(pkid, sig, data)
+            //                XCTAssertFalse(result)
+            //
+            //                sig = doc.sign(storePassword, data)
+            //                result = doc.verify(sig, data)
+            //                assertTrue(result)
+            //
+            //                data[0] =  i
+            //                result = doc.verify(sig, data)
+            //                XCTAssertFalse(result)
+            //            }
         } catch {
             XCTFail()
         }

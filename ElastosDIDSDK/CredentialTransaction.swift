@@ -37,5 +37,30 @@ public class CredentialTransaction: IDTransactionInfo {
     public var id: DIDURL? {
         return request.id
     }
+    
+    public override func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(Constants.TXID, self.transactionId)
+        generator.writeStringField(Constants.TIMESTAMP, DateFormatter.convertToUTCStringFromDate(self.timestamp))
+        
+        generator.writeFieldName(Constants.OPERATION)
+        request.serialize(generator)
+        generator.writeEndObject()
+    }
+    
+    public override func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString()
+    }
+    
+    public class func deserialize(_ json: [String: Any]) throws -> CredentialTransaction {
+        let txid = json[Constants.TXID] as! String
+        let timestamp = json[Constants.TXID] as! String
+        let op = json[Constants.OPERATION]
+        let request = try CredentialRequest.deserialize(JsonNode(op as Any))
+        return CredentialTransaction(txid, DateFormatter.convertToUTCDateFromString(timestamp)!, request as! CredentialRequest)
+    }
 }
 

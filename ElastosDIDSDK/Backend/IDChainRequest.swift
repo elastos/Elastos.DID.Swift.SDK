@@ -167,13 +167,23 @@ public class IDChainRequest: NSObject {
         }
         
         if operation != IDChainRequestOperation.DEACTIVATE {
-            if try !doc!.containsAuthenticationKey(forId: signKey) && !doc!.containsAuthorizationKey(forId: signKey) {
+            if try !doc!.containsAuthenticationKey(forId: signKey) {
                 return false
             }
         }
         else {
-            if (try !doc!.containsAuthenticationKey(forId: signKey) && !doc!.containsAuthorizationKey(forId: signKey)) {
-                return false
+            if (!doc!.isCustomizedDid()) {
+                // the signKey should be default key or authorization key
+                if try (doc!.defaultPublicKeyId() != signKey &&
+                         doc!.authorizationKey(ofId: signKey) == nil) {
+                    return false
+                }
+            } else {
+                // the signKey should be controller's default key
+                let controller = doc?.controllerDocument(signKey.did!)
+                if (controller == nil || controller!.defaultPublicKeyId() != signKey) {
+                    return false
+                }
             }
         }
         

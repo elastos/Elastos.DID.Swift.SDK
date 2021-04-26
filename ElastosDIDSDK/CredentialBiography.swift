@@ -91,6 +91,46 @@ public class CredentialBiography: ResolveResult{
             }
         }
     }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString()
+    }
+    
+    public func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(ID, id.toString())
+        generator.writeNumberField(STATUS, status.rawValue)
+        if count > 0 {
+            generator.writeFieldName(TRANSACTION)
+            generator.writeStartArray()
+            for tx in _txs {
+                tx.serialize(generator)
+            }
+            generator.writeEndArray()
+        }
+        generator.writeEndObject()
+    }
+
+    public class func deserialize(_ content: [String: Any]) throws -> CredentialBiography {
+        let id = content["id"] as! String
+        let status = CredentialBiographyStatus(rawValue: content["status"] as! Int)
+        let txs = content["transaction"] as? [[String: Any]]
+        var _txs: [CredentialTransaction] = []
+        if let _ = txs {
+            for tx in txs! {
+                let didtx = try CredentialTransaction.deserialize(tx)
+                _txs.append(didtx)
+            }
+        }
+        let bio = CredentialBiography(try DIDURL(id), status!)
+        bio._txs = _txs
+        
+        return bio
+    }
+    
 }
 
 public enum CredentialBiographyStatus: Int, CustomStringConvertible {

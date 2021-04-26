@@ -407,7 +407,7 @@ public class DIDBackend: NSObject {
             guard tx?.request.operation == IDChainRequestOperation.REVOKE else {
                 throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, wrong status.")
             }
-            guard bio.count >= 1, bio.count < 2 else {
+            if bio.count < 1, bio.count > 2 {
                 throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential biography, transaction signature mismatch.")
             }
             guard bio.count != 1 else {
@@ -435,7 +435,7 @@ public class DIDBackend: NSObject {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential transaction, unknown operation.")
         }
         
-        if try (tx!.request.isValid()) {
+        guard try (tx!.request.isValid()) else {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid credential transaction, signature mismatch.")
         }
         let vc = tx!.request.credential

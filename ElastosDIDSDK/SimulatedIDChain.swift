@@ -3,8 +3,8 @@ import Foundation
 import Swifter
 
 // For mini HTTP server
-let DEFAULT_PORT: Int = 9996
-//   let DEFAULT_PORT: Int = 9123
+let DEFAULT_PORT: Int = 9995
+//let DEFAULT_PORT: Int = 9123
 public class SimulatedIDChain {
     
     let TAG = NSStringFromClass(SimulatedIDChain.self)
@@ -553,10 +553,23 @@ public class SimulatedIDChain {
                     result["result"] = r1
                     let data = try JSONSerialization.data(withJSONObject: result, options: JSONSerialization.WritingOptions.prettyPrinted)
                     return HttpResponse.ok(HttpResponseBody.data(data, contentType: "application/json"))
+                    
+                case CredentialResolveRequest.METHOD_NAME:
+                    let crr = try CredentialResolveRequest.deserialize(json)
+                    let response = try resolveCredential(crr)
+                    var result: Dictionary<String, Any> = [:]
+                    result["id"] = response.responseId
+                    result["jsonrpc"] = "2.0"
+                    let bio = response.result as! CredentialBiography
+
+                    result["result"] = bio.serialize().toDictionary()
+                    let data = try JSONSerialization.data(withJSONObject: result, options: JSONSerialization.WritingOptions.prettyPrinted)
+                    return HttpResponse.ok(HttpResponseBody.data(data, contentType: "application/json"))
                 default: break
                     
                 }
-            } catch { print("erroMsg")
+            } catch {
+                print("erroMsg")
             }
             
             return HttpResponse.ok(.htmlBody("You 111111 for"))
@@ -574,10 +587,16 @@ public class SimulatedIDChain {
                     let req: DIDRequest = try DIDRequest.deserialize(JsonNode(json))
                     try createDidTransaction(req)
                     return HttpResponse.accepted
+                    
+                case IDChainRequest.CREDENTIAL_SPECIFICATION:
+                    let cr = try CredentialRequest.deserialize(json)
+                    try createCredentialTransaction(cr)
+                    return HttpResponse.accepted
                 default: break
                     
                 }
-            } catch { print("erroMsg")
+            } catch {
+                print("erroMsg")
             }
             // TODO delete
             return HttpResponse.ok(.htmlBody("You 111111 for"))

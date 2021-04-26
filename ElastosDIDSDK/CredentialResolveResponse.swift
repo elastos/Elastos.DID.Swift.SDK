@@ -34,7 +34,19 @@ public class CredentialResolveResponse: ResolveResponse {
     }
     
     class func deserialize(_ input: Data) throws -> CredentialResolveResponse {
-        
-        return try CredentialResolveResponse("TODO", CredentialBiography(DIDURL("TODO:")))
+        let json: [String: Any] = try input.dataToDictionary()
+        let id = "\(String(describing: json["id"]))"
+        let result: [String: Any]? = json["result"] as? [String: Any]
+        let err: [String: Any]? = json["error"] as? [String: Any]
+        if let _ = result {
+            let bio = try CredentialBiography.deserialize(result!)
+            return CredentialResolveResponse(id, bio)
+        }
+        else {
+            let code = "\(String(describing: err!["code"]))"
+            let message = "\(String(describing: err!["message"]))"
+
+            return CredentialResolveResponse(id, try Int(value: code), message)
+        }
     }
 }
