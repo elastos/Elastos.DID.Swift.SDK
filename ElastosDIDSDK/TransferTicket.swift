@@ -209,9 +209,6 @@ public class TransferTicket: NSObject {
         //          will cause recursive resolve.
         proofs = [: ]
         for proof in _proofs {
-//            guard proof.verificationMethod != nil else {
-//                throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Missing verification method")
-//            }
             guard proof.verificationMethod.did != nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedTransferTicketError("Invalid verification method")
             }
@@ -221,11 +218,17 @@ public class TransferTicket: NSObject {
             }
             proofs[proof.verificationMethod.did!] = proof
         }
-        var ps: [TransferTicketProof] = [ ]
-        proofs.values.forEach{ tp in
-            ps.append(tp)
+        // sort
+        _proofs.sort { (proofA, proofB) -> Bool in
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.created)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.created))
+            if compareResult == ComparisonResult.orderedSame {
+
+                return proofA.verificationMethod.compareTo(proofB.verificationMethod) == ComparisonResult.orderedAscending
+            } else {
+                return compareResult == ComparisonResult.orderedDescending
+            }
         }
-        self._proofs = ps
     }
 
     func seal(_ controller: DIDDocument, _ storePassword: String) throws {

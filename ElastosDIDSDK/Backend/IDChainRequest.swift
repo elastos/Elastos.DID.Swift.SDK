@@ -132,12 +132,13 @@ public class IDChainRequest: NSObject {
             inputs.append(data)
         }
         if let oper = operation, let data = oper.description.data(using: .utf8)  {
+            print("oper == \(oper.description)")
             inputs.append(data)
         }
-        if let data = prevTxid?.description.data(using: .utf8)  {
+        if let data = prevTxid?.data(using: .utf8)  {
             inputs.append(data)
         }
-        if let data = ticket?.description.data(using: .utf8)  {
+        if let data = ticket?.data(using: .utf8)  {
             inputs.append(data)
         }
         if let pay = _payload,let data = pay.data(using: .utf8)  {
