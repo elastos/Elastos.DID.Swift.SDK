@@ -216,6 +216,11 @@ public class DID: NSObject {
     public func resolveBiography() throws -> DIDBiography? {
         return try DIDBackend.sharedInstance().resolveDidBiography(self)
     }
+    
+    public func resolveBiographyAsync() throws -> Promise<DIDBiography?> {
+        
+        return DispatchQueue.global().async(.promise){ [self] in try DIDBackend.sharedInstance().resolveDidBiography(self) }
+    }
 
     /// Resolve all DID transactions in asynchronous model.
     /// - Returns: the result is the DIDHistory interface for

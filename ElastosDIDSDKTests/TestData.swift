@@ -81,7 +81,7 @@ class TestData {
         return instantData!
     }
     
-//    func waitForWalletAvaliable() throws {
+    func waitForWalletAvaliable() throws {
 //        var spvAdapter: SPVAdaptor? = nil
 //        if adapter is SPVAdaptor {
 //            spvAdapter = adapter as? SPVAdaptor
@@ -98,7 +98,7 @@ class TestData {
 //                wait(interval: 30)
 //            }
 //        }
-//    }
+    }
     
     func wait(interval: Double) {
 
@@ -109,29 +109,6 @@ class TestData {
         }
 //        wait(for: [lock], timeout: interval + 10)
     }
-    /*
-     public void waitForWalletAvaliable() throws DIDException {
-         // need synchronize?
-         if (DIDTestExtension.getAdapter() instanceof SPVAdapter) {
-             SPVAdapter spvAdapter = (SPVAdapter)DIDTestExtension.getAdapter();
-
-             System.out.print("Waiting for wallet available...");
-             long start = System.currentTimeMillis();
-             while (true) {
-                 try {
-                     Thread.sleep(30000);
-                 } catch (InterruptedException ignore) {
-                 }
-
-                 if (spvAdapter.isAvailable()) {
-                     long duration = (System.currentTimeMillis() - start + 500) / 1000;
-                     System.out.println("OK(" + duration + "s)");
-                     break;
-                 }
-             }
-         }
-     }
-     */
 
     class func getResolverCacheDir() -> String {
         return "\(NSHomeDirectory())/Library/Caches/.cache.did.elastos"
