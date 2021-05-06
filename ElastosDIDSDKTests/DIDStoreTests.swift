@@ -2,888 +2,96 @@
 import XCTest
 @testable import ElastosDIDSDK
 
-/*
+
 class DIDStoreTests: XCTestCase {
-    
-    var store: DIDStore!
-    static var ids: Dictionary<DID, String> = [: ]
-    static var primaryDid: DID!
-    var adapter: SPVAdaptor!
-    
-    func testCreateEmptyStore() {
-        do {
-            let testData: TestData = TestData()
-            try _ = testData.setup(true)
-            _ = testData.exists(storeRoot)
-            
-            let path = storeRoot + "/" + ".meta"
-            _ = testData.existsFile(path)
-        } catch {
-            print("testCreateEmptyStore error: \(error)")
-            XCTFail()
-        }
+    let testData: TestData = TestData()
+    var store: DIDStore?
+    var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
+
+    override func setUp() {
+        store = testData.store!
+        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+        simulatedIDChain.start()
+        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
     }
     
-    func testCreateDidInEmptyStore()  {
-        do {
-            let testData: TestData = TestData()
-            
-            let store = try testData.setup(true)
-            _ = try store.newDid(withAlias: "this will be fail", using: storePassword)
-        } catch {
-            print(error)
-            XCTAssertTrue(true)
-        }
-    }
-
-    func testInitPrivateIdentity0() {
-        do {
-            let testData: TestData = TestData()
-            var store: DIDStore = try testData.setup(true)
-            XCTAssertFalse(store.containsPrivateIdentity())
-            
-            _ = try testData.initIdentity()
-            XCTAssertTrue(store.containsPrivateIdentity())
-            var path = storeRoot + "/" + "private" + "/" + "key"
-            XCTAssertTrue(testData.existsFile(path))
-            path = storeRoot + "/" + "private" + "/" + "index"
-            XCTAssertTrue(testData.existsFile(path))
-            
-            store = try DIDStore.open(atPath: storeRoot, withType:"filesystem", adapter: testData.adapter!)
-            XCTAssertTrue(store.containsPrivateIdentity())
-        } catch {
-            print(error)
-            XCTFail()
-        }
+    func getFile(_ path: String) -> String {
+        var relPath = storeRoot
+        relPath.append("/")
+        relPath.append("data/")
+        relPath.append(path)
+        
+        return relPath
     }
     
-    func testInitPrivateIdentityWithMnemonic() {
+    func testLoadRootIdentityFromEmptyStore() {
         do {
-            let expectedIDString = "iY4Ghz9tCuWvB5rNwvn4ngWvthZMNzEA7U"
-            let mnemonic = "cloth always junk crash fun exist stumble shift over benefit fun toe"
+            let file = getFile(".metadata")
+            XCTAssertTrue(try file.exists())
 
-            let testData = TestData()
-            var store = try testData.setup(true)
-            XCTAssertFalse(store.containsPrivateIdentity())
-
-            try store.initializePrivateIdentity(using: Mnemonic.DID_ENGLISH, mnemonic: mnemonic, passPhrase: "", storePassword: storePassword)
-            XCTAssertTrue(store.containsPrivateIdentity())
-
-            var path = storeRoot + "/" + "private" + "/" + "key"
-            XCTAssertTrue(testData.existsFile(path))
-
-            path = storeRoot + "/" + "private" + "/" + "index"
-            XCTAssertTrue(testData.existsFile(path))
-
-            path = storeRoot + "/" + "private" + "/" + "mnemonic"
-            XCTAssertTrue(testData.existsFile(path))
-
-            store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: testData.adapter!)
-            XCTAssertTrue(store.containsPrivateIdentity())
-            let exportedMnemonic = try store.exportMnemonic(using: storePassword)
-            XCTAssertEqual(mnemonic, exportedMnemonic)
-
-            let doc = try store.newDid(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertEqual(expectedIDString, doc.subject.methodSpecificId)
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testInitPrivateIdentityWithRootKey() {
-        do {
-            let expectedIDString = "iYbPqEA98rwvDyA5YT6a3mu8UZy87DLEMR";
-            let rootKey = "xprv9s21ZrQH143K4biiQbUq8369meTb1R8KnstYFAKtfwk3vF8uvFd1EC2s49bMQsbdbmdJxUWRkuC48CXPutFfynYFVGnoeq8LJZhfd9QjvUt";
-
-            let testData = TestData()
-            var store = try testData.setup(true)
-            XCTAssertFalse(store.containsPrivateIdentity())
-
-            try store.initializePrivateIdentity(using: rootKey, storePassword: storePassword)
-            XCTAssertTrue(store.containsPrivateIdentity())
-
-            var path = storeRoot + "/" + "private" + "/" + "key"
-            XCTAssertTrue(testData.existsFile(path))
-
-            path = storeRoot + "/" + "private" + "/" + "index"
-            XCTAssertTrue(testData.existsFile(path))
-
-            path = storeRoot + "/" + "private" + "/" + "mnemonic"
-            XCTAssertFalse(testData.existsFile(path))
-
-            store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: testData.adapter!)
-            XCTAssertTrue(store.containsPrivateIdentity())
-
-            let doc = try store.newDid(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertEqual(expectedIDString, doc.subject.methodSpecificId)
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testCreateDIDWithAlias() throws {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let alias: String = "my first did"
-            
-            let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNil(resolved)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            var path = ""
-            
-            path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
-            XCTAssertTrue(testData.existsFile(path))
-            path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/.meta"
-            XCTAssertTrue(testData.existsFile(path))
-            resolved = try doc.subject.resolve(true)
-            
-            XCTAssertNotNil(resolved)
-
-            try store.storeDid(using: resolved!)
-            XCTAssertEqual(alias, resolved!.getMetadata().aliasName)
-            XCTAssertEqual(doc.subject, resolved!.subject)
-            XCTAssertEqual(doc.proof.signature, resolved!.proof.signature)
-            
-            XCTAssertTrue(resolved!.isValid)
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testCreateDIDWithoutAlias() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNil(resolved)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            let path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
-            XCTAssertTrue(testData.existsFile(path))
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.subject, resolved!.subject)
-            XCTAssertEqual(doc.proof.signature, resolved!.proof.signature)
-            XCTAssertTrue(resolved!.isValid)
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testCreateDIDByIndex() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let alias = "my first did"
-            let did = try store.getDid(byPrivateIdentityIndex: 0)
-            var doc = try store.newDid(withPrivateIdentityIndex: 0, alias: alias, using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            XCTAssertEqual(did, doc.subject)
-
-            XCTAssertThrowsError(try store.newDid(withAlias: alias, using: storePassword)){ (error) in
-                switch error {
-                case DIDError.didStoreError("DID already exists."): break
-                //everything is fine
-                default:
-                XCTFail("Unexpected error thrown")
-                }
-            }
-
-            let success = store.deleteDid(did)
-            XCTAssertTrue(success)
-            doc = try store.newDid(withAlias: alias, using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            XCTAssertEqual(did, doc.subject)
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testGetDid() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-            for i in 0...100 {
-                let alias = "did#\(i)"
-                let doc = try store.newDid(withPrivateIdentityIndex: i, alias: alias, using: storePassword)
-                XCTAssertTrue(doc.isValid)
-                let did = try store.getDid(byPrivateIdentityIndex: i)
-                XCTAssertEqual(doc.subject, did)
-            }
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testUpdateDid() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc: DIDDocument = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            try store.storeDid(using: resolved!)
-            
-            // Update
-            var db: DIDDocumentBuilder = resolved!.editing()
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            var newDoc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, newDoc.publicKeyCount)
-            XCTAssertEqual(2, newDoc.authenticationKeyCount)
-            try store.storeDid(using: newDoc)
-            
-            _ = try store.publishDid(for: newDoc.subject, using: storePassword)
-            
-            resolved = try doc.subject.resolve(true)
-
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(newDoc.description, resolved!.description)
-            try store.storeDid(using: resolved!)
-
-            // Update again
-            db = resolved!.editing()
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            newDoc = try db.sealed(using: storePassword)
-            XCTAssertEqual(3, newDoc.publicKeyCount)
-            XCTAssertEqual(3, newDoc.authenticationKeyCount)
-            try store.storeDid(using: newDoc)
-            _ = try store.publishDid(for: newDoc.subject, using: storePassword)
-            
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(newDoc.description, resolved!.description)
+            let identity = try store!.loadRootIdentity()
+            XCTAssertNil(identity)
         } catch {
             XCTFail()
         }
     }
     
-
-    func testUpdateDidWithoutPrevSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            // Update
-            var db = doc.editing()
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setPreviousSignature(nil)
-            try doc.saveMetadata()
-
-            // Update again
-            db = doc.editing()
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(3, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testUpdateDidWithoutSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            // Update
-            var db = doc.editing()
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setSignature(nil)
-            try doc.saveMetadata()
-
-            // Update again
-            db = doc.editing()
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(3, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            XCTAssertThrowsError(try store.publishDid(for: doc.subject, using: storePassword)) { (error) in
-                switch error {
-                case DIDError.didNotUpToDate:
-                    XCTAssertTrue(true)
-                    break
-                //everything is fine
-                default:  //TODO:
-                XCTFail("Unexpected error thrown")
-                    break
-                }
-            }
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testUpdateDidWithoutAllSignatures() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            let resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setPreviousSignature(nil)
-            doc.getMetadata().setSignature(nil)
-            try doc.saveMetadata()
-
-            // Update
-            let db = doc.editing()
-            let key = try TestData.generateKeypair()
-            _ =  try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-            let did = doc.subject
-
-            XCTAssertThrowsError(try store.publishDid(for: did, using: storePassword)) { error in
-                switch error as! DIDError {
-                case .didNotUpToDate:
-                    XCTAssertTrue(true)
-                default:
-                    XCTFail()
-                }
-            }
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testUpdateDidWithWrongPrevSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            // Update
-            var db = doc.editing()
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setPreviousSignature("1234567890")
-            try doc.saveMetadata()
-
-            // Update
-            db = doc.editing()
-            key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-
-            XCTAssertEqual(3, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            try store.publishDid(for: doc.subject, using: storePassword)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testUpdateDidWithWrongSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            // Update
-            var db = doc.editing()
-            var key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            try store.publishDid(for: doc.subject, using: storePassword)
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setSignature("1234567890")
-            try doc.saveMetadata()
-
-            // Update
-             db = doc.editing()
-             key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(3, doc.publicKeyCount)
-            XCTAssertEqual(3, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            let did = doc.subject
-
-            XCTAssertThrowsError(try store.publishDid(for: did, using: storePassword)) { error in
-                switch error as! DIDError {
-                case .didNotUpToDate:
-                    XCTAssertTrue(true)
-                default:
-                    XCTFail()
-                }
-            }
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testForceUpdateDidWithWrongPrevSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setPreviousSignature("1234567890")
-            try doc.saveMetadata()
-
-            // Update
-            let db = doc.editing()
-            let key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePassword, true)
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testForceUpdateDidWithWrongSignature() {
-        do {
-            let testData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            doc.getMetadata().setSignature("1234567890")
-            try doc.saveMetadata()
-
-            // Update
-            let db = doc.editing()
-            let key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-
-            _ = try store.publishDid(for: doc.subject, using: doc.defaultPublicKey, storePassword: storePassword, true)
-
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-        } catch {
-            XCTFail()
-        }
-    }
-    
-    func testDeactivateSelfAfterCreate() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            let resolved: DIDDocument = try doc.subject.resolve(true)!
-            XCTAssertNotNil(resolved)
-
-            _ = try store.deactivateDid(for: doc.subject, using: storePassword)
-            
-            let resolvedNil = try doc.subject.resolve(true)
-            
-            XCTAssertNil(resolvedNil)
-        } catch  {
-            switch error as! DIDError{
-            case .didDeactivated(nil):
-                XCTAssertTrue(true)
-            default:
-                XCTFail()
-            }
-        }
-    }
-    
-    func testDeactivateSelfAfterUpdate() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            
-            var resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-
-            // update
-            let db = doc.editing()
-            let key = try TestData.generateKeypair()
-            _ = try db.appendAuthenticationKey(with: "key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
-            XCTAssertEqual(2, doc.publicKeyCount)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            
-            resolved = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-            _ = try store.deactivateDid(for: doc.subject, using: storePassword)
-            let did = doc.subject
-
-            XCTAssertThrowsError(try did.resolve(true)) { (error) in
-                switch error {
-                case DIDError.didDeactivated: break
-                //everything is fine
-                default:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-        } catch  {
-            XCTFail()
-        }
-    }
-    
-    func testDeactivateWithAuthorization1() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            let doc = try store.newDid(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            
-            var resolved: DIDDocument = try doc.subject.resolve(true)!
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved.toString())
-            
-            var target = try store.newDid(using: storePassword)
-            let db: DIDDocumentBuilder = target.editing()
-            _ = try db.authorizationDid(with: "recovery", controller: doc.subject.toString())
-            target = try db.sealed(using: storePassword)
-            XCTAssertNotNil(target)
-            XCTAssertEqual(1, target.authorizationKeyCount)
-            XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
-
-            try store.storeDid(using: target)
-            _ = try store.publishDid(for: target.subject, using: storePassword)
-            resolved = try target.subject.resolve()!
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(target.toString(), resolved.toString())
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePassword)
-            let did = target.subject
-
-            XCTAssertThrowsError(try did.resolve(true)) { (error) in
-                switch error {
-                case DIDError.didDeactivated: break
-                //everything is fine
-                default: //TODO:
-                    XCTFail("Unexpected error thrown")
-                }
-            }
-        } catch  {
-            XCTFail()
-        }
-    }
-    
-    func testDeactivateWithAuthorization2() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc = try store.newDid(using: storePassword)
-            var db: DIDDocumentBuilder = doc.editing()
-            let key = try TestData.generateKeypair()
-            let id = try DIDURL(doc.subject, "key-2")
-            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
-            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePassword)
-            doc = try db.sealed(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            var resolved: DIDDocument? = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), doc.toString())
-            
-            var target: DIDDocument = try store.newDid(using: storePassword)
-            db = target.editing()
-            _ = try db.appendAuthorizationKey(with: "recovery", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePassword)
-            XCTAssertNotNil(target)
-            XCTAssertEqual(1, target.authorizationKeyCount)
-            let controller = target.authorizationKeys()[0].controller
-            XCTAssertEqual(doc.subject, controller)
-            try store.storeDid(using: target)
-            
-            _ = try store.publishDid(for: target.subject, using: storePassword)
-            
-            resolved = try target.subject.resolve()
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(target.toString(), resolved!.toString())
-            
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, using: id, storePassword: storePassword)
-            let did = target.subject
-
-            XCTAssertThrowsError(try did.resolve(true)) { (error) in
-                switch error {
-                case DIDError.didDeactivated: break
-                //everything is fine
-                default: break //TODO:
-                XCTFail("Unexpected error thrown")
-                }
-            }
-        } catch  {
-            XCTFail()
-        }
-    }
-    
-    func testDeactivateWithAuthorization3() {
-        do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            var doc = try store.newDid(using: storePassword)
-            var db: DIDDocumentBuilder = doc.editing()
-            
-            let key = try TestData.generateKeypair()
-            let id: DIDURL = try DIDURL(doc.subject, "key-2")
-            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
-            
-            try store.storePrivateKey(for: doc.subject, id: id, privateKey: key.getPrivateKeyData(), using: storePassword)
-            doc = try db.sealed(using: storePassword)
-            XCTAssertTrue(doc.isValid)
-            XCTAssertEqual(2, doc.authenticationKeyCount)
-            try store.storeDid(using: doc)
-            
-            _ = try store.publishDid(for: doc.subject, using: storePassword)
-            
-            var resolved: DIDDocument? = try doc.subject.resolve(true)
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(doc.toString(), resolved!.toString())
-            
-            var target = try store.newDid(using: storePassword)
-            db = target.editing()
-            _ = try db.appendAuthorizationKey(with: "recovery", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePassword)
-            XCTAssertNotNil(target)
-            XCTAssertEqual(1, target.authorizationKeyCount)
-            let controller = target.authorizationKeys()[0].controller
-            XCTAssertEqual(doc.subject, controller)
-            try store.storeDid(using: target)
-            
-            _ = try store.publishDid(for: target.subject, using: storePassword)
-            
-            resolved = try target.subject.resolve()
-            XCTAssertNotNil(resolved)
-            XCTAssertEqual(target.toString(), resolved!.toString())
-
-            _ = try store.deactivateDid(for: target.subject, withAuthroizationDid: doc.subject, storePassword: storePassword)
-
-            let did = target.subject
-            XCTAssertThrowsError(try did.resolve(true)) { (error) in
-                switch error {
-                case DIDError.didDeactivated: break
-                //everything is fine
-                default: break //TODO:
-                XCTFail("Unexpected error thrown")
-                }
-            }
-        } catch  {
-            XCTFail()
-        }
-    }
-
     func testBulkCreate() {
         do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
+            var file = getFile(".metadata")
+            XCTAssertTrue(try file.exists())
+
+            let identity = try testData.getRootIdentity()
+
+            file = try getFile(("roots/" + identity.getId() + "/mnemonic"))
+            XCTAssertTrue(try file.exists())
+
+            file = try getFile("roots/" + identity.getId() + "/private")
+            XCTAssertTrue(try file.exists())
+
+            file = try getFile("roots/" + identity.getId() + "/public")
+            XCTAssertTrue(try file.exists())
+
+            file = try getFile("roots/" + identity.getId() + "/index")
+            XCTAssertTrue(try file.exists())
+
+            file = try getFile("roots/" + identity.getId() + "/.metadata")
+            XCTAssertFalse(try file.exists())
+
+            identity.alias = "default"
+            file = try getFile("roots/" + identity.getId() + "/.metadata")
+            XCTAssertTrue(try file.exists())
+
             for i in 0..<100 {
-                let alias: String = "my did \(i)"
-                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePassword )
-                XCTAssertTrue(doc.isValid)
-                
-                var resolved = try doc.subject.resolve(true)
+                let alias = "my did " + i
+                let doc = try identity.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                XCTAssertTrue(try doc.isValid())
+
+                var resolved = try doc.subject.resolve()
                 XCTAssertNil(resolved)
-                
-                _ = try store.publishDid(for: doc.subject, using: storePassword)
-                
-                var path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
-                XCTAssertTrue(testData.existsFile(path))
-                
-                path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/.meta"
-                XCTAssertTrue(testData.existsFile(path))
-                
-                resolved = try doc.subject.resolve(true)
-                try store.storeDid(using: resolved!)
+
+                try doc.publish(storePassword)
+
+                file = getFile("ids/" + doc.subject.methodSpecificId +  "/document")
+                XCTAssertTrue(try file.exists())
+
+                file = getFile("ids/" + doc.subject.methodSpecificId + "/.metadata")
+                XCTAssertTrue(try file.exists())
+
+                resolved = try doc.subject.resolve()
                 XCTAssertNotNil(resolved)
-                XCTAssertEqual(alias, resolved!.getMetadata().aliasName)
-                XCTAssertEqual(doc.subject, resolved!.subject)
-                XCTAssertEqual(doc.proof.signature, resolved!.proof.signature)
-                XCTAssertTrue(resolved!.isValid)
+                try store!.storeDid(using: resolved!)
+                XCTAssertEqual(alias, resolved!.getMetadata().getAlias())
+                XCTAssertEqual(doc.subject, resolved?.subject)
+                XCTAssertEqual(doc.proof.signature,
+                        resolved?.proof.signature)
+
+                XCTAssertTrue(try resolved!.isValid())
             }
-            var dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
+
+            let dids = try store!.listDids()
             XCTAssertEqual(100, dids.count)
-            
-            dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
-            XCTAssertEqual(100, dids.count)
-            
-            dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY)
-            XCTAssertEqual(0, dids.count)
         } catch {
             XCTFail()
         }
@@ -891,538 +99,354 @@ class DIDStoreTests: XCTestCase {
     
     func testDeleteDID() {
         do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            // Create test DIDs
-            var dids: Array<DID> = []
-            for i in 0..<100 {
-                let alias: String = "my did \(i)"
-                let doc: DIDDocument = try! store.newDid(withAlias: alias, using: storePassword)
-                _ =  try! store.publishDid(for: doc.subject, using: storePassword)
-                dids.append(doc.subject)
-            }
+            let identity = try testData.getRootIdentity();
             
-            for i in 0..<100 {
-                if (i % 5 != 0){
+            // Create test DIDs
+            var dids: [DID] = []
+            for i in 0...100 {
+                let alias = "my did " + i
+                let doc = try identity.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                try doc.publish(storePassword)
+                 dids.append(doc.subject)
+            }
+
+            for i in 0...100  {
+                if (i % 5 != 0) {
                     continue
                 }
-                
-                let did: DID = dids[i]
-                
-                var deleted: Bool = store.deleteDid(did)
+
+                let did = dids[i]
+
+                var deleted = store!.deleteDid(did)
                 XCTAssertTrue(deleted)
-                
-                let path = storeRoot + "/ids/" + did.methodSpecificId
-                XCTAssertFalse(testData.exists(path))
-                
-                deleted = store.deleteDid(did)
+
+                let file = getFile("ids/" + did.methodSpecificId)
+                XCTAssertFalse(try file.exists())
+
+                deleted = store!.deleteDid(did)
                 XCTAssertFalse(deleted)
             }
-            var remains: Array<DID> = try! store.listDids(using: DIDStore.DID_ALL)
+
+            let remains = try store!.listDids()
             XCTAssertEqual(80, remains.count)
-            
-            remains = try! store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
-            XCTAssertEqual(80, remains.count)
-            
-            remains = try! store.listDids(using: DIDStore.DID_NO_PRIVATEKEY)
-            XCTAssertEqual(0, remains.count)
-        } catch  {
+        } catch {
             XCTFail()
         }
     }
     
     func testStoreAndLoadDID() {
         do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
             // Store test data into current store
-            let issuer: DIDDocument = try testData.loadTestIssuer()
-            let test: DIDDocument = try testData.loadTestDocument()
-                        
-            var doc: DIDDocument? = try  store.loadDid(issuer.subject)
-            XCTAssertEqual(issuer.subject, doc!.subject)
-            XCTAssertEqual(issuer.proof.signature, doc!.proof.signature)
-            XCTAssertTrue(doc!.isValid)
-            
-            doc = try store.loadDid(test.subject.description)
-            XCTAssertEqual(test.subject, doc!.subject)
-            XCTAssertEqual(test.proof.signature, doc!.proof.signature)
-            XCTAssertTrue(doc!.isValid)
-            
-            var dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
+            let issuer = try testData.sharedInstantData().getIssuerDocument()
+
+            var file = getFile("ids/" + issuer.subject.methodSpecificId +
+                    "/document")
+            XCTAssertTrue(try file.exists())
+
+            file = getFile("ids/" + issuer.subject.methodSpecificId +
+                    "/.metadata")
+            XCTAssertTrue(try file.exists())
+
+            let test = try testData.sharedInstantData().getUser1Document()
+
+            file = getFile("ids/" + test.subject.methodSpecificId +
+                    "/document")
+            XCTAssertTrue(try file.exists())
+
+            file = getFile("ids/" + test.subject.methodSpecificId +
+                    "/.metadata")
+            XCTAssertTrue(try file.exists())
+
+            var doc = try store!.loadDid(issuer.subject)
+            XCTAssertEqual(issuer.subject, doc?.subject)
+            XCTAssertEqual(issuer.proof.signature, doc?.proof.signature)
+            XCTAssertTrue(try doc!.isValid())
+
+            doc = try store!.loadDid(test.subject.toString())
+            XCTAssertEqual(test.subject, doc?.subject)
+            XCTAssertEqual(test.proof.signature, doc?.proof.signature)
+            XCTAssertTrue(try doc!.isValid())
+
+            let dids = try store!.listDids()
             XCTAssertEqual(2, dids.count)
-            
-            dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
-            XCTAssertEqual(2, dids.count)
-            
-            dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY)
-            XCTAssertEqual(0, dids.count)
-        }
-        catch {
+        } catch {
             XCTFail()
         }
     }
     
     func testLoadCredentials() {
         do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
             // Store test data into current store
-            _ = try testData.loadTestIssuer()
-            let test: DIDDocument = try testData.loadTestDocument()
-            var vc = try testData.loadProfileCredential()
-            vc?.getMetadata().setAlias("MyProfile")
-            vc = try testData.loadEmailCredential()
-            vc?.getMetadata().setAlias("Email")
-            vc = try testData.loadTwitterCredential()
-            vc?.getMetadata().setAlias("Twitter")
-            vc = try testData.loadPassportCredential()
-            vc?.getMetadata().setAlias("Passport")
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            let user = try testData.sharedInstantData().getUser1Document()
 
-            var id: DIDURL = try DIDURL(test.subject, "profile")
-            vc = try store.loadCredential(for: test.subject, byId: id)
-            XCTAssertNotNil(vc)
-            XCTAssertEqual("MyProfile", vc!.getMetadata().aliasName)
-            XCTAssertEqual(test.subject, vc!.subject.did)
+            var vc = try user.credential(ofId: "#profile")
+            vc!.getMetadata().setAlias("MyProfile")
+            
+            var path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+
+            var file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            vc = try user.credential(ofId: "#email")
+              vc!.getMetadata().setAlias("Email")
+            
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            vc = try testData.sharedInstantData().getUser1TwitterCredential()
+            vc!.getMetadata().setAlias("Twitter")
+
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            vc = try testData.sharedInstantData().getUser1PassportCredential()
+            vc!.getMetadata().setAlias("Passport")
+
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            var id =  try DIDURL(user.subject, "#profile")
+            vc = try store!.loadCredential(byId: id)
+            XCTAssertEqual("MyProfile", vc!.getMetadata().getAlias())
+            XCTAssertEqual(user.subject, vc!.subject!.did)
             XCTAssertEqual(id, vc!.getId())
             XCTAssertTrue(vc!.isValid)
-            
+
             // try with full id string
-            vc = try store.loadCredential(for: test.subject.description, byId: id.description)
+            vc = try store!.loadCredential(byId: id.toString())
             XCTAssertNotNil(vc)
-            XCTAssertEqual("MyProfile", vc!.getMetadata().aliasName)
-            XCTAssertEqual(test.subject, vc!.subject.did)
-            XCTAssertEqual(id, vc!.getId())
+            XCTAssertEqual("MyProfile", vc?.getMetadata().getAlias())
+            XCTAssertEqual(user.subject, vc?.subject?.did)
+            XCTAssertEqual(id, vc?.id)
             XCTAssertTrue(vc!.isValid)
-            
-            id = try DIDURL(test.subject, "twitter")
-            vc = try store.loadCredential(for: test.subject.description, byId: "twitter")
+
+            id = try DIDURL(user.subject, "#twitter")
+            vc = try store!.loadCredential(byId: id.toString())
             XCTAssertNotNil(vc)
-            XCTAssertEqual("Twitter", vc!.getMetadata().aliasName)
-            XCTAssertEqual(test.subject, vc!.subject.did)
-            XCTAssertEqual(id, vc!.getId())
+            XCTAssertEqual("Twitter", vc!.getMetadata().getAlias())
+            XCTAssertEqual(user.subject, vc?.subject?.did)
+            XCTAssertEqual(id, vc?.id)
             XCTAssertTrue(vc!.isValid)
-            
-            vc = try store.loadCredential(for: test.subject.description, byId: "notExist")
+
+            vc = try store!.loadCredential(byId: DIDURL(user.subject, "#notExist"))
             XCTAssertNil(vc)
 
-            id = try DIDURL(test.subject, "twitter")
-            XCTAssertTrue(try store.containsCredential(test.subject, id))
-            XCTAssertTrue(try store.containsCredential(test.subject.description, "twitter"))
-            XCTAssertFalse(try store.containsCredential(test.subject.description, "notExist"))
-        }
-        catch {
+            id = try DIDURL(user.subject, "#twitter")
+            XCTAssertTrue(try store!.containsCredential(id))
+            XCTAssertTrue(try store!.containsCredential(id.toString()))
+            XCTAssertFalse(try store!.containsCredential(DIDURL(user.subject, "#notExists")))
+        } catch {
             XCTFail()
         }
     }
     
     func testListCredentials() {
         do {
-            let testData: TestData = TestData()
-            let store: DIDStore = try testData.setup(true)
-            _ = try testData.initIdentity()
+            _ = try testData.getRootIdentity()
             
             // Store test data into current store
-            _ = try testData.loadTestIssuer()
-            let test: DIDDocument = try testData.loadTestDocument()
-            var vc = try testData.loadProfileCredential()
-            vc?.getMetadata().setAlias("MyProfile")
-            vc = try testData.loadEmailCredential()
-            vc?.getMetadata().setAlias("Email")
-            vc = try testData.loadTwitterCredential()
-            vc?.getMetadata().setAlias("Twitter")
-            vc = try testData.loadPassportCredential()
-            vc?.getMetadata().setAlias("Passport")
-
-            let vcs: Array<DIDURL> = try store.listCredentials(for: test.subject)
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            let user = try testData.sharedInstantData().getUser1Document()
+            var vc = try user.credential(ofId: "#profile")
+            vc!.getMetadata().setAlias("MyProfile")
+            vc = try user.credential(ofId: "#email")
+            vc!.getMetadata().setAlias("Email")
+            vc = try testData.sharedInstantData().getUser1TwitterCredential()
+            vc!.getMetadata().setAlias("Twitter")
+            vc = try testData.sharedInstantData().getUser1PassportCredential()
+            vc!.getMetadata().setAlias("Passport")
+            
+            let vcs = try store!.listCredentials(for: user.subject)
             XCTAssertEqual(4, vcs.count)
+            
             for id in vcs {
-                var re = id.fragment == "profile" || id.fragment == "email" || id.fragment == "twitter" || id.fragment == "passport"
-                XCTAssertTrue(re)
+                XCTAssertTrue(id.fragment == "profile"
+                                || id.fragment == "email"
+                                || id.fragment == "twitter"
+                                || id.fragment == "passport")
                 
-                re = id.getMetadata().aliasName == "MyProfile" || id.getMetadata().aliasName == "Email" || id.getMetadata().aliasName == "Twitter" || id.getMetadata().aliasName == "Passport"
-                XCTAssertTrue(re)
+                XCTAssertTrue(id.getMetadata().getAlias() == "MyProfile"
+                                || id.getMetadata().getAlias() == "Email"
+                                || id.getMetadata().getAlias() == "Twitter"
+                                || id.getMetadata().getAlias() == "Passport")
             }
         } catch {
-            print(error)
             XCTFail()
         }
     }
     
     func testDeleteCredential() {
         do {
-            let testData: TestData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
             // Store test data into current store
-            _ = try testData.loadTestIssuer()
-            let test: DIDDocument = try testData.loadTestDocument()
-            var vc = try testData.loadProfileCredential()
-            vc?.getMetadata().setAlias("MyProfile")
-            try vc?.saveMetadata()
-            vc = try testData.loadEmailCredential()
-            vc?.getMetadata().setAlias("Email")
-            try vc?.saveMetadata()
-            vc = try testData.loadTwitterCredential()
-            vc?.getMetadata().setAlias("Twitter")
-            try vc?.saveMetadata()
-            vc = try testData.loadPassportCredential()
-            vc?.getMetadata().setAlias("Passport")
-            try vc?.saveMetadata()
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            let user = try testData.sharedInstantData().getUser1Document()
+            var vc = try user.credential(ofId: "#profile")
+            vc!.getMetadata().setAlias("MyProfile")
+            vc = try user.credential(ofId: "#email")
+            vc!.getMetadata().setAlias("Email")
+            vc = try testData.sharedInstantData().getUser1TwitterCredential()
+            vc!.getMetadata().setAlias("Twitter")
+            vc = try testData.sharedInstantData().getUser1PassportCredential()
+            vc!.getMetadata().setAlias("Passport")
 
-            var path = storeRoot + "/ids/" + test.subject.methodSpecificId + "/credentials/twitter/credential"
-            XCTAssertTrue(testData.existsFile(path))
+
+            var path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#twitter" + "/credential"
+            var file = getFile(path)
+            XCTAssertTrue(try file.exists())
             
-            path = storeRoot + "/" + "ids" + "/" + test.subject.methodSpecificId + "/" + "credentials" + "/" + "twitter" + "/" + ".meta"
-            XCTAssertTrue(testData.existsFile(path))
-            
-            path = storeRoot + "/" + "ids" + "/" + test.subject.methodSpecificId + "/" + "credentials" + "/" + "passport" + "/" + "credential"
-            XCTAssertTrue(testData.existsFile(path))
-            
-            path = storeRoot + "/" + "ids" + "/" + test.subject.methodSpecificId
-                + "/" + "credentials" + "/" + "passport" + "/" + ".meta"
-            XCTAssertTrue(testData.existsFile(path))
-            
-            var deleted: Bool = store.deleteCredential(for: test.subject, id: try DIDURL(test.subject, "twitter"))
+            path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#twitter" + "/.metadata"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#passport" + "/credential"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#passport" + "/.metadata"
+            file = getFile(path)
+            XCTAssertTrue(try file.exists())
+
+            var deleted = store!.deleteCredential(try DIDURL(user.subject, "#twitter"))
             XCTAssertTrue(deleted)
-            
-            deleted = store.deleteCredential(for: test.subject.description, id: "passport")
+
+            deleted = try store!.deleteCredential(DIDURL(user.subject, "#passport").toString())
             XCTAssertTrue(deleted)
-            
-            deleted = store.deleteCredential(for: test.subject.description, id: "notExist")
+
+            deleted = try store!.deleteCredential(user.subject.toString() + "#notExist")
             XCTAssertFalse(deleted)
-            
-            path = storeRoot + "/" + "ids"
-                + "/" + test.subject.methodSpecificId
-                + "/" + "credentials" + "/" + "twitter"
-            XCTAssertFalse(testData.existsFile(path))
-            
-            path = storeRoot + "/" + "ids"
-                + "/" + test.subject.methodSpecificId
-                + "/" + "credentials" + "/" + "passport"
-            XCTAssertFalse(testData.existsFile(path))
-            
-            XCTAssertTrue(try store.containsCredential(test.subject.description, "email"))
-            XCTAssertTrue(try store.containsCredential(test.subject.description, "profile"))
-            
-            XCTAssertFalse(try store.containsCredential(test.subject.description, "twitter"))
-            XCTAssertFalse(try store.containsCredential(test.subject.description, "passport"))
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testCompatibility() throws {
-        let bundle = Bundle(for: type(of: self))
-        let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
-        print(jsonPath)
-        
-        let adapter = DummyAdapter()
-        try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
-        let store = try DIDStore.open(atPath:jsonPath, withType: "filesystem", adapter: adapter)
-        
-        let dids = try store.listDids(using: DIDStore.DID_ALL)
-        XCTAssertEqual(2, dids.count)
-        
-        for did in dids {
-            if did.getMetadata().aliasName == "Issuer" {
-                let vcs: [DIDURL] = try store.listCredentials(for: did)
-                XCTAssertEqual(1, vcs.count)
-                
-                let id: DIDURL = vcs[0]
-                XCTAssertEqual("Profile", id.getMetadata().aliasName)
-                
-                XCTAssertNotNil(try store.loadCredential(for: did, byId: id))
-            } else if did.getMetadata().aliasName == "Test" {
-                let vcs: [DIDURL] = try store.listCredentials(for: did)
-                XCTAssertEqual(4, vcs.count)
-                
-                for id: DIDURL in vcs {
-                    XCTAssertTrue(id.getMetadata().aliasName == "Profile"
-                        || id.getMetadata().aliasName == "Email"
-                        || id.getMetadata().aliasName == "Passport"
-                        || id.getMetadata().aliasName == "Twitter")
-                    
-                    XCTAssertNotNil(try store.loadCredential(for: did, byId: id))
-                }
-            }
-        }
-    }
 
-    func testCompatibilityNewDIDandGetDID() {
-        do {
-            let bundle = Bundle(for: type(of: self))
-            let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
+            path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#twitter"
+            file = getFile(path)
+            XCTAssertFalse(try file.exists())
 
-            let adapter = DummyAdapter()
-            try DIDBackend.initializeInstance(adapter, TestData.getResolverCacheDir())
-            let store = try DIDStore.open(atPath: jsonPath, withType:"filesystem" , adapter: adapter)
+            path = "ids/" + user.subject.methodSpecificId + "/credentials" + "/#passport"
+            file = getFile(path)
+            XCTAssertFalse(try file.exists())
 
-            var doc = try store.newDid(using: storePassword)
-            XCTAssertNotNil(doc)
+            XCTAssertTrue(try! store!.containsCredential(DIDURL(user.subject, "#email")))
+            XCTAssertTrue(try! store!.containsCredential(user.subject.toString() + "#profile"))
 
-            _ = store.deleteDid(doc.subject)
-
-            let did = try store.getDid(byPrivateIdentityIndex: 1000)
-
-            doc = try store.newDid(withPrivateIdentityIndex: 1000, using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertEqual(doc.subject, did)
-
-            _ = store.deleteDid(doc.subject)
+            XCTAssertFalse(try! store!.containsCredential(DIDURL(user.subject, "#twitter")))
+            XCTAssertFalse(try! store!.containsCredential(user.subject.toString() + "#passport"))
         } catch {
             XCTFail()
         }
-    }
-    
-    func testCompatibilityNewDIDWithWrongPass() {
-        do {
-            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
-            let bundle = Bundle(for: type(of: self))
-            let jsonPath = bundle.path(forResource: "teststore", ofType: "")
-            let store = try DIDStore.open(atPath: jsonPath!, withType: "filesystem", adapter: DummyAdapter())
-
-            _ = try store.newDid(using: "wrongpass")
-        } catch {
-            if error is DIDError {
-                let err = error as! DIDError
-                switch err {
-                case .didStoreError(_desc: "decryptFromBase64 error."):
-                    XCTAssertTrue(true)
-                default:
-                    XCTFail()
-                }
-            }
-        }
-    }
-    
-    func testCompatibilityNewDID() throws {
-        try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
-        let bundle = Bundle(for: type(of: self))
-        let jsonPath = bundle.path(forResource: "teststore", ofType: "")
-        let store = try DIDStore.open(atPath: jsonPath!, withType: "filesystem", adapter: DummyAdapter())
-        
-        let doc: DIDDocument = try store.newDid(using: storePassword)
-        XCTAssertNotNil(doc)
-                
-        _ = store.deleteDid(doc.subject)
-    }
-
-    func createDataForPerformanceTest(_ store: DIDStore) {
-        do {
-            var props: Dictionary<String, String> = [: ]
-            props["name"] = "John"
-            props["gender"] = "Male"
-            props["nation"] = "Singapore"
-            props["language"] = "English"
-            props["email"] = "john@example.com"
-            props["twitter"] = "@john"
-            
-            for i in 0..<10 {
-                let alias: String = "my did \(i)"
-                let doc: DIDDocument = try store.newDid(withAlias: alias, using: storePassword)
-                
-                let issuer = try VerifiableCredentialIssuer(doc)
-                let cb = issuer.editingVerifiableCredentialFor(did: doc.subject)
-                let vc: VerifiableCredential = try cb.withId("cred-1")
-                    .withTypes("BasicProfileCredential", "InternetAccountCredential")
-                    .withProperties(props)
-                    .sealed(using: storePassword)
-                try store.storeCredential(using: vc)
-            }
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testStorePerformance(_ cached: Bool) {
-        do {
-            let adapter = DummyAdapter()
-            _ = TestData()
-            TestData.deleteFile(storeRoot)
-            var store: DIDStore
-            if (cached){
-                store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", adapter: adapter)
-            }
-            else {
-                store = try DIDStore.open(atPath: storeRoot, withType: "filesystem", initialCacheCapacity: 0, maxCacheCapacity: 0, adapter: adapter)
-            }
-                        
-            let mnemonic: String = try Mnemonic.generate("0")
-            try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passPhrase: passphrase, storePassword: storePassword)
-            createDataForPerformanceTest(store)
-            let dids: Array<DID> = try store.listDids(using: DIDStore.DID_ALL)
-            XCTAssertEqual(10, dids.count)
-            // TODO: TimeMillis
-            /*
-             long start = System.currentTimeMillis()
-             private void testStorePerformance(boolean cached) throws DIDException {
-             
-             for (int i = 0; i < 1000; i++) {
-             for (DID did : dids) {
-             DIDDocument doc = store.loadDid(did);
-             assertEquals(did, doc.getSubject());
-             
-             DIDURL id = new DIDURL(did, "cred-1");
-             VerifiableCredential vc = store.loadCredential(did, id);
-             assertEquals(id, vc.getId());
-             }
-             }
-             
-             long end = System.currentTimeMillis();
-             
-             System.out.println("Store " + (cached ? "with " : "without ") +
-             "cache took " + (end - start) + " milliseconds.");
-             }
-             */
-            
-        } catch {
-            print(error)
-            XCTFail()
-        }
-    }
-    
-    func testStoreWithCache() {
-        testStorePerformance(true)
-    }
-    
-    func testStoreWithoutCache() {
-        testStorePerformance(false)
-    }
-    
-    func testMultipleStore() {
-        do {
-            var stores: Array = Array<DIDStore>()
-            var docs: Array = Array<DIDDocument>()
-            
-            for i in 0..<10 {
-                let path = storeRoot + String(i)
-                TestData.deleteFile(path)
-                let store = try DIDStore.open(atPath: storeRoot + String(i), withType: "filesystem", adapter: DummyAdapter())
-                stores.append(store)
-                let mnemonic: String = try Mnemonic.generate("0")
-                try store.initializePrivateIdentity(using: "0", mnemonic: mnemonic, passphrase: passphrase, storePassword: storePassword, true)
-            }
-            
-            for i in 0..<10 {
-                let doc: DIDDocument = try stores[i].newDid(using: storePassword)
-                XCTAssertNotNil(doc)
-                docs.append(doc)
-            }
-            
-            for i in 0..<10 {
-                let doc = try stores[i].loadDid(docs[i].subject)
-                XCTAssertNotNil(doc)
-                XCTAssertEqual(docs[i].toString(true, forSign: true), doc!.toString(true, forSign: true))
-            }
-        } catch {
-            print(error)
-            XCTFail()
-        }
-
     }
     
     func testChangePassword() {
         do {
-            let testData: TestData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-            
-            for i in 0..<10 {
-                let alias: String = "my did \(i)"
-                let doc = try store.newDid(withAlias: alias, using: storePassword)
-                XCTAssertTrue(doc.isValid)
-                var resolved = try doc.subject.resolve(true)
+            let identity = try testData.getRootIdentity()
+
+            for i in 0...10{
+                let alias = "my did " + i
+                let doc = try identity.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                XCTAssertTrue(try doc.isValid())
+
+                var resolved = try doc.subject.resolve()
                 XCTAssertNil(resolved)
-                _ = try store.publishDid(for: doc.subject, using: storePassword)
-                var path: String = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
-                XCTAssertTrue(testData.existsFile(path))
-                
-                path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/.meta"
-                XCTAssertTrue(testData.existsFile(path))
-                resolved = try doc.subject.resolve(true)
+
+                try doc.publish(storePassword)
+
+                var path = "ids/" + doc.subject.methodSpecificId + "/document"
+                var file = getFile(path)
+                XCTAssertTrue(try file.exists())
+
+                path = "ids/" + doc.subject.methodSpecificId + "/.metadata"
+                file = getFile(path)
+                XCTAssertTrue(try file.exists())
+
+                path = "ids/" + doc.subject.methodSpecificId + "/privatekeys" + "/#primary"
+                file = getFile(path)
+                XCTAssertTrue(try file.exists())
+
+                resolved = try doc.subject.resolve()
                 XCTAssertNotNil(resolved)
-                try store.storeDid(using: resolved!)
-                XCTAssertEqual(alias, resolved!.getMetadata().aliasName)
-                XCTAssertEqual(doc.subject, resolved!.subject)
-                XCTAssertEqual(doc.proof.signature, resolved!.proof.signature)
-                XCTAssertTrue(resolved!.isValid)
+                try store!.storeDid(using: resolved!)
+                XCTAssertEqual(alias, resolved!.getMetadata().getAlias())
+                XCTAssertEqual(doc.subject, resolved?.subject)
+                XCTAssertEqual(doc.proof.signature,resolved?.proof.signature)
+
+                XCTAssertTrue(try resolved!.isValid())
             }
-            var dids = try store.listDids(using: DIDStore.DID_ALL)
+
+            var dids = try store!.listDids()
             XCTAssertEqual(10, dids.count)
 
-            dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY);
+            try store!.changePassword(storePassword, "newpasswd")
+
+            dids = try store!.listDids()
             XCTAssertEqual(10, dids.count)
 
-            dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY);
-            XCTAssertEqual(0, dids.count)
+            for i in 0...10 {
+                let alias = "my did " + i
+                let did = try identity.getDid(i)
+                let doc = try store!.loadDid(did)
+                XCTAssertNotNil(doc)
+                XCTAssertTrue(try doc!.isValid())
 
-            try store.changePassword(storePassword, "newpasswd")
+                var file = getFile("ids/" + did.methodSpecificId + "/document")
+                XCTAssertTrue(try file.exists())
 
-            dids = try store.listDids(using: DIDStore.DID_ALL)
-            XCTAssertEqual(10, dids.count)
+                var path = "ids/" + did.methodSpecificId + "/.metadata"
+                file = getFile(path)
+                XCTAssertTrue(try file.exists())
 
-            dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
-            XCTAssertEqual(10, dids.count)
+                path = "ids/" + did.methodSpecificId + "/privatekeys" + "/#primary"
+                file = getFile(path)
+                XCTAssertTrue(try file.exists())
 
-            dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY)
-            XCTAssertEqual(0, dids.count)
+                XCTAssertEqual(alias, doc!.getMetadata().getAlias())
+            }
 
-            let doc = try store.newDid(using: "newpasswd")
+            let doc = try identity.newDid("newpasswd")
             XCTAssertNotNil(doc)
         } catch {
-            print(error)
             XCTFail()
         }
     }
-
+    
     func testChangePasswordWithWrongPassword() {
         do {
-            let testData: TestData = TestData()
-            let store = try testData.setup(true)
-            _ = try testData.initIdentity()
-            for i in 0..<10 {
-                let alias = "my did \(i)"
-                let doc = try store.newDid(withAlias: alias, using: storePassword)
-                XCTAssertTrue(doc.isValid)
-                var resolved = try doc.subject.resolve(true)
-                XCTAssertNil(resolved)
-                _ = try store.publishDid(for: doc.subject, using: storePassword)
-                var path: String = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/document"
-                XCTAssertTrue(testData.existsFile(path))
-                
-                path = storeRoot + "/ids/" + doc.subject.methodSpecificId + "/.meta"
-                XCTAssertTrue(testData.existsFile(path))
-                resolved = try doc.subject.resolve(true)
-                XCTAssertNotNil(resolved)
-                try store.storeDid(using: resolved!)
-                XCTAssertEqual(alias, resolved!.getMetadata().aliasName)
-                XCTAssertEqual(doc.subject, resolved!.subject)
-                XCTAssertEqual(doc.proof.signature, resolved!.proof.signature)
-                XCTAssertTrue(resolved!.isValid)
+            let identity = try testData.getRootIdentity()
+
+            for i in 0...10 {
+                let alias = "my did " + i
+                let doc = try identity.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                XCTAssertTrue(try doc.isValid())
             }
 
-            var dids = try store.listDids(using: DIDStore.DID_ALL)
+            let dids = try store!.listDids()
             XCTAssertEqual(10, dids.count)
 
-            dids = try store.listDids(using: DIDStore.DID_HAS_PRIVATEKEY)
-            XCTAssertEqual(10, dids.count)
-
-            dids = try store.listDids(using: DIDStore.DID_NO_PRIVATEKEY)
-            XCTAssertEqual(0, dids.count)
-
-            XCTAssertThrowsError(try store.changePassword("wrongpasswd", "newpasswd")) { error in
-                switch error as! DIDError{
-                case .didStoreError("Change store password failed."):
+            XCTAssertThrowsError(_ = try store!.changePassword("wrongpasswd", "newpasswd")){ error in
+                switch error {
+                case DIDError.CheckedError.DIDStoreError.DIDStoreError:
                     XCTAssertTrue(true)
+                    break
                 default:
                     XCTFail()
                 }
@@ -1431,89 +455,330 @@ class DIDStoreTests: XCTestCase {
             XCTFail()
         }
     }
-
-    func testExportAndImportDid() {
+    
+    func testCompatibility1() {
+        Compatibility(1)
+    }
+    func testCompatibility2() {
+        Compatibility(2)
+    }
+    func Compatibility(_ version: Int) {
         do {
-            let testData: TestData = TestData()
-            let bundle = Bundle(for: type(of: self))
-            let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
-
-            let adapter = DummyAdapter()
-            try DIDBackend.initializeInstance(adapter, TestData.getResolverCacheDir())
-            let store = try DIDStore.open(atPath: jsonPath, withType: "filesystem", adapter: adapter)
-
-            let did = try store.listDids(using: DIDStore.DID_ALL)[0]
-
-            let exportPath = tempDir + "/" + "didexport.json"
-            try create(exportPath, forWrite: true)
-            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
-
-            try store.exportDid(did, to: fileHndle, using: "password", storePassword: storePassword)
-            let restorePath = tempDir + "/" + "restore"
-            TestData.deleteFile(restorePath)
-
-            let store2 = try DIDStore.open(atPath: restorePath, withType: "filesystem", adapter: adapter)
-
-            let readerHndle = FileHandle(forReadingAtPath: exportPath)
-            readerHndle?.seek(toFileOffset: 0)
-            try store2.importStore(from: readerHndle!, "password", storePassword)
-
-//            let didDirPath = storeRoot + "/ids/" + did.methodSpecificId
-            let reDidDirPath = restorePath + "/ids/" + did.methodSpecificId
-
-//            XCTAssertTrue(testData.existsFile(didDirPath))
-            XCTAssertTrue(testData.exists(reDidDirPath))
-//            XCTAssertTrue(Utils.equals(reDidDir, didDir))
+            let data = "Hello World".data(using: .utf8)
+            
+            let cd = try testData.getCompatibleData(version)
+            try cd.loadAll()
+            
+            let store = try DIDStore.open(atPath: cd.storePath)
+            
+            let dids = try store.listDids()
+            XCTAssertEqual(version == 2 ? 10 : 4, dids.count)
+            
+            for did in dids {
+                let alias = did.getMetadata().getAlias()
+                
+                if (alias == "Issuer") {
+                    let vcs = try store.listCredentials(for: did)
+                    XCTAssertEqual(1, vcs.count)
+                    
+                    for id in vcs {
+                        XCTAssertNotNil(try store.loadCredential(byId: id))
+                    }
+                }
+                else if (alias == "User1") {
+                    let vcs = try store.listCredentials(for: did)
+                    XCTAssertEqual(version == 2 ? 5 : 4, vcs.count)
+                    
+                    for id in vcs {
+                        XCTAssertNotNil(try store.loadCredential(byId: id))
+                    }
+                } else if (alias == "User2") {
+                    let vcs = try store.listCredentials(for: did)
+                    XCTAssertEqual(1, vcs.count)
+                    
+                    for id in vcs {
+                        XCTAssertNotNil(try store.loadCredential(byId: id))
+                    }
+                } else if (alias == "User3") {
+                    let vcs = try store.listCredentials(for: did)
+                    XCTAssertEqual(0, vcs.count)
+                }
+                
+                let doc = try store.loadDid(did)
+                if (!doc!.isCustomizedDid() || doc!.controllerCount() <= 1) {
+                    let sig = try doc!.sign(using: storePassword, for: data!)
+                    XCTAssertTrue(try doc!.verify(signature: sig, onto: data!))
+                }
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testCompatibilityNewDIDWithWrongPass1() {
+        CompatibilityNewDIDWithWrongPass(1)
+    }
+    func testCompatibilityNewDIDWithWrongPass2() {
+        CompatibilityNewDIDWithWrongPass(2)
+    }
+    func CompatibilityNewDIDWithWrongPass(_ version: Int) {
+        do {
+            let store = try DIDStore.open(atPath: testData.getCompatibleData(version).storePath)
+            let idenitty = try store.loadRootIdentity()
+            
+            XCTAssertThrowsError(_ = try idenitty!.newDid("wrongpass")){ error in
+                switch error {
+                case DIDError.CheckedError.DIDStoreError.WrongPasswordError:
+                    XCTAssertTrue(true)
+                    break
+                default:
+                    XCTFail()
+                }
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testCompatibilityNewDIDandGetDID1() {
+        CompatibilityNewDIDandGetDID(1)
+    }
+    func testCompatibilityNewDIDandGetDID2() {
+        CompatibilityNewDIDandGetDID(2)
+    }
+    func CompatibilityNewDIDandGetDID(_ version: Int) {
+        do {
+            let store = try DIDStore.open(atPath: testData.getCompatibleData(version).storePath)
+            let identity = try store.loadRootIdentity()
+            
+            var doc = try identity!.newDid(storePassword)
+            XCTAssertNotNil(doc)
+            
+            _ = store.deleteDid(doc.subject)
+            
+            let did = try identity!.getDid(1000)
+            
+            doc = try identity!.newDid(1000, storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(doc.subject, did)
+            
+            _ = store.deleteDid(doc.subject)
             
         } catch {
             XCTFail()
         }
     }
-
-    func testExportAndImportPrivateIdentity() {
+    
+    func createDataForPerformanceTest(_ store: DIDStore)  {
         do {
-            let testData: TestData = TestData()
-            let bundle = Bundle(for: type(of: self))
-            let jsonPath: String = bundle.path(forResource: "teststore", ofType: "")!
-
-            let adapter = DummyAdapter()
-            try DIDBackend.initializeInstance(adapter, TestData.getResolverCacheDir())
-            let store = try DIDStore.open(atPath: jsonPath, withType: "filesystem", adapter: adapter)
-
-            let exportPath = tempDir + "/" + "didexport2.json"
-            try create(exportPath, forWrite: true)
-            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportPath)!
-
-            try store.exportPrivateIdentity(to: fileHndle, "password", storePassword)
-            let restorePath = tempDir + "/" + "restore"
-            TestData.deleteFile(restorePath)
-
-            let store2 = try DIDStore.open(atPath: restorePath, withType: "filesystem", adapter: adapter)
-
-            let readerHndle = FileHandle(forReadingAtPath: exportPath)
-            readerHndle?.seek(toFileOffset: 0)
-            try store2.importPrivateIdentity(from: readerHndle!, using: "password", storePassword: storePassword)
-
-            //            let didDirPath = storeRoot + "/private"
-            let reDidDirPath = restorePath + "/private"
-            XCTAssertTrue(testData.exists(reDidDirPath))
+            let props = ["name": "John",
+                         "gender": "Male",
+                         "nation": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            let identity = try store.loadRootIdentity()
+            
+            for i in 0...10 {
+                let alias = "my did " + i
+                let doc = try identity!.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                let issuer = try VerifiableCredentialIssuer(doc)
+                let cb = issuer.editingVerifiableCredentialFor(did: doc.subject)
+                let vc = try cb.withId("#cred-1")
+                    .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                    .withProperties(props)
+                    .sealed(using: storePassword)
+                
+                try store.storeCredential(using: vc)
+            }
         } catch {
             XCTFail()
         }
     }
-
-    func create(_ path: String, forWrite: Bool) throws {
-
-        if !FileManager.default.fileExists(atPath: path) && forWrite {
-            let dirPath: String = PathExtracter(path).dirname()
-            let fileM = FileManager.default
-            let re = fileM.fileExists(atPath: dirPath)
-            if !re {
-                try fileM.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
+    
+    func testStoreCachePerformance1() {
+        StoreCachePerformance(true)
+    }
+    func testStoreCachePerformance2() {
+        StoreCachePerformance(false)
+    }
+    func StoreCachePerformance(_ cached: Bool) {
+        do {
+            TestData.deleteFile(storeRoot)
+            var store: DIDStore? = nil
+            if (cached) {
+                store = try DIDStore.open(atPath: storePassword)
             }
-            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
+            else {
+                store = try DIDStore.open(atPath: storePassword, initialCacheCapacity: 0, maxCacheCapacity: 0)
+            }
+            
+            let mnemonic =  try Mnemonic.generate(Mnemonic.DID_ENGLISH)
+            _ = try RootIdentity.create(mnemonic, storePassword, true, store!, storePassword)
+            
+            createDataForPerformanceTest(store!)
+            
+            let dids = try store!.listDids()
+            XCTAssertEqual(10, dids.count)
+            
+            for _ in 0...1000 {
+                for did in dids {
+                    let doc = try store!.loadDid(did)
+                    XCTAssertEqual(did, doc!.subject)
+                    
+                    let id = try DIDURL(did, "#cred-1")
+                    let vc = try! store!.loadCredential(byId: id)
+                    XCTAssertEqual(id, vc!.getId())
+                }
+            }
+            
+            print("Store loading \(cached) cache took {} milliseconds.")
+        }
+        catch {
+            XCTFail()
+        }
+    }
+    
+    func testMultipleStore() {
+        do {
+            var stores: [DIDStore] = []
+            var docs: [DIDDocument] = []
+
+            for i in 0...stores.count {
+                TestData.deleteFile(storeRoot + i)
+                stores[i] = try DIDStore.open(atPath: storeRoot + i)
+                XCTAssertNotNil(stores[i])
+                let mnemonic = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
+                _ = try RootIdentity.create(mnemonic, "", stores[i], storePassword)
+            }
+
+            for i in 0...stores.count  {
+                docs[i] = try stores[i].loadRootIdentity()!.newDid(storePassword)
+                XCTAssertNotNil(docs[i])
+            }
+
+            for i in 0...stores.count {
+                let doc = try stores[i].loadDid(docs[i].subject)
+                XCTAssertNotNil(doc)
+                XCTAssertEqual(docs[i].toString(true), doc!.toString(true))
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testOpenStoreOnExistEmptyFolder() {
+        do {
+            let emptyFolder = tempDir + "/DIDTest-EmptyStore"
+            if (try emptyFolder.exists()) {
+                TestData.deleteFile(emptyFolder)
+            }
+
+//            emptyFolder.mkdirs()
+
+            let store = try DIDStore.open(atPath: emptyFolder)
+            XCTAssertNotNil(store)
+
+            store.close()
+        } catch {
+            XCTFail()
         }
     }
 }
+/*
+ @Test
+ public void testExportAndImportDid() throws DIDException, IOException {
+     File storeDir = new File(TestConfig.storeRoot);
 
-*/
+     testData.getInstantData().getIssuerDocument();
+     testData.getInstantData().getUser1Document();
+     testData.getInstantData().getUser1PassportCredential();
+     testData.getInstantData().getUser1TwitterCredential();
+
+     DID did = store.listDids().get(0);
+
+     File tempDir = new File(TestConfig.tempDir);
+     tempDir.mkdirs();
+     File exportFile = new File(tempDir, "didexport.json");
+
+     store.exportDid(did, exportFile, "password", TestConfig.storePass);
+
+     File restoreDir = new File(tempDir, "restore");
+     Utils.deleteFile(restoreDir);
+     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
+     store2.importDid(exportFile, "password", TestConfig.storePass);
+
+     String path = "data" + File.separator + "ids" + File.separator + did.getMethodSpecificId();
+     File didDir = new File(storeDir, path);
+     File reDidDir = new File(restoreDir, path);
+     assertTrue(didDir.exists());
+     assertTrue(reDidDir.exists());
+     assertTrue(Utils.equals(reDidDir, didDir));
+ }
+
+ @Test
+ public void testExportAndImportRootIdentity() throws DIDException, IOException {
+     File storeDir = new File(TestConfig.storeRoot);
+
+     testData.getInstantData().getIssuerDocument();
+     testData.getInstantData().getUser1Document();
+     testData.getInstantData().getUser1PassportCredential();
+     testData.getInstantData().getUser1TwitterCredential();
+
+     String id = store.loadRootIdentity().getId();
+
+     File tempDir = new File(TestConfig.tempDir);
+     tempDir.mkdirs();
+     File exportFile = new File(tempDir, "idexport.json");
+
+     store.exportRootIdentity(id, exportFile, "password", TestConfig.storePass);
+
+     File restoreDir = new File(tempDir, "restore");
+     Utils.deleteFile(restoreDir);
+     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
+     store2.importRootIdentity(exportFile, "password", TestConfig.storePass);
+
+     String path = "data" + File.separator + "roots" + File.separator + id;
+     File privateDir = new File(storeDir, path);
+     File rePrivateDir = new File(restoreDir, path);
+     assertTrue(privateDir.exists());
+     assertTrue(rePrivateDir.exists());
+     assertTrue(Utils.equals(rePrivateDir, privateDir));
+ }
+
+ @Test
+ public void testExportAndImportStore() throws DIDException, IOException {
+     testData.getRootIdentity();
+
+     // Store test data into current store
+     testData.getInstantData().getIssuerDocument();
+     DIDDocument user = testData.getInstantData().getUser1Document();
+     VerifiableCredential vc = user.getCredential("#profile");
+     vc.getMetadata().setAlias("MyProfile");
+     vc = user.getCredential("#email");
+     vc.getMetadata().setAlias("Email");
+     vc = testData.getInstantData().getUser1TwitterCredential();
+     vc.getMetadata().setAlias("Twitter");
+     vc = testData.getInstantData().getUser1PassportCredential();
+     vc.getMetadata().setAlias("Passport");
+
+     File tempDir = new File(TestConfig.tempDir);
+     tempDir.mkdirs();
+     File exportFile = new File(tempDir, "storeexport.zip");
+
+     store.exportStore(exportFile, "password", TestConfig.storePass);
+
+     File restoreDir = new File(tempDir, "restore");
+     Utils.deleteFile(restoreDir);
+     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
+     store2.importStore(exportFile, "password", TestConfig.storePass);
+
+     File storeDir = new File(TestConfig.storeRoot);
+
+     assertTrue(storeDir.exists());
+     assertTrue(restoreDir.exists());
+     assertTrue(Utils.equals(restoreDir, storeDir));
+ }
+ */
