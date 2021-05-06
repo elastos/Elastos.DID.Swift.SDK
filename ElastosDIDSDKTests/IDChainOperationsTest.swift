@@ -3,26 +3,43 @@ import XCTest
 import PromiseKit
 
 class IDChainOperationsTest: XCTestCase {
-    let testData: TestData = TestData()
-    var dids: [DID] = []
-    
+    static let testData: TestData = TestData()
+    static var dids: [DID] = []
     var store:  DIDStore?
     var mnemonic: String = ""
     var identity: RootIdentity?
+    var adapter: Web3Adapter?
     
     override func setUp() {
-        store = testData.store
-        mnemonic = testData.mnemonic
-        identity = try! testData.getRootIdentity()
-        
-        try! testData.waitForWalletAvaliable()
+        adapter = Web3Adapter("http://52.80.107.251:1111", "0xEA2256bd30cfeC643203d1a6f36A90A4fD17863E", "", "password")
+        try! DIDBackend.initialize(adapter!)
+
+        store = IDChainOperationsTest.testData.store
+        print(self.store as Any)
+        identity = try! IDChainOperationsTest.testData.getRootIdentity()
+        mnemonic = IDChainOperationsTest.testData.mnemonic
+        waitForWalletAvaliable()
     }
     
     override func tearDown() {
-        testData.cleanup()
+//        IDChainOperationsTest.testData.cleanup()
     }
     
-    func testCreateAndResolve() {
+    func waitForWalletAvaliable() {
+        while true {
+            Thread.sleep(forTimeInterval: 30)
+            if adapter!.isAvailable() {
+                print("OK")
+                break
+            }
+            else {
+                print(".")
+            }
+            Thread.sleep(forTimeInterval: 60)
+        }
+    }
+
+    func test_00CreateAndResolve() {
         do {
             // Create new DID and publish to ID sidechain.
             let doc = try identity!.newDid(storePassword)
@@ -32,21 +49,22 @@ class IDChainOperationsTest: XCTestCase {
             try doc.publish(storePassword)
             print("Publish new DID \(did.toString())...OK({}s)")
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             let resolved = try did.resolve()
             XCTAssertNotNil(resolved)
             XCTAssertEqual(did, resolved?.subject)
             XCTAssertTrue(try resolved!.isValid())
             XCTAssertEqual(doc.toString(true), resolved!.toString(true))
             
-            dids.append(did) // 0
+            IDChainOperationsTest.dids.append(did) // 0
+            print(IDChainOperationsTest.dids)
             
         } catch {
             XCTFail()
         }
     }
     
-    func testCreateAndResolveAsync() {
+    func test_01CreateAndResolveAsync() {
         do {
             // Create new DID and publish to ID sidechain.
             let doc = try identity!.newDid(storePassword)
@@ -65,7 +83,7 @@ class IDChainOperationsTest: XCTestCase {
             }
             wait(for: [lock], timeout: 1000)
             lock = XCTestExpectation()
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             did.resolveAsync(true).done { resolved in
                 XCTAssertEqual(did, resolved!.subject)
                 XCTAssertTrue(try resolved!.isValid())
@@ -78,13 +96,13 @@ class IDChainOperationsTest: XCTestCase {
             }
             wait(for: [lock], timeout: 1000)
             
-            dids.append(did) // 1
+            IDChainOperationsTest.dids.append(did) // 1
         } catch {
             XCTFail()
         }
     }
     
-    func testCreateAndResolveAsync2() {
+    func test_02CreateAndResolveAsync2() {
         do {
             // Create new DID and publish to ID sidechain.
             let doc = try identity!.newDid(storePassword)
@@ -93,7 +111,7 @@ class IDChainOperationsTest: XCTestCase {
             print("Publishing new DID and resolve \(did)...")
             
             doc.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done{ resolved in
                 print("Publish new DID and resolve \(did)...OK({}s)")
@@ -109,16 +127,18 @@ class IDChainOperationsTest: XCTestCase {
             }
             wait(for: [lock], timeout: 1000)
             
-            dids.append(did) // 2
+            IDChainOperationsTest.dids.append(did) // 2
         } catch {
             XCTFail()
         }
     }
     
-    func testUpdateAndResolve() {
+    func test_03UpdateAndResolve() {
         do {
             // User the DID that created in previous case(1)
-            var doc = try store!.loadDid(dids[0])
+//            did:elastos:iYsRKjWMmUayNJPWqgTQHqN3hFF4KvgA6i
+//            IDChainOperationsTest.dids.append(try DID("did:elastos:iYsRKjWMmUayNJPWqgTQHqN3hFF4KvgA6i"))
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[0])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             
@@ -142,7 +162,7 @@ class IDChainOperationsTest: XCTestCase {
             try doc!.publish(storePassword)
             print("Update DID \(did)...OK({}s)")
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             resolved = try did.resolve()
             XCTAssertNotEqual(lastTxid, resolved?.getMetadata().transactionId)
             XCTAssertEqual(did, resolved!.subject)
@@ -176,10 +196,10 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testUpdateAndResolveAgain() {
+    func test_04UpdateAndResolveAgain() {
         do {
             // User the DID that created in previous case(1)
-            var doc = try store!.loadDid(dids[0])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[0])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             
@@ -204,7 +224,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Update DID \(did)...OK({}s)" )
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             resolved = try did.resolve()
             XCTAssertNotEqual(lastTxid, resolved!.getMetadata().transactionId)
             XCTAssertEqual(did, resolved!.subject)
@@ -242,10 +262,10 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testUpdateAndResolveAsync() {
+    func test_05UpdateAndResolveAsync() {
         do {
             // User the DID that created in previous case(2)
-            var doc = try store!.loadDid(dids[1])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[1])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             
@@ -278,7 +298,7 @@ class IDChainOperationsTest: XCTestCase {
             lock = XCTestExpectation()
             doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done{ doc in
                 resolved = doc
@@ -327,10 +347,10 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testUpdateAndResolveAsyncAgain() {
+    func test_06UpdateAndResolveAsyncAgain() {
         do {
             // User the DID that created in previous case(2)
-            var doc = try store!.loadDid(dids[1])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[1])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             var resolved: DIDDocument?
@@ -362,7 +382,7 @@ class IDChainOperationsTest: XCTestCase {
             print("Updating DID \(did)...")
             lock = XCTestExpectation()
             doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }
             .done{ doc in
@@ -412,7 +432,7 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testCreateAndResolveWithCredentials() {
+    func test_07CreateAndResolveWithCredentials() {
         do {
             // Create new DID and publish to ID sidechain.
             var doc = try identity!.newDid(storePassword)
@@ -445,7 +465,7 @@ class IDChainOperationsTest: XCTestCase {
             try doc.publish(storePassword)
             print("Publish new DID \(did)...OK({}s)")
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             let resolved = try did.resolve()
             XCTAssertEqual(did, resolved!.subject)
             XCTAssertTrue(try resolved!.isValid())
@@ -454,17 +474,17 @@ class IDChainOperationsTest: XCTestCase {
             let lastTxid = resolved!.getMetadata().transactionId
             print("Last transaction id \(String(describing: lastTxid))")
             
-            dids.append(did) // 3
+            IDChainOperationsTest.dids.append(did) // 3
         } catch {
             XCTFail()
         }
     }
     
-    func testUpdateAndResolveWithCredentials() {
+    func test_08UpdateAndResolveWithCredentials() {
         
         do {
             // User the DID that created in previous case(8)
-            var doc = try store!.loadDid(dids[3])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[3])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             
@@ -498,7 +518,7 @@ class IDChainOperationsTest: XCTestCase {
             try doc!.publish(storePassword)
             print("Update DID \(did)...OK({}s)")
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             resolved = try did.resolve()
             XCTAssertNotEqual(lastTxid, resolved!.getMetadata().transactionId)
             XCTAssertEqual(did, resolved!.subject)
@@ -532,10 +552,10 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testUpdateAndResolveWithCredentialsAgain() {
+    func test_09UpdateAndResolveWithCredentialsAgain() {
         do {
             // User the DID that created in previous case(8)
-            var doc = try store!.loadDid(dids[3])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[3])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             
@@ -574,7 +594,7 @@ class IDChainOperationsTest: XCTestCase {
             try doc!.publish(storePassword)
             print("Update DID \(did)...OK({}s)")
             
-            try testData.waitForWalletAvaliable()
+            waitForWalletAvaliable()
             resolved = try did.resolve()
             XCTAssertNotEqual(lastTxid, resolved!.getMetadata().transactionId)
             XCTAssertEqual(did, resolved!.subject)
@@ -612,7 +632,7 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testCreateAndResolveWithCredentialsAsync() {
+    func test_10CreateAndResolveWithCredentialsAsync() {
         do {
             // Create new DID and publish to ID sidechain.
             var doc = try identity!.newDid(storePassword)
@@ -646,7 +666,7 @@ class IDChainOperationsTest: XCTestCase {
             let lock = XCTestExpectation()
             doc.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Publish new DID \(did)...OK({}s)")
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done{ doc in
                 resolved = doc
@@ -665,16 +685,16 @@ class IDChainOperationsTest: XCTestCase {
             let lastTxid = resolved!.getMetadata().transactionId
             print("Last transaction id \(String(describing: lastTxid))")
             
-            dids.append(did) // 4
+            IDChainOperationsTest.dids.append(did) // 4
         } catch {
             XCTFail()
         }
     }
     
-    func testUpdateAndResolveWithCredentialsAsync() {
+    func test_11UpdateAndResolveWithCredentialsAsync() {
         do {
             // User the DID that created in previous case(11)
-            var doc = try store!.loadDid(dids[4])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[4])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             var resolved: DIDDocument?
@@ -719,7 +739,7 @@ class IDChainOperationsTest: XCTestCase {
             lock = XCTestExpectation()
             doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done { doc in
                 resolved = doc
@@ -743,10 +763,10 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testUpdateAndResolveWithCredentialsAsyncAgain() {
+    func test_12UpdateAndResolveWithCredentialsAsyncAgain() {
         do {
             // User the DID that created in previous case(11)
-            var doc = try store!.loadDid(dids[4])
+            var doc = try store!.loadDid(IDChainOperationsTest.dids[4])
             XCTAssertNotNil(doc)
             let did = doc!.subject
             var lock = XCTestExpectation()
@@ -794,7 +814,7 @@ class IDChainOperationsTest: XCTestCase {
             lock = XCTestExpectation()
             doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
-                try? testData.waitForWalletAvaliable()
+                waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done{ doc in
                 resolved = doc
@@ -841,7 +861,7 @@ class IDChainOperationsTest: XCTestCase {
         }
     }
     
-    func testSyncRootIdentityClean() {
+    func test_13SyncRootIdentityClean() {
         do {
             let path = tempDir + "/cleanstore"
             TestData.deleteFile(path)
@@ -856,17 +876,14 @@ class IDChainOperationsTest: XCTestCase {
             
             let restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
-            //            Collections.sort(restoredDids)
             
-            _ = dids
-            //            Collections.sort(originalDids)
-            //            XCTAssertEqual(originalDids.toArray(DID[0]), restoredDids.toArray(DID[0]))
+            _ = IDChainOperationsTest.dids
         } catch {
             XCTFail()
         }
     }
     
-    func testSyncRootIdentityCleanAsync() {
+    func test_14SyncRootIdentityCleanAsync() {
         do {
             let path = tempDir + "/cleanstore"
             TestData.deleteFile(path)
@@ -888,18 +905,14 @@ class IDChainOperationsTest: XCTestCase {
             
             let restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
-            //        Collections.sort(restoredDids)
-            
-            _ = dids
-            //        Collections.sort(originalDids)
-            
-            //        XCTAssertEqual(originalDids.toArray(DID[0]), restoredDids.toArray(DID[0]))
+
+            _ = IDChainOperationsTest.dids
         } catch {
             XCTFail()
         }
     }
     
-    func testSyncRootIdentityWithoutModification() {
+    func test_15SyncRootIdentityWithoutModification() {
         do {
             print("Synchronizing from IDChain...")
             try identity?.synchronize({ (c, l) -> DIDDocument in
@@ -915,55 +928,46 @@ class IDChainOperationsTest: XCTestCase {
             
             let restoredDids = try store!.listDids()
             XCTAssertEqual(5, restoredDids.count)
-            //            Collections.sort(restoredDids)
             
-            _ = dids
-            //            Collections.sort(originalDids)
-            
-            //            XCTAssertEqual(originalDids.toArray(DID[0]), restoredDids.toArray(DID[0]))
+            _ = IDChainOperationsTest.dids
         } catch {
             XCTFail()
         }
     }
     
-    func testSyncRootIdentityWithoutModificationAsync() {
+    func test_16SyncRootIdentityWithoutModificationAsync() {
         do {
-            /*
+        
              print("Synchronizing from IDChain...")
              
-             let ch: ConflictHandler = (c, l) -> {
-             XCTAssertEqual(l.getProof().getSignature(), c.getProof().getSignature())
-             XCTAssertEqual(l.getLastModified(), c.getLastModified())
+            try identity?.synchronize({ (c, l) -> DIDDocument in
+                XCTAssertEqual(l.proof.signature, c.proof.signature)
+                XCTAssertEqual(l.lastModified, c.lastModified)
+                
+                l.getMetadata().setPublishTime(c.getMetadata().publishTime!)
+                l.getMetadata().setSignature(c.getMetadata().signature!)
+                return l
+            })
+            
+            _ = identity!.synchronizeAsync { (c, l) -> DIDDocument in
+                print("Synchronize from IDChain...OK({}s)")
+
+                return c
+            }
              
-             l.getMetadata().setPublishTime(c.getMetadata().getPublishTime())
-             l.getMetadata().setSignature(c.getMetadata().getSignature())
-             return l
-             }
+            let restoredDids = try store!.listDids()
+             XCTAssertEqual(5, restoredDids.count)
              
-             CompletableFuture<Void> f = identity.synchronizeAsync(ch)
-             .thenRun(() -> {
-             long duration = (System.currentTimeMillis() - start + 500) / 1000
-             print("Synchronize from IDChain...OK({}s)", duration)
-             })
+            let originalDids = IDChainOperationsTest.dids
              
-             f.join()
+            XCTAssertEqual(originalDids.count, restoredDids.count)
              
-             List<DID> restoredDids = new ArrayList<DID>(store.listDids())
-             XCTAssertEqual(5, restoredDids.size())
-             Collections.sort(restoredDids)
-             
-             List<DID> originalDids = new ArrayList<DID>(dids)
-             Collections.sort(originalDids)
-             
-             assertArrayEquals(originalDids.toArray(new DID[0]),
-             restoredDids.toArray(new DID[0]))
-             */
         } catch {
             XCTFail()
         }
     }
     
-    func testSyncRootIdentityWithLocalModification1() {
+    func test_17SyncRootIdentityWithLocalModification1() {
         do {
             // Sync to a clean store first
             let path = tempDir + "/cleanstore"
@@ -979,16 +983,11 @@ class IDChainOperationsTest: XCTestCase {
             
             var restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
-            //            Collections.sort(restoredDids)
             
-            var originalDids = dids
-            //            Collections.sort(originalDids)
-            
-            //            XCTAssertEqual(originalDids[DID[0]],
-            //                              restoredDids[DID[0]])
+            var originalDids = IDChainOperationsTest.dids
             
             // Modify a DID document
-            let modifiedDid = dids[0]
+            let modifiedDid = IDChainOperationsTest.dids[0]
             var doc = try cleanStore.loadDid(modifiedDid)
             let db = try doc?.editing()
             _ = try db!.appendService(with: "#test1", type: "TestType", endpoint: "http://test.com/")
@@ -1002,13 +1001,8 @@ class IDChainOperationsTest: XCTestCase {
             
             restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
-            //            Collections.sort(restoredDids)
             
-            originalDids = dids
-            //            Collections.sort(originalDids)
-            
-            //            XCTAssertEqual(originalDids[DID[0]],
-            //                              restoredDids[DID[0]])
+            originalDids = IDChainOperationsTest.dids
             
             // Should keep the local modified copy after sync
             doc = try cleanStore.loadDid(modifiedDid)
@@ -1016,116 +1010,111 @@ class IDChainOperationsTest: XCTestCase {
         } catch {
             XCTFail()
         }
+     }
         
-        func testSyncRootIdentityWithLocalModification2() {
-            do {
-                // Sync to a clean store first
-                let path = tempDir + "/cleanstore"
-                TestData.deleteFile(path)
-                
-                let cleanStore = try DIDStore.open(atPath: path)
-                let rootIdentity = try RootIdentity.create(mnemonic,
-                                                           passphrase, true, cleanStore, storePassword)
-                
-                print("Synchronizing from IDChain...")
-                try rootIdentity.synchronize()
-                print("Synchronize from IDChain...OK({}s)")
-                
-                var restoredDids = try cleanStore.listDids()
-                XCTAssertEqual(5, restoredDids.count)
-                
-                var originalDids = dids
-                
-                //                assertArrayEquals(originalDids[DID[0],
-                //                                  restoredDids[DID[0]])
-                
-                // Modify a DID document
-                let modifiedDid = dids[0]
-                var doc = try cleanStore.loadDid(modifiedDid)
-                let originalSignature = doc?.signature
-                
-                let db = try doc?.editing()
-                _ = try db?.appendService(with: "#Stest1", type: "TestType", endpoint: "http://test.com/")
-                doc = try db?.sealed(using: storePassword)
-                try cleanStore.storeDid(using: doc!)
-                
-                print("Synchronizing again from IDChain...")
-                _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
-                    return c
-                }
-                print("Synchronize again from IDChain...OK({}s)")
-                
-                restoredDids = try cleanStore.listDids()
-                XCTAssertEqual(5, restoredDids.count)
-                
-                originalDids = dids
-                
-                //                XCTAssertEqual(originalDids[DID[0]],
-                //                                  restoredDids[DID[0]])
-                
-                // Should overwrite the local modified copy with chain copy after sync
-                doc = try cleanStore.loadDid(modifiedDid)
-                XCTAssertEqual(originalSignature, doc?.signature)
-            } catch {
-                XCTFail()
+    func test_18SyncRootIdentityWithLocalModification2() {
+        do {
+            // Sync to a clean store first
+            let path = tempDir + "/cleanstore"
+            TestData.deleteFile(path)
+            
+            let cleanStore = try DIDStore.open(atPath: path)
+            let rootIdentity = try RootIdentity.create(mnemonic,
+                                                       passphrase, true, cleanStore, storePassword)
+            
+            print("Synchronizing from IDChain...")
+            try rootIdentity.synchronize()
+            print("Synchronize from IDChain...OK({}s)")
+            
+            var restoredDids = try cleanStore.listDids()
+            XCTAssertEqual(5, restoredDids.count)
+            
+            var originalDids = IDChainOperationsTest.dids
+            
+            // Modify a DID document
+            let modifiedDid = IDChainOperationsTest.dids[0]
+            var doc = try cleanStore.loadDid(modifiedDid)
+            let originalSignature = doc?.signature
+            
+            let db = try doc?.editing()
+            _ = try db?.appendService(with: "#Stest1", type: "TestType", endpoint: "http://test.com/")
+            doc = try db?.sealed(using: storePassword)
+            try cleanStore.storeDid(using: doc!)
+            
+            print("Synchronizing again from IDChain...")
+            _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
+                return c
             }
-        }
-        
-        func testSyncRootIdentityWithLocalModificationAsync() {
-            do {
-                // Sync to a clean store first
-                let path = tempDir + "/cleanstore"
-                TestData.deleteFile(path)
-                
-                let cleanStore = try DIDStore.open(atPath: path)
-                let rootIdentity = try RootIdentity.create(mnemonic,
-                                                           passphrase, true, cleanStore, storePassword)
-                
-                print("Synchronizing from IDChain...")
-                rootIdentity.synchronizeAsync().done{ _ in
-                    print("Synchronize from IDChain...OK({}s)")
-                }
-                .catch { error in
-                    XCTFail()
-                }
-                
-                var restoredDids = try cleanStore.listDids()
-                XCTAssertEqual(5, restoredDids.count)
-                
-                var originalDids = dids
-                
-                //            XCTAssertEqual(originalDids[DID[0]], restoredDids[DID[0]])
-                
-                // Modify a DID document
-                let modifiedDid = dids[0]
-                var doc = try cleanStore.loadDid(modifiedDid)
-                let originalSignature = doc?.signature
-                
-                let db = try doc?.editing()
-                _ = try db!.appendService(with: "#test1", type: "TestType", endpoint: "http://test.com/")
-                doc = try db?.sealed(using: storePassword)
-                try cleanStore.storeDid(using: doc!)
-                
-                print("Synchronizing again from IDChain...")
-                _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
-                    print("Synchronize again from IDChain...OK({}s)")
-                    return c
-                }
-                
-                restoredDids = try cleanStore.listDids()
-                XCTAssertEqual(5, restoredDids.count)
-                
-                originalDids = dids
-                
-                //            XCTAssertEqual(originalDids[DID[0]], restoredDids[DID[0]])
-                
-                // Should overwrite the local modified copy with chain copy after sync
-                doc = try cleanStore.loadDid(modifiedDid)
-                XCTAssertEqual(originalSignature, doc?.signature)
-            } catch {
-                XCTFail()
-            }
+            print("Synchronize again from IDChain...OK({}s)")
+            
+            restoredDids = try cleanStore.listDids()
+            XCTAssertEqual(5, restoredDids.count)
+            
+            originalDids = IDChainOperationsTest.dids
+
+            // Should overwrite the local modified copy with chain copy after sync
+            doc = try cleanStore.loadDid(modifiedDid)
+            XCTAssertEqual(originalSignature, doc?.signature)
+        } catch {
+            XCTFail()
         }
     }
+    
+    func test_19SyncRootIdentityWithLocalModificationAsync() {
+        do {
+            // Sync to a clean store first
+            let path = tempDir + "/cleanstore"
+            TestData.deleteFile(path)
+            
+            let cleanStore = try DIDStore.open(atPath: path)
+            let rootIdentity = try RootIdentity.create(mnemonic,
+                                                       passphrase, true, cleanStore, storePassword)
+            
+            print("Synchronizing from IDChain...")
+            rootIdentity.synchronizeAsync().done{ _ in
+                print("Synchronize from IDChain...OK({}s)")
+            }
+            .catch { error in
+                XCTFail()
+            }
+            
+            var restoredDids = try cleanStore.listDids()
+            XCTAssertEqual(5, restoredDids.count)
+            
+            var originalDids = IDChainOperationsTest.dids
+            
+            //            XCTAssertEqual(originalDids[DID[0]], restoredDids[DID[0]])
+            
+            // Modify a DID document
+            let modifiedDid = IDChainOperationsTest.dids[0]
+            var doc = try cleanStore.loadDid(modifiedDid)
+            let originalSignature = doc?.signature
+            
+            let db = try doc?.editing()
+            _ = try db!.appendService(with: "#test1", type: "TestType", endpoint: "http://test.com/")
+            doc = try db?.sealed(using: storePassword)
+            try cleanStore.storeDid(using: doc!)
+            
+            print("Synchronizing again from IDChain...")
+            _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
+                print("Synchronize again from IDChain...OK({}s)")
+                return c
+            }
+            
+            restoredDids = try cleanStore.listDids()
+            XCTAssertEqual(5, restoredDids.count)
+            
+            originalDids = IDChainOperationsTest.dids
+            
+            //            XCTAssertEqual(originalDids[DID[0]], restoredDids[DID[0]])
+            
+            // Should overwrite the local modified copy with chain copy after sync
+            doc = try cleanStore.loadDid(modifiedDid)
+            XCTAssertEqual(originalSignature, doc?.signature)
+        } catch {
+            XCTFail()
+        }
+    }
+
 }
-   
+

@@ -94,7 +94,20 @@ extension String {
 }
 
 extension Dictionary {
-    func toJsonString() -> String? {
+   public func toJsonString() -> String? {
+        guard let data = try? JSONSerialization.data(withJSONObject: self,
+                                                     options: []) else {
+            return nil
+        }
+        guard let str = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return str
+     }
+}
+
+extension Array {
+   public func toJsonString() -> String? {
         guard let data = try? JSONSerialization.data(withJSONObject: self,
                                                      options: []) else {
             return nil

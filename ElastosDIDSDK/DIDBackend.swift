@@ -219,8 +219,8 @@ public class DIDBackend: NSObject {
     
     private func generateRequestId() -> String {
         var requestId = ""
-        while requestId.count < 16 {
-            let randomStr = Int.decTohex(number: Int.randomCustom(min: 0, max: 16))
+        while requestId.count < 32 {
+            let randomStr = Int.decTohex(number: Int.randomCustom(min: 0, max: 32))
             requestId.append(randomStr)
         }
         return requestId

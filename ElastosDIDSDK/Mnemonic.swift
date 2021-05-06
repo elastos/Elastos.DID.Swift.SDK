@@ -26,13 +26,13 @@ import Foundation
 public class Mnemonic: NSObject {
     @objc public static let DID_CHINESE_SIMPLIFIED = "chinese_simplified"
     @objc public static let DID_CHINESE_TRADITIONAL = "chinese_traditional"
-    @objc public static let DID_CZECH = "Czech"
+    @objc public static let DID_CZECH = "czech"
     @objc public static let DID_ENGLISH = "english"
-    @objc public static let DID_FRENCH = "French"
-    @objc public static let DID_ITALIAN = "Italian"
+    @objc public static let DID_FRENCH = "french"
+    @objc public static let DID_ITALIAN = "italian"
     @objc public static let DID_JAPANESE = "japanese"
-    @objc public static let DID_KOREAN = "Korean"
-    @objc public static let DID_SPANISH = "Spanish"
+    @objc public static let DID_KOREAN = "korean"
+    @objc public static let DID_SPANISH = "spanish"
 
     /// Gernerate a random mnemonic.
     /// - Parameter language: The language for DID.

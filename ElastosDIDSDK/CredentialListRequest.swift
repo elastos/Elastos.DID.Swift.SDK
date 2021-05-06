@@ -26,7 +26,7 @@ public class CredentialListRequest: ResolveRequest {
     private let PARAMETER_DID = "did"
     private let PARAMETER_SKIP = "skip"
     private let PARAMETER_LIMIT = "limit"
-    public static let METHOD_NAME = "listcredentials"
+    public static let METHOD_NAME = "did_listCredentials"
     private var _params: CredentialListParameters?
 
     init(_ requestId: String) {

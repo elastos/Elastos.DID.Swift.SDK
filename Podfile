@@ -10,6 +10,7 @@ def import_pods
   pod 'Alamofire'
   pod 'Telegraph'
   
+  pod 'web3swift'
 end
 
 target :ElastosDIDSDK do

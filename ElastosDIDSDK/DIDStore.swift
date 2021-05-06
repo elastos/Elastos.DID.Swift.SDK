@@ -436,9 +436,6 @@ public class DIDStore: NSObject {
         for credential in doc.credentials() {
             try storeCredential(using: credential)
         }
-        if (documentCache != nil) {
-            documentCache!.setValue(doc, for: doc.subject)
-        }
         cache.setValue(doc, for: Key.forDidDocument(doc.subject))
     }
     

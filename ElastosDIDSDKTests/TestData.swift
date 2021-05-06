@@ -81,34 +81,15 @@ class TestData {
         return instantData!
     }
     
-    func waitForWalletAvaliable() throws {
-//        var spvAdapter: SPVAdaptor? = nil
-//        if adapter is SPVAdaptor {
-//            spvAdapter = adapter as? SPVAdaptor
-//        }
-//        if spvAdapter != nil {
-//            while true {
-//                if try spvAdapter!.isAvailable() {
-//                    print("OK")
-//                    break
-//                }
-//                else {
-//                    print(".")
-//                }
-//                wait(interval: 30)
-//            }
-//        }
-    }
-    
-    func wait(interval: Double) {
+//    func wait(interval: Double) {
 
 //        let lock = XCTestExpectation(description: "")
 
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + interval) {
+//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + interval) {
 //            lock.fulfill()
-        }
+//        }
 //        wait(for: [lock], timeout: interval + 10)
-    }
+//    }
 
     class func getResolverCacheDir() -> String {
         return "\(NSHomeDirectory())/Library/Caches/.cache.did.elastos"
@@ -287,7 +268,7 @@ public class CompatibleData {
         return str
     }
     
-    func loadText(_ path: String) throws -> String {
+    public func loadText(_ path: String) throws -> String {
         let bl = Bundle(for: type(of: self))
         let paths = path.replacingOccurrences(of: bl.bundlePath, with: "").slip()
         let filepath = bl.path(forResource: paths[0], ofType: paths[1])
