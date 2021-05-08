@@ -27,7 +27,7 @@ public class RootIdentityMetadata: AbstractMetadata {
     public let DEFAULT_DID = "defaultDid"
     var id: String?
     
-    init(_ id: String, _ store: DIDStore) {
+    init(_ id: String?, _ store: DIDStore) {
         self.id = id
         super.init(store)
     }
@@ -64,12 +64,12 @@ public class RootIdentityMetadata: AbstractMetadata {
         }
     }
     
-    class func parse(_ path: String) -> RootIdentityMetadata {
-        // TODO:
-        return RootIdentityMetadata()
-    }
-    
-    func serialize(_ path: String) {
-        // TODO:
+    class func parse(_ path: String) throws -> RootIdentityMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary()
+        let metadata = RootIdentityMetadata()
+        metadata._props = dic
+        
+        return metadata
     }
 }

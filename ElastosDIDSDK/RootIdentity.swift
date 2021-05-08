@@ -78,15 +78,15 @@ public class RootIdentity: NSObject {
     }
     
     public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
-        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(extentedPrivateKey.isEmpty, "Invalid extended private key")
+        try checkArgument(storePassword.isEmpty, "Invalid storePassword")
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
         let identity = try RootIdentity(rootPrivateKey)
         
-        if try store.containsRootIdentity(identity.id!) && !overwrite {
+        if try identity.id != nil && store.containsRootIdentity(identity.id!) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }
-        identity.metadata = RootIdentityMetadata(identity.id!, store)
+        identity.metadata = RootIdentityMetadata(identity.id, store)
         try! store.storeRootIdentity(identity, storePassword)
         try identity.wipe()
         
