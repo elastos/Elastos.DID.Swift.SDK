@@ -1128,8 +1128,7 @@ public class VerifiableCredential: DIDObject, Mappable {
     
     @objc(fromJsonWithJsonfor:error:)
     public class func fromJson(for path: String) throws -> VerifiableCredential {
-        //TODO: data from path
-        return try fromJson(path.data(using: .utf8)!)
+        return try fromJson(path.readTextFromPath())
     }
 
     /// Get one DID’s Credential from json context.

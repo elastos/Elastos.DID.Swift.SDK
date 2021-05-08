@@ -110,12 +110,12 @@ public class CredentialMetadata: AbstractMetadata {
         }
     }
     
-    class func parse(_ path: String) -> CredentialMetadata {
-        // TODO:
-        return CredentialMetadata()
-    }
-    
-    func serialize(_ path: String) {
-        // TODO:
+    class func parse(_ path: String) throws -> CredentialMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary()
+        let metadata = CredentialMetadata()
+        metadata._props = dic
+        
+        return metadata
     }
 }

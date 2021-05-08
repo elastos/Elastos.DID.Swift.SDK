@@ -24,8 +24,14 @@ import Foundation
 
 /// The class defines the base interface of Meta data.
 public class AbstractMetadata: NSObject {
+    let TYPE = "type"
+    let VERSION = "version"
+    let FINGERPRINT = "fingerprint"
+    let DEFAULT_ROOT_IDENTITY = "defaultRootIdentity"
     let ALIAS = "alias"
     let USER_EXTRA_PREFIX = "UX-"
+    static let USER_EXTRA_PREFIX = "UX-"
+
     var _props: [String: String] = [: ]
     private var _store: DIDStore?
     
@@ -224,11 +230,15 @@ public class AbstractMetadata: NSObject {
         }
         
         metadata._props.forEach{(k, v) in
-            if _props[k] == nil {
-                _props.removeValue(forKey: k)
+            if _props.keys.contains(k) {
+                if _props[k] == "" || _props[k] == nil {
+                    _props.removeValue(forKey: k)
+                }
             }
             else {
-                _props[k] = v
+                if v != "" {
+                    _props[k] = v
+                }
             }
         }
     }
@@ -239,4 +249,15 @@ public class AbstractMetadata: NSObject {
     }
     
     func save() { }
+    
+    func serialize(_ path: String) throws {
+        let generator = JsonGenerator()
+        generator.writeStartObject()
+        _props.forEach { k,v in
+            generator.writeStringField(k, v)
+        }
+        generator.writeEndObject()
+        let mataData = generator.toString()
+        try mataData.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
+    }
 }

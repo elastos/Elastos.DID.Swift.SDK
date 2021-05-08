@@ -177,12 +177,12 @@ public class DIDMetadata: AbstractMetadata {
         }
     }
     
-    class func parse(_ path: String) -> DIDMetadata {
-        // TODO:
-        return DIDMetadata()
-    }
-    
-    func serialize(_ path: String) {
-        // TODO:
+    class func parse(_ path: String) throws -> DIDMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary()
+        let metadata = DIDMetadata()
+        metadata._props = dic
+        
+        return metadata
     }
 }
