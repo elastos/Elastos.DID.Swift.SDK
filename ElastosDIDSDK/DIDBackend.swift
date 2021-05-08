@@ -301,7 +301,8 @@ public class DIDBackend: NSObject {
     ///   - force: force = true, DID content must be from chain.
     ///            force = false, DID content could be from chain or local cache.
     /// - Returns: the DIDDocument object
-    func resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
+    func
+    resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
         Log.d(TAG, "Resolving DID ", did.toString(), "...")
         if resolveHandle != nil {
             let doc = resolveHandle!(did)

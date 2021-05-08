@@ -1978,7 +1978,7 @@ public class DIDDocument: NSObject {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         
-        return try getMetadata().store!.sign(WithId: withId, using: storePassword, for: digest, _capacity)
+        return try getMetadata().store!.sign(WithId: withId, using: storePassword, for: digest, digest.count * 3)
     }
     
     func sha256Digest(_ data: [Data]) -> Data {

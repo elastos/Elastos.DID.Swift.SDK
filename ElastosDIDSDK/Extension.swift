@@ -91,6 +91,13 @@ extension String {
             throw DIDError.unknownFailure("path not Exists.")
         }
     }
+    
+    func readTextFromPath() throws -> String {
+        guard try self.exists() else {
+            return ""
+        }
+        return try String(contentsOfFile: self, encoding: String.Encoding.utf8)
+    }
 }
 
 extension Dictionary {

@@ -934,7 +934,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTFail()
         }
     }
-    
+   
     func test_16SyncRootIdentityWithoutModificationAsync() {
         do {
         
