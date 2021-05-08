@@ -182,9 +182,18 @@ public class DIDStore: NSObject {
     }
     
     private func calcFingerprint(_ password: String) throws -> String {
-        //TODO:
+        var md5 = MD5Helper()
+        var bytes = [UInt8](password.data(using: .utf8)!)
+        md5.update(&bytes)
+        var result = md5.finalize()
+        let str = try DIDStore.encryptToBase64(Data(bytes: result, count: result.count), password)
+        md5 = MD5Helper()
+        bytes = [UInt8](str.data(using: .utf8)!)
+        md5.update(&bytes)
+        result = md5.finalize()
+        let hex = result.hexString
         
-        return "TODO:"
+        return hex
     }
     
     
@@ -207,7 +216,10 @@ public class DIDStore: NSObject {
         let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
         let re = decrypt_from_base64(plain, storePassword, input)
         guard re >= 0 else {
-            throw DIDError.didStoreError("decryptFromBase64 error.")
+            // NEW ADD
+            throw DIDError.CheckedError.DIDStoreError.WrongPasswordError()
+            
+//            throw DIDError.didStoreError("decryptFromBase64 error.")
         }
         let temp = UnsafeRawPointer(plain)
             .bindMemory(to: UInt8.self, capacity: re)
@@ -1052,7 +1064,7 @@ public class DIDStore: NSObject {
         let toPPointer = privatekeys.toPointer()
         
         let cdigest = digest.toPointer()
-
+        print("capacity = \(capacity)")
         let csig = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
         let re = ecdsa_sign_base64(csig, toPPointer, UnsafeMutablePointer(mutating: cdigest), digest.count)
 
@@ -1079,14 +1091,18 @@ public class DIDStore: NSObject {
         try checkArgument(!oldPassword.isEmpty, "Invalid old password")
         try checkArgument(!newPassword.isEmpty, "Invalid new password")
         
-        // TODO:
-        let re: (String) throws -> String = { (data: String) -> String in
-//            let udata = try DIDStore.decryptFromBase64(data, oldPassword)
-//            let result = try DIDStore.encryptToBase64(udata, newPassword)
+        try storage?.changePassword{ data -> String in
             let result = try DIDStore.reEncrypt(data, oldPassword, newPassword)
             
             return result
         }
+//        let re: (String) throws -> String = { (data: String) -> String in
+////            let udata = try DIDStore.decryptFromBase64(data, oldPassword)
+////            let result = try DIDStore.encryptToBase64(udata, newPassword)
+//            let result = try DIDStore.reEncrypt(data, oldPassword, newPassword)
+//
+//            return result
+//        }
         try metadata!.setFingerprint(calcFingerprint(newPassword))
         cache.clear()
     }

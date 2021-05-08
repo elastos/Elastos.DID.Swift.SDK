@@ -24,10 +24,6 @@ import Foundation
 /// The class defines the implement of DID Metadata.
 public class DIDStoreMetadata: AbstractMetadata {
     private let TAG = NSStringFromClass(DIDStoreMetadata.self)
-    private let TYPE = "type"
-    private let VERSION = "version"
-    private let FINGERPRINT = "fingerprint"
-    private let DEFAULT_ROOT_IDENTITY = "defaultRootIdentity"
     
     /// The default constructor for JSON deserialize creator.
     override init() {
@@ -81,20 +77,21 @@ public class DIDStoreMetadata: AbstractMetadata {
         }
     }
     
-    func serialize(_ path: String) throws {
-        let generator = JsonGenerator()
-        generator.writeStartObject()
-        generator.writeStringField(TYPE, _props[TYPE]!)
-        generator.writeStringField(VERSION, _props[VERSION]!)
-        _props.forEach { k,v in
-            guard k != TYPE, k != VERSION else {
-                return
-            }
-            generator.writeStringField(k, v)
-        }
-        generator.writeEndObject()
-        try generator.toString().write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
-    }
+//    func serialize(_ path: String) throws {
+//        let generator = JsonGenerator()
+//        generator.writeStartObject()
+//        generator.writeStringField(TYPE, _props[TYPE]!)
+//        generator.writeStringField(VERSION, _props[VERSION]!)
+//        _props.forEach { k,v in
+//            guard k != TYPE, k != VERSION else {
+//                return
+//            }
+//            generator.writeStringField(k, v)
+//        }
+//        generator.writeEndObject()
+//        let mataData = generator.toString()
+//        try mataData.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
+//    }
     
     class func parse(_ path: String) throws -> DIDStoreMetadata {
         let data: Data = try path.forReading()

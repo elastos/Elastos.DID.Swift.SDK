@@ -196,11 +196,11 @@ class DIDStoreTests: XCTestCase {
             vc = try user.credential(ofId: "#email")
               vc!.getMetadata().setAlias("Email")
             
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
             file = getFile(path)
             XCTAssertTrue(try file.exists())
 
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
 
             file = getFile(path)
             XCTAssertTrue(try file.exists())
@@ -208,22 +208,22 @@ class DIDStoreTests: XCTestCase {
             vc = try testData.sharedInstantData().getUser1TwitterCredential()
             vc!.getMetadata().setAlias("Twitter")
 
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
             file = getFile(path)
             XCTAssertTrue(try file.exists())
 
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
             file = getFile(path)
             XCTAssertTrue(try file.exists())
 
             vc = try testData.sharedInstantData().getUser1PassportCredential()
             vc!.getMetadata().setAlias("Passport")
 
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/credential"
             file = getFile(path)
             XCTAssertTrue(try file.exists())
 
-            path = "ids" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
+            path = "ids/" + vc!.id!.did!.methodSpecificId + "/credentials/#" + vc!.id!.fragment! + "/.metadata"
             file = getFile(path)
             XCTAssertTrue(try file.exists())
 
@@ -359,7 +359,7 @@ class DIDStoreTests: XCTestCase {
         do {
             let identity = try testData.getRootIdentity()
 
-            for i in 0...10{
+            for i in 0..<10{
                 let alias = "my did " + i
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
@@ -400,7 +400,7 @@ class DIDStoreTests: XCTestCase {
             dids = try store!.listDids()
             XCTAssertEqual(10, dids.count)
 
-            for i in 0...10 {
+            for i in 0..<10 {
                 let alias = "my did " + i
                 let did = try identity.getDid(i)
                 let doc = try store!.loadDid(did)
@@ -432,7 +432,7 @@ class DIDStoreTests: XCTestCase {
         do {
             let identity = try testData.getRootIdentity()
 
-            for i in 0...10 {
+            for i in 0..<10 {
                 let alias = "my did " + i
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
@@ -457,19 +457,19 @@ class DIDStoreTests: XCTestCase {
     }
     
     func testCompatibility1() {
-        Compatibility(1)
+        Compatibility(1, "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v1/teststore")
     }
     func testCompatibility2() {
-        Compatibility(2)
+        Compatibility(2,"/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/teststore")
     }
-    func Compatibility(_ version: Int) {
+    func Compatibility(_ version: Int, _ path: String) {
         do {
             let data = "Hello World".data(using: .utf8)
             
             let cd = try testData.getCompatibleData(version)
             try cd.loadAll()
             
-            let store = try DIDStore.open(atPath: cd.storePath)
+            let store = try DIDStore.open(atPath: path)
             
             let dids = try store.listDids()
             XCTAssertEqual(version == 2 ? 10 : 4, dids.count)
@@ -523,7 +523,10 @@ class DIDStoreTests: XCTestCase {
     }
     func CompatibilityNewDIDWithWrongPass(_ version: Int) {
         do {
-            let store = try DIDStore.open(atPath: testData.getCompatibleData(version).storePath)
+            
+//            let path = try testData.getCompatibleData(version).storePath
+            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v1/teststore"
+            let store = try DIDStore.open(atPath: path)
             let idenitty = try store.loadRootIdentity()
             
             XCTAssertThrowsError(_ = try idenitty!.newDid("wrongpass")){ error in
@@ -548,7 +551,12 @@ class DIDStoreTests: XCTestCase {
     }
     func CompatibilityNewDIDandGetDID(_ version: Int) {
         do {
-            let store = try DIDStore.open(atPath: testData.getCompatibleData(version).storePath)
+            
+            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v1/teststore"
+
+//            let store = try DIDStore.open(atPath: testData.getCompatibleData(version).storePath)
+            let store = try DIDStore.open(atPath: path)
+
             let identity = try store.loadRootIdentity()
             
             var doc = try identity!.newDid(storePassword)
@@ -580,7 +588,7 @@ class DIDStoreTests: XCTestCase {
             
             let identity = try store.loadRootIdentity()
             
-            for i in 0...10 {
+            for i in 0..<10 {
                 let alias = "my did " + i
                 let doc = try identity!.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
@@ -609,14 +617,14 @@ class DIDStoreTests: XCTestCase {
             TestData.deleteFile(storeRoot)
             var store: DIDStore? = nil
             if (cached) {
-                store = try DIDStore.open(atPath: storePassword)
+                store = try DIDStore.open(atPath: storeRoot)
             }
             else {
-                store = try DIDStore.open(atPath: storePassword, initialCacheCapacity: 0, maxCacheCapacity: 0)
+                store = try DIDStore.open(atPath: storeRoot, initialCacheCapacity: 0, maxCacheCapacity: 0)
             }
             
             let mnemonic =  try Mnemonic.generate(Mnemonic.DID_ENGLISH)
-            _ = try RootIdentity.create(mnemonic, storePassword, true, store!, storePassword)
+            _ = try RootIdentity.create(mnemonic, passphrase, true, store!, storePassword)
             
             createDataForPerformanceTest(store!)
             
@@ -629,7 +637,7 @@ class DIDStoreTests: XCTestCase {
                     XCTAssertEqual(did, doc!.subject)
                     
                     let id = try DIDURL(did, "#cred-1")
-                    let vc = try! store!.loadCredential(byId: id)
+                    let vc = try store!.loadCredential(byId: id)
                     XCTAssertEqual(id, vc!.getId())
                 }
             }
@@ -646,20 +654,20 @@ class DIDStoreTests: XCTestCase {
             var stores: [DIDStore] = []
             var docs: [DIDDocument] = []
 
-            for i in 0...stores.count {
+            for i in 0..<10{
                 TestData.deleteFile(storeRoot + i)
-                stores[i] = try DIDStore.open(atPath: storeRoot + i)
+                stores.insert(try DIDStore.open(atPath: storeRoot + i), at: i)
                 XCTAssertNotNil(stores[i])
                 let mnemonic = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
                 _ = try RootIdentity.create(mnemonic, "", stores[i], storePassword)
             }
 
-            for i in 0...stores.count  {
-                docs[i] = try stores[i].loadRootIdentity()!.newDid(storePassword)
+            for i in 0..<stores.count  {
+                docs.insert(try stores[i].loadRootIdentity()!.newDid(storePassword), at: i)
                 XCTAssertNotNil(docs[i])
             }
 
-            for i in 0...stores.count {
+            for i in 0..<stores.count {
                 let doc = try stores[i].loadDid(docs[i].subject)
                 XCTAssertNotNil(doc)
                 XCTAssertEqual(docs[i].toString(true), doc!.toString(true))
