@@ -117,6 +117,9 @@ final class LRUCache<Key: Hashable, Value> {
                     return nil
                 }
                 // TODO Lock
+                if maxCapacity == 0 {
+                    return value
+                }
                 setValueWithoutLock(value!, for: key)
                 node = nodesDict[key]
             }
@@ -216,6 +219,7 @@ final class DoubleLinkedList<T> {
         next?.previous = previous
 
         node.next = head
+        head?.previous = node
         node.previous = nil
 
         if node === tail {
