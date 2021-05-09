@@ -1026,35 +1026,44 @@ class IDChainOperationsTest: XCTestCase {
             try rootIdentity.synchronize()
             print("Synchronize from IDChain...OK({}s)")
             
-            var restoredDids = try cleanStore.listDids()
+            var restoredDids = try cleanStore.listDids().sorted(by: { (d1, d2) -> Bool in
+                return try! d1.compareTo(d2) == ComparisonResult.orderedAscending
+            })
+            
             XCTAssertEqual(5, restoredDids.count)
             
-            var originalDids = IDChainOperationsTest.dids
+            var originalDids = IDChainOperationsTest.dids.sorted(by: { (d1, d2) -> Bool in
+                return try! d1.compareTo(d2) == ComparisonResult.orderedAscending
+            })
             
             // Modify a DID document
             let modifiedDid = IDChainOperationsTest.dids[0]
             var doc = try cleanStore.loadDid(modifiedDid)
-            let originalSignature = doc?.signature
             
             let db = try doc?.editing()
-            _ = try db?.appendService(with: "#Stest1", type: "TestType", endpoint: "http://test.com/")
+            _ = try db?.appendService(with: "#test1", type: "TestType", endpoint: "http://test.com/")
             doc = try db?.sealed(using: storePassword)
             try cleanStore.storeDid(using: doc!)
-            
+            let modifiedSignature = doc?.signature
+
             print("Synchronizing again from IDChain...")
             _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
                 return c
             }
             print("Synchronize again from IDChain...OK({}s)")
             
-            restoredDids = try cleanStore.listDids()
+            restoredDids = try cleanStore.listDids().sorted(by: { (d1, d2) -> Bool in
+                return try! d1.compareTo(d2) == ComparisonResult.orderedAscending
+            })
             XCTAssertEqual(5, restoredDids.count)
             
-            originalDids = IDChainOperationsTest.dids
-
+            originalDids = IDChainOperationsTest.dids.sorted(by: { (d1, d2) -> Bool in
+                return try! d1.compareTo(d2) == ComparisonResult.orderedAscending
+            })
+            
             // Should overwrite the local modified copy with chain copy after sync
             doc = try cleanStore.loadDid(modifiedDid)
-            XCTAssertEqual(originalSignature, doc?.signature)
+            XCTAssertEqual(modifiedSignature, doc?.signature)
         } catch {
             XCTFail()
         }
@@ -1071,19 +1080,20 @@ class IDChainOperationsTest: XCTestCase {
                                                        passphrase, true, cleanStore, storePassword)
             
             print("Synchronizing from IDChain...")
+            var lock = XCTestExpectation(description: "")
             rootIdentity.synchronizeAsync().done{ _ in
                 print("Synchronize from IDChain...OK({}s)")
+                lock.fulfill()
             }
             .catch { error in
                 XCTFail()
+                lock.fulfill()
             }
-            
+            wait(for: [lock], timeout: 10000)
             var restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
             
             var originalDids = IDChainOperationsTest.dids
-            
-            //            XCTAssertEqual(originalDids[DID[0]], restoredDids[DID[0]])
             
             // Modify a DID document
             let modifiedDid = IDChainOperationsTest.dids[0]
@@ -1096,11 +1106,12 @@ class IDChainOperationsTest: XCTestCase {
             try cleanStore.storeDid(using: doc!)
             
             print("Synchronizing again from IDChain...")
+            
             _ = rootIdentity.synchronizeAsync { (c, l) -> DIDDocument in
                 print("Synchronize again from IDChain...OK({}s)")
                 return c
             }
-            
+            Thread.sleep(forTimeInterval: 60)
             restoredDids = try cleanStore.listDids()
             XCTAssertEqual(5, restoredDids.count)
             

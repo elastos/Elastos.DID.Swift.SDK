@@ -714,9 +714,6 @@ public class FileSystemStorage: DIDStorage {
     func loadPrivateKey(_ id: DIDURL) throws -> String {
         do {
             let file = try getPrivateKeyFile(id, false)
-            if try! file.readTextFromPath().count <= 0 {
-                
-            }
             return try file.readTextFromPath()
         } catch {
             throw DIDError.didStoreError("load private key error.")

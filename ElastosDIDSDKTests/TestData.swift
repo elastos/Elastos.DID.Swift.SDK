@@ -360,7 +360,7 @@ public class CompatibleData {
         }
         // load the credential
         let path = getCredentialFile(did, vc, type)
-        let credential = try VerifiableCredential.fromJson(for: loadText(path))
+        let credential = try VerifiableCredential.fromJson(loadText(path))
         // If not stored before, store it
         
         if (!data.keys.contains(baseKey)) {

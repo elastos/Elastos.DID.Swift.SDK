@@ -1136,7 +1136,7 @@ public class VerifiableCredential: DIDObject, Mappable {
     /// - Throws: If error occurs, throw error.
     /// - Returns: VerifiableCredential instance.
     @objc(fromJsonWithDict:error:)
-    public class func fromJson(_ json: [String: Any]) throws -> VerifiableCredential {
+    public class func fromJson(for json: [String: Any]) throws -> VerifiableCredential {
         return try fromJson(JsonNode(json), nil)
     }
 

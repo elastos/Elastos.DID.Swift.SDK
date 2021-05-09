@@ -458,19 +458,18 @@ public class DIDStore: NSObject {
      public func loadDid(_ did: DID) throws -> DIDDocument? {
         var doc: DIDDocument?
         let vaule = cache.getValue(for: Key.forDidDocument(did))
+        
         doc = vaule as? DIDDocument
-        if doc != nil {
-            try doc!.setMetadata(loadDidMetadata(did))
-            return doc
-        }
+        if doc == nil {
+            doc = try storage!.loadDid(did)
 
-        doc = try storage!.loadDid(did)
-
-        if doc != nil {
-            let metadata = try storage!.loadDidMetadata(did)
-            metadata?.attachStore(self)
-            doc?.setMetadata(metadata!)
+            if doc != nil {
+                let metadata = try storage!.loadDidMetadata(did)
+                metadata?.attachStore(self)
+                doc?.setMetadata(metadata!)
+            }
         }
+        
         return doc
     }
 
