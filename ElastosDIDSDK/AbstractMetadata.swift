@@ -260,4 +260,24 @@ public class AbstractMetadata: NSObject {
         let mataData = generator.toString()
         try mataData.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
     }
+    
+    func serialize(_ force: Bool) throws -> String {
+        let generator = JsonGenerator()
+        try serialize(generator)
+        let mataData = generator.toString()
+        
+        return mataData
+    }
+    
+    func serialize(_ generator: JsonGenerator, _ force: Bool) throws {
+        generator.writeStartObject()
+        _props.forEach { k,v in
+            generator.writeStringField(k, v)
+        }
+        generator.writeEndObject()
+    }
+    
+    func serialize(_ generator: JsonGenerator) throws {
+        try serialize(generator, false)
+    }
 }

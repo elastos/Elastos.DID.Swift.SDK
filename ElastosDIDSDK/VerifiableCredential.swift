@@ -1216,6 +1216,14 @@ public class VerifiableCredential: DIDObject, Mappable {
         toJson(generator, nil, normalized, forSign)
         return generator.toString()
     }
+    
+    public func serialize(_ generator: JsonGenerator, _ normalized: Bool) {
+        toJson(generator, nil, normalized)
+    }
+    
+    public func serialize(_ generator: JsonGenerator) {
+        serialize(generator, false)
+    }
 }
 
 extension VerifiableCredential {

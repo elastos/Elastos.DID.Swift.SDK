@@ -229,7 +229,7 @@ public class DIDStore: NSObject {
         return data
     }
 
-    private class func reEncrypt(_ secret: String, _ oldpass: String, _ newpass: String) throws -> String {
+    class func reEncrypt(_ secret: String, _ oldpass: String, _ newpass: String) throws -> String {
         let plain = try DIDStore.decryptFromBase64(secret, oldpass)
         let newSecret = try DIDStore.encryptToBase64(plain, newpass)
         
@@ -952,7 +952,7 @@ public class DIDStore: NSObject {
         let value = try cache.getValue(for: Key.forDidPrivateKey(id)) { () -> NSObject? in
             let encryptedKey = try storage!.loadPrivateKey(id)
             
-            return encryptedKey != "" ? encryptedKey as? NSObject : nil
+            return encryptedKey != "" ? encryptedKey as NSObject : nil
         }
         
         return value == nil ? nil : value as? String
@@ -1208,7 +1208,184 @@ public class DIDStore: NSObject {
             }
         })
     }
+    
+    private func exportDid(_ did: DID, _ password: String, _ storePassword: String) throws -> DIDExport {
+            // All objects should load directly from storage,
+            // avoid affects the cached objects.
+            let doc = try storage!.loadDid(did)
+            if (doc == nil) {
+                throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Export DID \(did.toString()) failed, not exist.")
+            }
+            
+            doc!.setMetadata(try storage!.loadDidMetadata(did)!)
+            
+            Log.i(TAG, "Exporting \(did.toString()...)")
+            
+            let de = DIDExport(DID_EXPORT, did)
+            de.setDocument(doc!)
+            
+            if (storage!.containsCredentials(did)) {
+                var ids = try listCredentials(for: did)
+                ids = ids.sorted { (didurlA, didurlB) -> Bool in
+                    return didurlA.compareTo(didurlB) == ComparisonResult.orderedAscending
+                }
+                for id in ids {
+                    Log.d(TAG, "Exporting credential \(id.toString())...")
+                    
+                    let vc = try storage!.loadCredential(id)
+                    vc!.setMetadata(try storage!.loadCredentialMetadata(id)!)
+                    de.appendCredential(vc!)
+                }
+            }
+            
+            if (try storage!.containsPrivateKeys(did)) {
+                let pks = doc!.publicKeys()
+                for pk in pks {
+                    let id = pk.getId()
+                    let key = try storage!.loadPrivateKey(id!)
+                    Log.d(TAG, "Exporting private key \(String(describing: id?.toString()))...")
+                    try de.appendPrivatekey(id!, key, storePassword, password)
+                }
+            }
+            
+            return try de.sealed(using: password)
+        }
+    
+    /// Export the specific DID with all DID objects that related with this DID,
+    /// include: document, credentials, private keys and their metadata.
+    /// - Parameters:
+    ///   - did: the DID to be export
+    ///   - output: the output stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportDid(_ did: DID,
+                      to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportDid(did, password, storePassword).serialize(true)
+        output.open()
+        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
+        output.close()
+    }
+    
+    /// Export the specific DID with all DID objects that related with this DID,
+    /// include: document, credentials, private keys and their metadata.
+    /// - Parameters:
+    ///   - did: the DID to be export
+    ///   - output: the output stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportDid(_ did: String,
+                      to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportDid(DID.valueOf(did)!, password, storePassword).serialize(true)
+        output.open()
+        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
+        output.close()
+    }
+    
+    /// Export the specific DID with all DID objects that related with this DID,
+    /// include: document, credentials, private keys and their metadata.
+    /// - Parameters:
+    ///   - did: the DID to be export
+    ///   - fileHandle: the file handle that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportDid(_ did: DID,
+                  to fileHandle: FileHandle,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportDid(did, password, storePassword).serialize(true)
+        fileHandle.write(exportStr.data(using: .utf8)!)
+    }
+    
+    /// Export the specific DID with all DID objects that related with this DID,
+    /// include: document, credentials, private keys and their metadata.
+    /// - Parameters:
+    ///   - did: the DID to be export
+    ///   - fileHandle: the file handle that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportDid(_ did: String,
+                  to fileHandle: FileHandle,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportDid(DID.valueOf(did)!, password, storePassword).serialize(true)
+        fileHandle.write(exportStr.data(using: .utf8)!)
+    }
+    
+    private func importDid(_ de: DIDExport, _ password: String, _ storepass: String) throws {
+        try de.verify(password)
+        
+        // Save
+        Log.d(TAG, "Importing document...")
+        let doc = de._document!.content
+        try storage!.storeDid(doc)
+        try storage!.storeDidMetadata(doc.subject, doc.getMetadata())
+        
+        let vcs = de.credentials
+        for vc in vcs {
+            Log.d(TAG, "Importing credential \(vc.id!.toString())")
+            try storage!.storeCredential(vc)
+            try storage!.storeCredentialMetadata(vc.getId()!, vc.getMetadata())
+        }
+        
+        let sks = de.privateKeys
+        for sk in sks {
+            Log.d(TAG, "Importing credential \(sk.id.toString())")
+            try storage!.storePrivateKey(sk.id, sk.getKey(password, storepass))
+        }
+    }
+    
+    /// Import a DID and all related DID object from the import data to this store.
+    /// - Parameters:
+    ///   - data: the data for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for the import data
+    /// - Throws: If error occurs, throw error.
+    @objc
+    public func importDid(from data: Data,
+                     using password: String,
+                      storePassword: String) throws {
+        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
+        guard let _ = dic else {
+            throw DIDError.notFoundError("data is not nil")
+        }
+        
+        let de = try DIDExport.deserialize(dic!)
+        try importDid(de, password, storePassword)
+    }
 
+    /// Import a DID and all related DID object from the import data to this store.
+    /// - Parameters:
+    ///   - input: the input stream for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for the import data
+    /// - Throws: If error occurs, throw error.
+    @objc(importDid:password:storePassword:error:)
+    public func importDid(from input: InputStream,
+                      using password: String,
+                       storePassword: String) throws {
+        let data = try readData(input: input)
+        try importDid(from: data, using: password, storePassword: storePassword)
+    }
+
+    /// Import a DID and all related DID object from the import data to this store.
+    /// - Parameters:
+    ///   - handle: the fileHandle for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for the import data
+    /// - Throws: If error occurs, throw error.
+    @objc(importDidFrom:password:storePassword:error:)
+    public func importDid(from handle: FileHandle,
+                       using password: String,
+                        storePassword: String) throws {
+        handle.seekToEndOfFile()
+        let data = handle.readDataToEndOfFile()
+        try importDid(from: data, using: password, storePassword: storePassword)
+    }
+    
     /*
     /// export Mnemonic.
     /// - Parameter storePassword: The password of DIDStore.

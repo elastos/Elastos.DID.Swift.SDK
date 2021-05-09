@@ -3285,6 +3285,22 @@ public class DIDDocument: NSObject {
 
         return doc
     }
+    
+    /// Get DID Document from Data context.
+    /// - Parameter dictionary: Context of did conforming to dictionary informat.
+    /// - Throws: If no error occurs, throw error.
+    /// - Returns: DIDDocument instance.
+    @objc
+    public class func convertToDIDDocument(fromDictionary: [String: Any]) throws -> DIDDocument {
+        guard !dictionary.isEmpty else {
+            throw DIDError.illegalArgument()
+        }
+
+        let doc = DIDDocument()
+        try doc.parse(JsonNode(dictionary))
+
+        return doc
+    }
 
     /// Get DID Document from json string context.
     /// - Parameter fromJson: Context of did conforming to string informat.
@@ -3474,6 +3490,14 @@ public class DIDDocument: NSObject {
 
     func toJson(_ normalized: Bool, _ forSign: Bool) throws -> Data {
         return try toJson(normalized, forSign).data(using: .utf8)!
+    }
+    
+    func serialize(_ generator: JsonGenerator, _ normalized: Bool) throws {
+        try toJson(generator, normalized, false)
+    }
+    
+    func serialize(_ generator: JsonGenerator) throws {
+        try toJson(generator, false, false)
     }
 
     /// Get json context from DID Document.
