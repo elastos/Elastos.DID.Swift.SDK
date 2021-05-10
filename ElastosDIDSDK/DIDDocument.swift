@@ -3292,12 +3292,12 @@ public class DIDDocument: NSObject {
     /// - Returns: DIDDocument instance.
     @objc
     public class func convertToDIDDocument(fromDictionary: [String: Any]) throws -> DIDDocument {
-        guard !dictionary.isEmpty else {
+        guard !fromDictionary.isEmpty else {
             throw DIDError.illegalArgument()
         }
 
         let doc = DIDDocument()
-        try doc.parse(JsonNode(dictionary))
+        try doc.parse(JsonNode(fromDictionary))
 
         return doc
     }

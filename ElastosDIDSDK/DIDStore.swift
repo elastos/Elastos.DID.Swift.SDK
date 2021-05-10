@@ -1338,10 +1338,10 @@ public class DIDStore: NSObject {
         }
     }
     
-    /// Import a DID and all related DID object from the import data to this store.
+    /// Import a DID and all related DID object from the exported data to this store.
     /// - Parameters:
-    ///   - data: the data for the import data
-    ///   - password: the password for the import data
+    ///   - data: the data for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for the import data
     /// - Throws: If error occurs, throw error.
     @objc
@@ -1357,10 +1357,10 @@ public class DIDStore: NSObject {
         try importDid(de, password, storePassword)
     }
 
-    /// Import a DID and all related DID object from the import data to this store.
+    /// Import a DID and all related DID object from the exported data to this store.
     /// - Parameters:
-    ///   - input: the input stream for the import data
-    ///   - password: the password for the import data
+    ///   - input: the input stream for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for the import data
     /// - Throws: If error occurs, throw error.
     @objc(importDid:password:storePassword:error:)
@@ -1371,10 +1371,10 @@ public class DIDStore: NSObject {
         try importDid(from: data, using: password, storePassword: storePassword)
     }
 
-    /// Import a DID and all related DID object from the import data to this store.
+    /// Import a DID and all related DID object from the exported data to this store.
     /// - Parameters:
-    ///   - handle: the fileHandle for the import data
-    ///   - password: the password for the import data
+    ///   - handle: the fileHandle for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for the import data
     /// - Throws: If error occurs, throw error.
     @objc(importDidFrom:password:storePassword:error:)
@@ -1456,10 +1456,10 @@ public class DIDStore: NSObject {
         }
     }
     
-    /// Import a RootIdentity object from the import data to this store.
+    /// Import a RootIdentity object from the exported data to this store.
     /// - Parameters:
-    ///   - data: the data for the import data
-    ///   - password: the password for the import data
+    ///   - data: the data for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
     @objc
@@ -1475,10 +1475,10 @@ public class DIDStore: NSObject {
         try importRootIdentity(re, password, storePassword)
     }
 
-    /// Import a RootIdentity object from the import data to this store.
+    /// Import a RootIdentity object from the exported data to this store.
     /// - Parameters:
-    ///   - data: the input stream for the import data
-    ///   - password: the password for the import data
+    ///   - data: the input stream for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
     @objc(importRootIdentity:password:storePassword:error:)
@@ -1489,10 +1489,10 @@ public class DIDStore: NSObject {
         try importRootIdentity(from: data, using: password, storePassword: storePassword)
     }
 
-    /// Import a RootIdentity object from the import data to this store.
+    /// Import a RootIdentity object from the exported data to this store.
     /// - Parameters:
-    ///   - data: the input stream for the import data
-    ///   - password: the password for the import data
+    ///   - data: the input stream for the exported data
+    ///   - password: the password for the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
     @objc(importRootIdentityFrom:password:storePassword:error:)
@@ -1503,862 +1503,110 @@ public class DIDStore: NSObject {
         let data = handle.readDataToEndOfFile()
         try importRootIdentity(from: data, using: password, storePassword: storePassword)
     }
-
-    /*
-    /// export Mnemonic.
-    /// - Parameter storePassword: The password of DIDStore.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: Mnemonic string.
-    @objc
-    public func exportMnemonic(using storePassword: String) throws -> String {
-        guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument("Invalid password.")
-        }
-
-        if storage.containsMnemonic() {
-            let encryptedMnemonic = try storage.loadMnemonic()
-            let decryptedMnemonic = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
-            return String(data: decryptedMnemonic, encoding: .utf8)!
-        }
-        else {
-            throw DIDError.didStoreError("DID store doesn't contain mnemonic.")
-        }
-    }
-
-    private func deleteFile(_ path: String) throws -> Bool {
-        let fileManager = FileManager.default
-        var isDir = ObjCBool.init(false)
-        let fileExists = fileManager.fileExists(atPath: path, isDirectory: &isDir)
-        // If path is a folder, traverse the subfiles under the folder and delete them
-        let re: Bool = false
-        guard fileExists else {
-            return re
-        }
-        try fileManager.removeItem(atPath: path)
-        return true
-    }
-
-    private func exportDid(_ did: DID,
-                           _ generator: JsonGenerator,
-                           _ password: String,
-                           _ storePassword: String) throws {
-        // All objects should load directly from storage,
-        // avoid affects the cached objects.
-        var doc: DIDDocument? = nil
-        do {
-            doc = try storage!.loadDid(did)
-        } catch {
-            throw DIDError.didStoreError("Export DID \(did)failed.\(error)")
-        }
-        guard doc != nil else {
-            throw DIDError.didStoreError("Export DID \(did) failed, not exist.")
-        }
-
-        Log.d(TAG, "Exporting \(did.toString())...")
-        let sha256 = SHA256Helper()
-        var bytes = [UInt8](password.data(using: .utf8)!)
-        sha256.update(&bytes)
-
-        generator.writeStartObject()
-        
-        // Type
-        generator.writeStringField("type", DID_EXPORT)
-        bytes = [UInt8](DID_EXPORT.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // DID
-        var value: String = did.description
-        generator.writeStringField("id", value)
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Create
-        let now = DateFormatter.currentDate()
-        value = DateFormatter.convertToUTCStringFromDate(now)
-        generator.writeStringField("created", value)
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Document
-        generator.writeFieldName("document")
-        generator.writeStartObject()
-        generator.writeFieldName("content")
-        try doc!.toJson(generator, false)
-        value = doc!.toString(true)
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-
-        let didMetadata: DIDMetadata? = try storage!.loadDidMetadata(did)
-        if !didMetadata!.isEmpty() {
-            generator.writeFieldName("metadata")
-            value = try didMetadata!.toString()
-            generator.writeRawValue(value)
-            bytes = [UInt8](value.data(using: .utf8)!)
-            sha256.update(&bytes)
-        }
-        
-        generator.writeEndObject()
-
-        // Credential
-        if storage!.containsCredentials(did) {
-            generator.writeFieldName("credential")
-            generator.writeStartArray()
-            var ids = try listCredentials(for: did)
-            ids.sort { (a, b) -> Bool in
-                let compareResult = a.toString().compare(b.toString())
-                return compareResult == ComparisonResult.orderedAscending
-            }
-            for id in ids {
-                var vc: VerifiableCredential? = nil
-                do {
-                    Log.i(TAG, "Exporting credential {}...\(id.toString())")
-
-                    generator.writeStartObject()
-
-                    generator.writeFieldName("content")
-
-                    vc = try storage!.loadCredential(did, id)
-                } catch {
-                    throw DIDError.didStoreError("Export DID \(did) failed.\(error)")
-                }
-                vc!.toJson(generator, false)
-                value = vc!.toString(true)
-                bytes = [UInt8](value.data(using: .utf8)!)
-                sha256.update(&bytes)
-                
-                let metadata = try storage.loadCredentialMetadata(did, id)
-                if !metadata.isEmpty() {
-                    generator.writeFieldName("metadata")
-                    value = try metadata.toString()
-                    generator.writeRawValue(value)
-                    bytes = [UInt8](value.data(using: .utf8)!)
-                    sha256.update(&bytes)
-                }
-                generator.writeEndObject()
-            }
-            generator.writeEndArray()
-        }
-
-        // Private key
-        if storage.containsPrivateKeys(did) {
-            generator.writeFieldName("privatekey")
-            generator.writeStartArray()
-            
-            var pks: Array<PublicKey> = doc!.publicKeys()
-            pks.sort { (a, b) -> Bool in
-                let compareResult = a.getId().toString().compare(b.getId().toString())
-                return compareResult == ComparisonResult.orderedAscending
-            }
-            for pk in pks {
-                let id = pk.getId()
-                if storage.containsPrivateKey(did, id) {
-                    Log.i(DIDStore.TAG, "Exporting private key {}...\(id.toString())")
-                    var csk: String = try storage.loadPrivateKey(did, id)
-                    let cskData: Data = try DIDStore.decryptFromBase64(csk, storePassword)
-                    csk = try DIDStore.encryptToBase64(cskData, password)
-                    
-                    generator.writeStartObject()
-                    value = id.toString()
-                    generator.writeStringField("id", value)
-                    bytes = [UInt8](value.data(using: .utf8)!)
-                    sha256.update(&bytes)
-                    
-                    generator.writeStringField("key", csk)
-                    bytes = [UInt8](csk.data(using: .utf8)!)
-                    sha256.update(&bytes)
-                    generator.writeEndObject()
-                }
-            }
-            generator.writeEndArray()
-        }
-
-        // Fingerprint
-        let result = sha256.finalize()
-
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
-
-        generator.writeStringField("fingerprint", fingerprint)
-        generator.writeEndObject()
-    }
-
-    /// Export Did.
-    /// - Parameters:
-    ///   - did: Load Document by did.
-    ///   - output: Document storage location.
-    ///   - password: Password for export.
-    ///   - storePassword: Password for store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func exportDid(_ did: DID,
-                      to output: OutputStream,
-                 using password: String,
-                  storePassword: String) throws {
-        let generator = JsonGenerator()
-        try exportDid(did, generator, password, storePassword)
-        let exportStr = generator.toString()
-        output.open()
-        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
-        output.close()
-    }
-
-    /// Export Did.
-    /// - Parameters:
-    ///   - did: Load Document by did.
-    ///   - output: Document storage location.
-    ///   - password: Password for export.
-    ///   - storePassword: Password for store.
-    /// - Throws: If error occurs, throw error.
-    @objc(exportDid:output:password:storePassword:error:)
-    public func exportDid(_ did: String,
-                      to output: OutputStream,
-                 using password: String,
-                  storePassword: String) throws {
-        try exportDid(DID(did), to: output, using: password, storePassword: storePassword)
-    }
-
-    /// Export Did.
-    /// - Parameters:
-    ///   - did: Load Document by did.
-    ///   - fileHandle: Document storage location.
-    ///   - password: Password for export.
-    ///   - storePassword: Password for store.
-    /// - Throws: If error occurs, throw error.
-    @objc(exportDid:fileHandle:password:storePassword:error:)
-    public func exportDid(_ did: DID,
-                  to fileHandle: FileHandle,
-                 using password: String,
-                  storePassword: String) throws {
-        let generator = JsonGenerator()
-        try exportDid(did, generator, password, storePassword)
-        let exportStr = generator.toString()
-        fileHandle.write(exportStr.data(using: .utf8)!)
-    }
-
-    /// Export Did.
-    /// - Parameters:
-    ///   - did: Load Document by did.
-    ///   - fileHandle: Document storage location.
-    ///   - password: Password for export.
-    ///   - storePassword: Password for store.
-    /// - Throws: If error occurs, throw error.
-    @objc(exportDidWithDid:fileHandle:password:storePassword:error:)
-    public func exportDid(_ did: String,
-                  to fileHandle: FileHandle,
-                 using password: String,
-                  storePassword: String) throws {
-        try exportDid(DID(did), to: fileHandle, using: password, storePassword: storePassword)
-    }
-
-    private func importDid(_ root: JsonNode,
-                           _ password: String,
-                           _ storePassword: String) throws {
-        let sha256 = SHA256Helper()
-        var bytes = [UInt8](password.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        var value: String = ""
-        
-        // Type
-        var serializer = JsonSerializer(root)
-        var options: JsonSerializer.Options
-        
-        //bool ref hit
-        options = JsonSerializer.Options()
-            .withHint("export type")
-        value = try serializer.getString("type", options)
-        guard value == DID_EXPORT else {
-            throw DIDError.didStoreError("Invalid export data, unknown type.")
-        }
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // DID
-        options = JsonSerializer.Options()
-            .withHint("DID subject")
-        let did = try serializer.getDID("id", options)
-        value = did.description
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        Log.d(TAG, "Importing {}...\(did.description)")
-
-        // Created
-        options = JsonSerializer.Options()
-            .withOptional()
-            .withHint("export date")
-        let created = try serializer.getDate("created", options)
-        value = DateFormatter.convertToUTCStringFromDate(created)
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Document
-        var node = root.get(forKey: "document")
-        guard node?.toString() != nil else {
-            Log.e(TAG, "Missing DID document.")
-            throw DIDError.didStoreError("Missing DID document in the export data")
-        }
-        
-        let docNode = node?.get(forKey: "content")
-        guard docNode?.toString() != nil else {
-            Log.e(TAG, "Missing DID document.")
-            throw DIDError.didStoreError("Missing DID document in the export data")
-        }
-        var doc: DIDDocument? = nil
-        do {
-            doc = try DIDDocument.convertToDIDDocument(fromJson: docNode!)
-        } catch  {
-            throw DIDError.didStoreError("Invalid export data.\(error)")
-        }
-        guard try (doc!.subject == did || doc!.isGenuine()) else {
-            throw DIDError.didStoreError("Invalid DID document in the export data.")
-        }
-        value = doc!.toString(true)
-        bytes = [UInt8](value.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        let metaNode = node?.get(forKey: "metadata")
-        if metaNode != nil {
-            let metadata = DIDMetadata()
-            try metadata.load(metaNode!)
-            metadata.setStore(self)
-            doc?.setMetadata(metadata)
-            value = try metadata.toString()
-
-            bytes = [UInt8](value.data(using: .utf8)!)
-            sha256.update(&bytes)
-        }
-
-        // Credential
-        var vcs: [DIDURL: VerifiableCredential] = [: ]
-        node = root.get(forKey: "credential")
-        if node != nil {
-            guard node!.asArray() != nil else {
-                throw DIDError.didStoreError("Invalid export data, wrong credential data.")
-            }
-            for node in node!.asArray()! {
-                let vcNode = node.get(forKey: "content")
-                if (vcNode == nil) {
-                    Log.e(TAG, "Missing credential " + " content")
-                    throw DIDError.didStoreError("Invalid export data.")
-                }
-                var vc: VerifiableCredential? = nil
-                do {
-                    vc = try VerifiableCredential.fromJson(vcNode!, did)
-                } catch {
-                    Log.e(TAG, "Parse credential \(String(describing: vcNode)) error \(error)")
-                    throw DIDError.didExpired("Invalid export data.\(error)")
-                }
-                guard vc?.subject.did == did else {
-                    Log.e(TAG, "Credential {} not blongs to {} \(node) \(did.description)")
-                    throw DIDError.didStoreError("Invalid credential in the export data.")
-                }
-                value = vc!.toString(true)
-                bytes = [UInt8](value.data(using: .utf8)!)
-                sha256.update(&bytes)
-
-                let metaNode = node.get(forKey: "metadata")
-                if metaNode != nil {
-                    let metadata = CredentialMetadata()
-                    try metadata.load(metaNode!)
-                    metadata.setStore(self)
-                    vc?.setMetadata(metadata)
-
-                    value = try metadata.toString()
-                    bytes = [UInt8](value.data(using: .utf8)!)
-                    sha256.update(&bytes)
-                }
-
-                vcs[vc!.getId()] = vc
-            }
-        }
-        
-        // Private key
-        var sks: [DIDURL: String] = [: ]
-        node = root.get(forKey: "privatekey")
-        if node != nil {
-            guard node!.asArray() != nil else {
-                Log.e(TAG, "Privatekey should be an array.")
-                throw DIDError.didStoreError("Invalid export data, wrong privatekey data.")
-            }
-            for dic in node!.asArray()! {
-                serializer = JsonSerializer(dic)
-                options = JsonSerializer.Options()
-                    .withRef(did)
-                    .withHint("privatekey id")
-                let id = try serializer.getDIDURL("id", options)
-                value = id!.toString()
-                bytes = [UInt8](value.data(using: .utf8)!)
-                sha256.update(&bytes)
-                options = JsonSerializer.Options()
-                    .withHint("privatekey")
-                var csk = try serializer.getString("key", options)
-                value = csk
-                bytes = [UInt8](value.data(using: .utf8)!)
-                sha256.update(&bytes)
-                let sk = try DIDStore.decryptFromBase64(csk, password)
-                csk = try DIDStore.encryptToBase64(sk, storePassword)
-                sks[id!] = csk
-            }
-        }
-        
-        // Fingerprint
-        node = root.get(forKey: "fingerprint")
-        guard let _ = node else {
-            Log.e(TAG, "Missing fingerprint")
-            throw DIDError.didStoreError("Missing fingerprint in the export data")
-        }
-        let refFingerprint = node?.asString()
-        let result = sha256.finalize()
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8>  in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
-        guard fingerprint == refFingerprint else {
-            throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
-        }
-        
-        // Save
-        // All objects should load directly from storage,
-        // avoid affects the cached objects.
-        Log.i(TAG, "Importing document...")
-        try storage!.storeDid(doc!)
-        try storage!.storeDidMetadata(doc!.subject, doc!.getMetadata())
-        
-        for vc in vcs.values {
-            Log.i(TAG, "Importing credential {}...\(vc.getId().description)")
-            try storage?.storeCredential(vc)
-            try storage?.storeCredentialMetadata(did, vc.getId(), vc.getMetadata())
-        }
-        
-        try sks.forEach { (key, value) in
-            Log.i(TAG, "Importing private key {}...\(key.description)")
-            try storage?.storePrivateKey(did, key, value)
-        }
-    }
-
-    /// Import Did.
-    /// - Parameters:
-    ///   - data: The data of document content.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func importDid(from data: Data,
-                     using password: String,
-                      storePassword: String) throws {
-        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard let _ = dic else {
-            throw DIDError.notFoundError("data is not nil")
-        }
-        let jsonNode = JsonNode(dic!)
-        try importDid(jsonNode, password, storePassword)
-    }
-
-    /// Import Did.
-    /// - Parameters:
-    ///   - input: The path of document content.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc(importDid:password:storePassword:error:)
-    public func importDid(from input: InputStream,
-                      using password: String,
-                       storePassword: String) throws {
-        let data = try readData(input: input)
-        try importDid(from: data, using: password, storePassword: storePassword)
-    }
-
-    /// Import Did.
-    /// - Parameters:
-    ///   - handle: FileHandle of document content.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc(importDidFrom:password:storePassword:error:)
-    public func importDid(from handle: FileHandle,
-                       using password: String,
-                        storePassword: String) throws {
-        handle.seekToEndOfFile()
-        let data = handle.readDataToEndOfFile()
-        try importDid(from: data, using: password, storePassword: storePassword)
-    }
-
-    private func exportPrivateIdentity(_ generator: JsonGenerator,
-                                        _ password: String,
-                                   _ storePassword: String) throws {
-        var encryptedMnemonic = try storage.loadMnemonic()
-        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, storePassword)
-        encryptedMnemonic = try DIDStore.encryptToBase64(plain, password)
-        var encryptedSeed = try storage.loadPrivateIdentity()
-        
-        plain = try DIDStore.decryptFromBase64(encryptedSeed, storePassword)
-        encryptedSeed = try DIDStore.encryptToBase64(plain, password)
-        
-        let pubKey = storage.containsPublicIdentity() ? try storage.loadPublicIdentity() : nil
-
-        let index = try storage.loadPrivateIdentityIndex()
-        let sha256 = SHA256Helper()
-        var bytes = [UInt8](password.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        generator.writeStartObject()
-        
-        // Type
-        generator.writeStringField("type", DID_EXPORT)
-        bytes = [UInt8](DID_EXPORT.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Mnemonic
-        generator.writeStringField("mnemonic", encryptedMnemonic)
-        bytes = [UInt8](encryptedMnemonic.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Key
-        generator.writeStringField("key", encryptedSeed)
-        bytes = [UInt8](encryptedSeed.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Key.pub
-        if (pubKey != nil) {
-            generator.writeStringField("key.pub", pubKey!)
-            bytes = [UInt8](pubKey!.data(using: .utf8)!)
-            sha256.update(&bytes)
-        }
-
-        // Index
-        generator.writeNumberField("index", index)
-        let indexStr = String(index)
-        bytes = [UInt8](indexStr.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Fingerprint
-        let result = sha256.finalize()
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
-        generator.writeStringField("fingerprint", fingerprint)
-        generator.writeEndObject()
-    }
-
-    /// Export private identity.
-    /// - Parameters:
-    ///   - output: Private identity storage location.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func exportPrivateIdentity(to output: OutputStream,
-                                     _ password: String,
-                                _ storePassword: String) throws {
-        let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePassword)
-        let exportStr = generator.toString()
-        output.open()
-        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
-        output.close()
-    }
-
-    /// Export private identity.
-    /// - Parameters:
-    ///   - handle: Private identity storage location.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc(exportPrivateIdentity:password:storePassword:error:)
-    public func exportPrivateIdentity(to handle: FileHandle,
-                                     _ password: String,
-                                _ storePassword: String) throws {
-        let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePassword)
-        let exportStr = generator.toString()
-        handle.write(exportStr.data(using: .utf8)!)
-    }
-
-    /// Export private identity.
-    /// - Parameters:
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: The data of private identity content.
-    @objc
-    public func exportPrivateIdentity(_ password: String,
-                                 _ storePassword: String) throws -> Data {
-        let generator = JsonGenerator()
-        try exportPrivateIdentity(generator, password, storePassword)
-        let exportStr = generator.toString()
-        return exportStr.data(using: .utf8)!
-    }
     
-    private func importPrivateIdentity(_ root: JsonNode,
-                                   _ password: String,
-                              _ storePassword: String) throws {
-        let sha256 = SHA256Helper()
-        var bytes = [UInt8](password.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        let serializer = JsonSerializer(root)
-        var options: JsonSerializer.Options
-        options = JsonSerializer.Options()
-            .withHint("export type")
-        
-        // Type
-        let type = try serializer.getString("type", options)
-        guard type == DID_EXPORT else {
-            throw DIDError.didStoreError("Invalid export data, unknown type.")
-        }
-        bytes = [UInt8](type.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Mnemonic
-        options = JsonSerializer.Options().withHint("mnemonic")
-        var encryptedMnemonic = try serializer.getString("mnemonic", options)
-        bytes = [UInt8](encryptedMnemonic.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        var plain = try DIDStore.decryptFromBase64(encryptedMnemonic, password)
-        encryptedMnemonic = try DIDStore.encryptToBase64(plain, storePassword)
-        
-        // Key
-        options = JsonSerializer.Options().withHint("key")
-        var encryptedSeed = try serializer.getString("key", options)
-        
-        bytes = [UInt8](encryptedSeed.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        plain = try DIDStore.decryptFromBase64(encryptedSeed, password)
-        encryptedSeed = try DIDStore.encryptToBase64(plain, storePassword)
-        
-        // Key.pub
-        options = JsonSerializer.Options().withHint("key.pub")
-        var pubKey: String?
-        do {
-            pubKey = try serializer.getString("key.pub", options)
-            bytes = [UInt8](pubKey!.data(using: .utf8)!)
-            sha256.update(&bytes)
-        } catch {}
-
-        // Index
-        var node = root.get(forKey: "index")
-        guard node != nil && node!.asInteger() != nil else {
-            throw DIDError.didStoreError("Invalid export data, unknow index.")
-        }
-        let index: Int = node!.asInteger()!
-        let indexStr = String(index)
-        bytes = [UInt8](indexStr.data(using: .utf8)!)
-        sha256.update(&bytes)
-        
-        // Fingerprint
-        node = root.get(forKey: "fingerprint")
-        guard node != nil && node!.asString() != nil else {
-            throw DIDError.didStoreError("Missing fingerprint in the export data")
-        }
-        let result = sha256.finalize()
-        let capacity = result.count * 3
-        let cFing = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let dateFing = Data(bytes: result, count: result.count)
-        let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
-            return fing
-        }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
-        cFing[re] = 0
-        let fingerprint = String(cString: cFing)
-        guard fingerprint == node!.asString()! else {
-            throw DIDError.didStoreError("Invalid export data, the fingerprint mismatch.")
-        }
-        
-        // Save
-        try storage.storeMnemonic(encryptedMnemonic)
-        try storage.storePrivateIdentity(encryptedSeed)
-        if pubKey != nil {
-            try storage.storePublicIdentity(pubKey!)
-        }
-        try storage.storePrivateIdentityIndex(index)
-    }
-
-    /// Import private identity.
-    /// - Parameters:
-    ///   - data: The data of private identity.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func importPrivateIdentity(from data: Data,
-                                 using password: String,
-                                  storePassword: String) throws {
-        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard let _ = dic else {
-            throw DIDError.notFoundError("data is not nil")
-        }
-        let jsonNode = JsonNode(dic!)
-        try importPrivateIdentity(jsonNode, password, storePassword)
-    }
-
-    /// Import private identity.
-    /// - Parameters:
-    ///   - input: The path of private identity.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc(importPrivateIdentity:password:storePassword:error:)
-    public func importPrivateIdentity(from input: InputStream,
-                                  using password: String,
-                                   storePassword: String) throws {
-        let data = try readData(input: input)
-        try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
-    }
-
-    /// Import private identity.
-    /// - Parameters:
-    ///   - handle: FileHandle of private identity.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc(importPrivateIdentityFrom:password:storePassword:error:)
-    public func importPrivateIdentity(from handle: FileHandle,
-                                   using password: String,
-                                    storePassword: String) throws {
-        let data = handle.readDataToEndOfFile()
-        try importPrivateIdentity(from: data, using: password, storePassword: storePassword)
-    }
-
-    /// Export store.
-    /// - Parameters:
-    ///   - output: Load Document by store.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func exportStore(to output: OutputStream,
-                           _ password: String,
-                      _ storePassword: String) throws {
+    private func exportStore(_ password: String, _ storePassword: String) throws -> String {
         var exportStr = ""
-        if containsPrivateIdentity() {
-            let generator = JsonGenerator()
-            try exportPrivateIdentity(generator, password, storePassword)
-            exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
+        let ris = try listRootIdentities()
+        for ri in ris {
+            let rootIdentityStr = "rootIdentity-" + ri.id!
+            let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true)
+            exportStr = "{\"\(rootIdentityStr)\":\"\(ert)\"}"
         }
-        let dids = try listDids(using: DIDStore.DID_ALL)
+        let dids = try listDids()
         for did in dids {
             let didstr = did.methodSpecificId
-            let generator = JsonGenerator()
-            try exportDid(did, generator, password, storePassword)
-            exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
+            let edid = try exportDid(did, password, storePassword).serialize(true)
+            exportStr = "{\"\(didstr)\":\"\(edid)\"}"
         }
+        
+        return exportStr
+    }
+
+    /// Export all DID objects from this store.
+    /// - Parameters:
+    ///   - output: the output stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    /// - Throws: If error occurs, throw error.
+    public func exportStore(to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
+ 
+        let exportStr = try exportStore(password, storePassword)
         output.open()
         self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
         output.close()
     }
-
-    /// Export store.
+    
+    /// Export all DID objects from this store.
     /// - Parameters:
-    ///   - handle: Load Document by store.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
+    ///   - handle: the handle stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
     @objc(exportStore:password:storePassword:error:)
     public func exportStore(to handle: FileHandle,
                            _ password: String,
                       _ storePassword: String) throws {
-        var exportStr = ""
-        if containsPrivateIdentity() {
-            let generator = JsonGenerator()
-            try exportPrivateIdentity(generator, password, storePassword)
-            exportStr = "{\"privateIdentity\":\"\(generator.toString())\"}"
-        }
-        let dids = try listDids(using: DIDStore.DID_ALL)
-        for did in dids {
-            let didstr = did.methodSpecificId
-            let generator = JsonGenerator()
-            try exportDid(did, generator, password, storePassword)
-            exportStr = "{\"\(didstr)\":\"\(generator.toString())\"}"
-        }
+        let exportStr = try exportStore(password, storePassword)
         handle.write(exportStr.data(using: .utf8)!)
     }
-
-    /// Import Store.
-    /// - Parameters:
-    ///   - input: The data of store content.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
-    /// - Throws: If error occurs, throw error.
-    @objc
-    public func importStore(from input: InputStream,
-                            _ password: String,
-                       _ storePassword: String) throws {
-        let data = try readData(input: input)
+    
+    private func importStore(from data: Data,
+                             _ password: String,
+                             _ storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
             throw DIDError.notFoundError("data is not nil")
         }
         
-        let privateIdentity = dic!["privateIdentity"] as? [String: Any]
-        if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
-            let node = JsonNode(privateIdentity!)
-            try importPrivateIdentity(node, password, storePassword)
+        let fingerprint = metadata?.fingerprint
+        let currentFingerprint = try calcFingerprint(storePassword)
+        
+        if fingerprint != nil && currentFingerprint != fingerprint {
+            throw DIDError.CheckedError.DIDStoreError.WrongPasswordError("Password mismatched with previous password.")
         }
+        
         try dic!.forEach{ key, value in
-            if key == "privateIdentity" {
-                let node = JsonNode(value)
-                try importPrivateIdentity(node, password, storePassword)
+            if key == "rootIdentity" {
+                let rex = try RootIdentityExport.deserialize(value as! [String : Any])
+                try importRootIdentity(rex, password, storePassword)
             }
             else {
-                let node = JsonNode(value)
-                try importDid(node, password, storePassword)
+                let did = try DIDExport.deserialize(value as! [String : Any])
+                try importDid(did, password, storePassword)
             }
         }
+        if (fingerprint == nil || fingerprint!.isEmpty) {
+            try metadata!.setFingerprint(currentFingerprint)
+        }
     }
-
-    /// Import Store.
+    
+    /// Import a exported DIDStore from the exported data to this store.
     /// - Parameters:
-    ///   - handle: The handle of store content.
-    ///   - password: The password of export.
-    ///   - storePassword: The password of store.
+    ///   - handle: the handle for the exported data
+    ///   - password: the password for the exported data
+    ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
-    @objc(importStore:password:storePassword:error:)
     public func importStore(from handle: FileHandle,
                              _ password: String,
                         _ storePassword: String) throws {
         let data = handle.readDataToEndOfFile()
-        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard let _ = dic else {
-            throw DIDError.notFoundError("data is not nil")
-        }
-        
-        let privateIdentity = dic!["privateIdentity"] as? [String: Any]
-        if (privateIdentity != nil) && !(privateIdentity!.isEmpty) {
-            let node = JsonNode(privateIdentity!)
-            try importPrivateIdentity(node, password, storePassword)
-        }
-        try dic!.forEach{ key, value in
-            if key == "privateIdentity" {
-                let node = JsonNode(dic as Any)
-                try importPrivateIdentity(node, password, storePassword)
-            }
-            else {
-                let node = JsonNode(dic as Any)
-                try importDid(node, password, storePassword)
-            }
-        }
+        try importStore(from: data, password, storePassword)
     }
-    */
+    /// Import a exported DIDStore from the exported data to this store.
+    /// - Parameters:
+    ///   - input: the input for the exported data
+    ///   - password: the password for the exported data
+    ///   - storePassword: the password for this store
+    /// - Throws: If error occurs, throw error.
+    public func importStore(from input: InputStream,
+                            _ password: String,
+                            _ storePassword: String) throws {
+        let data = try readData(input: input)
+        try importStore(from: data, password, storePassword)
+    }
+ 
     private func writeData(data: Data, outputStream: OutputStream, maxLengthPerWrite: Int) {
         let size = data.count
         data.withUnsafeBytes({(bytes: UnsafePointer<UInt8>) in
@@ -2402,22 +1650,3 @@ public class DIDStore: NSObject {
         return data
     }
 }
-
-//class DIDExport: NSObject {
-//    let TYPE = "type"
-//    var type: String
-//    let ID = "id"
-//    var id: DID
-//    let DOCUMENT = "document"
-//
-//    var document: Document
-//    let CREDENTIAL = "credential"
-//
-//    var credentials: [DIDExportCredential]
-//    let PRIVATEKEY = "privatekey"
-//    var privatekeys: [DIDExportPrivateKey]
-//    let CREATED = "created"
-//    var created: Date
-//    let FINGERPRINT = "fingerprint"
-//    var fingerprint: String
-//}
