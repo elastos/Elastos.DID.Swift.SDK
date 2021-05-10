@@ -1386,6 +1386,124 @@ public class DIDStore: NSObject {
         try importDid(from: data, using: password, storePassword: storePassword)
     }
     
+    private func exportRootIdentity(_ id: String, _ password: String, _ storepass: String) throws -> RootIdentityExport {
+        let rie = RootIdentityExport(DID_EXPORT)
+
+        // TODO: support multiple named root identities
+        let mnemonic = try storage!.loadRootIdentityMnemonic(id)
+        try rie.setMnemonic(mnemonic, storepass, password)
+
+        try rie.setPrivateKey(storage!.loadRootIdentityPrivateKey(id)!, storepass, password)
+
+        let identity = try storage!.loadRootIdentity(id)
+        rie.setPubkey(try identity!.preDerivedPublicKey.serializePublicKeyBase58())
+        rie.setIndex(identity!.index)
+        
+        if (identity!.id == metadata?.defaultRootIdentity) {
+            rie.setDefault()
+        }
+
+        return try rie.sealed(using: password)
+    }
+    
+    /// Export the specific RootIdentity, include: mnemonic, private key,
+    /// pre-derived public key, derive index, metadata...
+    /// - Parameters:
+    ///   - id: the id of the RootIdentity to be export
+    ///   - output: the output stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportRootIdentity(_ id: String,
+                      to output: OutputStream,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportRootIdentity(id, password, storePassword).serialize(true)
+        output.open()
+        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
+        output.close()
+    }
+
+    /// Export the specific RootIdentity, include: mnemonic, private key,
+    /// pre-derived public key, derive index, metadata...
+    /// - Parameters:
+    ///   - id: the id of the RootIdentity to be export
+    ///   - output: the output stream that the data export to
+    ///   - password: the password to encrypt the private keys in the exported data
+    ///   - storePassword: the password for this store
+    public func exportRootIdentity(_ id: String,
+                  to fileHandle: FileHandle,
+                 using password: String,
+                  storePassword: String) throws {
+        let exportStr = try exportRootIdentity(id, password, storePassword).serialize(true)
+        fileHandle.write(exportStr.data(using: .utf8)!)
+    }
+    
+    private func importRootIdentity(_ rie: RootIdentityExport, _ password: String, _ storePassword: String) throws {
+        try rie.verify(password)
+
+        // Save
+        let encryptedMnemonic = try rie.getMnemonic(password, storePassword)
+        let encryptedPrivateKey = (try rie.getPrivateKey(password, storePassword))
+        let publicKey = rie.publicKey
+        let pk = DIDHDKey.deserializeBase58(publicKey)
+        let id = RootIdentity.getId(try pk.serializePublicKey())
+
+        try storage!.storeRootIdentity(id, encryptedMnemonic, encryptedPrivateKey,
+                publicKey, rie.index)
+
+        if (rie.isDefault && metadata?.defaultRootIdentity == nil) {
+            try metadata!.setDefaultRootIdentity(id)
+        }
+    }
+    
+    /// Import a RootIdentity object from the import data to this store.
+    /// - Parameters:
+    ///   - data: the data for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for this store
+    /// - Throws: If error occurs, throw error.
+    @objc
+    public func importRootIdentity(from data: Data,
+                     using password: String,
+                      storePassword: String) throws {
+        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
+        guard let _ = dic else {
+            throw DIDError.notFoundError("data is not nil")
+        }
+    
+        let re = try RootIdentityExport.deserialize(dic!)
+        try importRootIdentity(re, password, storePassword)
+    }
+
+    /// Import a RootIdentity object from the import data to this store.
+    /// - Parameters:
+    ///   - data: the input stream for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for this store
+    /// - Throws: If error occurs, throw error.
+    @objc(importRootIdentity:password:storePassword:error:)
+    public func importRootIdentity(from input: InputStream,
+                      using password: String,
+                       storePassword: String) throws {
+        let data = try readData(input: input)
+        try importRootIdentity(from: data, using: password, storePassword: storePassword)
+    }
+
+    /// Import a RootIdentity object from the import data to this store.
+    /// - Parameters:
+    ///   - data: the input stream for the import data
+    ///   - password: the password for the import data
+    ///   - storePassword: the password for this store
+    /// - Throws: If error occurs, throw error.
+    @objc(importRootIdentityFrom:password:storePassword:error:)
+    public func importRootIdentity(from handle: FileHandle,
+                       using password: String,
+                        storePassword: String) throws {
+        handle.seekToEndOfFile()
+        let data = handle.readDataToEndOfFile()
+        try importRootIdentity(from: data, using: password, storePassword: storePassword)
+    }
+
     /*
     /// export Mnemonic.
     /// - Parameter storePassword: The password of DIDStore.

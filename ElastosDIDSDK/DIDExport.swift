@@ -110,6 +110,7 @@ public class DIDExport: NSObject {
     
     public func sealed(using exportpass: String) throws -> DIDExport {
         self.created = DateFormatter.currentDate()
+        try sanitize()
         self.fingerprint = try calculateFingerprint(exportpass)
         
         return self
