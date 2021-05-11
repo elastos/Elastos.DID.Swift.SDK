@@ -113,7 +113,6 @@ public class RootIdentityExport: NSObject {
     
     public func sealed(using exportpass: String) throws -> RootIdentityExport {
         self._created = DateFormatter.currentDate()
-        try sanitize()
         self._fingerprint = try calculateFingerprint(exportpass)
         
         return self
@@ -160,6 +159,7 @@ public class RootIdentityExport: NSObject {
         generator.writeStringField(CREATED, DateFormatter.convertToUTCStringFromDate(_created!))
         generator.writeStringField(FINGERPRINT, _fingerprint!)
 
+        generator.writeEndObject()
         return generator.toString()
     }
     
@@ -179,7 +179,7 @@ public class RootIdentityExport: NSObject {
         re._index = index
         
         let _default = content["default"] as? Bool
-        re._default = _default == nil ? false : true
+        re._default = _default == nil ? false : _default!
        
         let created = content["created"] as? String
         if let _ = created {

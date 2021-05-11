@@ -72,7 +72,8 @@ public class DIDExport: NSObject {
             for cred in _credentials {
                 bytes = [UInt8](cred.content.toString(true).data(using: .utf8)!)
                 sha256.update(&bytes)
-                if cred.metadata != nil {
+
+                if try cred.metadata != nil && cred.metadata!.serialize(true) != "{}" {
                     bytes = [UInt8](try cred.metadata!.serialize(true).data(using: .utf8)!)
                     sha256.update(&bytes)
                 }
@@ -110,7 +111,6 @@ public class DIDExport: NSObject {
     
     public func sealed(using exportpass: String) throws -> DIDExport {
         self.created = DateFormatter.currentDate()
-        try sanitize()
         self.fingerprint = try calculateFingerprint(exportpass)
         
         return self
@@ -162,16 +162,16 @@ public class DIDExport: NSObject {
         generator.writeStringField("type", type)
         generator.writeStringField("id", id.toString())
         
-        if let _ = document {
+        if let _ = _document {
             generator.writeFieldName("document")
-            try document!.serialize(generator)
+            try _document!.serialize(generator)
         }
         
-        if credentials.count > 0 {
+        if _credentials.count > 0 {
             generator.writeFieldName("credential")
             generator.writeStartArray()
-            for cre in credentials {
-                cre.serialize(generator)
+            for cre in _credentials {
+                try cre.serialize(generator)
             }
             generator.writeEndArray()
         }
@@ -190,6 +190,7 @@ public class DIDExport: NSObject {
         if let _ = fingerprint {
             generator.writeStringField("fingerprint", fingerprint!)
         }
+        generator.writeEndObject()
         
         return generator.toString()
     }
@@ -201,7 +202,7 @@ public class DIDExport: NSObject {
         
         let document = content["document"] as? [String: Any]
         if let _ = document {
-            didex._document = try DIDExportDocument.deserialize(content)
+            didex._document = try DIDExportDocument.deserialize(document!)
         }
         
         let credential = content["credential"] as? [[String: Any]]
@@ -257,11 +258,11 @@ class DIDExportDocument: NSObject {
     }
     
     public class func deserialize(_ content: [String: Any]) throws -> DIDExportDocument {
-        let content = content["content"] as! [String: Any]
+        let document = content["content"] as! [String: Any]
         let metadata = content["metadata"] as? [String: Any]
 
         if let _ = metadata {
-            return try DIDExportDocument(DIDDocument.convertToDIDDocument(fromDictionary: content), DIDMetadata.parse(metadata!.toJsonString()!))
+            return try DIDExportDocument(DIDDocument.convertToDIDDocument(fromDictionary: document), DIDMetadata.deserialize(metadata!.toJsonString()!))
         }
         
         return try DIDExportDocument(DIDDocument.convertToDIDDocument(fromDictionary: content), nil)
@@ -293,14 +294,14 @@ class DIDExportCredential: NSObject {
     }
     
     public class func deserialize(_ content: [String: Any]) throws -> DIDExportCredential {
-        let content = content["content"] as! [String: Any]
+        let document = content["content"] as! [String: Any]
         let metadata = content["metadata"] as? [String: Any]
-
-        if let _ = metadata {
-            return try DIDExportCredential(VerifiableCredential.fromJson(for: content), CredentialMetadata.parse(metadata!.toJsonString()!))
+        
+        if metadata != nil && metadata!.toJsonString() != "{}"  {
+            return try DIDExportCredential(VerifiableCredential.fromJson(for: document), CredentialMetadata.deserialize(metadata!.toJsonString()!))
         }
         
-        return try DIDExportCredential(VerifiableCredential.fromJson(for: content), nil)
+        return try DIDExportCredential(VerifiableCredential.fromJson(for: document), nil)
     }
 }
 

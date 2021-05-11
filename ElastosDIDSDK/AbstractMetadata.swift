@@ -271,8 +271,9 @@ public class AbstractMetadata: NSObject {
     
     func serialize(_ generator: JsonGenerator, _ force: Bool) throws {
         generator.writeStartObject()
-        _props.forEach { k,v in
-            generator.writeStringField(k, v)
+        let keys = _props.keys.sorted()
+        keys.forEach { key in
+            generator.writeStringField(key, _props[key]!)
         }
         generator.writeEndObject()
     }

@@ -1111,7 +1111,6 @@ public class FileSystemStorage: DIDStorage {
                 }
                 try createDir(true, dataDir)
                 try rename(dataJournal, dataDir)
-//                try FileManager.default.moveItem(atPath: dataJournal, toPath: dataDir)
                 _ = try deleteFile(dataJournal)
             }
             try createDir(true, dataDeprecated)
@@ -1141,14 +1140,14 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private func upgradeMetadataV2<T: AbstractMetadata>(_ filePath: String, _ cls: T.Type) throws -> T {
-        let oldData = try filePath.readTextFromPath().toDictionary()
+        let oldData: [String: String] = try filePath.readTextFromPath().toDictionary()
         var newData: [String: String] = [: ]
         oldData.forEach { k, v in
             var key = k
             if key.hasPrefix("DX-") {
                 if key != "DX-lastModified" {
                     key = String(key.suffix(key.count - 3))
-                    newData[key] = v as? String
+                    newData[key] = v as String
                 }
             }
             else {

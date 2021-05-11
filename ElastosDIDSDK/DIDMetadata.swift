@@ -177,6 +177,14 @@ public class DIDMetadata: AbstractMetadata {
         }
     }
     
+    class func deserialize(_ content: String) throws -> DIDMetadata {
+        let dic: [String: String] = content.toDictionary()
+        let metadata = DIDMetadata()
+        metadata._props = dic
+        
+        return metadata
+    }
+    
     class func parse(_ path: String) throws -> DIDMetadata {
         let data: Data = try path.forReading()
         let dic: [String: String] = try data.dataToDictionary()

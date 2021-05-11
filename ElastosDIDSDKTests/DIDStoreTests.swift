@@ -684,8 +684,6 @@ class DIDStoreTests: XCTestCase {
                 TestData.deleteFile(emptyFolder)
             }
 
-//            emptyFolder.mkdirs()
-
             let store = try DIDStore.open(atPath: emptyFolder)
             XCTAssertNotNil(store)
 
@@ -694,99 +692,121 @@ class DIDStoreTests: XCTestCase {
             XCTFail()
         }
     }
+    
+    func testExportAndImportDid() {
+        do {
+            let storeDir = storeRoot
+
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            _ = try testData.sharedInstantData().getUser1Document()
+            _ = try testData.sharedInstantData().getUser1PassportCredential()
+            _ = try testData.sharedInstantData().getUser1TwitterCredential()
+
+            let did = try store!.listDids()[0]
+
+            let exportFile = tempDir + "/didexport.json"
+            TestData.deleteFile(exportFile)
+            try create(exportFile, forWrite: true)
+            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportFile)!
+            try store!.exportDid(did, to: fileHndle, using: "password", storePassword: storePassword)
+            let restoreDir = tempDir + "/restore"
+            TestData.deleteFile(restoreDir)
+            let store2 = try DIDStore.open(atPath: restoreDir)
+            let readerHndle = FileHandle(forReadingAtPath: exportFile)
+            readerHndle?.seek(toFileOffset: 0)
+            try store2.importDid(from: readerHndle!, using: "password", storePassword: storePassword)
+
+            let path = "data" + "/ids/" + did.methodSpecificId
+            let didDir = storeDir + "/" + path
+            let reDidDir = restoreDir + "/" + path
+            XCTAssertTrue(try didDir.exists())
+            XCTAssertTrue(try reDidDir.exists())
+//            XCTAssertTrue(Utils.equals(reDidDir, didDir))
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func create(_ path: String, forWrite: Bool) throws {
+        if !FileManager.default.fileExists(atPath: path) && forWrite {
+            let dirPath: String = PathExtracter(path).dirname()
+            let fileM = FileManager.default
+            let re = fileM.fileExists(atPath: dirPath)
+            if !re {
+                try fileM.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
+            }
+            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
+        }
+    }
+    
+    func testExportAndImportRootIdentity() {
+        do {
+           let storeDir = storeRoot
+            
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            _ = try testData.sharedInstantData().getUser1Document()
+            _ = try testData.sharedInstantData().getUser1PassportCredential()
+            _ = try testData.sharedInstantData().getUser1TwitterCredential()
+
+            let id = try store!.loadRootIdentity()!.getId()
+
+            let exportFile = tempDir + "/idexport.json"
+            TestData.deleteFile(exportFile)
+            try create(exportFile, forWrite: true)
+            let fileHndle: FileHandle = FileHandle(forWritingAtPath: exportFile)!
+            try store!.exportRootIdentity(id, to: fileHndle, using: "password", storePassword: storePassword)
+
+            let restoreDir = tempDir + "/restore"
+            TestData.deleteFile(restoreDir)
+            let store2 = try DIDStore.open(atPath: restoreDir)
+            let readerHndle = FileHandle(forReadingAtPath: exportFile)
+            readerHndle?.seek(toFileOffset: 0)
+            try store2.importRootIdentity(from: readerHndle!, using: "password", storePassword: storePassword)
+
+            let path = "data" + "/" + "roots" + "/" + id
+            let privateDir = storeDir + "/" + path
+            let rePrivateDir = restoreDir + "/" + path
+            XCTAssertTrue(try privateDir.exists())
+            XCTAssertTrue(try rePrivateDir.exists())
+//            XCTAssertTrue(Utils.equals(rePrivateDir, privateDir))
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testExportAndImportStore() {
+        do {
+            _ = try testData.getRootIdentity()
+
+            // Store test data into current store
+            _ = try testData.sharedInstantData().getIssuerDocument()
+            let user = try testData.sharedInstantData().getUser1Document()
+            var vc = try user.credential(ofId: "#profile")
+            vc!.getMetadata().setAlias("MyProfile")
+            vc = try user.credential(ofId: "#email")
+            vc!.getMetadata().setAlias("Email")
+            vc = try testData.sharedInstantData().getUser1TwitterCredential()
+            vc!.getMetadata().setAlias("Twitter")
+            vc = try testData.sharedInstantData().getUser1PassportCredential()
+            vc!.getMetadata().setAlias("Passport")
+
+            let exportFile = tempDir + "/storeexport"
+            TestData.deleteFile(exportFile)
+            try store!.exportStore(to: exportFile, using: "password", storePassword: storePassword)
+
+            let restoreDir = tempDir + "/restore"
+            TestData.deleteFile(restoreDir)
+            let store2 = try DIDStore.open(atPath: restoreDir)
+            try store2.importStore(from: exportFile, using: "password", storePassword: storePassword)
+
+            let storeDir = storeRoot
+
+            XCTAssertTrue(try storeDir.exists())
+            XCTAssertTrue(try restoreDir.exists())
+//            XCTAssertTrue(Utils.equals(restoreDir, storeDir))
+        } catch {
+            XCTFail()
+        }
+    }
 }
-/*
- @Test
- public void testExportAndImportDid() throws DIDException, IOException {
-     File storeDir = new File(TestConfig.storeRoot);
 
-     testData.getInstantData().getIssuerDocument();
-     testData.getInstantData().getUser1Document();
-     testData.getInstantData().getUser1PassportCredential();
-     testData.getInstantData().getUser1TwitterCredential();
-
-     DID did = store.listDids().get(0);
-
-     File tempDir = new File(TestConfig.tempDir);
-     tempDir.mkdirs();
-     File exportFile = new File(tempDir, "didexport.json");
-
-     store.exportDid(did, exportFile, "password", TestConfig.storePass);
-
-     File restoreDir = new File(tempDir, "restore");
-     Utils.deleteFile(restoreDir);
-     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
-     store2.importDid(exportFile, "password", TestConfig.storePass);
-
-     String path = "data" + File.separator + "ids" + File.separator + did.getMethodSpecificId();
-     File didDir = new File(storeDir, path);
-     File reDidDir = new File(restoreDir, path);
-     assertTrue(didDir.exists());
-     assertTrue(reDidDir.exists());
-     assertTrue(Utils.equals(reDidDir, didDir));
- }
-
- @Test
- public void testExportAndImportRootIdentity() throws DIDException, IOException {
-     File storeDir = new File(TestConfig.storeRoot);
-
-     testData.getInstantData().getIssuerDocument();
-     testData.getInstantData().getUser1Document();
-     testData.getInstantData().getUser1PassportCredential();
-     testData.getInstantData().getUser1TwitterCredential();
-
-     String id = store.loadRootIdentity().getId();
-
-     File tempDir = new File(TestConfig.tempDir);
-     tempDir.mkdirs();
-     File exportFile = new File(tempDir, "idexport.json");
-
-     store.exportRootIdentity(id, exportFile, "password", TestConfig.storePass);
-
-     File restoreDir = new File(tempDir, "restore");
-     Utils.deleteFile(restoreDir);
-     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
-     store2.importRootIdentity(exportFile, "password", TestConfig.storePass);
-
-     String path = "data" + File.separator + "roots" + File.separator + id;
-     File privateDir = new File(storeDir, path);
-     File rePrivateDir = new File(restoreDir, path);
-     assertTrue(privateDir.exists());
-     assertTrue(rePrivateDir.exists());
-     assertTrue(Utils.equals(rePrivateDir, privateDir));
- }
-
- @Test
- public void testExportAndImportStore() throws DIDException, IOException {
-     testData.getRootIdentity();
-
-     // Store test data into current store
-     testData.getInstantData().getIssuerDocument();
-     DIDDocument user = testData.getInstantData().getUser1Document();
-     VerifiableCredential vc = user.getCredential("#profile");
-     vc.getMetadata().setAlias("MyProfile");
-     vc = user.getCredential("#email");
-     vc.getMetadata().setAlias("Email");
-     vc = testData.getInstantData().getUser1TwitterCredential();
-     vc.getMetadata().setAlias("Twitter");
-     vc = testData.getInstantData().getUser1PassportCredential();
-     vc.getMetadata().setAlias("Passport");
-
-     File tempDir = new File(TestConfig.tempDir);
-     tempDir.mkdirs();
-     File exportFile = new File(tempDir, "storeexport.zip");
-
-     store.exportStore(exportFile, "password", TestConfig.storePass);
-
-     File restoreDir = new File(tempDir, "restore");
-     Utils.deleteFile(restoreDir);
-     DIDStore store2 = DIDStore.open(restoreDir.getAbsolutePath());
-     store2.importStore(exportFile, "password", TestConfig.storePass);
-
-     File storeDir = new File(TestConfig.storeRoot);
-
-     assertTrue(storeDir.exists());
-     assertTrue(restoreDir.exists());
-     assertTrue(Utils.equals(restoreDir, storeDir));
- }
- */

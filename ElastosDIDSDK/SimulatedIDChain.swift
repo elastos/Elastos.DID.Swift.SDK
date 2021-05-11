@@ -563,7 +563,7 @@ public class SimulatedIDChain {
                     result["jsonrpc"] = "2.0"
                     let bio = response.result as! CredentialBiography
 
-                    result["result"] = bio.serialize().toDictionary()
+                    result["result"] = bio.serialize().toDictionary() as [String: Any]
                     let data = try JSONSerialization.data(withJSONObject: result, options: JSONSerialization.WritingOptions.prettyPrinted)
                     return HttpResponse.ok(HttpResponseBody.data(data, contentType: "application/json"))
                 default: break

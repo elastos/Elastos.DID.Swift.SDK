@@ -118,4 +118,12 @@ public class CredentialMetadata: AbstractMetadata {
         
         return metadata
     }
+    
+    class func deserialize(_ content: String) throws -> CredentialMetadata {
+        let dic: [String: String] = content.toDictionary()
+        let metadata = CredentialMetadata()
+        metadata._props = dic
+        
+        return metadata
+    }
 }

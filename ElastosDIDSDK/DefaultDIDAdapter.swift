@@ -51,7 +51,7 @@ public class DefaultDIDAdapter: DIDAdapter {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 //        let parameters = ["id": "101CB51E1ABE1A141C1561249EB15589", "method": "did_resolveDID", "params": [["did": "did:elastos:ib86maQS8J8utcCFFM3to7vT3MyteW9e4P"]]] as [String : Any]
-        let parameters = body.toDictionary()
+        let parameters: [String: Any] = body.toDictionary()
         request.httpBody = try JSONSerialization.data(withJSONObject: parameters as Any, options: .prettyPrinted)
         
         let semaphore = DispatchSemaphore(value: 0)

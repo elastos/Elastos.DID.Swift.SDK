@@ -14,7 +14,6 @@ class DIDURLTest: XCTestCase {
     var url: DIDURL!
     
     override func setUp() {
-        print("2222222222")
         // Put setup code here. This method is called before the invocation of each test method in the class.
         url = try! DIDURL(testURL)
     }
@@ -135,10 +134,10 @@ class DIDURLTest: XCTestCase {
 
     func testHashCode() {
         var other: DIDURL = try! DIDURL(testURL)
-//        XCTAssertEqual(url.hash, other.hash) // TODO:
+        XCTAssertEqual(url.hash, other.hash) // TODO:
 
         other = try! DIDURL("did:elastos:1234567890#test")
-//        XCTAssertNotEqual(url.hash, other.hash) // TODO:
+        XCTAssertNotEqual(url.hash, other.hash) // TODO:
     }
 
     func testEquals() {

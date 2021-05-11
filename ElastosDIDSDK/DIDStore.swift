@@ -218,8 +218,6 @@ public class DIDStore: NSObject {
         guard re >= 0 else {
             // NEW ADD
             throw DIDError.CheckedError.DIDStoreError.WrongPasswordError()
-            
-//            throw DIDError.didStoreError("decryptFromBase64 error.")
         }
         let temp = UnsafeRawPointer(plain)
             .bindMemory(to: UInt8.self, capacity: re)
@@ -1233,7 +1231,9 @@ public class DIDStore: NSObject {
                     Log.d(TAG, "Exporting credential \(id.toString())...")
                     
                     let vc = try storage!.loadCredential(id)
-                    vc!.setMetadata(try storage!.loadCredentialMetadata(id)!)
+                    if let _ = try storage!.loadCredentialMetadata(id) {
+                        vc!.setMetadata(try storage!.loadCredentialMetadata(id)!)
+                    }
                     de.appendCredential(vc!)
                 }
             }
@@ -1243,8 +1243,10 @@ public class DIDStore: NSObject {
                 for pk in pks {
                     let id = pk.getId()
                     let key = try storage!.loadPrivateKey(id!)
-                    Log.d(TAG, "Exporting private key \(String(describing: id?.toString()))...")
-                    try de.appendPrivatekey(id!, key, storePassword, password)
+                    if key != "" {
+                        Log.d(TAG, "Exporting private key \(String(describing: id?.toString()))...")
+                        try de.appendPrivatekey(id!, key, storePassword, password)
+                    }
                 }
             }
             
@@ -1381,7 +1383,6 @@ public class DIDStore: NSObject {
     public func importDid(from handle: FileHandle,
                        using password: String,
                         storePassword: String) throws {
-        handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
         try importDid(from: data, using: password, storePassword: storePassword)
     }
@@ -1499,27 +1500,30 @@ public class DIDStore: NSObject {
     public func importRootIdentity(from handle: FileHandle,
                        using password: String,
                         storePassword: String) throws {
-        handle.seekToEndOfFile()
         let data = handle.readDataToEndOfFile()
         try importRootIdentity(from: data, using: password, storePassword: storePassword)
     }
     
-    private func exportStore(_ password: String, _ storePassword: String) throws -> String {
-        var exportStr = ""
+    private func exportStore(_ password: String, _ storePassword: String) throws -> [String: Any] {
         let ris = try listRootIdentities()
+        var dataDic: [String: Any] = [: ]
+        var arrayRis: [[String: Any]] = []
+        var arrayDids: [[String: Any]] = []
         for ri in ris {
-            let rootIdentityStr = "rootIdentity-" + ri.id!
-            let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true)
-            exportStr = "{\"\(rootIdentityStr)\":\"\(ert)\"}"
+            let rootIdentityStr = try "rootIdentity-" + ri.getId()
+            let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true).toDictionary()as [String: Any]
+                arrayRis.append([rootIdentityStr: ert])
         }
         let dids = try listDids()
         for did in dids {
             let didstr = did.methodSpecificId
-            let edid = try exportDid(did, password, storePassword).serialize(true)
-            exportStr = "{\"\(didstr)\":\"\(edid)\"}"
+            let edid = try exportDid(did, password, storePassword).serialize(true).toDictionary()as [String: Any]
+            arrayDids.append([didstr: edid])
         }
-        
-        return exportStr
+        dataDic["rootIdentity"] = arrayRis
+        dataDic["ids"] = arrayDids
+
+        return dataDic
     }
 
     /// Export all DID objects from this store.
@@ -1528,38 +1532,33 @@ public class DIDStore: NSObject {
     ///   - password: the password to encrypt the private keys in the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
-    public func exportStore(to output: OutputStream,
+    public func exportStore(to path: String,
                  using password: String,
                   storePassword: String) throws {
- 
-        let exportStr = try exportStore(password, storePassword)
-        output.open()
-        self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
-        output.close()
-    }
-    
-    /// Export all DID objects from this store.
-    /// - Parameters:
-    ///   - handle: the handle stream that the data export to
-    ///   - password: the password to encrypt the private keys in the exported data
-    ///   - storePassword: the password for this store
-    /// - Throws: If error occurs, throw error.
-    @objc(exportStore:password:storePassword:error:)
-    public func exportStore(to handle: FileHandle,
-                           _ password: String,
-                      _ storePassword: String) throws {
-        let exportStr = try exportStore(password, storePassword)
-        handle.write(exportStr.data(using: .utf8)!)
-    }
-    
-    private func importStore(from data: Data,
-                             _ password: String,
-                             _ storePassword: String) throws {
-        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard let _ = dic else {
-            throw DIDError.notFoundError("data is not nil")
+        let exportDic = try exportStore(password, storePassword)
+        let roots = exportDic["rootIdentity"] as! [[String: Any]]
+        let ids = exportDic["ids"] as! [[String: Any]]
+        
+        for root in roots {
+            let key = root.keys.first
+            let path = path + "/" + key!
+            try path.create(forWrite: true)
+            let value = root[key!] as! [String: Any]
+            try value.toJsonString()?.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
         }
         
+        for id in ids {
+            let key = id.keys.first
+            let path = path + "/" + key!
+            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
+            let value = id[key!] as! [String: Any]
+            try value.toJsonString()?.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
+        }
+    }
+    
+    private func importStore(from path: String,
+                             _ password: String,
+                             _ storePassword: String) throws {
         let fingerprint = metadata?.fingerprint
         let currentFingerprint = try calcFingerprint(storePassword)
         
@@ -1567,16 +1566,32 @@ public class DIDStore: NSObject {
             throw DIDError.CheckedError.DIDStoreError.WrongPasswordError("Password mismatched with previous password.")
         }
         
-        try dic!.forEach{ key, value in
-            if key == "rootIdentity" {
-                let rex = try RootIdentityExport.deserialize(value as! [String : Any])
-                try importRootIdentity(rex, password, storePassword)
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: path)
+        if enumerator.count == 0 {
+            return
+        }
+        var path0 = ""
+        var dic: [String: Any] = [: ]
+        for element: String in enumerator  {
+            path0 = path + "/" + element
+            if element == ".DS_Store" {
+                continue
             }
+            path0 = path + "/" + element
+            dic = try path0.readTextFromPath().toDictionary() as [String: Any]
+            // rootIdentity
+            if element.hasPrefix("rootIdentity") {
+                let re = try RootIdentityExport.deserialize(dic)
+                try importRootIdentity(re, password, storePassword)
+            }
+            // ids
             else {
-                let did = try DIDExport.deserialize(value as! [String : Any])
-                try importDid(did, password, storePassword)
+                let de = try DIDExport.deserialize(dic)
+                try importDid(de, password, storePassword)
             }
         }
+        
         if (fingerprint == nil || fingerprint!.isEmpty) {
             try metadata!.setFingerprint(currentFingerprint)
         }
@@ -1588,23 +1603,10 @@ public class DIDStore: NSObject {
     ///   - password: the password for the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
-    public func importStore(from handle: FileHandle,
-                             _ password: String,
-                        _ storePassword: String) throws {
-        let data = handle.readDataToEndOfFile()
-        try importStore(from: data, password, storePassword)
-    }
-    /// Import a exported DIDStore from the exported data to this store.
-    /// - Parameters:
-    ///   - input: the input for the exported data
-    ///   - password: the password for the exported data
-    ///   - storePassword: the password for this store
-    /// - Throws: If error occurs, throw error.
-    public func importStore(from input: InputStream,
-                            _ password: String,
-                            _ storePassword: String) throws {
-        let data = try readData(input: input)
-        try importStore(from: data, password, storePassword)
+    public func importStore(from path: String,
+                            using password: String,
+                            storePassword: String) throws {
+        try importStore(from: path, password, storePassword)
     }
  
     private func writeData(data: Data, outputStream: OutputStream, maxLengthPerWrite: Int) {
