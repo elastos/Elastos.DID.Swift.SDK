@@ -1385,8 +1385,10 @@ public class DIDDocumentBuilder: NSObject {
         if (document!._proofsDic.count > 0 && document!._proofsDic.count == sigs) {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySealedError(try getSubject().toString())
         }
+        try document?._controllers.sort { (didA, didB) -> Bool in
+            return try didA.compareTo(didB) == ComparisonResult.orderedAscending
+        }
         
-        //        Collections.sort(document.controllers) // TODO:
         document!._publickeys = document!.publicKeyMap.values({ pk -> Bool in return true })
         
         for pk in document!._publickeys {

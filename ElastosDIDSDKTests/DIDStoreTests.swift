@@ -10,9 +10,14 @@ class DIDStoreTests: XCTestCase {
 
     override func setUp() {
         store = testData.store!
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
+//        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+//        simulatedIDChain.start()
+        let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+        try! DIDBackend.initialize(adapter)
+    }
+    
+    override func tearDown() {
+        testData.reset()
     }
     
     func getFile(_ path: String) -> String {

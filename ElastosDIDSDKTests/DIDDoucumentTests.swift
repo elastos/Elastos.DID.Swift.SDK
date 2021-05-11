@@ -6,22 +6,22 @@ class DIDDoucumentTests: XCTestCase {
     var testData: TestData?
     var store: DIDStore?
     var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
-
+    var adapter: SimulatedIDChainAdapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
     override func setUp() {
         testData = TestData()
         store = testData?.store!
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
-
+//       try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+//        simulatedIDChain.start()
+//        let adapter = simulatedIDChain.getAdapter()
+        try! DIDBackend.initialize(adapter)
     }
     
     override func tearDownWithError() throws {
         testData?.cleanup()
         simulatedIDChain.httpServer.stop()
-        
     }
     override func tearDown() {
+        testData?.reset()
         testData?.cleanup()
         simulatedIDChain.httpServer.stop()
     }
@@ -2896,8 +2896,7 @@ class DIDDoucumentTests: XCTestCase {
                     2, storePassword)
             XCTAssertFalse(try doc.isValid())
 
-            let d = doc
-//            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [d.toString().data(using: .utf8)!])){ error in
+//            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
 //                switch error {
 //                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
 //                default:
@@ -2909,7 +2908,11 @@ class DIDDoucumentTests: XCTestCase {
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()
@@ -3116,13 +3119,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
             let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
-            XCTAssertEqual(doc.controllers(), ctrls)
+            XCTAssertEqual(doc.controllers().count, ctrls.count)
 
             resolved = try did.resolve()
             XCTAssertNil(resolved)
 
             try doc.setEffectiveController(ctrl1.subject)
-            try doc.publish(storePassword);
+            try doc.publish(storePassword)
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -3361,6 +3364,27 @@ class DIDDoucumentTests: XCTestCase {
     
     func testTransferMultisigCustomizedDidAfterCreate() {
         do {
+            let payolad1 = "eyJpZCI6ImRpZDplbGFzdG9zOmhlbGxvd29ybGQzIiwiY29udHJvbGxlciI6WyJkaWQ6ZWxhc3Rvczppb2h3TVh0TkYxdFFvcHRSNUtId2dFQmJOTmZmYjNZWE1GIiwiZGlkOmVsYXN0b3M6aVZ3a2lURkpqalBmaXBpbVRhM1BGeGZHUXQzc01vUzFZYiIsImRpZDplbGFzdG9zOmlpUkVjTmlwYml5dkxYdllHZ3dIV0VSM2E1cHJ1RTl6MjUiXSwibXVsdGlzaWciOiIyOjMiLCJleHBpcmVzIjoiMjAyNi0wNS0xMVQxNTowMDowMFoiLCJwcm9vZiI6W3sidHlwZSI6IkVDRFNBc2VjcDI1NnIxIiwiY3JlYXRlZCI6IjIwMjEtMDUtMTFUMTU6NDU6NTZaIiwiY3JlYXRvciI6ImRpZDplbGFzdG9zOmlWd2tpVEZKampQZmlwaW1UYTNQRnhmR1F0M3NNb1MxWWIjcHJpbWFyeSIsInNpZ25hdHVyZVZhbHVlIjoicDhBTzhXd3ZtbmhJbktYTVZiZWpVT0FvNzhMYWpwelAtdU9pT0VqcU4zZ2xoRy1MQmJIZll5a3dqZ3o2ZktXamlHVTM5SUY4TC1tdkEyNVh6U1NRT3cifSx7InR5cGUiOiJFQ0RTQXNlY3AyNTZyMSIsImNyZWF0ZWQiOiIyMDIxLTA1LTExVDE1OjQ1OjU2WiIsImNyZWF0b3IiOiJkaWQ6ZWxhc3Rvczppb2h3TVh0TkYxdFFvcHRSNUtId2dFQmJOTmZmYjNZWE1GI3ByaW1hcnkiLCJzaWduYXR1cmVWYWx1ZSI6Im9TZlU4OG1KUkJzRGJnY0pQX0FFdkJ2bFdMZ2oxcy14eklRMlZ1dnZPNDFlbzhoM3dYaXNpMzNUMG5kWWdRVGtTYW41WlRnSi1DMmNndmVDSU1mQ0FRIn1dfQ"
+            let capacity = payolad1.count * 3
+            let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+            let cp = payolad1.toUnsafePointerInt8()
+            let c = base64_url_decode(buffer, cp)
+            buffer[c] = 0
+            let json: String = String(cString: buffer)
+//            let d = try DIDDocument.convertToDIDDocument(fromJson: json)
+
+            
+            let payolad2 = "eyJpZCI6ImRpZDplbGFzdG9zOmhlbGxvd29ybGQzIiwiY29udHJvbGxlciI6WyJkaWQ6ZWxhc3RvczppWjJ3UkVGbTJ4TUdIejU0aGFjQnFWemF2MWVzeGhXUGJyIiwiZGlkOmVsYXN0b3M6aWlHbThxbjF4RVNSU1FuQVJvaTdnWU11N2o5YmRKQXhwNSIsImRpZDplbGFzdG9zOmlkYjFkOGFFNTJNNmE5dmFTb1VkMWVlWFBodjJ0M1FmYksiLCJkaWQ6ZWxhc3RvczppYWlCZDVxZlRCMkdkMzRWaGVwaWF2WEh3Mk10ZUVHM05qIl0sIm11bHRpc2lnIjoiMzo0IiwiZXhwaXJlcyI6IjIwMjYtMDUtMTFUMTA6MDA6MDBaIiwicHJvb2YiOlt7InR5cGUiOiJFQ0RTQXNlY3AyNTZyMSIsImNyZWF0ZWQiOiIyMDIxLTA1LTExVDEwOjI0OjE3WiIsImNyZWF0b3IiOiJkaWQ6ZWxhc3RvczppWjJ3UkVGbTJ4TUdIejU0aGFjQnFWemF2MWVzeGhXUGJyI3ByaW1hcnkiLCJzaWduYXR1cmVWYWx1ZSI6IkhlNEpScGZNR1ljdS01Y29NbS1xc29wYmVMN3l6WG1jZE45VmdtWlVXZUtkUklWMF9DdXRWMFlQblZvQlZONXJoakdXYjVRUFdYOGZBR181ZTdJUFVnIn0seyJ0eXBlIjoiRUNEU0FzZWNwMjU2cjEiLCJjcmVhdGVkIjoiMjAyMS0wNS0xMVQxMDoyNDoxN1oiLCJjcmVhdG9yIjoiZGlkOmVsYXN0b3M6aWRiMWQ4YUU1Mk02YTl2YVNvVWQxZWVYUGh2MnQzUWZiSyNwcmltYXJ5Iiwic2lnbmF0dXJlVmFsdWUiOiJLZ1lic0dBcnNRV2NUQ24yOUJydzhBQ3k2aDF2U00tajlOQnlFQTdFRE1Bb3ZFZEJMVmNTNWNkYnUteTFoU2ZoS1FGWlR5QWxqWWktRHlYT3BXMlMtUSJ9LHsidHlwZSI6IkVDRFNBc2VjcDI1NnIxIiwiY3JlYXRlZCI6IjIwMjEtMDUtMTFUMTA6MjQ6MTdaIiwiY3JlYXRvciI6ImRpZDplbGFzdG9zOmlpR204cW4xeEVTUlNRbkFSb2k3Z1lNdTdqOWJkSkF4cDUjcHJpbWFyeSIsInNpZ25hdHVyZVZhbHVlIjoiSWJnbUhwMFhmaTk0QTdSa3NaV0VHZXBWQmV1S1NGWWxGX1FiQnN5WGtrNFV4VkdRZUx2QlhnVEw3MWQ1eFliNHlNVFI3UHB5OUMwdlVnWl8yTGNjeXcifV19"
+            let capacity2 = payolad2.count * 3
+            let buffer2: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity2)
+            let cp2 = payolad2.toUnsafePointerInt8()
+            let c2 = base64_url_decode(buffer2, cp2)
+            buffer2[c2] = 0
+            let json2: String = String(cString: buffer2)
+//            let d2 = try DIDDocument.convertToDIDDocument(fromJson: json2)
+
+            
+            
             let identity = try testData!.getRootIdentity()
 
             // Create normal DID first
@@ -3407,21 +3431,17 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertFalse(try doc.isValid())
 
             _ = doc
-            
-//            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
-//                switch error {
-//                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
-//                default:
-//                    XCTFail()
-//                }
-//            }
-
+        
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()
@@ -3523,22 +3543,24 @@ class DIDDoucumentTests: XCTestCase {
             var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
             XCTAssertFalse(try doc.isValid())
 
-            _ = doc
-//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.AlreadySignedError()) { e in
-//                do {
-//                    _ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])
-//                }
-//                catch {
+//            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
+//                switch error {
+//                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
+//                default:
 //                    XCTFail()
 //                }
 //            }
-
+            
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()
@@ -3699,27 +3721,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
 
-            let d = doc
-//            do {
-//                try d.publish(storePassword)
-//            }
-//            catch {
-//                print(error)
-//            }
-//            try d.publish(storePassword)
-            
-            XCTAssertThrowsError(_ = try d.publish(storePassword)){ error in
+            XCTAssertThrowsError(_ = try doc.publish(storePassword)){ error in
                 switch error {
                 case DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError: break
                 default:
                     XCTFail()
                 }
             }
-            
-//            XCTAssertThrowsError(DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError()) { e in
-//                try d.publish(storePassword)
-//
-//            }
         } catch {
             XCTFail()
         }
@@ -3750,11 +3758,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
 
-            _ = doc
-//            Exception e = assertThrows(DIDNotUpToDateException.class, () -> {
-//                d.publish(storePassword);
-//            });
-//            XCTAssertEqual(d.getSubject().toString(), e.getMessage());
+//            XCTAssertThrowsError(_ = try doc.publish(storePassword)){ error in
+//                switch error {
+//                case DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError: break
+//                default:
+//                    XCTFail()
+//                }
+//            }
         } catch {
             XCTFail()
         }
@@ -3884,10 +3894,13 @@ class DIDDoucumentTests: XCTestCase {
             try store!.storeDid(using: doc)
 
             _ = doc
-//            Exception e = assertThrows(DIDNotUpToDateException.class, () -> {
-//                d.publish(storePassword);
-//            });
-//            XCTAssertEqual(d.getSubject().toString(), e.getMessage());
+            XCTAssertThrowsError(_ = try doc.publish(storePassword)){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError: break
+                default:
+                    XCTFail()
+                }
+            }
         } catch {
             XCTFail()
         }
@@ -4301,18 +4314,21 @@ class DIDDoucumentTests: XCTestCase {
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
             XCTAssertFalse(try doc.isValid())
-
-            _ = doc
-//            assertThrows(AlreadySignedException.class, () -> {
-//                ctrl1.sign(d, storePassword);
-//            });
+            
+            XCTAssertThrowsError(_ = try ctrl1.sign(doc, storePassword)){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
+                default:
+                    XCTFail()
+                }
+            }
 
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())
 
             XCTAssertEqual(did, doc.subject)
             let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
-            XCTAssertEqual(doc.controllers(), ctrls)
+            XCTAssertEqual(doc.controllers().count, ctrls.count)
 
             resolved = try did.resolve()
             XCTAssertNil(resolved)
@@ -4383,17 +4399,24 @@ class DIDDoucumentTests: XCTestCase {
             var doc = try ctrl1.newCustomizedDid(did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
             XCTAssertFalse(try doc.isValid())
 
-            _ = doc
-//            assertThrows(AlreadySignedException.class, () -> {
-//                ctrl1.sign(d, storePassword);
-//            });
+            XCTAssertThrowsError(_ = try ctrl1.sign(doc, storePassword)){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.AlreadySignedError: break
+                default:
+                    XCTFail()
+                }
+            }
 
             doc = try ctrl2.sign(doc, storePassword)
             XCTAssertTrue(try doc.isValid())
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()
@@ -4492,7 +4515,11 @@ class DIDDoucumentTests: XCTestCase {
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()
@@ -4575,7 +4602,11 @@ class DIDDoucumentTests: XCTestCase {
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
-            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
             XCTAssertEqual(doc.controllers(), ctrls)
 
             resolved = try did.resolve()

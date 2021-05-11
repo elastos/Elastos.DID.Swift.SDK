@@ -1397,9 +1397,9 @@ public class DIDDocument: NSObject {
             }
         }
 
-//        try _controllers.sort { (didA, didB) -> Bool in
-//            return try didA.compareTo(didB) == ComparisonResult.orderedAscending
-//        }
+        try _controllers.sort { (didA, didB) -> Bool in
+            return try didA.compareTo(didB) == ComparisonResult.orderedAscending
+        }
 
         if _controllers.count == 1 {
             _effectiveController = _controllers[0]
@@ -1485,7 +1485,7 @@ public class DIDDocument: NSObject {
                 pk?.setAuthenticationKey(true)
             })
             
-            try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
                 return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
             }
         }
@@ -1544,7 +1544,9 @@ public class DIDDocument: NSObject {
                 }
                 pk?.setAuthorizationKey(true)
             }
-//      TODO:      Collections.sort(_authorizations)
+            try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+            }
         }
         else {
             _authorizations = [ ]
@@ -1559,7 +1561,7 @@ public class DIDDocument: NSObject {
             self._publickeys = [ ]
         }
         // Find default key
-        publicKeyMap.values { vaule -> Bool in return true }.forEach { pk in
+        for pk in publicKeyMap.values({ vaule -> Bool in return true }) {
             if pk.controller == subject {
                 let address = DIDHDKey.toAddress(pk.publicKeyBytes)
                 if address == subject.methodSpecificId {
@@ -1571,7 +1573,9 @@ public class DIDDocument: NSObject {
                         }
                         else {
                             _authentications.append(PublicKeyReference(pk))
-                            //  TODO: Collections.sort(_authentications)
+                            try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+                                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+                            }
                         }
                     }
                 }

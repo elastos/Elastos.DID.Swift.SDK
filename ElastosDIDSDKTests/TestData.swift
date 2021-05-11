@@ -13,25 +13,59 @@ class TestData {
     var v1: CompatibleData?
     var v2: CompatibleData?
     var instantData: InstantData?
-    
     init() {
         do {
             TestData.deleteFile(storeRoot)
             store = try DIDStore.open(atPath: storeRoot)
             v1 = CompatibleData(1, store!)
             v2 = CompatibleData(2, store!)
+
         } catch {
             print(error)
         }
-//        super.init()
     }
 
     func cleanup() {
         if store != nil {
             store!.close()
         }
-        print("0909")
         DIDBackend.sharedInstance().clearCache()
+    }
+    
+    func reset() {
+        let urlStr = "http://localhost:\(DEFAULT_PORT)" + "/reset"
+        let url = URL(string: urlStr)!
+        var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let semaphore = DispatchSemaphore(value: 0)
+        var errDes: String?
+        var result: Data?
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let _ = data,
+                  let response = response as? HTTPURLResponse,
+                  error == nil else { // check for fundamental networking error
+                
+                errDes = error.debugDescription
+                semaphore.signal()
+                return
+            }
+            guard (200 ... 299) ~= response.statusCode else { // check for http errors
+                errDes = "Server eror (status code: \(response.statusCode)"
+                semaphore.signal()
+                return
+            }
+            
+            result = data
+            semaphore.signal()
+        }
+        
+        task.resume()
+        semaphore.wait()
+        
+        print(result)
     }
     
     public class func generateKeypair() throws -> DIDHDKey {
@@ -1218,25 +1252,3 @@ class InstantData {
         }
     }
 }
-
-//public class DIDTestExtension {
-//    var adapter: DIDAdapter
-//    var simChain: SimulatedIDChain
-//    init(_ name: String) {
-//        let network = networkConfig
-//
-//                if (name == "IDChainOperationsTest") {
-//                    if (network == "mainnet") {
-//                        adapter = SPVAdaptor()
-//                    }
-//                }
-//
-//                if (adapter == nil) {
-//                    simChain = SimulatedIDChain()
-//                    simChain.start()
-//                    adapter = simChain.adapter
-//                }
-//
-//                DIDBackend.initialize(adapter)
-//    }
-//}

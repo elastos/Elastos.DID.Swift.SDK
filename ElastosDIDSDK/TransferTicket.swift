@@ -277,6 +277,11 @@ public class TransferTicket: NSObject {
         generator.writeStringField(ID, id.toString())
         generator.writeStringField(TO, to.toString())
         generator.writeStringField(TXID, txid)
+        // sort
+        _proofs.sort { (proofA, proofB) -> Bool in
+            let compareResult = proofA.compareTo(proofB)
+            return compareResult == ComparisonResult.orderedAscending.rawValue
+        }
         if _proofs.count > 0 {
             generator.writeFieldName(PROOF)
             generator.writeStartArray()

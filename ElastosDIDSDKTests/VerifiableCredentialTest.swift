@@ -4,19 +4,17 @@ import XCTest
 class VerifiableCredentialTest: XCTestCase {
     static var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
     var testData: TestData?
-    override class func setUp() {
-        simulatedIDChain = SimulatedIDChain()
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-    }
     
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         testData = TestData()
-        try! DIDBackend.initialize(VerifiableCredentialTest.simulatedIDChain.getAdapter())
+//        try! DIDBackend.initialize(VerifiableCredentialTest.simulatedIDChain.getAdapter())
+        let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+        try! DIDBackend.initialize(adapter)
     }
     
     override func tearDown() {
+        testData?.reset()
         testData?.cleanup()
     }
     

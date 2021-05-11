@@ -3,8 +3,8 @@ import Foundation
 import Swifter
 
 // For mini HTTP server
-let DEFAULT_PORT: Int = 9995
-//let DEFAULT_PORT: Int = 9123
+//let DEFAULT_PORT: Int = 9995
+let DEFAULT_PORT: Int = 9123
 public class SimulatedIDChain {
     
     let TAG = NSStringFromClass(SimulatedIDChain.self)

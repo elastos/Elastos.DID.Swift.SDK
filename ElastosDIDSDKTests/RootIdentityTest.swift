@@ -22,6 +22,7 @@ class RootIdentityTest: XCTestCase {
         
     }
     override func tearDown() {
+        testData?.reset()
         testData?.cleanup()
         simulatedIDChain.httpServer.stop()
     }
