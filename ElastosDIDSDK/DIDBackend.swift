@@ -346,7 +346,7 @@ public class DIDBackend: NSObject {
         if tx?.request.operation != IDChainRequestOperation.CREATE && tx?.request.operation != IDChainRequestOperation.UPDATE && tx?.request.operation != IDChainRequestOperation.TRANSFER {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, unknown operation.")
         }
-        
+        print("!tx!.request.isValid() star ======================== ")
         if try (tx == nil || !tx!.request.isValid()) {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, signature mismatch.")
         }

@@ -226,7 +226,7 @@ public class TransferTicket: NSObject {
 
                 return proofA.verificationMethod.compareTo(proofB.verificationMethod) == ComparisonResult.orderedAscending
             } else {
-                return compareResult == ComparisonResult.orderedDescending
+                return compareResult == ComparisonResult.orderedAscending
             }
         }
     }
@@ -265,10 +265,15 @@ public class TransferTicket: NSObject {
             self._proofs.append(tp)
         })
         
-        // sort
         _proofs.sort { (proofA, proofB) -> Bool in
-            let compareResult = proofA.compareTo(proofB)
-            return compareResult == ComparisonResult.orderedAscending.rawValue
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.created)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.created))
+            if compareResult == ComparisonResult.orderedSame {
+
+                return proofA.verificationMethod.compareTo(proofB.verificationMethod) == ComparisonResult.orderedAscending
+            } else {
+                return compareResult == ComparisonResult.orderedAscending
+            }
         }
     }
     
@@ -279,8 +284,14 @@ public class TransferTicket: NSObject {
         generator.writeStringField(TXID, txid)
         // sort
         _proofs.sort { (proofA, proofB) -> Bool in
-            let compareResult = proofA.compareTo(proofB)
-            return compareResult == ComparisonResult.orderedAscending.rawValue
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.created)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.created))
+            if compareResult == ComparisonResult.orderedSame {
+
+                return proofA.verificationMethod.compareTo(proofB.verificationMethod) == ComparisonResult.orderedAscending
+            } else {
+                return compareResult == ComparisonResult.orderedAscending
+            }
         }
         if _proofs.count > 0 {
             generator.writeFieldName(PROOF)

@@ -336,9 +336,9 @@ public class VerifiablePresentation: NSObject {
         options = JsonSerializer.Options()
                                 .withHint("holder")
                                 .withError(error)
-        let holder = try serializer.getString(HOLDER, options)
-        if holder != "" {
-            _holder = try DID(holder)
+        let holder = node.get(forKey: HOLDER)?.asString()
+        if holder != nil && holder! != "" {
+            _holder = try DID(holder!)
         }
 
         let types = node.get(forKey: TYPE)?.asArray()

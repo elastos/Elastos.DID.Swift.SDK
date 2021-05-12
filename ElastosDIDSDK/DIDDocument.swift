@@ -167,6 +167,7 @@ public class DIDDocument: NSObject {
                     result.append(value)
                 }
             }
+
             return result
         }
 
@@ -1775,6 +1776,10 @@ public class DIDDocument: NSObject {
             guard proof.creator == defaultPublicKeyId() else {
                 return false
             }
+            print("!isCustomizedDid  data = \(json)")
+            print("!isCustomizedDid  proof.creator == \(proof.creator!)")
+            print("!isCustomizedDid  proof.signature == \(proof.signature)")
+            print("!isCustomizedDid  verifyDigest == \(try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest))")
             let result = try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
             return result
         }

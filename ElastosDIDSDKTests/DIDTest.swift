@@ -11,9 +11,11 @@ class DIDTest: XCTestCase {
     override func setUp() {
         
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
+//        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+//        simulatedIDChain.start()
+//        try! DIDBackend.initialize(simulatedIDChain.getAdapter());
+        let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+        try! DIDBackend.initialize(adapter)
         did = try! DID(testDID)
     }
 
@@ -67,10 +69,10 @@ class DIDTest: XCTestCase {
     func testHashCode() {
         do {
             var other: DID = try DID(testDID)
-//            XCTAssertEqual(did.hash, other.hash) // TODO:
+            XCTAssertEqual(did.hash, other.hash) // TODO:
             
             other = try DID("did:elastos:1234567890")
-//            XCTAssertNotEqual(did.hash, other.hash) // TODO:
+            XCTAssertNotEqual(did.hash, other.hash) // TODO:
         } catch {
             
         }

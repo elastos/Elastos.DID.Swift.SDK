@@ -17,6 +17,7 @@ class VerifiablePresentationTest: XCTestCase {
 //        try! DIDBackend.initialize(simulatedIDChain.getAdapter())
         let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
         try! DIDBackend.initialize(adapter)
+        testData?.reset()
     }
     
     override func tearDown() {

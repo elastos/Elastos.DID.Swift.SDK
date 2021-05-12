@@ -277,11 +277,6 @@ public class DIDRequest: IDChainRequest {
         return document
     }
     
-//    class func deserializeWithSanitize(_ content: JsonNode) throws -> DIDRequest {
-//        let request = try self.deserialize(content)
-//        try request.sanitize()
-//        return request
-//    }
     override class func deserialize(_ content: JsonNode) throws -> DIDRequest {
 
         let header = IDChainHeader.parse(content.get(forKey: "header")!)
