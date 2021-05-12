@@ -18,6 +18,7 @@ class DIDStoreTests: XCTestCase {
     
     override func tearDown() {
         testData.reset()
+        testData.cleanup()
     }
     
     func getFile(_ path: String) -> String {
