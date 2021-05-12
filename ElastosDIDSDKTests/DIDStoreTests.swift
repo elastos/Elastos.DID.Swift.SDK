@@ -735,7 +735,7 @@ class DIDStoreTests: XCTestCase {
     
     func create(_ path: String, forWrite: Bool) throws {
         if !FileManager.default.fileExists(atPath: path) && forWrite {
-            let dirPath: String = PathExtracter(path).dirname()
+            let dirPath: String = path.dirname()
             let fileM = FileManager.default
             let re = fileM.fileExists(atPath: dirPath)
             if !re {

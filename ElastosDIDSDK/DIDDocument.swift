@@ -3576,7 +3576,7 @@ public class DIDDocument: NSObject {
         let data: Data = try convertFromDIDDocument(normalized)
         let fileManager = FileManager.default
         if !fileManager.fileExists(atPath: asURL.absoluteString) {
-            let dirPath = PathExtracter(asURL.absoluteString).dirname()
+            let dirPath = asURL.absoluteString.dirname()
             if !FileManager.default.fileExists(atPath: dirPath) {
                 try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
             }

@@ -3,6 +3,42 @@ import Foundation
 
 extension String {
     
+    /*
+     * example: /foo/bar/example.txt
+     * dirNamePart() -> "/foo/bar/"
+     */
+    func dirname() -> String {
+        let index = self.range(of: "/", options: .backwards)?.lowerBound
+        let str = index.map(self.prefix(upTo:)) ?? ""
+        return "\(str)/"
+    }
+
+    /*
+     * example: /foo/bar/example.txt
+     * baseNamePart() -> "exmaple.txt"
+     */
+    func basename() -> String {
+        let arr = self.components(separatedBy: "/")
+        let str = arr.last ?? ""
+        return String(str)
+    }
+    
+    public func files() throws -> [String] {
+        let fileManager = FileManager.default
+        var enumerator = try fileManager.contentsOfDirectory(atPath: self)
+        
+        //        let fileManager = FileManager.default
+        //        var subPath: [String] = []
+        //        let enumerator = try fileManager.contentsOfDirectory(at: URL(string: path)!, includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles)
+        //        for element: URL in enumerator {
+        //      subPath.append(element.lastPathComponent)
+        //        }
+        enumerator = enumerator.filter{ value -> Bool in
+            !value.isEqual(".DS_Store")
+        }
+        return enumerator
+    }
+
     func toDictionary() -> [String : Any] {
         
         var result = [String : Any]()
@@ -68,7 +104,7 @@ extension String {
     
     func create(forWrite: Bool) throws {
         if !FileManager.default.fileExists(atPath: self) && forWrite {
-            let dirPath: String = PathExtracter(self).dirname()
+            let dirPath: String = self.dirname()
             let fileM = FileManager.default
             let re = fileM.fileExists(atPath: dirPath)
             if !re {
@@ -140,5 +176,25 @@ extension String {
         try fileManager.removeItem(atPath: self)
         return true
     }
+    
+    func deleteDir() throws {
+        let fileManager = FileManager.default
+        var enumerator = try fileManager.contentsOfDirectory(atPath: self)
+        for sub in enumerator {
+            let p = self + "/" + sub
+            if p.isDirectory() {
+                try p.deleteDir()
+            }
+            else {
+                try fileManager.removeItem(atPath: p)
+            }
+            enumerator.removeObject(sub)
+        }
+        
+        if enumerator.count == 0 {
+            try fileManager.removeItem(atPath: self)
+        }
+    }
+
 }
 

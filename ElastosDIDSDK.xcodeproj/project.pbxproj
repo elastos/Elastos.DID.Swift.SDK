@@ -319,7 +319,6 @@
 		A31ACE3C23F19A22008EC032 /* DIDHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3023F19A22008EC032 /* DIDHDKey.swift */; };
 		A31ACE3D23F19A22008EC032 /* JsonSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3123F19A22008EC032 /* JsonSerializer.swift */; };
 		A31ACE3F23F19A22008EC032 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3323F19A22008EC032 /* DateHelper.swift */; };
-		A31ACE4123F19A22008EC032 /* PathExtracter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3523F19A22008EC032 /* PathExtracter.swift */; };
 		A31ACE5723F19A3A008EC032 /* DIDURL.g4 in Resources */ = {isa = PBXBuildFile; fileRef = A31ACE4B23F19A39008EC032 /* DIDURL.g4 */; };
 		A31ACE5F23F19A4E008EC032 /* DIDStoreMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */; };
 		A31ACE6023F19A4E008EC032 /* CredentialMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */; };
@@ -719,7 +718,6 @@
 		A31ACE3023F19A22008EC032 /* DIDHDKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDHDKey.swift; path = Util/DIDHDKey.swift; sourceTree = "<group>"; };
 		A31ACE3123F19A22008EC032 /* JsonSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JsonSerializer.swift; path = Util/JsonSerializer.swift; sourceTree = "<group>"; };
 		A31ACE3323F19A22008EC032 /* DateHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DateHelper.swift; path = Util/DateHelper.swift; sourceTree = "<group>"; };
-		A31ACE3523F19A22008EC032 /* PathExtracter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PathExtracter.swift; path = Util/PathExtracter.swift; sourceTree = "<group>"; };
 		A31ACE4B23F19A39008EC032 /* DIDURL.g4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DIDURL.g4; path = Parser/DIDURL.g4; sourceTree = "<group>"; };
 		A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDStoreMetadata.swift; path = Meta/DIDStoreMetadata.swift; sourceTree = "<group>"; };
 		A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialMetadata.swift; path = Meta/CredentialMetadata.swift; sourceTree = "<group>"; };
@@ -1295,7 +1293,6 @@
 				A31ACE3123F19A22008EC032 /* JsonSerializer.swift */,
 				A31ACE2A23F19A22008EC032 /* JsonGenerator.swift */,
 				A31801AA240281B00087E074 /* LRUCache.swift */,
-				A31ACE3523F19A22008EC032 /* PathExtracter.swift */,
 				11BE33DD260984C600DEBD00 /* Extension.swift */,
 				11B62847264BA8BA00B20904 /* Extension+String.swift */,
 				116FA91C263491690021A46F /* EcdsaSigner.swift */,
@@ -1895,7 +1892,6 @@
 				11D1F78C257F3A5400BC5A54 /* ErrorInfo.swift in Sources */,
 				11CACAB62612DF5F004145CB /* CredentialTransaction.swift in Sources */,
 				11D1F789257F3A5400BC5A54 /* BasicBlockStartState.swift in Sources */,
-				A31ACE4123F19A22008EC032 /* PathExtracter.swift in Sources */,
 				11D1F753257F3A5400BC5A54 /* InputMismatchException.swift in Sources */,
 				A34D732923FA758900B4CB3E /* IDGetter.swift in Sources */,
 				11D1F78D257F3A5400BC5A54 /* RangeTransition.swift in Sources */,

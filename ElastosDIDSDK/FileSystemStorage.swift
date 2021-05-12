@@ -115,9 +115,9 @@ public class FileSystemStorage: DIDStorage {
         }
         try postOperations()
         let path = try fullPath(false, currentDataDir, METADATA)
-        if !FileManager.default.fileExists(atPath: path) {
+        if try !path.fileExists() {
             let oldMetadata = try fullPath(".meta")
-            if FileManager.default.fileExists(atPath: oldMetadata) {
+            if try oldMetadata.exists() {
                
                 try upgradeFromV2()
             }
@@ -173,7 +173,6 @@ public class FileSystemStorage: DIDStorage {
             let fileManager = FileManager.default
             let enumerator = try fileManager.contentsOfDirectory(atPath: src)
             for element: String in enumerator  {
-                // if !element.hasSuffix(".meta")
                 let srcFile = src + "/" + element
                 let destFile = dest + "/" + element
                 try copyFile(srcFile, destFile)
@@ -183,15 +182,6 @@ public class FileSystemStorage: DIDStorage {
             let fileManager = FileManager.default
             try fileManager.copyItem(atPath: src, toPath: dest)
         }
-    }
-
-    private func filePath( _ pathArgs: String...) -> String {
-        var path: String = storeRoot
-        for item in pathArgs {
-            path.append("/")
-            path.append(item)
-        }
-        return path
     }
 
     private func openFileHandle(_ forWrite: Bool, _ pathArgs: String...) throws -> FileHandle {
@@ -205,14 +195,12 @@ public class FileSystemStorage: DIDStorage {
             // Delete before writing
             _ = try path.deleteFile()
         }
-        if !FileManager.default.fileExists(atPath: path) && forWrite {
-            let dirPath: String = PathExtracter(path).dirname()
-            let fileM = FileManager.default
-            let re = fileM.fileExists(atPath: dirPath)
-            if !re {
-                try fileM.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
+        if try !path.fileExists() && forWrite {
+            let dirPath: String = path.dirname()
+            if try !dirPath.fileExists() {
+                try dirPath.createDir(true)
             }
-            FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
+            try path.create(forWrite: true)
         }
 
         let handle: FileHandle?
@@ -230,7 +218,6 @@ public class FileSystemStorage: DIDStorage {
     }
 
     func getLocation() -> String {
-        
         return storeRoot
     }
 
@@ -266,7 +253,7 @@ public class FileSystemStorage: DIDStorage {
         do {
             let file = try getRootIdentityFile(id, METADATA, true)
             if metadata.isEmpty() {
-                try file.deleteFile()
+                _ = try file.deleteFile()
             }
             else {
                 try metadata.serialize(file)
@@ -338,8 +325,7 @@ public class FileSystemStorage: DIDStorage {
     func deleteRootIdentity(_ id: String) throws -> Bool {
         let dir = try getRootIdentityDir(id)
         if try dir.dirExists() {
-            try dir.deleteFile()
-            return true
+            return try dir.deleteFile()
         }
         else {
             return false
@@ -354,8 +340,7 @@ public class FileSystemStorage: DIDStorage {
         }
         
         var ids: [RootIdentity] = []
-        let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+        let enumerator = try dir.files()
         for element: String in enumerator {
             let identity = try loadRootIdentity(element)
             ids.append(identity!)
@@ -370,8 +355,7 @@ public class FileSystemStorage: DIDStorage {
             return false
         }
         var ids: [String] = []
-        let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+        let enumerator = try dir.files()
         for element: String in enumerator {
             ids.append(element)
         }
@@ -401,18 +385,10 @@ public class FileSystemStorage: DIDStorage {
             let file = try getDidMetadataFile(did, true)
 
             if metadata.isEmpty() {
-                var path: String = storeRoot
-                path.append("/")
-                path.append(currentDataDir)
-                path.append("/")
-                path.append(did.methodSpecificId)
-                path.append("/")
-                path.append(Constants.META_FILE)
-                
-                if FileManager.default.fileExists(atPath: path) {
+                let path = try fullPath(currentDataDir, did.methodSpecificId, Constants.META_FILE)
+                if try path.fileExists() {
                     try FileManager.default.removeItem(atPath: path)
                 }
-
             } else {
                 try metadata.serialize(file)
             }
@@ -433,7 +409,6 @@ public class FileSystemStorage: DIDStorage {
 
     func storeDid(_ doc: DIDDocument) throws {
         let path = try getDidFile(doc.subject, true)
-        print("path = \(path)")
         try doc.convertFromDIDDocument(true, asFileAtPath: path)
     }
 
@@ -457,80 +432,52 @@ public class FileSystemStorage: DIDStorage {
 
     func deleteDid(_ did: DID) -> Bool {
         do {
-            let path = storeRoot + "/" + DATA_DIR + "/" + Constants.DID_DIR + "/" + did.methodSpecificId
-            try deleteDir(path)
+            let path = try fullPath(DATA_DIR, Constants.DID_DIR, did.methodSpecificId)
+            try path.deleteDir()
             return true
         } catch {
             return false
         }
     }
     
-    func deleteDir(_ path: String) throws {
-        let fileManager = FileManager.default
-        var enumerator = try fileManager.contentsOfDirectory(atPath: path)
-        for sub in enumerator {
-            let p = path + "/" + sub
-            if p.isDirectory() {
-                try deleteDir(p)
-            }
-            else {
-                try fileManager.removeItem(atPath: p)
-            }
-            enumerator.removeObject(sub)
-        }
-        
-        if enumerator.count == 0 {
-            try fileManager.removeItem(atPath: path)
-        }
-    }
-
     func listDids() throws -> Array<DID> {
         var dids: Array<DID> = []
-//        let path = storeRoot + "/" + FileSystemStorage.DID_DIR
-        let path = try fullPath(currentDataDir + "/" + DID_DIR)
+        let path = try fullPath(currentDataDir, DID_DIR)
         let re = try path.dirExists()
         guard re else {
             return []
         }
 
-        let fileManager = FileManager.default
-        
-        let enumerator = try fileManager.contentsOfDirectory(at: URL(string: path)!, includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles)
-//        let enumerator = try fileManager.contentsOfDirectory(atPath: path)
-        for element: URL in enumerator {
-            let did = DID(DID.METHOD, element.lastPathComponent)
+        let enumerator = try path.files()
+        for element in enumerator {
+            let did = DID(DID.METHOD, element)
             dids.append(did)
         }
         return dids
     }
 
     private func getCredentialFile(_ id: DIDURL, _ create: Bool) throws -> String {
-        
-        return try fullPath(create, currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
-                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id) + "/" + CREDENTIAL_FILE)
+        return try fullPath(create, currentDataDir, DID_DIR, id.did!.methodSpecificId,
+                            CREDENTIALS_DIR, FileSystemStorage.toPath(id), CREDENTIAL_FILE)
     }
     
     private func getCredentialMetadataFile(_ id: DIDURL, _ create: Bool) throws -> String {
-        
-        return try fullPath(create, currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
-                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id) + "/" + METADATA)
+        return try fullPath(create, currentDataDir, DID_DIR, id.did!.methodSpecificId,
+                            CREDENTIALS_DIR, FileSystemStorage.toPath(id), METADATA)
     }
 
     private func getCredentialDir(_ id: DIDURL) throws -> String {
-        
-        return try fullPath(currentDataDir + "/" + DID_DIR + "/" + id.did!.methodSpecificId + "/" +
-                            CREDENTIALS_DIR + "/" + FileSystemStorage.toPath(id))
+        return try fullPath(currentDataDir, DID_DIR, id.did!.methodSpecificId,
+                            CREDENTIALS_DIR, FileSystemStorage.toPath(id))
     }
     
     private func getCredentialsDir(_ id: DID) throws -> String {
-        
         return try fullPath(currentDataDir, DID_DIR, id.methodSpecificId, CREDENTIALS_DIR)
     }
     
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
         do {
             let file = try getCredentialMetadataFile(id, true)
-//            let handle = try openCredentialMetaFile(did, id, true)
             if metadata.isEmpty() {
                 try FileManager.default.removeItem(atPath: file)
             } else {
@@ -614,11 +561,9 @@ public class FileSystemStorage: DIDStorage {
             return []
         }
         
-        let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
         var didurls: Array<DIDURL> = []
+        let enumerator = try dir.files()
         for element: String in enumerator  {
-            // if !element.hasSuffix(".meta")
             let didUrl: DIDURL = try DIDURL(did, element)
             didurls.append(didUrl)
         }
@@ -658,14 +603,12 @@ public class FileSystemStorage: DIDStorage {
         if try !dir.dirExists() {
             return false
         }
-        let fileManager: FileManager = FileManager.default
-        var isDir = ObjCBool.init(false)
-        _ = fileManager.fileExists(atPath: dir, isDirectory: &isDir)
-        guard isDir.boolValue else {
+        guard try dir.dirExists() else {
             return false
         }
         
         var keys: [String] = []
+        let fileManager: FileManager = FileManager.default
         if let dirContents = fileManager.enumerator(atPath: dir) {
             // determine whether files are hidden or not
             while let url = dirContents.nextObject() as? String  {
@@ -703,8 +646,7 @@ public class FileSystemStorage: DIDStorage {
         if try !dir.dirExists() {
             return []
         }
-        let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+        let enumerator = try dir.files()
         if  enumerator.isEmpty {
             return []
         }
@@ -735,8 +677,7 @@ public class FileSystemStorage: DIDStorage {
         if src.isDirectory() {
             try dest.createDir(true) // dest create if not
             
-            let fileManager = FileManager.default
-            let enumerator = try fileManager.contentsOfDirectory(atPath: src)
+            let enumerator = try src.files()
             for element: String in enumerator  {
                 // if !element.hasSuffix(".meta")
                 if !element.hasSuffix(JOURNAL_SUFFIX) {
@@ -755,30 +696,6 @@ public class FileSystemStorage: DIDStorage {
                 let fileManager = FileManager.default
                 try fileManager.copyItem(atPath: src, toPath: dest)
             }
-        }
-    }
-    
-    private func rename(_ src: String, _ dest: String) throws {
-        if src.isDirectory() {
-            try dest.createDir(true) // dest create if not
-            
-            let fileManager = FileManager.default
-            let enumerator = try fileManager.contentsOfDirectory(atPath: src)
-            for element: String in enumerator  {
-                // if !element.hasSuffix(".meta")
-                if element == ".DS_Store" {
-                    continue
-                }
-                if !element.hasSuffix(JOURNAL_SUFFIX) {
-                    let srcFile = src + "/" + element
-                    let destFile = dest + "/" + element
-                    try rename(srcFile, destFile)
-                }
-            }
-        }
-        else {
-            let fileManager = FileManager.default
-            try fileManager.copyItem(atPath: src, toPath: dest)
         }
     }
     
@@ -816,7 +733,7 @@ public class FileSystemStorage: DIDStorage {
         catch {
             throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Change store password failed.")
         }
-        let stageFile = try fullPath(true, "postChangePassword")
+        _ = try fullPath(true, "postChangePassword")
         // create new file ?
         try postChangePassword()
     }
@@ -883,10 +800,9 @@ public class FileSystemStorage: DIDStorage {
         }
         // upgrade to data journal directory
         currentDataDir = DATA_DIR + JOURNAL_SUFFIX
-        print("currentDataDir = \(currentDataDir) upgradeFromV2")
         var dir = try fullPath(currentDataDir)
         if try dir.dirExists() {
-            try dir.deleteFile()
+            _ = try dir.deleteFile()
         }
         try dir.createDir(true)
         var id: String
@@ -938,7 +854,6 @@ public class FileSystemStorage: DIDStorage {
         if try !dir.dirExists() {
             return
         }
-        var ids: [DID] = []
         let fileManager = FileManager.default
         let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
         if enumerator.count == 0 {
@@ -956,7 +871,6 @@ public class FileSystemStorage: DIDStorage {
                 Log.e(TAG, "Abort upgrade DID store, invalid DID document: \(element)")
                 throw DIDError.didStoreError("Invalid DID document: \(element)")
             }
-            //            let doc = DIDDocument.parse(file)
             let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: path)
             try storeDid(doc)
             path = dir + "/" + "\(element)/.meta"
@@ -982,7 +896,6 @@ public class FileSystemStorage: DIDStorage {
                     if try !path.fileExists() {
                         continue
                     }
-                    //               let vc = VerifiableCredential.parse(file)
                     let vc = try VerifiableCredential.fromJson(for: path)
                     try storeCredential(vc)
                     path = try fullPath("ids", element, "credentials", vcDir, ".meta")
@@ -1019,7 +932,6 @@ public class FileSystemStorage: DIDStorage {
         }
         
         currentDataDir = DATA_DIR
-        print("currentDataDir = \(currentDataDir) 21313312")
 
         let stageFile = try fullPath("postUpgrade")
         let timestamp = DateFormatter.getTimeStampForString(DateFormatter.currentDate())
@@ -1030,7 +942,6 @@ public class FileSystemStorage: DIDStorage {
     
     private func postUpgrade() throws {
         let dataDir = try fullPath(DATA_DIR)
-//        let dataJournal = try getFile(JOURNAL_SUFFIX)
         let dataJournal = try fullPath(DATA_DIR + JOURNAL_SUFFIX)
         let stageFile = try fullPath("postUpgrade")
         // The fail-back file name
@@ -1086,7 +997,7 @@ public class FileSystemStorage: DIDStorage {
             }
             else {
                 key = AbstractMetadata.USER_EXTRA_PREFIX + key
-                newData[key] = v as? String
+                newData[key] = v as String
             }
         }
         
@@ -1197,22 +1108,21 @@ public class FileSystemStorage: DIDStorage {
         return result
     }
     
-    func fullPath(_ create: Bool, _ path: String...) throws -> String {
- 
-        return try fullPath(create, path)
+    func fullPath(_ create: Bool, _ pathArgs: String...) throws -> String {
+        return try fullPath(create, pathArgs)
     }
     
-    func fullPath(_ path: String...) throws -> String {
-        
-        return try fullPath(false, path)
+    func fullPath(_ pathArgs: String...) throws -> String {
+        return try fullPath(false, pathArgs)
     }
-    
-    private func fullPath(_ create: Bool, _ path: [String]) throws -> String {
+
+    static var pathSeparator = "/"
+    private func fullPath(_ create: Bool, _ pathArgs: [String]) throws -> String {
         var fullPath = storeRoot
-        for subPath in path {
-            fullPath += "/" + subPath
+        for subPath in pathArgs {
+            fullPath += FileSystemStorage.pathSeparator + subPath
         }
-//        let relPath = storeRoot + "/" + self
+
         let fileManager = FileManager.default
         if create {
             var isDirectory = ObjCBool.init(false)
@@ -1222,14 +1132,32 @@ public class FileSystemStorage: DIDStorage {
             }
         }
         if create {
-            let dirPath: String = PathExtracter(fullPath).dirname()
+            let dirPath: String = fullPath.dirname()
             if try !dirPath.dirExists() {
                 try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
             }
             fileManager.createFile(atPath: fullPath, contents: nil, attributes: nil)
         }
-        print("path = \(fullPath)")
         
         return fullPath
+    }
+    
+    private func rename(_ src: String, _ dest: String) throws {
+        if src.isDirectory() {
+            try dest.createDir(true) // dest create if not
+            
+            let enumerator = try src.files()
+            for element: String in enumerator  {
+                if !element.hasSuffix(JOURNAL_SUFFIX) {
+                    let srcFile = src + "/" + element
+                    let destFile = dest + "/" + element
+                    try rename(srcFile, destFile)
+                }
+            }
+        }
+        else {
+            let fileManager = FileManager.default
+            try fileManager.copyItem(atPath: src, toPath: dest)
+        }
     }
 }
