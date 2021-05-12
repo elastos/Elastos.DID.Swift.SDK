@@ -321,7 +321,7 @@ public class TransferTicket: NSObject {
         let c = base64_url_decode(buffer, cp)
         buffer[c] = 0
         let jsonStr: String = String(cString: buffer)
-        let json: [String: Any] = jsonStr.toDictionary()
+        let json = jsonStr.toDictionary()
         let id = json["id"] as? String
         let to = json["to"] as? String
         let txid = json["txid"] as? String

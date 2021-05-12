@@ -163,7 +163,7 @@ public class FileSystemStorage: DIDStorage {
     
     private class func toDIDURL(_ did: DID, _ path: String) throws -> DIDURL {
        let p = path.replacingOccurrences(of: ".", with: ";").replacingOccurrences(of: "_", with: "/").replacingOccurrences(of: "-", with: "?")
-        return try DIDURL(did, path)
+        return try DIDURL(did, p)
     }
     
     private class func copyFile(_ src: String, _ dest: String) throws {
@@ -1140,7 +1140,7 @@ public class FileSystemStorage: DIDStorage {
     }
     
     private func upgradeMetadataV2<T: AbstractMetadata>(_ filePath: String, _ cls: T.Type) throws -> T {
-        let oldData: [String: String] = try filePath.readTextFromPath().toDictionary()
+        let oldData = try filePath.readTextFromPath().toStringDictionary()
         var newData: [String: String] = [: ]
         oldData.forEach { k, v in
             var key = k

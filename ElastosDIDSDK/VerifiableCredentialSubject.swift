@@ -69,7 +69,7 @@ public class VerifiableCredentialSubject: NSObject {
     /// Get array of subject properties in Credential.
     /// - Returns: Array of credential
     @objc
-    public func properties() -> [String: Any]? {
+    public func properties() -> [String: Any] {
         let proStr = _properties.toString()
         
         return proStr.toDictionary()

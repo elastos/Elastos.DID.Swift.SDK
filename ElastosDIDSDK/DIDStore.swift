@@ -1511,13 +1511,13 @@ public class DIDStore: NSObject {
         var arrayDids: [[String: Any]] = []
         for ri in ris {
             let rootIdentityStr = try "rootIdentity-" + ri.getId()
-            let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true).toDictionary()as [String: Any]
+            let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true).toDictionary()
                 arrayRis.append([rootIdentityStr: ert])
         }
         let dids = try listDids()
         for did in dids {
             let didstr = did.methodSpecificId
-            let edid = try exportDid(did, password, storePassword).serialize(true).toDictionary()as [String: Any]
+            let edid = try exportDid(did, password, storePassword).serialize(true).toDictionary()
             arrayDids.append([didstr: edid])
         }
         dataDic["rootIdentity"] = arrayRis
@@ -1579,7 +1579,7 @@ public class DIDStore: NSObject {
                 continue
             }
             path0 = path + "/" + element
-            dic = try path0.readTextFromPath().toDictionary() as [String: Any]
+            dic = try path0.readTextFromPath().toDictionary()
             // rootIdentity
             if element.hasPrefix("rootIdentity") {
                 let re = try RootIdentityExport.deserialize(dic)

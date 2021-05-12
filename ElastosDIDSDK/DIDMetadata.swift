@@ -178,7 +178,7 @@ public class DIDMetadata: AbstractMetadata {
     }
     
     class func deserialize(_ content: String) throws -> DIDMetadata {
-        let dic: [String: String] = content.toDictionary()
+        let dic = content.toStringDictionary()
         let metadata = DIDMetadata()
         metadata._props = dic
         
