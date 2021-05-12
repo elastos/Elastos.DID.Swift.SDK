@@ -14,10 +14,11 @@ class IssuerTest: XCTestCase {
         testData = TestData()
         store = testData?.store!
 
-        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
-        simulatedIDChain.start()
-        try! DIDBackend.initialize(simulatedIDChain.getAdapter())
-        
+//        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
+//        simulatedIDChain.start()
+//        try! DIDBackend.initialize(simulatedIDChain.getAdapter())
+        let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+        try! DIDBackend.initialize(adapter)
         issuerDoc = try! testData?.sharedInstantData().getIssuerDocument()
         testDoc = try! testData?.instantData!.getUser1Document()
         

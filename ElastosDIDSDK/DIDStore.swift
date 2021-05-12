@@ -203,7 +203,7 @@ public class DIDStore: NSObject {
         }
         let capacity = input.count * 3
         let base64url = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let re = encrypt_to_base64(base64url, storePassword, cinput, input.count)
+        let re = encrypt_to_b64(base64url, storePassword, cinput, input.count)
         guard re >= 0 else {
             throw DIDError.didStoreError("encryptToBase64 error.")
         }
@@ -214,7 +214,7 @@ public class DIDStore: NSObject {
     class func decryptFromBase64(_ input: String, _ storePassword: String) throws -> Data {
         let capacity = input.count * 3
         let plain: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let re = decrypt_from_base64(plain, storePassword, input)
+        let re = decrypt_from_b64(plain, storePassword, input)
         guard re >= 0 else {
             // NEW ADD
             throw DIDError.CheckedError.DIDStoreError.WrongPasswordError()

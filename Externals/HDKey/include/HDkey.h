@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Elastos Foundation
+ * Copyright (c) 2019 - 2021 Elastos Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,17 @@
 #define __HDKEY_H__
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+typedef ptrdiff_t       ssize_t;
 #endif
 
 #define PUBLICKEY_BYTES                 33
@@ -38,6 +44,8 @@ extern "C" {
 #define EXTENDEDKEY_BYTES               82
 #define SEED_BYTES                      64
 #define BUFF_BYTES                      128
+#define PUBLICKEY_BASE58_BYTES          48
+#define EXTENDEDKEY_BASE58_BYTES        128
 
 #define CHINESE_SIMPLIFIED             "chinese_simplified"
 #define CHINESE_TRADITIONAL            "chinese_traditional"
@@ -121,13 +129,11 @@ const char *HDKey_SerializePrvBase58(HDKey *hdkey, char *extendedkeyBase58, size
 
 const char *HDKey_SerializePubBase58(HDKey *hdkey, char *extendedkeyBase58, size_t size);
 
-void HDKey_Wipe(HDKey *hdkey);
-
 char *HDKey_PublicKey2Address(const uint8_t *publickey, char *address, size_t len);
 
 HDKey *HDKey_GetDerivedKey(HDKey* hdkey, HDKey *derivedkey, int depth, ...);
 
-HDKey *HDKey_GetvDerivedKey(HDKey* hdkey, HDKey *derivedkey, int depth, va_list list);// 此方法直接调用
+HDKey *HDKey_GetvDerivedKey(HDKey* hdkey, HDKey *derivedkey, int depth, va_list list);
 
 uint8_t *HDKey_GetPublicKey(HDKey *hdkey);
 

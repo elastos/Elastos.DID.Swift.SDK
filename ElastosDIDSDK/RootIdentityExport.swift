@@ -104,7 +104,7 @@ public class RootIdentityExport: NSObject {
         let cFingerprint = dateFing.withUnsafeBytes { fing -> UnsafePointer<UInt8> in
             return fing
         }
-        let re = base64_url_encode(cFing, cFingerprint, dateFing.count)
+        let re = b64_url_encode(cFing, cFingerprint, dateFing.count)
         cFing[re] = 0
         let fingerprint = String(cString: cFing)
         

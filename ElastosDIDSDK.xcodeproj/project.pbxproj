@@ -26,6 +26,8 @@
 		11054F1F239D2088008A4500 /* DIDTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1E239D2088008A4500 /* DIDTest.swift */; };
 		110830CF241FA0E4000FDD2B /* ResolverCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110830CA241FA0E4000FDD2B /* ResolverCache.swift */; };
 		110AD2FF234E44C8006578D6 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
+		110B81BB264BCD5500F6477F /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		110B81BC264BCD5500F6477F /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
@@ -33,8 +35,6 @@
 		11411CC225ECC4B00033F659 /* MultiSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11411CC125ECC4B00033F659 /* MultiSignature.swift */; };
 		1147721523F6976800C7C36F /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1147721023F6976800C7C36F /* Mnemonic.swift */; };
 		1155D94B2352FACE00DF8C9D /* ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */; };
-		115A373E24404DA5005549CC /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 115A373B24404DA5005549CC /* HDkey.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		115A373F24404DA5005549CC /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 115A373C24404DA5005549CC /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		115A374024404DA5005549CC /* CHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A373D24404DA5005549CC /* CHDKey.swift */; };
 		11641BBB23B715CF0037016B /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11641BBA23B715CF0037016B /* TestError.swift */; };
 		116F71A025F1D5F20041D983 /* AbstractMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116F719F25F1D5F20041D983 /* AbstractMetadata.swift */; };
@@ -370,6 +370,8 @@
 		110830CA241FA0E4000FDD2B /* ResolverCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResolverCache.swift; sourceTree = "<group>"; };
 		1109D08423275CFE00A03D56 /* Antlr4.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Antlr4.framework; sourceTree = "<group>"; };
 		110AD2FE234E44C8006578D6 /* Base58.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base58.swift; sourceTree = "<group>"; };
+		110B81B9264BCD5500F6477F /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
+		110B81BA264BCD5500F6477F /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
 		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
@@ -393,8 +395,6 @@
 		1147721023F6976800C7C36F /* Mnemonic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mnemonic.swift; sourceTree = "<group>"; };
 		1155D9462352FACE00DF8C9D /* ElastosDIDSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ElastosDIDSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1155D94A2352FACE00DF8C9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		115A373B24404DA5005549CC /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
-		115A373C24404DA5005549CC /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
 		115A373D24404DA5005549CC /* CHDKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CHDKey.swift; sourceTree = "<group>"; };
 		11641BBA23B715CF0037016B /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
 		116F719F25F1D5F20041D983 /* AbstractMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractMetadata.swift; sourceTree = "<group>"; };
@@ -882,8 +882,8 @@
 		115A373A24404DA5005549CC /* include */ = {
 			isa = PBXGroup;
 			children = (
-				115A373B24404DA5005549CC /* HDkey.h */,
-				115A373C24404DA5005549CC /* crypto.h */,
+				110B81BA264BCD5500F6477F /* crypto.h */,
+				110B81B9264BCD5500F6477F /* HDkey.h */,
 				115A373D24404DA5005549CC /* CHDKey.swift */,
 			);
 			path = include;
@@ -1389,9 +1389,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				115A373F24404DA5005549CC /* crypto.h in Headers */,
+				110B81BB264BCD5500F6477F /* HDkey.h in Headers */,
 				11F262AF23260CF40009C103 /* ElastosDIDSDK.h in Headers */,
-				115A373E24404DA5005549CC /* HDkey.h in Headers */,
+				110B81BC264BCD5500F6477F /* crypto.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

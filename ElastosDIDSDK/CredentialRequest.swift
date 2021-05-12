@@ -126,7 +126,7 @@ public class CredentialRequest: IDChainRequest {
 
             let cInput = json.toUnsafePointerUInt8()
             let cPayload = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-            let re = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
+            let re = b64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
             cPayload[re] = 0
             self._payload = String(cString: cPayload)
         } else {
@@ -171,7 +171,7 @@ public class CredentialRequest: IDChainRequest {
                 let capacity = payload!.count * 3
                 let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
                 let cp = payload!.toUnsafePointerInt8()
-                let c = base64_url_decode(buffer, cp)
+                let c = b64_url_decode(buffer, cp)
                 buffer[c] = 0
                 let json: String = String(cString: buffer)
                 self.vc = try VerifiableCredential.fromJson(json)

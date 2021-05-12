@@ -3368,7 +3368,7 @@ class DIDDoucumentTests: XCTestCase {
             let capacity = payolad1.count * 3
             let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
             let cp = payolad1.toUnsafePointerInt8()
-            let c = base64_url_decode(buffer, cp)
+            let c = b64_url_decode(buffer, cp)
             buffer[c] = 0
             let json: String = String(cString: buffer)
 //            let d = try DIDDocument.convertToDIDDocument(fromJson: json)
@@ -3378,7 +3378,7 @@ class DIDDoucumentTests: XCTestCase {
             let capacity2 = payolad2.count * 3
             let buffer2: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity2)
             let cp2 = payolad2.toUnsafePointerInt8()
-            let c2 = base64_url_decode(buffer2, cp2)
+            let c2 = b64_url_decode(buffer2, cp2)
             buffer2[c2] = 0
             let json2: String = String(cString: buffer2)
 //            let d2 = try DIDDocument.convertToDIDDocument(fromJson: json2)

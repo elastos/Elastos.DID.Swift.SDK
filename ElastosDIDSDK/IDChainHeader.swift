@@ -56,7 +56,7 @@ public class IDChainHeader: NSObject {
 
         let cInput = json.toUnsafePointerUInt8()
         let cPayload = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
-        let re = base64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
+        let re = b64_url_encode(cPayload, cInput, json.lengthOfBytes(using: .utf8))
         cPayload[re] = 0
         self._ticket = String(cString: cPayload)
     }

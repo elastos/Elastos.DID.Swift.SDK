@@ -1,7 +1,7 @@
 
 import XCTest
 @testable import ElastosDIDSDK
-/*
+
 class HDKeyTest: XCTestCase {
 
     override func setUpWithError() throws {
@@ -101,60 +101,5 @@ class HDKeyTest: XCTestCase {
             XCTFail()
         }
     }
-    /*
-     @Test
-     public void testJWTCompatible() throws DIDException, GeneralSecurityException {
-         byte[] input = "The quick brown fox jumps over the lazy dog.".getBytes();
-
-         for (int i = 0; i < 1000; i++) {
-             HDKey key = TestData.generateKeypair();
-
-             // to JCE KeyPair
-             KeyPair jceKeyPair = key.getJCEKeyPair();
-             Signature jceSigner = Signature.getInstance("SHA256withECDSA");
-
-             byte[] didSig = key.sign(Sha256Hash.hash(input));
-
-             jceSigner.initSign(jceKeyPair.getPrivate());
-             jceSigner.update(input);
-             byte[] jceSig = jceSigner.sign();
-
-             assertTrue(key.verify(Sha256Hash.hash(input), jceSig));
-
-             jceSigner.initVerify(jceKeyPair.getPublic());
-             jceSigner.update(input);
-             assertTrue(jceSigner.verify(didSig));
-         }
-     }
-
-     @Test
-     public void testJwtES256() throws DIDException {
-         for (int i = 0; i < 1000; i++) {
-             HDKey key = TestData.generateKeypair();
-             KeyPair keypair = key.getJCEKeyPair();
-
-             // Build and sign
-             String token = Jwts.builder()
-                     .setSubject("Hello JWT!")
-                     .claim("name", "abc")
-                     .signWith(keypair.getPrivate())
-                     .compact();
-
-             // Parse and verify
-             @SuppressWarnings("unused")
-             Jws<Claims> jws = Jwts.parserBuilder()
-                     .setSigningKey(keypair.getPublic())
-                     .build()
-                     .parseClaimsJws(token);
-
-             String[] parts = token.split("\\.");
-             Boolean success = EcdsaSigner.verifyData(key.getPublicKeyBytes(),
-                     Base64.decode(parts[2], Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP),
-                     parts[0].getBytes(), ".".getBytes(), parts[1].getBytes());
-             assertTrue(success);
-         }
-     }
-     */
-
 }
-*/
+

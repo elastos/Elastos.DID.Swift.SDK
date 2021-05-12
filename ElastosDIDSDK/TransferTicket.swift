@@ -318,7 +318,7 @@ public class TransferTicket: NSObject {
         let capacity = content.count * 3
         let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
         let cp = content.toUnsafePointerInt8()
-        let c = base64_url_decode(buffer, cp)
+        let c = b64_url_decode(buffer, cp)
         buffer[c] = 0
         let jsonStr: String = String(cString: buffer)
         let json = jsonStr.toDictionary()
