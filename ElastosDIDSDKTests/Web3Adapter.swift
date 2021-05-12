@@ -22,23 +22,11 @@ class Web3Adapter: DefaultDIDAdapter {
     var lastTxHash: String = ""
 
     public init(_ rpcEndpoint: String = "http://52.80.107.251:1111", _ contractAddress: String = "0xEA2256bd30cfeC643203d1a6f36A90A4fD17863E", _ walletFile: String, _ walletPassword: String = "password") {
-        let dic = ["address": "d0a6217213d86c3a86814522f287ad2004edf579",
-                   "id": "b8830f72-3671-4dd6-af4d-aa2b821a6890",
-                   "version": 3,
-                   "crypto": ["cipher": "aes-128-ctr",
-                              "ciphertext": "1746ef5c50a2561c763255b27627c3bd9a94c0193843264f979635570e3aa3a3",
-                              "cipherparams": ["iv": "ba4436d41b8e98a7e17b8c751f6e2437"],
-                              "kdf": "scrypt",
-                              "kdfparams": ["dklen": 32,
-                                            "n": 262144,
-                                            "p": 1,
-                                            "r": 8,
-                                            "salt": "e3d2fa7bce5ab54d95153bdaf653fb409404c4d1b14e9d119a77a4b3b060d19e"],
-                              "mac": "30591564bcb7fab0125b45ab10cb404a1e31d068156f947303dadd3c573fece9"]] as [String : Any]
+        let walletData = FileManager.default.contents(atPath: walletFile)
         self.contractAddress = contractAddress
         self.password = walletPassword
         self.endpoint = rpcEndpoint
-        let keystore = EthereumKeystoreV3(dic.toJsonString()!)
+        let keystore = EthereumKeystoreV3(String(data: walletData!, encoding: .utf8)!)
         let keyData = try! JSONEncoder().encode(keystore!.keystoreParams)
         let address = keystore?.addresses!.first!.address
         let wallet = Wallet(address: address!, data: keyData, name: "rpcTestName", isHD: false)

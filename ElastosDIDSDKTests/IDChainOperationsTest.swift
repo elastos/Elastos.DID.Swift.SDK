@@ -11,7 +11,7 @@ class IDChainOperationsTest: XCTestCase {
     var adapter: Web3Adapter?
     
     override func setUp() {
-        adapter = Web3Adapter("http://52.80.107.251:1111", "0xEA2256bd30cfeC643203d1a6f36A90A4fD17863E", "", "password")
+        adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, "password")
         try! DIDBackend.initialize(adapter!)
 
         store = IDChainOperationsTest.testData.store
