@@ -77,7 +77,7 @@ public class FileSystemStorage: DIDStorage {
     init(_ dir: String) throws {
         self.storeRoot = dir
         currentDataDir = DATA_DIR
-        try checkArgument(dir.isEmpty, "Invalid DIDStore root directory.")
+        try checkArgument(!dir.isEmpty, "Invalid DIDStore root directory.")
     
         if FileManager.default.fileExists(atPath: storeRoot) {
             try checkStore()

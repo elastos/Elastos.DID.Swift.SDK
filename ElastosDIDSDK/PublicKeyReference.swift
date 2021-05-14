@@ -73,7 +73,7 @@ public class PublicKeyReference: NSObject {
         if self.publicKey != nil && ref.publicKey != nil {
             return try self.publicKey!.compareTo(ref.publicKey!)
         } else {
-            try checkNotNull(self.id == nil || ref.id == nil, "id is null")
+            try checkArgument(self.id != nil || ref.id != nil, "id is null")
             return self.id!.compareTo(ref.id!)
         }
     }

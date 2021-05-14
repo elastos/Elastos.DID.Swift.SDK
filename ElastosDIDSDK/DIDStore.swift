@@ -127,8 +127,8 @@ public class DIDStore: NSObject {
                                  _ initialCacheCapacity: Int,
                                  _ maxCacheCapacity: Int) throws -> DIDStore {
         
-        try checkArgument(path.isEmpty, "Invalid store location");
-        try checkArgument(maxCacheCapacity < initialCacheCapacity, "Invalid cache capacity spec")
+        try checkArgument(!path.isEmpty, "Invalid store location");
+        try checkArgument(maxCacheCapacity >= initialCacheCapacity, "Invalid cache capacity spec")
         
         let storage = try FileSystemStorage(path)
         storePath = path

@@ -100,7 +100,7 @@ public class Mnemonic: NSObject {
     /// - Parameter mnemonic: a mnemonic string.
     /// - Throws: a language name
     public static func getLanguage(_ mnemonic: String) throws -> String {
-        try checkArgument(mnemonic.isEmpty, "Invalid menmonic")
+        try checkArgument(!mnemonic.isEmpty, "Invalid menmonic")
         let langs = [Mnemonic.DID_ENGLISH,
                      Mnemonic.DID_SPANISH,
                      Mnemonic.DID_FRENCH,

@@ -24,7 +24,7 @@ import Foundation
 
 extension NSObject {
     static func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard !full else {
+        guard full else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
     }
@@ -34,17 +34,11 @@ extension NSObject {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
     }
-    
-    func checkNotNull(_ full: Bool, _ mesg: String) throws {
-        guard !full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
-        }
-    }
 }
 
 extension FileSystemStorage {
     func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard !full else {
+        guard full else {
             throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
         }
     }

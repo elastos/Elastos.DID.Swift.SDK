@@ -169,17 +169,17 @@ extension PublicKey {
     
     public func compareTo(_ key: PublicKey) throws -> ComparisonResult {
         
-        try checkNotNull(self.getId() == nil || key.getId() == nil, "id is nil")
+        try checkArgument(self.getId() != nil || key.getId() != nil, "id is nil")
         var result = self.getId()!.compareTo(key.getId()!)
         
-        try checkNotNull(self.publicKeyBase58 == nil || key.publicKeyBase58 == nil, "publicKeyBase58 is nil")
+        try checkArgument(self.publicKeyBase58 != nil || key.publicKeyBase58 != nil, "publicKeyBase58 is nil")
         if result == ComparisonResult.orderedSame {
             result = self.publicKeyBase58.compare(key.publicKeyBase58)
         } else {
             return result
         }
         
-        try checkNotNull(self.getType() == nil || key.getType() == nil, "type is nil")
+        try checkArgument(self.getType() != nil || key.getType() != nil, "type is nil")
         if result == ComparisonResult.orderedSame {
             result = self.getType()!.compare(key.getType()!)
         } else {
@@ -188,7 +188,7 @@ extension PublicKey {
         
         if result == ComparisonResult.orderedSame {
             
-            try checkNotNull(self.controller == nil || key.controller == nil, "controller is nil")
+            try checkArgument(self.controller != nil || key.controller != nil, "controller is nil")
             return try self.controller!.compareTo(self.controller!)
         } else {
             return result

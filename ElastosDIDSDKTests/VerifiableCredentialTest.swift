@@ -579,7 +579,7 @@ class VerifiableCredentialTest: XCTestCase {
             //TODO:
             XCTAssertThrowsError(_ = try VerifiableCredential.revoke(credential.getId()!, d, storePassword)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError: break
                 default:
                     XCTFail()
                 }
@@ -733,7 +733,6 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(try credential.wasDeclared())
             XCTAssertFalse(try credential.isRevoked())
             
-            var key: DIDURL? = signKey
             XCTAssertThrowsError(_ = try credential.declare(storePassword)) { error in
                 switch error {
                 case DIDError.UncheckedError.IllegalStateError.CredentialAlreadyExistError: break

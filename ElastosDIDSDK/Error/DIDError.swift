@@ -63,6 +63,7 @@ public enum DIDError: Error {
             case IllegalUsageError(_ des: String? = nil)
             case InvalidExpires(_ des: String? = nil)
             case NullPointerErroe(_ des: String? = nil)
+            case DataParsingError(_ des: String? = nil)
         }
         
         public enum IllegalStateError {
@@ -156,6 +157,8 @@ extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
         case .InvalidExpires(let des):
             return des
         case .NullPointerErroe(let des):
+            return des
+        case .DataParsingError(let des):
             return des
         }
     }

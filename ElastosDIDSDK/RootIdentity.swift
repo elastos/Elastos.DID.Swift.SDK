@@ -58,10 +58,10 @@ public class RootIdentity: NSObject {
     ///   - passphrase: the password for mnemonic to generate seed
     ///   - storePassword: the password for DIDStore
     public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        try checkArgument(mnemonic.isEmpty, "Invalid mnemonic")
-        try checkArgument(storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let _passphrase = passphrase == nil ? "" : passphrase
-        try checkArgument(!Mnemonic.isValid(Mnemonic.getLanguage(mnemonic), mnemonic), "Invalid mnemonic.")
+        try checkArgument(Mnemonic.isValid(Mnemonic.getLanguage(mnemonic), mnemonic), "Invalid mnemonic.")
         
         let identity = try RootIdentity(mnemonic, _passphrase!)
         if try store.containsRootIdentity(identity.getId()) && !overwrite {
@@ -79,8 +79,8 @@ public class RootIdentity: NSObject {
     }
     
     public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        try checkArgument(extentedPrivateKey.isEmpty, "Invalid extended private key")
-        try checkArgument(storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
         let identity = try RootIdentity(rootPrivateKey)
         

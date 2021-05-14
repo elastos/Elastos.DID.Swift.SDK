@@ -248,16 +248,18 @@ public class Claims: NSObject {
 
     /// Get value string by claim key
     /// - Parameter key: The key string.
-    /// - Throws: If error occurs,throw error.
-    /// - Returns: Claim value string
+    /// - Returns: Claim value string: if value is nil, return empty string
     @objc
     public func getAsJson(key: String) throws -> String {
         let v = claims[key]
-        if !(v is String) && v != nil {
-            let data = try JSONSerialization.data(withJSONObject: v as Any, options: [])
-            return (String(data: data, encoding: .utf8)!)
+        if v == nil {
+            return ""
         }
-        throw DIDError.illegalArgument("Data parsing error in method in getAsJson().")
+        if v is String {
+            return v as! String
+        }
+        let data = try JSONSerialization.data(withJSONObject: v as Any, options: [])
+        return (String(data: data, encoding: .utf8)!)
     }
 
     /// Add claim value by key-value.
@@ -304,8 +306,8 @@ public class Claims: NSObject {
     @objc
     public func putAllWithJson(json: String) throws {
         let dic = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String : Any]
-        guard dic != nil else {
-            throw DIDError.illegalArgument("Data parsing error in method in putAllWithJson().")
+        guard let _ = dic else {
+            throw DIDError.UncheckedError.IllegalArgumentError.DataParsingError()
         }
         putAll(dic: dic!)
     }

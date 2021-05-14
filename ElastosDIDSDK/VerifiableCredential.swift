@@ -1103,7 +1103,7 @@ public class VerifiableCredential: DIDObject, Mappable {
     /// - Returns: VerifiableCredential instance.
     @objc
     public class func fromJson(_ json: Data) throws -> VerifiableCredential {
-        try checkArgument(json.isEmpty, "Invalid json")
+        try checkArgument(!json.isEmpty, "Invalid json")
 
         let data: [String: Any]?
         do {
