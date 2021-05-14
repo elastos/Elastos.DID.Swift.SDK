@@ -22,55 +22,6 @@
 
 import Foundation
 
-extension NSObject {
-    static func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
-        }
-    }
-    
-    func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
-        }
-    }
-}
-
-extension FileSystemStorage {
-    func checkArgument(_ full: Bool, _ mesg: String) throws {
-        guard full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
-        }
-    }
-}
-
-
-extension Dictionary {
-   public func toJsonString() -> String? {
-        guard let data = try? JSONSerialization.data(withJSONObject: self,
-                                                     options: []) else {
-            return nil
-        }
-        guard let str = String(data: data, encoding: .utf8) else {
-            return nil
-        }
-        return str
-     }
-}
-
-extension Array {
-   public func toJsonString() -> String? {
-        guard let data = try? JSONSerialization.data(withJSONObject: self,
-                                                     options: []) else {
-            return nil
-        }
-        guard let str = String(data: data, encoding: .utf8) else {
-            return nil
-        }
-        return str
-     }
-}
-
 extension Data {
     
     func dataToDictionary() throws -> [String: Any] {
@@ -94,9 +45,3 @@ extension Data {
     }
 }
 
-extension Array where Element == UInt8 {
-    var hexString: String {
-        return self.compactMap { String(format: "%02x", $0).lowercased() }
-        .joined(separator: "")
-    }
-}

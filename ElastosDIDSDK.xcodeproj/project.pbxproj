@@ -29,6 +29,10 @@
 		110B81BB264BCD5500F6477F /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		110B81BC264BCD5500F6477F /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		110B81DC264E244700F6477F /* MnemonicTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81DB264E244700F6477F /* MnemonicTest.swift */; };
+		110B81FB264E4B8600F6477F /* extension+NSObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81FA264E4B8600F6477F /* extension+NSObject.swift */; };
+		110B81FF264E4BC400F6477F /* extension+FileSystemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */; };
+		110B8203264E4BF600F6477F /* extension+Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8202264E4BF600F6477F /* extension+Dictionary.swift */; };
+		110B8207264E4C2500F6477F /* extension+Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8206264E4C2500F6477F /* extension+Array.swift */; };
 		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
@@ -85,7 +89,7 @@
 		11BE33BE260842CE00DEBD00 /* DIDMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */; };
 		11BE33D22608513A00DEBD00 /* RootIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D12608513A00DEBD00 /* RootIdentity.swift */; };
 		11BE33D62608527100DEBD00 /* RootIdentityMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */; };
-		11BE33DE260984C600DEBD00 /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33DD260984C600DEBD00 /* Extension.swift */; };
+		11BE33DE260984C600DEBD00 /* Extension+Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33DD260984C600DEBD00 /* Extension+Data.swift */; };
 		11C3EC6624765D0F00DF1B4F /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
 		11C3EC6724765D0F00DF1B4F /* JwtParserBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */; };
 		11C3EC712476734B00DF1B4F /* JwtTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC702476734B00DF1B4F /* JwtTest.swift */; };
@@ -373,6 +377,10 @@
 		110B81B9264BCD5500F6477F /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
 		110B81BA264BCD5500F6477F /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
 		110B81DB264E244700F6477F /* MnemonicTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MnemonicTest.swift; sourceTree = "<group>"; };
+		110B81FA264E4B8600F6477F /* extension+NSObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+NSObject.swift"; path = "Util/extension+NSObject.swift"; sourceTree = "<group>"; };
+		110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+FileSystemStorage.swift"; path = "Util/extension+FileSystemStorage.swift"; sourceTree = "<group>"; };
+		110B8202264E4BF600F6477F /* extension+Dictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+Dictionary.swift"; path = "Util/extension+Dictionary.swift"; sourceTree = "<group>"; };
+		110B8206264E4C2500F6477F /* extension+Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+Array.swift"; path = "Util/extension+Array.swift"; sourceTree = "<group>"; };
 		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
@@ -450,7 +458,7 @@
 		11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDMetadata.swift; sourceTree = "<group>"; };
 		11BE33D12608513A00DEBD00 /* RootIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentity.swift; sourceTree = "<group>"; };
 		11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityMetadata.swift; sourceTree = "<group>"; };
-		11BE33DD260984C600DEBD00 /* Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
+		11BE33DD260984C600DEBD00 /* Extension+Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+Data.swift"; sourceTree = "<group>"; };
 		11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtBuilder.swift; sourceTree = "<group>"; };
 		11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JwtParserBuilder.swift; sourceTree = "<group>"; };
 		11C3EC702476734B00DF1B4F /* JwtTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JwtTest.swift; sourceTree = "<group>"; };
@@ -1296,8 +1304,12 @@
 				A31ACE3123F19A22008EC032 /* JsonSerializer.swift */,
 				A31ACE2A23F19A22008EC032 /* JsonGenerator.swift */,
 				A31801AA240281B00087E074 /* LRUCache.swift */,
-				11BE33DD260984C600DEBD00 /* Extension.swift */,
+				11BE33DD260984C600DEBD00 /* Extension+Data.swift */,
 				11B62847264BA8BA00B20904 /* Extension+String.swift */,
+				110B81FA264E4B8600F6477F /* extension+NSObject.swift */,
+				110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */,
+				110B8202264E4BF600F6477F /* extension+Dictionary.swift */,
+				110B8206264E4C2500F6477F /* extension+Array.swift */,
 				116FA91C263491690021A46F /* EcdsaSigner.swift */,
 			);
 			name = Utils;
@@ -1681,9 +1693,10 @@
 				A31ACE1323F199AE008EC032 /* DID.swift in Sources */,
 				11D1F77E257F3A5400BC5A54 /* ATNConfig.swift in Sources */,
 				11D1F746257F3A5400BC5A54 /* FailedPredicateException.swift in Sources */,
+				110B8203264E4BF600F6477F /* extension+Dictionary.swift in Sources */,
 				11D1F719257F3A5400BC5A54 /* IntervalSet.swift in Sources */,
 				11D1F748257F3A5400BC5A54 /* TokenStream.swift in Sources */,
-				11BE33DE260984C600DEBD00 /* Extension.swift in Sources */,
+				11BE33DE260984C600DEBD00 /* Extension+Data.swift in Sources */,
 				A31ACE3F23F19A22008EC032 /* DateHelper.swift in Sources */,
 				11CACABE2612E112004145CB /* CredentialResolveRequest.swift in Sources */,
 				1147721523F6976800C7C36F /* Mnemonic.swift in Sources */,
@@ -1699,6 +1712,7 @@
 				1183E1D7261BFDA900F8CEF0 /* SimulatedIDChain.swift in Sources */,
 				11C3ECE32477807300DF1B4F /* JWTVerifier.swift in Sources */,
 				11D1F745257F3A5400BC5A54 /* RuntimeMetaData.swift in Sources */,
+				110B8207264E4C2500F6477F /* extension+Array.swift in Sources */,
 				A31ACE0823F199AE008EC032 /* Service.swift in Sources */,
 				11D1F76C257F3A5400BC5A54 /* SetTransition.swift in Sources */,
 				11D1F792257F3A5400BC5A54 /* PrecedencePredicateTransition.swift in Sources */,
@@ -1799,6 +1813,7 @@
 				11CACAC62612E66B004145CB /* CredentialListRequest.swift in Sources */,
 				11D1F776257F3A5400BC5A54 /* BasicState.swift in Sources */,
 				11782AC8242130C4009A1F5A /* DIDURLBaseListener.swift in Sources */,
+				110B81FF264E4BC400F6477F /* extension+FileSystemStorage.swift in Sources */,
 				11D1F767257F3A5400BC5A54 /* LoopEndState.swift in Sources */,
 				119B29AD2578ED8D0084B859 /* ByteBuffer.swift in Sources */,
 				11D1F76E257F3A5400BC5A54 /* PredicateEvalInfo.swift in Sources */,
@@ -1876,6 +1891,7 @@
 				11D1F76B257F3A5400BC5A54 /* NotSetTransition.swift in Sources */,
 				11C3EC6624765D0F00DF1B4F /* JwtBuilder.swift in Sources */,
 				A31ACE6823F19A66008EC032 /* DIDBiographyStatus.swift in Sources */,
+				110B81FB264E4B8600F6477F /* extension+NSObject.swift in Sources */,
 				11C3ECE42477807300DF1B4F /* JWTSigner.swift in Sources */,
 				11D1F75F257F3A5400BC5A54 /* DecisionState.swift in Sources */,
 				11D1F71D257F3A5400BC5A54 /* BitSet.swift in Sources */,
