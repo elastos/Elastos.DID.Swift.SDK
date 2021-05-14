@@ -35,7 +35,8 @@ public class RootIdentity: NSObject {
     
     init(_ mnemonic: String, _ passphrase: String) throws {
         self.mnemonic = mnemonic
-        self.rootPrivateKey = DIDHDKey(mnemonic, passphrase, Mnemonic.DID_ENGLISH)
+        let lang = try Mnemonic.getLanguage(mnemonic)
+        self.rootPrivateKey = DIDHDKey(mnemonic, passphrase, lang)
         self.preDerivedPublicKey = try rootPrivateKey!.derive(DIDHDKey.DID_PRE_DERIVED_PUBLICKEY_PATH)
         self.index = 0
     }
@@ -60,7 +61,8 @@ public class RootIdentity: NSObject {
         try checkArgument(mnemonic.isEmpty, "Invalid mnemonic")
         try checkArgument(storePassword.isEmpty, "Invalid storePassword")
         let _passphrase = passphrase == nil ? "" : passphrase
-        try checkArgument(!Mnemonic.isValid(Mnemonic.DID_ENGLISH, mnemonic), "Invalid mnemonic.")
+        try checkArgument(!Mnemonic.isValid(Mnemonic.getLanguage(mnemonic), mnemonic), "Invalid mnemonic.")
+        
         let identity = try RootIdentity(mnemonic, _passphrase!)
         if try store.containsRootIdentity(identity.getId()) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
@@ -127,8 +129,9 @@ public class RootIdentity: NSObject {
     
     func getId() throws -> String {
         if id == nil {
-            id = try RootIdentity.getId(preDerivedPublicKey.serializePublicKey())
+            id = RootIdentity.getId(try preDerivedPublicKey.serializePublicKey())
         }
+
         return id!
     }
     
@@ -259,7 +262,7 @@ public class RootIdentity: NSObject {
     public func newDid(_ overwrite: Bool, _ storePassword: String) throws -> DIDDocument {
         
         let doc = try newDid(index, overwrite, storePassword)
-        try incrementIndex()
+        _ = try incrementIndex()
         
         return doc
     }
@@ -325,12 +328,11 @@ public class RootIdentity: NSObject {
         return try synchronize(index, nil)
     }
     
-    public func synchronizeAsync(_ index: Int, _ handle: ConflictHandler?) throws -> Promise<Void> {
+    public func synchronizeAsync(_ index: Int, _ handle: ConflictHandler?) throws -> Promise<Bool> {
         return DispatchQueue.global().async(.promise){ [self] in try synchronize(index, handle) }
     }
     
-    public func synchronizeAsync(_ index: Int) throws -> Promise<Void> {
-        
+    public func synchronizeAsync(_ index: Int) throws -> Promise<Bool> {
         return DispatchQueue.global().async(.promise){ [self] in try synchronize(index, nil) }
     }
     
@@ -342,8 +344,7 @@ public class RootIdentity: NSObject {
         var blanks = 0
         var i = 0
         while (i < lastIndex || blanks < 20) {
-            let exists = try synchronize(i, handle)
-            if exists {
+            if try synchronize(i, handle) {
                 if (i > lastIndex){
                     lastIndex = i
                 }
