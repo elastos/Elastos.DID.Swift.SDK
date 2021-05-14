@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021 Elastos Foundation
+* Copyright (c) 2020 Elastos Foundation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,18 @@
 
 import Foundation
 
-extension Dictionary {
-   public func toJsonString() -> String? {
-        guard let data = try? JSONSerialization.data(withJSONObject: self,
-                                                     options: []) else {
-            return nil
-        }
-        guard let str = String(data: data, encoding: .utf8) else {
-            return nil
-        }
-        return str
+extension Int {
+    static func randomCustom(min: Int, max: Int) -> Int {
+            //  [min, max)  [0, 100)
+            //        var x = arc4random() % UInt32(max);
+            //        return Int(x)
+            // [min, max）
+            let y = arc4random() % UInt32(max) + UInt32(min)
+            return Int(y)
+    }
+    
+    static func decTohex(number:Int) -> String {
+         return String(format: "%0X", number)
      }
 }
 
-extension Dictionary {
-    mutating func merge(dict: [Key: Value]){
-        for (k, v) in dict {
-            updateValue(v, forKey: k)
-        }
-    }
-    
-    var queryString: String {
-        var output: String = ""
-        for (key,value) in self {
-            output +=  "\(key)=\(value)&"
-        }
-        output = String(output.dropLast())
-        return output
-    }
-}
