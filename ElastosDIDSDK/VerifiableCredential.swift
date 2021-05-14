@@ -686,24 +686,24 @@ public class VerifiableCredential: DIDObject, Mappable {
         try revoke(signer: nil, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
-    private func revoke(_ signer: DIDDocument?, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    private func revoke(signer: DIDDocument? = nil, signKey: String, storePassword: String, adapter: DIDTransactionAdapter? = nil) throws {
         try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(signer, signKey, storePassword, adapter)
+        try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signer: DIDDocument, _ signKey: String, _ storePassword: String) throws {
-        try revoke(signer, signKey, storePassword, nil)
+        try revoke(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
     public func revoke(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(nil, signKey, storePassword, adapter)
+        try revoke(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revoke(_ signKey: String, _ storePassword: String) throws {
-        try revoke(nil, signKey, storePassword, nil)
+        try revoke(signKey: signKey, storePassword: storePassword)
     }
     
     public func revoke(_ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
@@ -714,35 +714,35 @@ public class VerifiableCredential: DIDObject, Mappable {
         try revoke(signer: nil, signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
-    private func revokeAsync(_ signer: DIDDocument?, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+    private func revokeAsync(signer: DIDDocument? = nil, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(signer, signKey, storePassword, adapter)
+        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(signer, signKey, storePassword, nil)
+        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(signer, nil, storePassword, adapter)
+        return revokeAsync(signer: signer, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(signer, nil, storePassword, nil)
+        return revokeAsync(signer: signer, storePassword: storePassword, adapter: nil)
     }
     
     public func revokeAsync(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(nil, signKey, storePassword, adapter)
+        return revokeAsync(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(nil, signKey, storePassword, nil)
+        return revokeAsync(signKey: signKey, storePassword: storePassword)
     }
     
-    private func revokeAsync(signer: DIDDocument?, signKey: String, storePassword: String, adapter: DIDTransactionAdapter?) -> Promise<Void> {
+    private func revokeAsync(signer: DIDDocument? = nil, signKey: String, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter) }
     }
     
@@ -751,26 +751,26 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: nil)
+        return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
     public func revokeAsync(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(signer: nil, signKey: signKey, storePassword: storePassword, adapter: adapter)
+        return revokeAsync(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(signer: nil, signKey: signKey, storePassword: storePassword, adapter: nil)
+        return revokeAsync(signKey: signKey, storePassword: storePassword)
     }
     
     public func revokeAsync(_ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(nil, nil, storePassword, adapter)
+        return revokeAsync(storePassword: storePassword, adapter: adapter)
     }
     
     public func revokeAsync(_ storePassword: String) -> Promise<Void> {
-        return revokeAsync(nil, nil, storePassword, nil)
+        return revokeAsync(storePassword: storePassword)
     }
     
-    private class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    private class func revoke(id: DIDURL, signer: DIDDocument, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         guard signer.getMetadata().attachedStore else {
             throw DIDError.UncheckedError.IllegalStateError.NotAttachedWithStoreError(signer.subject.toString())
@@ -807,43 +807,43 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
     
     public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
-        try revoke(id, issuer, signKey, storePassword, nil)
+        try revoke(id: id, signer: issuer, signKey: signKey, storePassword: storePassword)
     }
     
     public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(DIDURL.valueOf(id), issuer, DIDURL.valueOf(issuer.subject, signKey), storePassword, adapter)
+        try revoke(id: DIDURL.valueOf(id), signer: issuer, signKey: DIDURL.valueOf(issuer.subject, signKey), storePassword: storePassword, adapter: adapter)
     }
    
     public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String) throws {
-        try revoke(DIDURL.valueOf(id), issuer, DIDURL.valueOf(issuer.subject, signKey), storePassword, nil)
+        try revoke(id: DIDURL.valueOf(id), signer: issuer, signKey: DIDURL.valueOf(issuer.subject, signKey), storePassword: storePassword)
     }
     
     public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(id, issuer, nil, storePassword, adapter)
+        try revoke(id: id, signer: issuer, storePassword: storePassword, adapter: adapter)
     }
     
     public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storePassword: String) throws {
-        try revoke(id, issuer, nil, storePassword, nil)
+        try revoke(id: id, signer: issuer, storePassword: storePassword)
     }
     
     public class func revoke(_ id: String, _ issuer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(DIDURL.valueOf(id), issuer, nil, storePassword, adapter)
+        try revoke(id: DIDURL.valueOf(id), signer: issuer, storePassword: storePassword, adapter: adapter)
     }
    
     public class func revoke(_ id: String, _ issuer: DIDDocument, _ storePassword: String) throws {
-        try revoke(DIDURL.valueOf(id), issuer, nil, storePassword, nil)
+        try revoke(id: DIDURL.valueOf(id), signer: issuer, storePassword: storePassword)
     }
     
-    private class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storePassword, adapter) }
+    private class func revokeAsync(id: DIDURL, issuer: DIDDocument, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id: id, signer: issuer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
     public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(id, issuer, signKey, storePassword, adapter)
+        return revokeAsync(id: id, issuer: issuer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
     public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(id, issuer, signKey, storePassword, nil)
+        return revokeAsync(id: id, issuer: issuer, signKey: signKey, storePassword: storePassword)
     }
     
     public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
