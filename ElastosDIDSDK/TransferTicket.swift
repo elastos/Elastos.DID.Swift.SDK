@@ -238,7 +238,7 @@ public class TransferTicket: NSObject {
             }
             
             if controller.isCustomizedDid() {
-                guard controller.effectiveController != nil else {
+                guard let _ = controller.effectiveController else {
                     throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(controller.subject.toString())
                 }
             }
@@ -261,9 +261,9 @@ public class TransferTicket: NSObject {
         let sig = try controller.sign(using: storePassword, for: [json.data(using: .utf8)!])
         let proof = TransferTicketProof(signKey!, sig)
         proofs[proof.verificationMethod.did!] = proof
-        proofs.values.forEach({ tp in
+        proofs.values.forEach{ tp in
             self._proofs.append(tp)
-        })
+        }
         
         _proofs.sort { (proofA, proofB) -> Bool in
             let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.created)
