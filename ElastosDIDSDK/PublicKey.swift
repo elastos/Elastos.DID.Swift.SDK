@@ -69,9 +69,9 @@ public class PublicKey: DIDObject {
         return Base58.bytesFromBase58(_keyBase58!)
     }
 
-//    public var publicKeyData: Data {
-//        return _keyBase58.data(using: .utf8)!
-//    }
+    public var publicKeyData: Data {
+        return Data(publicKeyBytes)
+    }
 
     /// Check publickey is authentication key or not.
     @objc public var isAuthenticationKey: Bool {
