@@ -24,7 +24,6 @@ import Foundation
 import PromiseKit
 import ObjectMapper
 
-
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
     private static let TAG = NSStringFromClass(DIDDocument.self)
@@ -311,7 +310,6 @@ public class DIDDocument: NSObject {
         // attach to the store if necessary
         let doc = controllerDocument(_effectiveController!)
         if !((doc?.getMetadata().attachedStore)!) {
-            /// getMetadata().store!    !!!!!!!!
             doc?.getMetadata().attachStore(getMetadata().store!)
         }
     }
@@ -344,7 +342,6 @@ public class DIDDocument: NSObject {
     /// - Returns: the PublicKey array.
     @objc
     public func publicKeys() -> Array<PublicKey> {
-//        return self._publicKeysDic.values() { value -> Bool in return true }
         var pks = self.publicKeyMap.values() { value -> Bool in return true }
         if hasController() {
             _controllerDocs.values.forEach({ doc in
@@ -538,12 +535,6 @@ public class DIDDocument: NSObject {
         
         return nil
     }
-//
-//    /// Get primary public key, which is for creating method specific string.
-//    @objc
-//    public var defaultPublicKey: DIDURL {
-//        return getDefaultPublicKey()!
-//    }
     
     func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
         guard try containsPublicKey(forId: ofId) else {
@@ -597,8 +588,7 @@ public class DIDDocument: NSObject {
         try checkAttachedStore()
         try checkIsPrimitive()
         let key = DIDHDKey.deserialize((try getMetadata().store?.loadPrivateKey(defaultPublicKeyId()!, storePassword))!)
-        // TODO:
-        // HDKey key = HDKey.deserialize(getMetadata().getStore().loadPrivateKey(getDefaultPublicKeyId(), storePassword));
+
         return key.derive(index).serializeBase58()
     }
     
@@ -646,9 +636,8 @@ public class DIDDocument: NSObject {
     /// - Returns: the extended derived private key
     public func derive(_ identifier: String, _ securityCode: Int, _ storePassword: String) throws -> String {
         try checkArgument(!identifier.isEmpty, "Invalid identifier")
-        try checkAttachedStore();
+        try checkAttachedStore()
         try checkIsPrimitive()
-        // TODO: check
         let key = DIDHDKey.deserialize(try getMetadata().store!.loadPrivateKey(defaultPublicKeyId()!, storePassword)!)
         let path = mapToDerivePath(identifier, securityCode)
         
@@ -679,7 +668,6 @@ public class DIDDocument: NSObject {
         }
     }
   
-    ///////////////////////////////////////////////    111 star =======
     /// Create a JwtBuilder instance.
     /// - Throws: If error occurs, throw error.
     /// - Returns: JwtBuilder instance.
@@ -784,9 +772,7 @@ public class DIDDocument: NSObject {
         _ = getMetadata().store!.deletePrivateKey(for: id)
         return true
     }
-///////////////////////// 1111 = end ---------------------------
     
-    ///
     /// Get the count of authentication keys.
     @objc
     public var authenticationKeyCount: Int {
@@ -1028,10 +1014,6 @@ public class DIDDocument: NSObject {
         let pk = try publicKey(ofId: ofId)
         
         return (pk != nil && pk!.isAuthorizationKey) ? pk!  : nil
-        
-//        return publicKeyMap.get(forKey: ofId) { value -> Bool in
-//            return (value as PublicKey).isAuthorizationKey
-//        }
     }
 
     /// Get authorization key according to identifier of key.
@@ -1188,20 +1170,6 @@ public class DIDDocument: NSObject {
             return nil
         }
     }
-
-//    func appendCredential(_ vc: VerifiableCredential) -> Bool {
-//        guard vc.subject!.did == subject else {
-//            return false
-//        }
-//        let _vc = credential(ofId: vc.getId()!)
-//        guard _vc == nil else {
-//            Log.e(DIDDocument.TAG, "Credential \(String(describing: vc.getId())) already exist.")
-//            return false
-//        }
-//        credentialMap.append(vc)
-//        _credentials.append(vc)
-//        return true
-//    }
     
     func appendCredential(_ vc: VerifiableCredential) throws {
         // Check the credential belongs to current DID.
@@ -1776,10 +1744,6 @@ public class DIDDocument: NSObject {
             guard proof.creator == defaultPublicKeyId() else {
                 return false
             }
-            print("!isCustomizedDid  data = \(json)")
-            print("!isCustomizedDid  proof.creator == \(proof.creator!)")
-            print("!isCustomizedDid  proof.signature == \(proof.signature)")
-            print("!isCustomizedDid  verifyDigest == \(try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest))")
             let result = try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
             return result
         }
@@ -1799,10 +1763,6 @@ public class DIDDocument: NSObject {
                 guard proof.creator == controllerDoc!.defaultPublicKeyId() else {
                     return false
                 }
-                print("data = \(json)")
-                print("proof.creator == \(proof.creator!)")
-                print("proof.signature == \(proof.signature)")
-                print("verifyDigest == \(try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest))")
                 guard try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest) else {
                     return false
                 }
@@ -2257,11 +2217,11 @@ public class DIDDocument: NSObject {
         try checkAttachedStore()
         var ctrls: [DID] = []
         if controllers != nil && controllers!.count > 0 {
-            controllers?.forEach({ ctrl in
+            controllers?.forEach{ ctrl in
                 if ctrl != subject && !ctrls.contains(ctrl) {
                     ctrls.append(ctrl)
                 }
-            })
+            }
         }
         
        try checkArgument(multisig >= 0 && multisig <= ctrls.count + 1, "Invalid multisig")
@@ -3031,7 +2991,9 @@ public class DIDDocument: NSObject {
     }
 
     func parse(_ path: String) throws {
-        // TODO:
+        let content = try path.readTextFromPath()
+        let contentDic = content.toDictionary()
+        try parse(JsonNode(contentDic))
     }
     
     private func parse(_ doc: JsonNode) throws {
@@ -3071,14 +3033,6 @@ public class DIDDocument: NSObject {
 
         //authentication
         // Add default public key to authentication keys if need.
-//        let defaultKey = self.getDefaultPublicKey()
-//        guard let _ = defaultKey else {
-//            throw DIDError.malformedDocument("missing default public key")
-//        }
-//
-//        if !containsAuthenticationKey(forId: defaultKey!) {
-//            _ = try appendAuthenticationKey(defaultKey!)
-//        }
         node = doc.get(forKey: Constants.AUTHENTICATION)
         let array: [JsonNode] = node?.asArray() ?? []
         for authentication in array {

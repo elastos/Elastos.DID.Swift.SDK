@@ -74,12 +74,9 @@ public class FileSystemStorage: DIDStorage {
     private var currentDataDir: String
     private let MAGIC: [UInt8] = [0x00, 0x0D, 0x01, 0x0D]
     
-    
     init(_ dir: String) throws {
         self.storeRoot = dir
         currentDataDir = DATA_DIR
-        print("currentDataDir = \(currentDataDir) 33333333")
-
         try checkArgument(dir.isEmpty, "Invalid DIDStore root directory.")
     
         if FileManager.default.fileExists(atPath: storeRoot) {
@@ -122,8 +119,9 @@ public class FileSystemStorage: DIDStorage {
                 try upgradeFromV2()
             }
             else {
-               let list = try? FileManager.default.contentsOfDirectory(atPath: storeRoot)
-                if list == nil || list!.count == 0 {
+                let list = try storeRoot.files()
+//               let list = try? FileManager.default.contentsOfDirectory(atPath: storeRoot)
+                if list.count == 0 {
                     // if an empty folder
                     try initializeStore()
                     return
@@ -932,7 +930,6 @@ public class FileSystemStorage: DIDStorage {
         }
         
         currentDataDir = DATA_DIR
-
         let stageFile = try fullPath("postUpgrade")
         let timestamp = DateFormatter.getTimeStampForString(DateFormatter.currentDate())
         

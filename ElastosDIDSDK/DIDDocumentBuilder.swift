@@ -61,7 +61,6 @@ public class DIDDocumentBuilder: NSObject {
     init(_ doc: DIDDocument, _ controller: DIDDocument) throws { // Make a copy
         self.document = try doc.copy()
         self.document?._effectiveController = controller.subject
-//        try self.document!.setEffectiveController(controller.subject)
         self.controllerDoc = controller
     }
     

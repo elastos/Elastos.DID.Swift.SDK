@@ -34,8 +34,6 @@ public class DIDBackend: NSObject {
     private var _random: String = ""
     
     private static let TAG = NSStringFromClass(DIDBackend.self)
-//    private static var resolver: DIDResolver?
-//    private static var _ttl: Int = Constants.DEFAULT_TTL // milliseconds
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
     private var resolveHandle: ResolveHandle?
@@ -254,10 +252,6 @@ public class DIDBackend: NSObject {
             Log.e(TAG, "INTERNAL - unknown resolve method ", request.method)
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Unknown resolve method: \(request.method)")
         }
-        //TODO:
-//        if response.responseId != request.requestId {
-//            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Mismatched resolve result with request.")
-//        }
         
         if response.result != nil {
             return response.result!

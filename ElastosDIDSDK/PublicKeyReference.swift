@@ -69,7 +69,6 @@ public class PublicKeyReference: NSObject {
          }
      }
      
-    
     public func compareTo(_ ref: PublicKeyReference) throws -> ComparisonResult {
         if self.publicKey != nil && ref.publicKey != nil {
             return try self.publicKey!.compareTo(ref.publicKey!)
@@ -78,6 +77,4 @@ public class PublicKeyReference: NSObject {
             return self.id!.compareTo(ref.id!)
         }
     }
-    
-     // TODO: Serializer Deserializer
  }

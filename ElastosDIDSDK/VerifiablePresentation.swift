@@ -182,7 +182,6 @@ public class VerifiablePresentation: NSObject {
         
         guard proof.verificationMethod.did != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Invalid verification method")
-
         }
     }
 

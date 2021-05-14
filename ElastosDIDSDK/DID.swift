@@ -103,16 +103,7 @@ public class DID: NSObject {
     func setMetadata(_ newValue: DIDMetadata) {
         self._metadata = newValue
     }
-
-//    /// Save DID MetaData.
-//    /// - Throws: If error occurs, throw error.
-//    @objc
-//    public func saveMetadata() throws {
-//        if (_metadata != nil && _metadata!.attachedStore) {
-//            try _metadata?.store?.storeDidMetadata(self, _metadata!)
-//        }
-//    }
-
+    
     /// Check deactivated
     @objc
     public var isDeactivated: Bool {

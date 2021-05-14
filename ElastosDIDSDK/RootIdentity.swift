@@ -73,7 +73,6 @@ public class RootIdentity: NSObject {
     }
     
     public static func create(_ mnemonic: String, _ passphrase: String?, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        
         return try create(mnemonic, passphrase, false, store, storePassword)
     }
     
@@ -94,13 +93,11 @@ public class RootIdentity: NSObject {
     }
     
     public static func create(_ extentedPrivateKey: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        
         return try create(extentedPrivateKey, false, store, storePassword)
     }
     
     public static func create(_ preDerivedPublicKey: String, _ index: Int) throws -> RootIdentity {
         let key = DIDHDKey.deserializeBase58(preDerivedPublicKey)
-        
         return try RootIdentity(key, index)
     }
     
@@ -135,22 +132,6 @@ public class RootIdentity: NSObject {
         return id!
     }
     
-    /*
-     let sha256 = SHA256Helper()
-     var bytes = [UInt8](password.data(using: .utf8)!)
-     sha256.update(&bytes)
-
-     protected static String getId(byte[] key) {
-         checkArgument(key != null && key.length > 0, "Invalid key bytes");
-
-         MD5Digest md5 = new MD5Digest();
-         byte[] digest = new byte[md5.getDigestSize()];
-         md5.update(key, 0, key.length);
-         md5.doFinal(digest, 0);
-
-         return Hex.toHexString(digest);
-     }
-     */
     public var alias: String? {
         set{
             metadata?.setAlias(newValue!)

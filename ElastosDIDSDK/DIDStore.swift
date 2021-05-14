@@ -79,17 +79,6 @@ public class DIDStore: NSObject {
                 
             }
             return false
-            
-//            if object as? NSObject != nil && object as! NSObject == self {
-//                return true
-//            }
-//
-//            if object as? NSObject != nil && (object as! NSObject).isKind(of: Key.self)  {
-//                let key = object as! Key
-//                return type == key.type ? id.isEqual(key.id) : false
-//            }
-//
-//            return false
         }
         
         public class func forRootIdentity(_ id: String) -> Key {
@@ -153,7 +142,6 @@ public class DIDStore: NSObject {
     ///   - maxCacheCapacity: max cache capacity
     /// - Throws: If error occurs, throw error.
     /// - Returns: DIDStore instance.
-
     @objc
     public class func open(atPath: String,
              initialCacheCapacity: Int,
@@ -627,17 +615,6 @@ public class DIDStore: NSObject {
 
         return dids
     }
-   // TODO:
-//    public func selectDids(_ filter: ) throws -> Array<DID> {
-//        let dids = try listDids()
-//
-//        try dids.forEach { did in
-//            let metadata = try loadDidMetadata(did)
-//            did.setMetadata(metadata)
-//        }
-//
-//        return dids
-//    }
     
     /// Store the specified Credential.
     /// - Parameter credential: the Credential object
@@ -677,7 +654,6 @@ public class DIDStore: NSObject {
     }
     
     public func loadCredential(byId: String) throws -> VerifiableCredential? {
-        
         return try loadCredential(byId: DIDURL.valueOf(byId))
     }
     
@@ -766,7 +742,6 @@ public class DIDStore: NSObject {
     }
     
     func storeCredentialMetadata(_ id: String, _ metadata: CredentialMetadata) throws {
-
         try storeCredentialMetadata(DIDURL.valueOf(id), metadata)
     }
     
@@ -792,7 +767,6 @@ public class DIDStore: NSObject {
     }
     
     func loadCredentialMetadata(_ byId: String) throws -> CredentialMetadata? {
-
         return try loadCredentialMetadata(DIDURL.valueOf(byId))
     }
     
@@ -819,7 +793,6 @@ public class DIDStore: NSObject {
     ///   - id: The identifier of credential.
     /// - Returns: true on success, false if an error occurred.
     public func deleteCredential(_ id: String) throws -> Bool{
-        
         return try deleteCredential(DIDURL.valueOf(id))
     }
     
@@ -845,37 +818,6 @@ public class DIDStore: NSObject {
     public func listCredentials(for did: String) throws -> Array<DIDURL> {
         return try listCredentials(for: DID(did))
     }
-
-    /// Select the Credentials according to the specified condition.
-    /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - id: The identifier of credential.
-    ///   - type: The type of Credential to be selected.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: the Credential array
-//    @objc // TODO:
-//    public func selectCredentials(for did: DID,
-//                                  byId id: DIDURL?,
-//                             andType type: Array<String>?) throws -> Array<DIDURL> {
-//        return try storage.selectCredentials(did, id, type)
-//    }
-//
-//    /// Get credential conforming to identifier or type property.
-//    /// - Parameters:
-//    ///   - did: The handle to DID.
-//    ///   - id: The identifier of credential.
-//    ///   - type: The type of Credential to be selected.
-//    /// - Throws: If error occurs, throw error.
-//    /// - Returns: Array of DIDURL.
-//    @objc(selectCredentials:id:type:error:)
-//    public func selectCredentials(for did: String,
-//                                  byId id: String?,
-//                             andType type: Array<String>?) throws -> Array<DIDURL> {
-//        let _did = try DID(did)
-//        let _key = id != nil ? try DIDURL(_did, id!) : nil
-//
-//        return try selectCredentials(for: _did, byId: _key, andType: type)
-//    }
     
     /// Store private key. Encrypt and encode private key with base64url method.
     /// - Parameters:
@@ -891,7 +833,6 @@ public class DIDStore: NSObject {
 
         try checkArgument(privateKey.count != 0, "Invalid private key")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
-
         
         let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePassword)
         try storage!.storePrivateKey(id, encryptedKey)
@@ -912,40 +853,7 @@ public class DIDStore: NSObject {
 
         return try storePrivateKey(for: _key, privateKey: privateKey, using: storePassword)
     }
-    
-//    func loadPrivateKey(_ did: DID, _ byId: DIDURL, _ storePassword: String) throws -> Data {
-//        let encryptedKey = try storage.loadPrivateKey(did, byId)
-//        let keyBytes = try DIDStore.decryptFromBase64(encryptedKey, storePassword)
-//
-//        // For backward compatible, convert to extended private key
-//        // TODO: Should be remove in the future
-//        var extendedKeyBytes: Data?
-//        if keyBytes.count == DIDHDKey.DID_PRIVATEKEY_BYTES {
-//            let identity = try? loadPrivateIdentity(storePassword)
-//            if identity != nil {
-//                for i in 0..<100 {
-//                    let path = DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(i)"
-//                    let child = try identity!.derive(path)
-//                    if child.getPrivateKeyData() == keyBytes {
-//                        extendedKeyBytes = try child.serialize()
-//                        break
-//                    }
-//                    child.wipe()
-//                }
-//                identity?.wipe()
-//            }
-//            if extendedKeyBytes == nil {
-//                extendedKeyBytes = DIDHDKey.paddingToExtendedPrivateKey(keyBytes)
-//            }
-//            try storePrivateKey(for: did, id: byId, privateKey: extendedKeyBytes!, using: storePassword)
-//        }
-//        else {
-//            extendedKeyBytes = keyBytes
-//        }
-//
-//        return extendedKeyBytes!
-//    }
-    
+
     func loadPrivateKey(_ id: DIDURL) throws -> String? {
         let value = try cache.getValue(for: Key.forDidPrivateKey(id)) { () -> NSObject? in
             let encryptedKey = try storage!.loadPrivateKey(id)
@@ -1093,13 +1001,7 @@ public class DIDStore: NSObject {
             
             return result
         }
-//        let re: (String) throws -> String = { (data: String) -> String in
-////            let udata = try DIDStore.decryptFromBase64(data, oldPassword)
-////            let result = try DIDStore.encryptToBase64(udata, newPassword)
-//            let result = try DIDStore.reEncrypt(data, oldPassword, newPassword)
-//
-//            return result
-//        }
+
         try metadata!.setFingerprint(calcFingerprint(newPassword))
         cache.clear()
     }
@@ -1218,7 +1120,7 @@ public class DIDStore: NSObject {
             doc!.setMetadata(try storage!.loadDidMetadata(did)!)
             
             Log.i(TAG, "Exporting \(did.toString()...)")
-            
+
             let de = DIDExport(DID_EXPORT, did)
             de.setDocument(doc!)
             
@@ -1467,8 +1369,8 @@ public class DIDStore: NSObject {
     public func importRootIdentity(from data: Data,
                      using password: String,
                       storePassword: String) throws {
-        let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
-        guard let _ = dic else {
+        let dic = String(data: data, encoding: .utf8)?.toDictionary()
+        guard !dic!.isEmpty else {
             throw DIDError.notFoundError("data is not nil")
         }
     
@@ -1566,20 +1468,15 @@ public class DIDStore: NSObject {
             throw DIDError.CheckedError.DIDStoreError.WrongPasswordError("Password mismatched with previous password.")
         }
         
-        let fileManager = FileManager.default
-        let enumerator = try fileManager.contentsOfDirectory(atPath: path)
+        let enumerator = try path.files()
         if enumerator.count == 0 {
             return
         }
-        var path0 = ""
+        var subPath = ""
         var dic: [String: Any] = [: ]
         for element: String in enumerator  {
-            path0 = path + "/" + element
-            if element == ".DS_Store" {
-                continue
-            }
-            path0 = path + "/" + element
-            dic = try path0.readTextFromPath().toDictionary()
+            subPath = path + "/" + element
+            dic = try subPath.readTextFromPath().toDictionary()
             // rootIdentity
             if element.hasPrefix("rootIdentity") {
                 let re = try RootIdentityExport.deserialize(dic)
