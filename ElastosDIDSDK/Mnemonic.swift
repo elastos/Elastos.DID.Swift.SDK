@@ -40,7 +40,7 @@ public class Mnemonic: NSObject {
     /// - Throws: Language is empty or failure to generate mnemonic will throw error.
     /// - Returns: Random mnemonic.
     @objc
-    public class func generate(_ language: String) throws -> String {
+    public static func generate(_ language: String) throws -> String {
         guard !language.isEmpty else {
             throw DIDError.illegalArgument("language is empty.")
         }
@@ -63,7 +63,7 @@ public class Mnemonic: NSObject {
     ///   - mnemonic: mnemonic string.
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
-    public class func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
+    public static func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
         guard !mnemonic.isEmpty else {
             throw DIDError.illegalArgument("Invalid mnemonic.")
         }
@@ -87,12 +87,40 @@ public class Mnemonic: NSObject {
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
     @objc
-    public class func isValid(_ language: String, _ mnemonic: String, error: NSErrorPointer) -> Bool {
+    public static func isValid(_ language: String, _ mnemonic: String, error: NSErrorPointer) -> Bool {
         do {
             return try isValid(language, mnemonic)
         }  catch let aError as NSError {
             error?.pointee = aError
             return false
         }
+    }
+    
+    /// Get the language name from a mnemonic string.
+    /// - Parameter mnemonic: a mnemonic string.
+    /// - Throws: a language name
+    public static func getLanguage(_ mnemonic: String) throws -> String {
+        try checkArgument(mnemonic.isEmpty, "Invalid menmonic")
+        let langs = [Mnemonic.DID_ENGLISH,
+                     Mnemonic.DID_SPANISH,
+                     Mnemonic.DID_FRENCH,
+                     Mnemonic.DID_CZECH,
+                     Mnemonic.DID_ITALIAN,
+                     Mnemonic.DID_CHINESE_SIMPLIFIED,
+                     Mnemonic.DID_CHINESE_TRADITIONAL,
+                     Mnemonic.DID_JAPANESE,
+                     Mnemonic.DID_KOREAN]
+
+        for lang in langs {
+            do {
+                if try Mnemonic.isValid(lang, mnemonic) {
+                    return lang
+                }
+                continue
+            } catch {
+                continue
+            }
+        }
+        throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError("Invalid menmonic")
     }
 }
