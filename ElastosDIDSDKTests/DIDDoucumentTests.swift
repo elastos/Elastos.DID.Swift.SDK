@@ -341,55 +341,51 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testAddPublicKey1() {
-        do {
-            try AddPublicKey(1)
-        } catch {
-            XCTFail()
-        }
+        AddPublicKey(1)
     }
     
     func testAddPublicKey2() {
+        AddPublicKey(2)
+    }
+    
+    func AddPublicKey(_ version: Int) {
         do {
-            try AddPublicKey(2)
+            _ = try testData!.getRootIdentity()
+            
+            var doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            let db = try doc.editing()
+            
+            // Add 2 public keys
+            let id = try DIDURL(db.getSubject(), "#test1")
+            var key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
+            
+            key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+            
+            doc = try db.sealed(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            // Check existence
+            var pk = try doc.publicKey(ofId: "#test1")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+            
+            pk = try doc.publicKey(ofId: "#test2")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+            
+            // Check the final count.
+            XCTAssertEqual(6, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            XCTAssertEqual(1, doc.authorizationKeyCount)
         } catch {
             XCTFail()
         }
-    }
-    
-    func AddPublicKey(_ version: Int) throws {
-        _ = try testData!.getRootIdentity()
-
-        var doc = try testData!.getCompatibleData(version).getDocument("user1")
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        let db = try doc.editing()
-
-        // Add 2 public keys
-        let id = try DIDURL(db.getSubject(), "#test1")
-        var key = try TestData.generateKeypair()
-        _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
-
-        key = try TestData.generateKeypair()
-        _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-
-        doc = try db.sealed(using: storePassword)
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        // Check existence
-        var pk = try doc.publicKey(ofId: "#test1")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
-
-        pk = try doc.publicKey(ofId: "#test2")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
-
-        // Check the final count.
-        XCTAssertEqual(6, doc.publicKeyCount)
-        XCTAssertEqual(3, doc.authenticationKeyCount)
-        XCTAssertEqual(1, doc.authorizationKeyCount)
     }
     
     func testAddPublicKeyWithCid() {
@@ -478,7 +474,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removePublicKey(with: "#notExistKey", true)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -561,7 +557,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removePublicKey(with: "#notExistKey", true)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -589,81 +585,77 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testGetAuthenticationKey1() {
-        do {
-            try GetAuthenticationKey(1)
-        } catch {
-            XCTFail()
-        }
+        GetAuthenticationKey(1)
     }
     
     func testGetAuthenticationKey2() {
+        GetAuthenticationKey(2)
+    }
+    
+    func GetAuthenticationKey(_ version: Int) {
         do {
-            try GetAuthenticationKey(2)
+            _ = try testData!.getRootIdentity()
+            
+            let doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            // Count and list.
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            
+            var pks = doc.authenticationKeys()
+            XCTAssertEqual(3, pks.count)
+            
+            for pk in pks {
+                XCTAssertEqual(doc.subject, pk.getId()!.did)
+                XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
+                
+                XCTAssertEqual(doc.subject, pk.controller)
+                let re = pk.getId()?.fragment == "primary" || pk.getId()?.fragment == "key2" || pk.getId()?.fragment == "key3"
+                XCTAssertTrue(re)
+            }
+            
+            // AuthenticationKey getter
+            var pk = try doc.authenticationKey(ofId: "#primary")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pk?.getId())
+            
+            var id = try DIDURL(doc.subject, "#key3")
+            pk = try doc.authenticationKey(ofId: id)
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(id, pk?.getId())
+            
+            // Key not exist, should fail.
+            pk = try doc.authenticationKey(ofId: "#notExist")
+            XCTAssertNil(pk)
+            
+            id = try DIDURL(doc.subject, "#notExist")
+            pk = try doc.authenticationKey(ofId: id)
+            XCTAssertNil(pk)
+            
+            // selector
+            id = try DIDURL(doc.subject, "#key3")
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+            
+            pks = try doc.selectAuthenticationKeys(byId: id, andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(id, pks[0].getId())
+            
+            pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(3, pks.count)
+            
+            pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: Constants.DEFAULT_PUBLICKEY_TYPE)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
+            
+            pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: nil)
+            XCTAssertEqual(1, pks.count)
+            XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
         } catch {
             XCTFail()
         }
-    }
-    
-    func GetAuthenticationKey(_ version: Int) throws {
-        _ = try testData!.getRootIdentity()
-
-        let doc = try testData!.getCompatibleData(version).getDocument("user1")
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        // Count and list.
-        XCTAssertEqual(3, doc.authenticationKeyCount)
-
-        var pks = doc.authenticationKeys()
-        XCTAssertEqual(3, pks.count)
-
-        for pk in pks {
-            XCTAssertEqual(doc.subject, pk.getId()!.did)
-            XCTAssertEqual(Constants.DEFAULT_PUBLICKEY_TYPE, pk.getType())
-
-            XCTAssertEqual(doc.subject, pk.controller)
-            let re = pk.getId()?.fragment == "primary" || pk.getId()?.fragment == "key2" || pk.getId()?.fragment == "key3"
-            XCTAssertTrue(re)
-        }
-
-        // AuthenticationKey getter
-        var pk = try doc.authenticationKey(ofId: "#primary")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#primary"), pk?.getId())
-
-        var id = try DIDURL(doc.subject, "#key3")
-        pk = try doc.authenticationKey(ofId: id)
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(id, pk?.getId())
-
-        // Key not exist, should fail.
-        pk = try doc.authenticationKey(ofId: "#notExist")
-        XCTAssertNil(pk)
-
-        id = try DIDURL(doc.subject, "#notExist")
-        pk = try doc.authenticationKey(ofId: id)
-        XCTAssertNil(pk)
-
-        // selector
-        id = try DIDURL(doc.subject, "#key3")
-        pks = try doc.selectAuthenticationKeys(byId: id, andType: Constants.DEFAULT_PUBLICKEY_TYPE)
-        XCTAssertEqual(1, pks.count)
-        XCTAssertEqual(id, pks[0].getId())
-
-        pks = try doc.selectAuthenticationKeys(byId: id, andType: nil)
-        XCTAssertEqual(1, pks.count)
-        XCTAssertEqual(id, pks[0].getId())
-
-        pks = doc.selectAuthenticationKeys(byType: Constants.DEFAULT_PUBLICKEY_TYPE)
-        XCTAssertEqual(3, pks.count)
-
-        pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: Constants.DEFAULT_PUBLICKEY_TYPE)
-        XCTAssertEqual(1, pks.count)
-        XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
-
-        pks = try doc.selectAuthenticationKeys(byId: "#key2", andType: nil)
-        XCTAssertEqual(1, pks.count)
-        XCTAssertEqual(try DIDURL(doc.subject, "#key2"), pks[0].getId())
     }
     
     func testGetAuthenticationKeyWithCid() {
@@ -891,94 +883,90 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testAddAuthenticationKey1() {
-        do {
-            try AddAuthenticationKey(1)
-        } catch {
-            XCTFail()
-        }
+        AddAuthenticationKey(1)
     }
     
     func testAddAuthenticationKey2() {
+        AddAuthenticationKey(2)
+    }
+    
+    func AddAuthenticationKey(_ version: Int) {
         do {
-            try AddAuthenticationKey(2)
+            _ = try testData!.getRootIdentity()
+            
+            var doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            let db = try doc.editing()
+            
+            // Add 2 public keys for test.
+            let id = try DIDURL(db.getSubject(), "#test1")
+            var key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
+            
+            key = try TestData.generateKeypair()
+            _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
+            
+            // Add by reference
+            _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
+            
+            _ = try db.appendAuthenticationKey(with: "#test2")
+            
+            // Add new keys
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test3"),
+                                               keyBase58: key.getPublicKeyBase58())
+            
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#test4", keyBase58: key.getPublicKeyBase58())
+            
+            // Try to add a non existing key, should fail.
+            XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: "#notExistKey")){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            // Try to add a key not owned by self, should fail.
+            XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: "#recovery")){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            doc = try db.sealed(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            // Check existence
+            var pk = try doc.authenticationKey(ofId: "#test1")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
+            
+            pk = try doc.authenticationKey(ofId: "#test2")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
+            
+            pk = try doc.authenticationKey(ofId: "#test3")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test3"), pk?.getId())
+            
+            pk = try doc.authenticationKey(ofId: "#test4")
+            XCTAssertNotNil(pk)
+            XCTAssertEqual(try DIDURL(doc.subject, "#test4"), pk?.getId())
+            
+            // Check the final count.
+            XCTAssertEqual(8, doc.publicKeyCount)
+            XCTAssertEqual(7, doc.authenticationKeyCount)
+            XCTAssertEqual(1, doc.authorizationKeyCount)
         } catch {
             XCTFail()
         }
-    }
-    
-    func AddAuthenticationKey(_ version: Int) throws {
-        _ = try testData!.getRootIdentity()
-
-        var doc = try testData!.getCompatibleData(version).getDocument("user1")
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        let db = try doc.editing()
-
-        // Add 2 public keys for test.
-        let id = try DIDURL(db.getSubject(), "#test1")
-        var key = try TestData.generateKeypair()
-        _ = try db.appendPublicKey(with: id, controller: db.getSubject().toString(), keyBase58: key.getPublicKeyBase58())
-
-        key = try TestData.generateKeypair()
-        _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
-
-        // Add by reference
-        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
-
-        _ = try db.appendAuthenticationKey(with: "#test2")
-
-        // Add new keys
-        key = try TestData.generateKeypair()
-        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test3"),
-                                   keyBase58: key.getPublicKeyBase58())
-
-        key = try TestData.generateKeypair()
-        _ = try db.appendAuthenticationKey(with: "#test4", keyBase58: key.getPublicKeyBase58())
-
-        // Try to add a non existing key, should fail.
-        XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: "#notExistKey")){ error in
-            switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
-            default:
-                XCTFail()
-            }
-        }
-
-        // Try to add a key not owned by self, should fail.
-        XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: "#recovery")){ error in
-            switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
-            default:
-                XCTFail()
-            }
-        }
-
-        doc = try db.sealed(using: storePassword)
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        // Check existence
-        var pk = try doc.authenticationKey(ofId: "#test1")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test1"), pk?.getId())
-
-        pk = try doc.authenticationKey(ofId: "#test2")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test2"), pk?.getId())
-
-        pk = try doc.authenticationKey(ofId: "#test3")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test3"), pk?.getId())
-
-        pk = try doc.authenticationKey(ofId: "#test4")
-        XCTAssertNotNil(pk)
-        XCTAssertEqual(try DIDURL(doc.subject, "#test4"), pk?.getId())
-
-        // Check the final count.
-        XCTAssertEqual(8, doc.publicKeyCount)
-        XCTAssertEqual(7, doc.authenticationKeyCount)
-        XCTAssertEqual(1, doc.authorizationKeyCount)
     }
     
     func testAddAuthenticationKeyWithCid() {
@@ -1020,7 +1008,7 @@ class DIDDoucumentTests: XCTestCase {
             // Try to add a key not owned by self, should fail.
             XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: key3)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1029,7 +1017,7 @@ class DIDDoucumentTests: XCTestCase {
             // Try to add a non existing key, should fail.
             XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: "#notExistKey")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1039,7 +1027,7 @@ class DIDDoucumentTests: XCTestCase {
             let recovery = try DIDURL(user1.subject, "#recovery")
             XCTAssertThrowsError(_ = try db.appendAuthenticationKey(with: recovery)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1077,80 +1065,76 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testRemoveAuthenticationKey1() {
-        do {
-            try RemoveAuthenticationKey(1)
-        } catch {
-            XCTFail()
-        }
+            RemoveAuthenticationKey(1)
     }
     
     func testRemoveAuthenticationKey2() {
+            RemoveAuthenticationKey(2)
+    }
+    
+    func RemoveAuthenticationKey(_ version: Int) {
         do {
-            try RemoveAuthenticationKey(2)
+            _ = try testData!.getRootIdentity()
+            
+            var doc = try testData!.getCompatibleData(version).getDocument("user1")
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            let db = try doc.editing()
+            
+            // Add 2 public keys for test
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"),
+                                               keyBase58: key.getPublicKeyBase58())
+            
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#test2", keyBase58: key.getPublicKeyBase58())
+            
+            // Remote keys
+            _ = try db.removeAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
+                .removeAuthenticationKey(with: "#test2")
+                .removeAuthenticationKey(with: "#key2")
+            
+            // Key not exist, should fail.
+            XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: "#notExistKey")){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            // Default publickey, can not remove, should fail.
+            let id = doc.defaultPublicKeyId()
+            XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: id!)){ error in
+                switch error {
+                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            doc = try db.sealed(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertTrue(try doc.isValid())
+            
+            // Check existence
+            var pk = try doc.authenticationKey(ofId: "#test1")
+            XCTAssertNil(pk)
+            
+            pk = try doc.authenticationKey(ofId: "#test2")
+            XCTAssertNil(pk)
+            
+            pk = try doc.authenticationKey(ofId: "#key2")
+            XCTAssertNil(pk)
+            
+            // Check the final count.
+            XCTAssertEqual(6, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            XCTAssertEqual(1, doc.authorizationKeyCount)
         } catch {
             XCTFail()
         }
-    }
-    
-    func RemoveAuthenticationKey(_ version: Int) throws {
-        _ = try testData!.getRootIdentity()
-
-        var doc = try testData!.getCompatibleData(version).getDocument("user1")
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        let db = try doc.editing()
-
-        // Add 2 public keys for test
-        var key = try TestData.generateKeypair()
-        _ = try db.appendAuthenticationKey(with: try DIDURL(doc.subject, "#test1"),
-                                   keyBase58: key.getPublicKeyBase58())
-
-        key = try TestData.generateKeypair()
-        _ = try db.appendAuthenticationKey(with: "#test2", keyBase58: key.getPublicKeyBase58())
-
-        // Remote keys
-        _ = try db.removeAuthenticationKey(with: try DIDURL(doc.subject, "#test1"))
-            .removeAuthenticationKey(with: "#test2")
-            .removeAuthenticationKey(with: "#key2")
-
-        // Key not exist, should fail.
-        XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: "#notExistKey")){ error in
-            switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
-            default:
-                XCTFail()
-            }
-        }
-
-        // Default publickey, can not remove, should fail.
-        let id = doc.defaultPublicKeyId()
-        XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: id!)){ error in
-            switch error {
-            case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
-            default:
-                XCTFail()
-            }
-        }
-
-        doc = try db.sealed(using: storePassword)
-        XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
-
-        // Check existence
-        var pk = try doc.authenticationKey(ofId: "#test1")
-        XCTAssertNil(pk)
-
-        pk = try doc.authenticationKey(ofId: "#test2")
-        XCTAssertNil(pk)
-
-        pk = try doc.authenticationKey(ofId: "#key2")
-        XCTAssertNil(pk)
-
-        // Check the final count.
-        XCTAssertEqual(6, doc.publicKeyCount)
-        XCTAssertEqual(2, doc.authenticationKeyCount)
-        XCTAssertEqual(1, doc.authorizationKeyCount)
     }
     
     func testRemoveAuthenticationKeyWithCid() {
@@ -1183,7 +1167,7 @@ class DIDDoucumentTests: XCTestCase {
             // Key not exist, should fail.
             XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: "#notExistKey")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1193,7 +1177,7 @@ class DIDDoucumentTests: XCTestCase {
             let key2 = try DIDURL(user1.subject, "#key2")
             XCTAssertThrowsError(_ = try db.removeAuthenticationKey(with: key2)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -1367,7 +1351,7 @@ class DIDDoucumentTests: XCTestCase {
         // Try to add a non existing key, should fail.
         XCTAssertThrowsError(_ = try db.appendAuthorizationKey(with: "#notExistKey")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
             default:
                 XCTFail()
             }
@@ -1376,7 +1360,7 @@ class DIDDoucumentTests: XCTestCase {
         // Try to add key owned by self, should fail.
         XCTAssertThrowsError(_ = try db.appendAuthorizationKey(with: "#key2")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError: break
             default:
                 XCTFail()
             }
@@ -1539,7 +1523,7 @@ class DIDDoucumentTests: XCTestCase {
         // Key not exist, should fail.
         XCTAssertThrowsError(_ = try db.removeAuthorizationKey(with: "#notExistKey")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
             default:
                 XCTFail()
             }
@@ -1741,7 +1725,7 @@ class DIDDoucumentTests: XCTestCase {
         // Credential already exist, should fail.
         XCTAssertThrowsError(_ = try db.appendCredential(with: fvc)){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
             default:
                 XCTFail()
             }
@@ -1793,7 +1777,7 @@ class DIDDoucumentTests: XCTestCase {
             // Credential already exist, should fail.
             XCTAssertThrowsError(_ = try db.appendCredential(with: fvc)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
                 default:
                     XCTFail()
                 }
@@ -1802,7 +1786,7 @@ class DIDDoucumentTests: XCTestCase {
             // Credential not belongs to current did, should fail.
             XCTAssertThrowsError(_ = try db.appendCredential(with: cd.getCredential("user1", "passport"))){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError: break
                 default:
                     XCTFail()
                 }
@@ -1986,7 +1970,7 @@ class DIDDoucumentTests: XCTestCase {
         // Credential not exist, should fail.
         XCTAssertThrowsError(_ = try db.removeCredential(with: "notExistCredential")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
             default:
                 XCTFail()
             }
@@ -1995,7 +1979,7 @@ class DIDDoucumentTests: XCTestCase {
         let did = doc.subject
         XCTAssertThrowsError(_ = try db.removeCredential(with: DIDURL(did, "#notExistCredential"))){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
             default:
                 XCTFail()
             }
@@ -2041,7 +2025,7 @@ class DIDDoucumentTests: XCTestCase {
             // Credential not exist, should fail.
             XCTAssertThrowsError(_ = try db.removeCredential(with: "#notExistCredential")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -2050,7 +2034,7 @@ class DIDDoucumentTests: XCTestCase {
             let did = doc.subject
             XCTAssertThrowsError(_ = try db.removeCredential(with: DIDURL(did, "#notExistCredential"))){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -2261,7 +2245,7 @@ class DIDDoucumentTests: XCTestCase {
         // Service id already exist, should failed.
         XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")){ error in
             switch error {
-            case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+            case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
             default:
                 XCTFail()
             }
@@ -2335,7 +2319,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service id already exist, should failed.
             XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
                 default:
                     XCTFail()
                 }
@@ -2394,7 +2378,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service id already exist, should failed.
             XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
                 default:
                     XCTFail()
                 }
@@ -2470,7 +2454,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service id already exist, should failed.
             XCTAssertThrowsError(_ = try db.appendService(with: "#vcr", type: "test", endpoint: "https://www.elastos.org/test", properties: props)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError: break
                 default:
                     XCTFail()
                 }
@@ -2531,7 +2515,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service not exist, should fail.
             XCTAssertThrowsError(_ = try db.removeService(with: "#notExistService")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }
@@ -2579,7 +2563,7 @@ class DIDDoucumentTests: XCTestCase {
             // Service not exist, should fail.
             XCTAssertThrowsError(_ = try db.removeService(with: "#notExistService")){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }

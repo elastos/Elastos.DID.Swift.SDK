@@ -95,11 +95,11 @@ public class VerifiablePresentationBuilder: NSObject {
         for credential in credentials {
             // Presentation should be signed by the subject of Credentials
             guard credential.subject!.did == self._holder.subject else {
-                throw DIDError.illegalArgument(
+                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(
                     "Credential \(String(describing: credential.getId())) not match with requested id")
             }
             guard credential.checkIntegrity() else {
-                throw DIDError.illegalArgument("incomplete credential \(credential.toString())")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("incomplete credential \(credential.toString())")
             }
             presentation!._credentialsArray.append(credential)
             presentation!.appendCredential(credential)
@@ -119,12 +119,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Returns: VerifiablePresentationBuilder instance.
     @objc
     public func withRealm(_ realm: String) throws -> VerifiablePresentationBuilder {
-        guard let _ = presentation else {
-            throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
-        }
-        guard !realm.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkNotSealed()
+        try checkArgument(!realm.isEmpty, "Invalid realm")
 
         self._realm = realm
         return self
@@ -136,12 +132,8 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Returns: VerifiablePresentationBuilder instance.
     @objc
     public func withNonce(_ nonce: String) throws -> VerifiablePresentationBuilder {
-        guard let _ = presentation else {
-            throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
-        }
-        guard !nonce.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkNotSealed()
+        try checkArgument(!nonce.isEmpty, "Invalid nonce")
 
         self._nonce = nonce
         return self
@@ -153,16 +145,10 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Returns: A handle to VerifiablePresentation.
     @objc
     public func sealed(using storePassword: String) throws -> VerifiablePresentation {
-    
-        guard let _ = presentation else {
-            throw DIDError.invalidState(Errors.PRESENTATION_ALREADY_SEALED)
-        }
-        guard !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-        guard _realm != nil && _nonce != nil else {
-            throw DIDError.invalidState("Missing realm and nonce")
-        }
+        try checkNotSealed()
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(_realm != nil && _nonce != nil, "Missing realm and nonce")
+
         if presentation!.types.count == 0 {
             presentation!._types.append(DEFAULT_PRESENTATION_TYPE)
         } else {

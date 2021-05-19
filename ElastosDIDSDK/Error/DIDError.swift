@@ -23,37 +23,8 @@
 import Foundation
 
 public enum DIDError: Error {
-    // remove ---------
-    case unknownFailure (_ des: String? = nil)
-    case illegalArgument(_ des: String? = nil)
-
-    case malformedMeta  (_ des: String? = nil)
-    case malformedDID   (_ des: String? = nil)
-    case malformedDIDURL(_ des: String? = nil)
-    case malformedDocument  (_ des: String? = nil)
-    case malformedCredential(_ des: String? = nil)
-    case malformedPresentation(_ des: String? = nil)
-
-    case didStoreError  (_ des: String? = nil)
-
-    case didResolveError(_ des: String? = nil)
-    case didDeactivated (_ des: String? = nil)
-    case didExpired     (_ des: String? = nil)
-    case didtransactionError(_ des: String? = nil)
-    case didNotFoundError(_ des: String? = nil)
-
-    case invalidState   (_ des: String? = nil)
-    case invalidKeyError(_ des: String? = nil)
-
-    case notFoundError (_ des: String? = nil)
-    case didMetaDateLocalFormatError (_ des: String? = nil)
-    case didNotUpToDate (_ des: String? = nil)
-    case didNotGenuine (_ des: String? = nil)
-    case IllegalArgumentError(_ des: String? = nil)
-// ------------------------------ end ---------
-    
     public enum UncheckedError {
-        public enum IllegalArgumentError {
+        public enum IllegalArgumentErrors {
             case MalformedDIDError(_ des: String? = nil)
             case MalformedDIDURLError(_ des: String? = nil)
             case DIDObjectAlreadyExistError(_ des: String? = nil)
@@ -64,6 +35,8 @@ public enum DIDError: Error {
             case InvalidExpires(_ des: String? = nil)
             case NullPointerErroe(_ des: String? = nil)
             case DataParsingError(_ des: String? = nil)
+            case IllegalArgumentError(_ des: String? = nil)
+            case EncryptToBase64Error(_ des: String? = nil)
         }
         
         public enum IllegalStateError {
@@ -112,10 +85,10 @@ public enum DIDError: Error {
         }
         
         public enum DIDStoreError {
-            public enum DIDStorageError {
+            public enum DIDStorageErrors {
                 case DIDStoreVersionMismatchError(_ des: String? = nil)
-                case DIDStorageError(_ des: String? = nil)
             }
+            case DIDStorageError(_ des: String? = nil)
             case DIDStoreError(_ des: String? = nil)
             case WrongPasswordError(_ des: String? = nil)
             case DIDStoreCryptoError(_ des: String? = nil)
@@ -131,12 +104,13 @@ public enum DIDError: Error {
             }
             case DIDTransactionError(_ des: String? = nil)
             case DIDResolveError(_ des: String? = nil)
+            case UnsupportedOperationError(_ des: String? = nil)
         }
     }
 }
 
 // MARK: - Error Descriptions
-extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
+extension DIDError.UncheckedError.IllegalArgumentErrors: LocalizedError {
         
     public var errorDescription: String? {
         switch self {
@@ -159,6 +133,10 @@ extension DIDError.UncheckedError.IllegalArgumentError: LocalizedError {
         case .NullPointerErroe(let des):
             return des
         case .DataParsingError(let des):
+            return des
+        case .IllegalArgumentError(let des):
+            return des
+        case .EncryptToBase64Error(let des):
             return des
         }
     }
@@ -266,16 +244,16 @@ extension DIDError.CheckedError.DIDStoreError: LocalizedError {
             return des
         case .DIDStoreError(let des):
             return des
+        case .DIDStorageError(let des):
+            return des
         }
     }
 }
 
-extension DIDError.CheckedError.DIDStoreError.DIDStorageError: LocalizedError {
+extension DIDError.CheckedError.DIDStoreError.DIDStorageErrors: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .DIDStoreVersionMismatchError(let des):
-            return des
-        case .DIDStorageError(let des):
             return des
         }
     }
@@ -287,6 +265,8 @@ extension DIDError.CheckedError.DIDBackendError: LocalizedError {
         case .DIDTransactionError(let des):
             return des
         case .DIDResolveError(let des):
+            return des
+        case .UnsupportedOperationError(let des):
             return des
         }
     }
@@ -300,62 +280,3 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveErrors: LocalizedError
         }
     }
 }
-
-
-//////// remove --------------------
-extension DIDError {
-    static func desription(_ error: DIDError) -> String {
-        switch error {
-        case .unknownFailure(let des):
-            return des ?? "unknown failure"
-        case .illegalArgument(let des):
-            return des ?? "invalid arguments"
-
-        case .malformedMeta(let des):
-            return des ?? "malformed metadata"
-        case .malformedDID(let des):
-            return des ?? "malformed DID string"
-        case .malformedDIDURL(let des):
-            return des ?? "malformed DIDURL string"
-        case .malformedDocument(let des):
-            return des ?? "malformed DID document"
-        case .malformedCredential(let des):
-            return des ?? "malformed credential"
-        case .malformedPresentation(let des):
-            return des ?? "malformed presentation"
-
-        case .didStoreError(let des):
-            return des ?? "unknown didstore error"
-
-        case .didResolveError(let des):
-            return des ?? "did resolve failure"
-        case .didDeactivated(let des):
-            return des ?? "did was deactivated"
-        case .didExpired(let des):
-            return des ?? "did was expired"
-
-        case .didtransactionError(let des):
-            return des ?? "did transaction failure"
-
-        case .invalidState(let des):
-            return des ?? "invalid wrong state"
-
-        case .notFoundError(let des):
-            return des ?? "not found"
-        case .didNotFoundError(let des):
-            return des ?? "did not found"
-        case .invalidKeyError(let des):
-            return des ?? "invalid key"
-        case .didMetaDateLocalFormatError(let des):
-            return des ?? "Loading metadata format error."
-        case .didNotUpToDate(let des):
-            return des ?? "DID document not up-to-date."
-        case .didNotGenuine(let des):
-            return des ?? "Publish failed because document is not genuine."
-        case .IllegalArgumentError(let des):
-            return des ?? "invalid arguments"
-        }
-    }
-}
-//////////////////////////
-

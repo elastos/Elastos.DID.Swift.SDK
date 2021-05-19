@@ -73,42 +73,38 @@ public class VerifiablePresentationProof: NSObject {
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiablePresentationProof {
-        let error = { (des) -> DIDError in
-            return DIDError.malformedPresentation(des)
-        }
-
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(Constants.DEFAULT_PUBLICKEY_TYPE)
-                                .withError(error)
-                                .withHint("presentation proof type")
-        let type = try serializer.getString(Constants.TYPE, options)
+        guard let type = try serializer.getString(Constants.TYPE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof type")
+        }
 
         options = JsonSerializer.Options()
                                 .withRef(ref)
-                                .withError(error)
-                                .withHint("presentation proof verificationMethod")
-        let method = try serializer.getDIDURL(Constants.VERIFICATION_METHOD, options)
+        guard let method = try serializer.getDIDURL(Constants.VERIFICATION_METHOD, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof verificationMethod")
+        }
 
         options = JsonSerializer.Options()
-                                .withError(error)
-                                .withHint("presentation proof realm")
-        let realm = try serializer.getString(Constants.REALM, options)
+        guard let realm = try serializer.getString(Constants.REALM, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof realm")
+        }
 
         options = JsonSerializer.Options()
-                                .withError(error)
-                                .withHint("presentation proof nonce")
-        let nonce = try serializer.getString(Constants.NONCE, options)
+        guard let nonce = try serializer.getString(Constants.NONCE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof nonce")
+        }
 
         options = JsonSerializer.Options()
-                                .withError(error)
-                                .withHint("presentation proof signature")
-        let signature = try serializer.getString(Constants.SIGNATURE, options)
+        guard let signature = try serializer.getString(Constants.SIGNATURE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof signature")
+        }
 
-        return VerifiablePresentationProof(type, method!, realm, nonce, signature)
+        return VerifiablePresentationProof(type, method, realm, nonce, signature)
     }
 
     func toJson(_ generator: JsonGenerator) {

@@ -67,21 +67,19 @@ public class DIDURL: NSObject {
     /// - Throws: If error occurs, throw error.
     @objc
     public init(_ baseRef: DID, _ url: String) throws {
-        guard !url.isEmpty else {
-            throw DIDError.illegalArgument("Invalid url")
-        }
         super.init()
+        try checkArgument(!url.isEmpty, "Invalid url")
         var fragment = url
         if url.hasPrefix("did:") {
             do {
                 try ParserHelper.parse(url, false, DIDURL.Listener(self))
             } catch {
                 Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-                throw DIDError.malformedDIDURL("malformed DIDURL \(url)")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
             }
 
             guard did == baseRef else {
-                throw DIDError.illegalArgument("Mismatched arguments")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Mismatched arguments")
             }
             return
         }
@@ -101,15 +99,13 @@ public class DIDURL: NSObject {
     /// - Throws: If error occurs, throw error.
     @objc
     public init(_ url: String) throws {
-        guard !url.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
         super.init()
+        try checkArgument(!url.isEmpty, "Invalid url")
         do {
             try ParserHelper.parse(url, false, DIDURL.Listener(self))
         } catch {
             Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-            throw DIDError.malformedDIDURL("malformed DIDURL \(url)")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
         }
     }
     

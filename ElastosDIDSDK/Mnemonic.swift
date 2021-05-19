@@ -41,16 +41,14 @@ public class Mnemonic: NSObject {
     /// - Returns: Random mnemonic.
     @objc
     public static func generate(_ language: String) throws -> String {
-        guard !language.isEmpty else {
-            throw DIDError.illegalArgument("language is empty.")
-        }
+        try checkArgument(!language.isEmpty, "language is empty.")
 
         let result = language.withCString { (clanuage) in
             return HDKey_GenerateMnemonic(clanuage)
         }
 
         guard let _ = result else {
-            throw DIDError.illegalArgument("generate mnemonic failed.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("generate mnemonic failed.")
         }
 
         return String(cString: result!)
@@ -64,13 +62,8 @@ public class Mnemonic: NSObject {
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
     public static func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
-        guard !mnemonic.isEmpty else {
-            throw DIDError.illegalArgument("Invalid mnemonic.")
-        }
-
-        guard !language.isEmpty else {
-            throw DIDError.illegalArgument("Invalid password..")
-        }
+        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic.")
+        try checkArgument(!language.isEmpty, "Invalid password..")
 
         return language.withCString { (clang) in
             return mnemonic.withCString { (cmnemonic) in
@@ -121,6 +114,6 @@ public class Mnemonic: NSObject {
                 continue
             }
         }
-        throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError("Invalid menmonic")
+        throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError("Invalid menmonic")
     }
 }

@@ -73,42 +73,33 @@ public class VerifiableCredentialProof: NSObject {
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialProof {
-        let error = { (des) -> DIDError in
-            return DIDError.malformedCredential(des)
-        }
-
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(Constants.DEFAULT_PUBLICKEY_TYPE)
-                                .withHint("credential proof type")
-                                .withError(error)
-        let type = try serializer.getString(Constants.TYPE, options)
+        guard let type = try serializer.getString(Constants.TYPE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credential proof type")
+        }
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(Constants.CREATED)
-                                .withHint("created time")
-                                .withError(error)
-        var create: String?
-        if let _ = node.get(forKey: Constants.CREATED) {
-            create = try serializer.getString(Constants.CREATED, options)
-        }
+        let create = try serializer.getDate(Constants.CREATED, options)
         
         options = JsonSerializer.Options()
                                 .withRef(ref)
-                                .withHint("credential proof verificationMethod")
-                                .withError(error)
-        let method = try serializer.getDIDURL(Constants.VERIFICATION_METHOD, options)
+        guard let method = try serializer.getDIDURL(Constants.VERIFICATION_METHOD, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credential proof verificationMethod")
+        }
 
         options = JsonSerializer.Options()
-                                .withHint("credential proof signature")
-                                .withError(error)
-        let signature = try serializer.getString(Constants.SIGNATURE, options)
+        guard let signature = try serializer.getString(Constants.SIGNATURE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credential proof signature")
+        }
         
-        return VerifiableCredentialProof(type, method!, (create != nil ? DateFormatter.convertToUTCDateFromString(create!) : nil), signature)
+        return VerifiableCredentialProof(type, method, create, signature)
     }
 
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {

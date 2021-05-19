@@ -24,13 +24,13 @@ import Foundation
 extension NSObject {
     static func checkArgument(_ full: Bool, _ mesg: String) throws {
         guard full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(mesg)
         }
     }
     
     func checkArgument(_ full: Bool, _ mesg: String) throws {
         guard full else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(mesg)
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(mesg)
         }
     }
 }

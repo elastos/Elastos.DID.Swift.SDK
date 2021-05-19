@@ -91,14 +91,11 @@ public class DIDDocumentBuilder: NSObject {
                                 _ controller: DID,
                                 _ keyBase58: String) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        
-        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES, "Invalid keyBase58")
 
         let publicKey = PublicKey(id, controller, keyBase58)
         guard document!.appendPublicKey(publicKey) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid publicKey")
         }
 
         invalidateProof()
@@ -108,10 +105,10 @@ public class DIDDocumentBuilder: NSObject {
     private func appendPublicKey(_ key: PublicKey) throws {
         for pk in document!.publicKeyMap.values({ value -> Bool in return true }) {
             if pk.getId() == key.getId() {
-                throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()))' already exist.")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()?.toString()))' already exist.")
             }
             if pk.publicKeyBase58 == key.publicKeyBase58 {
-                throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("PublicKey '\(key.publicKeyBase58)' already exist.")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(key.publicKeyBase58)' already exist.")
             }
         }
         
@@ -163,10 +160,10 @@ public class DIDDocumentBuilder: NSObject {
         try checkNotSealed()
         let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         guard document!.publicKeyCount != 0 else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
         if document!.defaultPublicKey() != nil && document!.defaultPublicKey()?.getId() == id {
@@ -239,11 +236,11 @@ public class DIDDocumentBuilder: NSObject {
 
         let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         // Check the controller is current DID subject
         guard try key!.controller == getSubject() else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(id.toString())
         }
         if (!key!.isAuthenticationKey) {
             key!.setAuthenticationKey(true)
@@ -282,13 +279,13 @@ public class DIDDocumentBuilder: NSObject {
         try checkNotSealed()
 
         guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError()
         }
 
         let key = PublicKey(id, try getSubject(), keyBase58)
         key.setAuthenticationKey(true)
         guard document!.appendPublicKey(key) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("PublicKey '\(keyBase58)' already exist.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(keyBase58)' already exist.")
         }
         invalidateProof()
         
@@ -328,12 +325,12 @@ public class DIDDocumentBuilder: NSObject {
     private func removeAuthenticationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         if document!.publicKeys().isEmpty {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
         let key = document!.publicKeyMap.get(forKey: try canonicalId(id)!) { value -> Bool in return true }
         guard let _ = key, key!.isAuthenticationKey else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
         // Can not remove default public key
@@ -375,16 +372,16 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         guard !document!.publicKeys().isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
         let key = try document!.publicKey(ofId: id)
         guard let _ = key else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         // Can not authorize to self
         guard try key!.controller != getSubject() else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(id.toString())
         }
         
         if !key!.isAuthorizationKey {
@@ -428,10 +425,7 @@ public class DIDDocumentBuilder: NSObject {
                                        _ controller: DID,
                                        _ keyBase58: String) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        
-        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES, "Invalied keyBase58")
 
         let key = PublicKey(id, controller, keyBase58)
         key.setAuthorizationKey(true)
@@ -488,25 +482,21 @@ public class DIDDocumentBuilder: NSObject {
 
         return try appendAuthorizationKey(DIDURL(getSubject(), id), controller, keyBase58)
     }
-
+                 
     private func authorizationDid(_ id: DIDURL,
                                   _ controller: DID,
                                   _ key: DIDURL?) throws -> DIDDocumentBuilder {
         try checkNotSealed()
+        try checkArgument(controller != getSubject(), "Invalid controller")
+        try checkArgument(id.did == getSubject(), "Invalid publicKey id")
         
-        guard try controller != getSubject() else {
-            throw DIDError.illegalArgument()
+        if document!.isCustomizedDid() {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(try getSubject().toString())
         }
-
         let controllerDoc: DIDDocument?
-        do {
-            controllerDoc = try controller.resolve()
-        } catch {
-            throw DIDError.didResolveError("Can not resolve \(controller) DID.")
-        }
-
+        controllerDoc = try controller.resolve()
         guard let _ = controllerDoc else {
-            throw DIDError.notFoundError(id.toString())
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(id.toString())
         }
 
         var usedKey: DIDURL? = key
@@ -517,7 +507,7 @@ public class DIDDocumentBuilder: NSObject {
         // Check the key should be a authentication key
         let targetKey = try controllerDoc!.authenticationKey(ofId: usedKey!)
         guard let _ = targetKey else {
-            throw DIDError.illegalArgument()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(usedKey!.toString())
         }
 
         let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
@@ -598,7 +588,7 @@ public class DIDDocumentBuilder: NSObject {
         try checkNotSealed()
         
         guard try document!.removeAuthorizationKey(id) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         invalidateProof()
         
@@ -642,10 +632,8 @@ public class DIDDocumentBuilder: NSObject {
                                   _ expirationDate: Date?,
                                   _ storePassword: String) throws -> DIDDocumentBuilder  {
         try checkNotSealed()
-
-        guard !subject.isEmpty && !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!subject.isEmpty, "Invalid subject")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
 
         let realTypes: Array<String>
         if let _ = types {
@@ -816,9 +804,8 @@ public class DIDDocumentBuilder: NSObject {
                                   _ storePassword: String) throws -> DIDDocumentBuilder {
         try checkNotSealed()
 
-        guard !json.isEmpty && !storePassword.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!json.isEmpty, "Invalid json")
+        try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
 
         let realTypes: Array<String>
         if let _ = types {
@@ -1029,7 +1016,7 @@ public class DIDDocumentBuilder: NSObject {
         if document!.serviceMap.get(forKey: svc.id, { _ -> Bool in
             return true
         }) != nil {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
         }
         _ = document!.appendService(svc)
         invalidateProof()
@@ -1097,7 +1084,7 @@ public class DIDDocumentBuilder: NSObject {
         try checkNotSealed()
         
         guard document!.removeService(id) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
         invalidateProof()
@@ -1144,7 +1131,7 @@ public class DIDDocumentBuilder: NSObject {
 
         let maxExpirationDate = DateFormatter.maxExpirationDate()
         guard !DateFormatter.isExpired(expiresDate, maxExpirationDate) else {
-            throw DIDError.illegalArgument()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid expires, out of range.")
         }
 
         document!.setExpirationDate(expiresDate)
@@ -1337,7 +1324,7 @@ public class DIDDocumentBuilder: NSObject {
 
         if expires > getMaxExpires() {
             // Error
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidExpires("Invalid expires, out of range.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidExpires("Invalid expires, out of range.")
         }
         document?._expires = expires
         invalidateProof()
@@ -1354,7 +1341,7 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         if document!._proofsDic.removeValue(forKey: controller) == nil {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError("No proof signed by: \(controller)")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError("No proof signed by: \(controller)")
         }
         return self
     }

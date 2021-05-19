@@ -63,7 +63,7 @@ public class DIDRequest: IDChainRequest {
         do {
             try request.seal(signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         return request
@@ -83,7 +83,7 @@ public class DIDRequest: IDChainRequest {
         do {
             try request.seal(signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         return request
@@ -103,7 +103,7 @@ public class DIDRequest: IDChainRequest {
         do {
             try request.seal(signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         return request
@@ -122,7 +122,7 @@ public class DIDRequest: IDChainRequest {
         do {
             try request.seal(signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         return request
@@ -143,7 +143,7 @@ public class DIDRequest: IDChainRequest {
         do {
             try request.seal(targetSignKey, doc, signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         return request
@@ -238,14 +238,14 @@ public class DIDRequest: IDChainRequest {
                 self._did = try DID(payload!)
             }
         } catch {
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid payload \(DIDError.desription(error as! DIDError))")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid payload \(error.localizedDescription)")
         }
         proof?.qualifyVerificationMethod(_did!)
     }
     
     func seal(_ signKey: DIDURL, _ storePassword: String) throws {
         guard try _doc!.containsAuthenticationKey(forId: signKey) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not an authentication key.")
         }
         
         guard payload != nil, !payload!.isEmpty else {
@@ -257,10 +257,10 @@ public class DIDRequest: IDChainRequest {
     
     func seal(_ targetSignKey: DIDURL, _ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
         guard try _doc!.containsAuthorizationKey(forId: targetSignKey) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authorization key: \(targetSignKey).")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not an authorization key: \(targetSignKey).")
         }
         guard try doc.containsAuthenticationKey(forId: signKey) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key: \(signKey).")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not an authentication key: \(signKey).")
         }
         guard payload != nil, !payload!.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Missing payload")

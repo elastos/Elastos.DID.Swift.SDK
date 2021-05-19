@@ -579,7 +579,7 @@ class VerifiableCredentialTest: XCTestCase {
             //TODO:
             XCTAssertThrowsError(_ = try VerifiableCredential.revoke(credential.getId()!, d, storePassword)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError: break
                 default:
                     XCTFail()
                 }

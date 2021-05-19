@@ -139,7 +139,7 @@ public class AbstractMetadata: NSObject {
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: String) throws {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         put(USER_EXTRA_PREFIX + key, value)
@@ -151,7 +151,7 @@ public class AbstractMetadata: NSObject {
     /// - Throws: throw an exception when the key is empty
     public func getExtra(_ key: String) throws -> String? {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         return get(USER_EXTRA_PREFIX + key)
@@ -164,7 +164,7 @@ public class AbstractMetadata: NSObject {
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: Bool) throws {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         put(USER_EXTRA_PREFIX + key, value)
@@ -176,7 +176,7 @@ public class AbstractMetadata: NSObject {
     /// - Returns: the value bool
     public func getExtraBoolean(_ key: String) throws -> Bool? {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         return getBoolean(USER_EXTRA_PREFIX + key)
@@ -184,7 +184,7 @@ public class AbstractMetadata: NSObject {
     
     public func setExtra(_ key: String, _ value: Int) throws {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         put(USER_EXTRA_PREFIX + key, value)
@@ -192,7 +192,7 @@ public class AbstractMetadata: NSObject {
     
     public func getExtraInteger(_ key: String) throws -> Int? {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         return getInteger(USER_EXTRA_PREFIX + key)
@@ -200,7 +200,7 @@ public class AbstractMetadata: NSObject {
     
     public func setExtra(_ key: String, _ value: Date) throws {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         put(USER_EXTRA_PREFIX + key, value)
@@ -208,7 +208,7 @@ public class AbstractMetadata: NSObject {
     
     public func getExtraDate(_ key: String) throws -> Date? {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         return getDate(USER_EXTRA_PREFIX + key)
@@ -216,7 +216,7 @@ public class AbstractMetadata: NSObject {
     
     public func removeExtra(_ key: String) throws -> String? {
         guard key.isEmpty else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Invalid key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
         return try remove(USER_EXTRA_PREFIX + key)

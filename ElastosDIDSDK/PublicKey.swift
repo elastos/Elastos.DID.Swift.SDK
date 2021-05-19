@@ -97,26 +97,30 @@ public class PublicKey: DIDObject {
 
         options = JsonSerializer.Options()
                                 .withRef(ref)
-                                .withHint("publicKey id")
-        let id = try serializer.getDIDURL(Constants.ID, options)
+        guard let id = try serializer.getDIDURL(Constants.ID, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing publicKey id")
+        }
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(Constants.DEFAULT_PUBLICKEY_TYPE)
-                                .withHint("publicKey type")
-        let type = try serializer.getString(Constants.TYPE, options)
+        guard let type = try serializer.getString(Constants.TYPE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing publicKey type")
+        }
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(ref)
-                                .withHint("publicKey controller")
-        let controller = try serializer.getDID(Constants.CONTROLLER, options)
+        guard let controller = try serializer.getDID(Constants.CONTROLLER, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing publicKey controller")
+        }
 
         options = JsonSerializer.Options()
-                                .withHint("publicKeyBase58")
-        let keybase58 = try serializer.getString(Constants.PUBLICKEY_BASE58, options)
+        guard let keybase58 = try serializer.getString(Constants.PUBLICKEY_BASE58, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing publicKeyBase58")
+        }
 
-        return PublicKey(id!, type, controller, keybase58)
+        return PublicKey(id, type, controller, keybase58)
     }
 
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {

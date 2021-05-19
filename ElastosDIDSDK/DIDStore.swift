@@ -193,7 +193,7 @@ public class DIDStore: NSObject {
         let base64url = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
         let re = encrypt_to_b64(base64url, storePassword, cinput, input.count)
         guard re >= 0 else {
-            throw DIDError.didStoreError("encryptToBase64 error.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.EncryptToBase64Error("encryptToBase64 error.")
         }
         base64url[re] = 0
         return String(cString: base64url)
@@ -270,7 +270,7 @@ public class DIDStore: NSObject {
     
     func setDefaultRootIdentity(_ identity: RootIdentity) throws {
         if try !containsRootIdentity(try identity.getId()) {
-            throw DIDError.didStoreError("Invalid identity, not exists in the store")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid identity, not exists in the store")
         }
         try metadata!.setDefaultRootIdentity(identity.getId())
     }
@@ -294,7 +294,7 @@ public class DIDStore: NSObject {
             }
             return value as? RootIdentity
         } catch {
-            throw DIDError.didStoreError("Load root identity failed: \(id)")
+            throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Load root identity failed: \(id)")
         }
     }
     
@@ -969,12 +969,11 @@ public class DIDStore: NSObject {
         let toPPointer = privatekeys.toPointer()
         
         let cdigest = digest.toPointer()
-        print("capacity = \(capacity)")
         let csig = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
         let re = ecdsa_sign_base64(csig, toPPointer, UnsafeMutablePointer(mutating: cdigest), digest.count)
 
         guard re >= 0 else {
-            throw DIDError.didStoreError("sign error.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStoreError("sign error.")
         }
         csig[re] = 0
         let sig = String(cString: csig)
@@ -1036,7 +1035,7 @@ public class DIDStore: NSObject {
                     finalDoc = h!(resolvedDoc!, localDoc!)
                     if (finalDoc == nil || finalDoc!.subject != did) {
                         Log.e(TAG, "Conflict handle merge the DIDDocument error.")
-                        throw DIDError.didStoreError("deal with local modification error.")
+                        throw DIDError.CheckedError.DIDStoreError.DIDStoreError("deal with local modification error.")
                     } else {
                         Log.d(TAG, "Conflict handle return the final copy.")
                     }
@@ -1254,7 +1253,7 @@ public class DIDStore: NSObject {
                       storePassword: String) throws {
         let dic = try JSONSerialization.jsonObject(with: data,options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: Any]
         guard let _ = dic else {
-            throw DIDError.notFoundError("data is not nil")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError("data is not nil")
         }
         
         let de = try DIDExport.deserialize(dic!)
@@ -1371,7 +1370,7 @@ public class DIDStore: NSObject {
                       storePassword: String) throws {
         let dic = String(data: data, encoding: .utf8)?.toDictionary()
         guard !dic!.isEmpty else {
-            throw DIDError.notFoundError("data is not nil")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError("data is not nil")
         }
     
         let re = try RootIdentityExport.deserialize(dic!)

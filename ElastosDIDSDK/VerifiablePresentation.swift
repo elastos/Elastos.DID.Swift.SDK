@@ -320,10 +320,7 @@ public class VerifiablePresentation: NSObject {
     }
 
     private func parse(_ node: JsonNode) throws {
-        let error = { (des) -> DIDError in
-            return DIDError.malformedPresentation(des)
-        }
-        
+
         let id = node.get(forKey: ID)?.asString()
         if let _ = id {
             _id = try DIDURL(id!)
@@ -332,9 +329,6 @@ public class VerifiablePresentation: NSObject {
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
         // _holder
-        options = JsonSerializer.Options()
-                                .withHint("holder")
-                                .withError(error)
         let holder = node.get(forKey: HOLDER)?.asString()
         if holder != nil && holder! != "" {
             _holder = try DID(holder!)
@@ -348,24 +342,24 @@ public class VerifiablePresentation: NSObject {
         }
         else {
             options = JsonSerializer.Options()
-                .withHint("presentation type")
-                .withError(error)
-            let type = try serializer.getString(Constants.TYPE, options)
+            guard let type = try serializer.getString(Constants.TYPE, options) else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation type")
+            }
             guard type == Constants.DEFAULT_PRESENTATION_TYPE else {
-                throw DIDError.malformedPresentation("unkown presentation type:\(type)")
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("unkown presentation type:\(type)")
             }
             _types.append(type)
         }
         
         options = JsonSerializer.Options()
-                                .withHint("presentation created date")
-                                .withError(error)
-        let createdDate = try serializer.getDate(Constants.CREATED, options)
+        guard let createdDate = try serializer.getDate(Constants.CREATED, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("presentation created date")
+        }
         setCreatedDate(createdDate)
 
         let arrayNode = node.get(forKey: Constants.VERIFIABLE_CREDENTIAL)?.asArray()
         guard let _ = arrayNode else {
-            throw DIDError.malformedPresentation("missing credential")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("missing credential")
         }
 
         for node in arrayNode! {
@@ -374,7 +368,7 @@ public class VerifiablePresentation: NSObject {
 
         let subNode = node.get(forKey: Constants.PROOF)
         guard let _ = subNode else {
-            throw DIDError.malformedPresentation("missing presentation proof")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("missing presentation proof")
         }
 
         let proof = try VerifiablePresentationProof.fromJson(subNode!, nil)
@@ -389,18 +383,15 @@ public class VerifiablePresentation: NSObject {
     /// - Returns: The handle to Presentation
     @objc
     public static func fromJson(_ json: String) throws -> VerifiablePresentation {
-        guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-
+        try checkArgument(!json.isEmpty, "Invalid json.")
         let data: [String: Any]?
         do {
             data = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String: Any]
         } catch {
-            throw DIDError.malformedPresentation("parse presentation json error")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("parse presentation json error")
         }
         guard let _ = data else {
-            throw DIDError.malformedPresentation("parse presentation json error")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("parse presentation json error")
         }
         let vp = VerifiablePresentation()
         try vp.parse(JsonNode(data!))
@@ -494,10 +485,10 @@ public class VerifiablePresentation: NSObject {
         do {
             holder = try store.loadDid(did)
             if holder == nil {
-                throw DIDError.didStoreError("Can not load DID.")
+                throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Can not load DID.")
             }
         } catch {
-            throw DIDError.unknownFailure("Can not load DID")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Can not load DID")
         }
 
         // If no 'signKey' provided, use default public key. Otherwise,
@@ -506,13 +497,13 @@ public class VerifiablePresentation: NSObject {
             useKey = holder!.defaultPublicKeyId()!
         } else {
             guard try holder!.containsAuthenticationKey(forId: signKey!) else {
-                throw DIDError.illegalArgument("Not an authentication key.")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not an authentication key.")
             }
             useKey = signKey!
         }
 
         guard try holder!.containsPrivateKey(forId: useKey) else {
-            throw DIDError.unknownFailure(Errors.NO_PRIVATE_KEY_EXIST)
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(Errors.NO_PRIVATE_KEY_EXIST)
         }
 
         return VerifiablePresentationBuilder(holder!, useKey)

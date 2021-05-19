@@ -55,7 +55,7 @@ public class CredentialRequest: IDChainRequest {
         do {
             try request.seal(signer, signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(error.localizedDescription)")
         }
         
         return request
@@ -76,7 +76,7 @@ public class CredentialRequest: IDChainRequest {
         do {
             try request.seal(signer, signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(error.localizedDescription)")
         }
         
         return request
@@ -97,7 +97,7 @@ public class CredentialRequest: IDChainRequest {
         do {
             try request.seal(signer, signKey, storePassword)
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(DIDError.desription(error as! DIDError))")
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError("Invalid payload \(error.localizedDescription)")
         }
         
         return request
@@ -181,14 +181,14 @@ public class CredentialRequest: IDChainRequest {
                 self.id = try DIDURL(payload!)
             }
         } catch {
-            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid payload \(DIDError.desription(error as! DIDError))")
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedIDChainRequestError("Invalid payload \(error.localizedDescription)")
         }
         proof?.qualifyVerificationMethod(id!.did!)
     }
     
     func seal(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
         guard try doc.containsAuthenticationKey(forId: signKey) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not an authentication key.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not an authentication key.")
         }
         
         guard payload != nil, !payload!.isEmpty else {

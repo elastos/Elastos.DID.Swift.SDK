@@ -99,7 +99,7 @@ extension String {
             return data
         }
         else {
-            throw DIDError.unknownFailure("path not Exists.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("path not Exists.")
         }
     }
     
@@ -111,7 +111,7 @@ extension String {
             return  String(data: data, encoding: .utf8) ?? ""
         }
         else {
-            throw DIDError.unknownFailure("path not Exists.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("path not Exists.")
         }
     }
     

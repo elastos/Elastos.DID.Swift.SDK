@@ -55,7 +55,7 @@ class IssuerTest: XCTestCase {
             
             XCTAssertThrowsError(_ = try VerifiableCredentialIssuer(doc!, signKey)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError: break
                 default:
                     XCTFail()
                 }
@@ -71,7 +71,7 @@ class IssuerTest: XCTestCase {
             let doc = issuerDoc
             XCTAssertThrowsError(_ = try VerifiableCredentialIssuer(doc!, signKey)){ error in
                 switch error {
-                case DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError: break
                 default:
                     XCTFail()
                 }

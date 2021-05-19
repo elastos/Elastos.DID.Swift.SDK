@@ -423,7 +423,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         let vc = try VerifiableCredential(self, false)
         let json = vc.toString(true)
         guard let data = json.data(using: .utf8) else {
-            throw DIDError.illegalArgument("credential is nil")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("credential is nil")
         }
         guard try issuerDoc!.verify(withId: proof!.verificationMethod, using: proof!.signature, onto: data) else {
             return false
@@ -549,12 +549,12 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         
         if signKey == nil && owner?.defaultPublicKeyId() == nil {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Unknown sign key.")
         }
         var sk = signKey
         if (sk != nil) {
             if (try !owner!.containsAuthenticationKey(forId: signKey!)) {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(signKey!.toString())
             }
         } else {
             sk = owner!.defaultPublicKeyId()
@@ -644,16 +644,16 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         if sg!.subject != subject?.did && sg!.subject != issuer && !owner!.hasController(sg!.subject) && !issuerDoc!.hasController(sg!.subject) {
             Log.e(TAG, "Publish failed because the invalid signer or signkey.")
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not owner or issuer: \(sg!.subject)")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not owner or issuer: \(sg!.subject)")
         }
         
         if signKey == nil && sg!.defaultPublicKeyId() == nil {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Unknown sign key")
         }
         var sk = signKey
         if signKey != nil{
             guard try sg!.containsAuthenticationKey(forId: signKey!) else {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(signKey!.toString())
             }
         }
         else {
@@ -783,17 +783,17 @@ public class VerifiableCredential: DIDObject, Mappable {
             let vc = bio!.getTransaction(0).request.credential
             guard signer == vc!.subject!.did else {
                 Log.e(NSStringFromClass(VerifiableCredential.self), "Publish failed because the invalid signer or signkey.")
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Not owner or issuer: \(signer.subject)")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not owner or issuer: \(signer.subject)")
             }
         }
         
         if signKey == nil && signer.defaultPublicKeyId() == nil {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("Unknown sign key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Unknown sign key")
         }
         var sk = signKey
         if signKey != nil {
             guard try signer.containsAuthenticationKey(forId: signKey!) else {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(signKey!.toString())
             }
         }
         else {
@@ -1019,10 +1019,6 @@ public class VerifiableCredential: DIDObject, Mappable {
     }
 
     func parse(_ node: JsonNode, _ ref: DID?) throws  {
-        let error = { (des) -> DIDError in
-            return DIDError.malformedCredential(des)
-        }
-
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
 
@@ -1035,10 +1031,9 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
 
         options = JsonSerializer.Options()
-            .withHint("credential expirationDate")
-            .withError(error)
-
-        let expirationDate = try serializer.getDate(Constants.EXPIRATION_DATE, options)
+        guard let expirationDate = try serializer.getDate(Constants.EXPIRATION_DATE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credential expirationDate")
+        }
 
         var subNode = node.get(forKey: Constants.CREDENTIAL_SUBJECT)
         guard let _ = subNode else {
@@ -1051,9 +1046,9 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         options = JsonSerializer.Options()
             .withRef(_ref)
-            .withHint("credential id")
-            .withError(error)
-        let id = try serializer.getDIDURL(Constants.ID, options)
+        guard let id = try serializer.getDIDURL(Constants.ID, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("missing credential id.")
+        }
 
         subNode = node.get(forKey: Constants.PROOF)
         guard let _ = subNode else {
@@ -1062,16 +1057,14 @@ public class VerifiableCredential: DIDObject, Mappable {
 
         options = JsonSerializer.Options()
             .withOptional()
-            .withHint("credential issuer")
-            .withError(error)
         if _ref != nil {
-            options.withRef(_ref)
+            _ = options.withRef(_ref)
         }
-        var issuer = try? serializer.getDID(Constants.ISSUER, options)
+        var issuer = try serializer.getDID(Constants.ISSUER, options)
         options = JsonSerializer.Options()
-            .withHint("credential issuanceDate")
-            .withError(error)
-        let issuanceDate = try serializer.getDate(Constants.ISSUANCE_DATE, options)
+        guard let issuanceDate = try serializer.getDate(Constants.ISSUANCE_DATE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credential issuanceDate")
+        }
 
         if issuer == nil {
             issuer = subject.did
@@ -1082,7 +1075,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         setIssuanceDate(issuanceDate)
         setExpirationDate(expirationDate)
         setSubject(subject)
-        setId(id!)
+        setId(id)
         setProof(proof)
 
         guard let _ = getIssuer() else {
@@ -1109,10 +1102,10 @@ public class VerifiableCredential: DIDObject, Mappable {
         do {
             data = try JSONSerialization.jsonObject(with: json, options: []) as? [String: Any]
         } catch {
-            throw DIDError.didResolveError("Parse resolve result error")
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Parse resolve result error")
         }
         guard let _  = data else {
-            throw DIDError.didResolveError("Parse resolve result error")
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Parse resolve result error")
         }
         return try fromJson(JsonNode(data!), nil)
     }

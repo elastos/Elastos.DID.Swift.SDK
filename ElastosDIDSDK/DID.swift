@@ -49,20 +49,18 @@ public class DID: NSObject {
     @objc
     public init(_ did: String) throws {
         super.init()
-        guard !did.isEmpty else {
-            throw DIDError.illegalArgument("empty did string")
-        }
+        try checkArgument(!did.isEmpty, "did is empty")
 
         do {
             try ParserHelper.parse(did, true, DID.Listener(self))
         } catch {
             Log.e(DID.TAG, "Parsing did error: malformed did string \(did)")
-            let didError = error as? DIDError
+            let didError: DIDError? = error as? DIDError
             var errmsg = "Parsing did error: malformed did string \(did)"
             if didError != nil {
-                errmsg = DIDError.desription(didError!)
+                errmsg = didError!.localizedDescription
             }
-            throw DIDError.UncheckedError.IllegalArgumentError.MalformedDIDError(errmsg)
+            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError(errmsg)
         }
     }
     

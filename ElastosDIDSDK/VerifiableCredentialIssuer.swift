@@ -39,10 +39,10 @@ public class VerifiableCredentialIssuer: NSObject {
         // should make sure the key would be authenticationKey and
         // has corresponding private key to make sign.
         guard try doc.containsAuthenticationKey(forId: key!) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError()
         }
         guard try doc.containsPrivateKey(forId: key!) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(Errors.NO_PRIVATE_KEY_EXIST)
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(Errors.NO_PRIVATE_KEY_EXIST)
         }
 
         self._issuerDoc = doc
@@ -72,10 +72,10 @@ public class VerifiableCredentialIssuer: NSObject {
         do {
             doc = try store.loadDid(did)
             if doc == nil {
-                throw DIDError.didStoreError("Can not load DID.")
+                throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Can not load DID.")
             }
         } catch {
-            throw DIDError.didResolveError("Can not resolve did")
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Can not resolve did")
         }
         try self.init(doc: doc!, signKey: signKey)
     }

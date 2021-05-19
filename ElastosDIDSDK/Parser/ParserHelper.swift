@@ -31,7 +31,7 @@ class DIDAntlr4ErrorListener: BaseErrorListener {
                                  _ msg: String,
                                  _ e: AnyObject?) throws where T : ATNSimulator {
         let msg = "At position \(charPositionInLine) : \(msg), \(String(describing: e))"
-        throw DIDError.illegalArgument(msg)
+        throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(msg)
     }
 }
 

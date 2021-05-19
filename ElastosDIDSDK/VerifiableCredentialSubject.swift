@@ -118,11 +118,9 @@ public class VerifiableCredentialSubject: NSObject {
         let options    = JsonSerializer.Options()
                                     .withOptional(ref != nil)
                                     .withRef(ref)
-                                    .withHint("credentialSubject id")
-                                    .withError() { (des) -> DIDError in
-                                        return DIDError.malformedCredential(des)
-                                    }
-        let did = try serializer.getDID(Constants.ID, options)
+        guard let did = try serializer.getDID(Constants.ID, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Mssing credentialSubject id")
+        }
 
         let credential = VerifiableCredentialSubject(did)
         credential.setProperties(node)
@@ -131,10 +129,7 @@ public class VerifiableCredentialSubject: NSObject {
 
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
         generator.writeStartObject()
-
-//        if normalized || ref == nil || self.did != ref! {
         generator.writeStringField(Constants.ID, self.did.toString())
-//        }
 
         if self.propertyCount > 0 {
             toJson(generator, self._properties, true)

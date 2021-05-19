@@ -80,7 +80,7 @@ public class DefaultDIDAdapter: DIDAdapter {
         semaphore.wait()
         
         guard let _ = result else {
-            throw DIDError.didResolveError(errDes ?? "Unknown error")
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError(errDes ?? "Unknown error")
         }
         
         return result!
@@ -92,6 +92,6 @@ public class DefaultDIDAdapter: DIDAdapter {
     
     public func createIdTransaction(_ payload: String, _ memo: String?) throws {
      
-        throw DIDError.notFoundError("Not implemented")
+        throw DIDError.CheckedError.DIDBackendError.UnsupportedOperationError("Not implemented")
     }
 }

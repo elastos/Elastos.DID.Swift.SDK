@@ -42,11 +42,11 @@ public class MultiSignature: NSObject {
     
     public init(_ mOfN: String) throws {
         if mOfN.isEmpty {
-            throw DIDError.IllegalArgumentError("Invalid multisig spec")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid multisig spec")
         }
         let mn: [Substring] = mOfN.split(separator: ":")
         guard mn.count == 2 else {
-            throw DIDError.IllegalArgumentError("Invalid multisig spec")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid multisig spec")
         }
         // note: test       !!!!
         _m = Int(mn[0])!
@@ -57,7 +57,7 @@ public class MultiSignature: NSObject {
     
     func apply(_ m: Int, _ n: Int) throws {
         if (m <= 0 || n <= 1 || m > n) {
-            throw DIDError.IllegalArgumentError("Invalid multisig spec")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid multisig spec")
         }
     }
     

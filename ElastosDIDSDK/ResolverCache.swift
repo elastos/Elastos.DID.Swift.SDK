@@ -52,7 +52,7 @@ public class ResolverCache: NSObject {
     
     private class func getCacheDir() throws -> String {
         if rootDir == "" {
-            throw DIDError.illegalArgument("No cache dir specified for ResolverCache")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("No cache dir specified for ResolverCache")
         }
         return rootDir
     }

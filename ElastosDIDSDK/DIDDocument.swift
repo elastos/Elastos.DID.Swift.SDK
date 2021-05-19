@@ -303,7 +303,7 @@ public class DIDDocument: NSObject {
         }
         
         guard hasController(controller!) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError("No this controller")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError("No this controller")
         }
         _effectiveController = controller
         
@@ -537,14 +537,13 @@ public class DIDDocument: NSObject {
     }
     
     func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
+        try checkAttachedStore()
         guard try containsPublicKey(forId: ofId) else {
-            throw DIDError.illegalArgument("Key no exist")
-        }
-        guard getMetadata().attachedStore else {
-            throw DIDError.didStoreError("Not attached with DID store.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No publicKey key: \(ofId)")
         }
         guard try getMetadata().store!.containsPrivateKey(for: ofId) else {
-            throw DIDError.illegalArgument("Don't have private key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No private key: \(ofId)")
+
         }
         let pubKey = try publicKey(ofId: ofId)
         let pubs = pubKey!.publicKeyBytes
@@ -555,14 +554,12 @@ public class DIDDocument: NSObject {
     }
 
     func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
+        try checkAttachedStore()
         guard try containsPublicKey(forId: ofId) else {
-            throw DIDError.illegalArgument("Key no exist")
-        }
-        guard getMetadata().attachedStore else {
-            throw DIDError.didStoreError("Not attached with DID store.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No publicKey key: \(ofId)")
         }
         guard try getMetadata().store!.containsPrivateKey(for: ofId) else {
-            throw DIDError.illegalArgument("Don't have private key")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No private key: \(ofId)")
         }
 
         let pubKey = try publicKey(ofId: ofId)
@@ -1174,10 +1171,10 @@ public class DIDDocument: NSObject {
     func appendCredential(_ vc: VerifiableCredential) throws {
         // Check the credential belongs to current DID.
         guard vc.subject?.did == subject else {
-            throw DIDError.UncheckedError.IllegalArgumentError.IllegalUsageError(vc.subject?.did.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
         }
         guard credentialMap.get(forKey: vc.getId()!, { _ -> Bool in return true }) == nil else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectAlreadyExistError(vc.subject?.did.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
         }
         credentialMap.append(vc)
         _credentials.append(vc)
@@ -1185,11 +1182,11 @@ public class DIDDocument: NSObject {
 
     func removeCredential(_ id: DIDURL) throws {
         guard credentialMap.count({ _ -> Bool in return true }) > 0 else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
         guard credentialMap.remove(try canonicalId(id)) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DIDObjectNotExistError(id.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
     }
 
@@ -1846,7 +1843,7 @@ public class DIDDocument: NSObject {
         }
         
         guard hasController(controller.subject) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(controller.subject.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError(controller.subject.toString())
         }
         
         return try DIDDocumentBuilder(self, controller)
@@ -1922,9 +1919,7 @@ public class DIDDocument: NSObject {
     }
 
     func sign(_ id: DIDURL, _ storePassword: String, _ data: [Data]) throws -> String {
-        guard data.count > 0 else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!data.isEmpty, "Invalid data.")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let digest = sha256Digest(data)
         return try signDigest(withId: id, using: storePassword, for: digest)
@@ -2074,17 +2069,9 @@ public class DIDDocument: NSObject {
     }
 
     func verify(_ id: DIDURL, _ sigature: String, _ data: [Data]) throws -> Bool {
-        guard data.count > 0 else {
-            throw DIDError.illegalArgument()
-        }
-        guard !sigature.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!data.isEmpty, "Invalid data.")
+        try checkArgument(!sigature.isEmpty, "Invalid sigature.")
 
-        let pubKey = try publicKey(ofId: id)
-        guard let _ = pubKey else {
-            throw DIDError.illegalArgument()
-        }
         let digest = sha256Digest(data)
 
         return try verifyDigest(withId: id, using: sigature, for: digest)
@@ -2127,16 +2114,15 @@ public class DIDDocument: NSObject {
     /// - Throws: If no error occurs, throw error.
     /// - Returns: True on success, or false.
     public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data) throws -> Bool {
-        guard !signature.isEmpty else {
-            throw DIDError.illegalArgument()
+        try checkArgument(!signature.isEmpty, "Invalid sigature.")
+        try checkArgument(!digest.isEmpty, "Invalid digest.")
+
+        let pk = try publicKey(ofId: withId)
+        guard let _ = pk else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(withId.toString())
         }
 
-        let pubKey = try publicKey(ofId: withId)
-        guard let _ = pubKey else {
-            throw DIDError.illegalArgument()
-        }
-
-        let pks = pubKey!.publicKeyBytes
+        let pks = pk!.publicKeyBytes
         let pkData = Data(bytes: pks, count: pks.count)
         let cpk = pkData.withUnsafeBytes { (pk: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
             return pk
@@ -2244,8 +2230,7 @@ public class DIDDocument: NSObject {
             try store!.storeDid(using: doc!)
             return doc!
         } catch {
-            // TODO:
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
     }
     
@@ -2295,7 +2280,7 @@ public class DIDDocument: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(did.toString())
         }
         guard target!.hasController(subject) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(did.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError(did.toString())
         }
         let ticket = try TransferTicket(target!, to)
         try ticket.seal(self, storePassword)
@@ -2323,7 +2308,7 @@ public class DIDDocument: NSObject {
         }
         
         guard doc.hasController(subject) else {
-            throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(subject.toString())
+            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError(subject.toString())
         }
         guard doc._proofsDic[subject] == nil else {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(subject.toString())
@@ -2361,7 +2346,7 @@ public class DIDDocument: NSObject {
         }
         else {
             guard try authenticationKey(ofId: sigK!) != nil else {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(sigK!.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(sigK!.toString())
             }
         }
         
@@ -2480,7 +2465,7 @@ public class DIDDocument: NSObject {
         }
         else {
             guard try authenticationKey(ofId: signK!) != nil else {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signK?.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(signK?.toString())
             }
         }
         
@@ -2701,14 +2686,14 @@ public class DIDDocument: NSObject {
             if !doc!.isCustomizedDid() {
                 // the signKey should be default key or authorization key
                 if try doc?.defaultPublicKeyId() != sigK && doc?.authorizationKey(ofId: sigK!) == nil {
-                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+                    throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(subject.toString())
                 }
             }
             else {
                 // the signKey should be controller's default key
                 let controller = doc?.controllerDocument(sigK!.did!)
                 if controller == nil || controller!.defaultPublicKeyId() != sigK {
-                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(subject.toString())
+                    throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(subject.toString())
                 }
             }
         }
@@ -2837,7 +2822,7 @@ public class DIDDocument: NSObject {
         targetDoc!.getMetadata().attachStore(store!)
         if !targetDoc!.isCustomizedDid() {
             if targetDoc!.authorizationKeyCount == 0 {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("No authorization key from: \(target)")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No authorization key from: \(target)")
             }
             var candidatePks: [PublicKey] = []
             if signKey == nil {
@@ -2846,7 +2831,7 @@ public class DIDDocument: NSObject {
             else {
                 let pk = try authenticationKey(ofId: signKey!)
                 guard let _ = pk else {
-                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(signKey!.toString())
+                    throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(signKey!.toString())
                 }
                 candidatePks.append(pk!)
             }
@@ -2866,20 +2851,20 @@ public class DIDDocument: NSObject {
                 }
             }
             guard realSignKey != nil , targetSignKey != nil else {
-                throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError("No matched authorization key.")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No matched authorization key.")
             }
             try DIDBackend.sharedInstance().deactivateDid(targetDoc!, targetSignKey!, self, realSignKey!, storePassword, adapter)
         }
         else {
             guard targetDoc!.hasController(subject) else {
-                throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(subject.toString())
+                throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError(subject.toString())
             }
             if _signKey == nil {
                 _signKey = defaultPublicKeyId()
             }
             else {
                 guard _signKey == defaultPublicKeyId() else {
-                    throw DIDError.UncheckedError.IllegalArgumentError.InvalidKeyError(_signKey!.toString())
+                    throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(_signKey!.toString())
                 }
             }
             
@@ -3002,8 +2987,9 @@ public class DIDDocument: NSObject {
 
         // subject
         options = JsonSerializer.Options()
-                                .withHint("document subject")
-        let did = try serializer.getDID(Constants.ID, options)
+        guard let did = try serializer.getDID(Constants.ID, options) else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Mssing subject")
+        }
         setSubject(did)
 
         // controller
@@ -3070,15 +3056,14 @@ public class DIDDocument: NSObject {
         //expires
         options = JsonSerializer.Options()
                                 .withOptional()
-                                .withHint("document expires")
-        let expirationDate = try serializer.getDate(Constants.EXPIRES, options)
+        guard let expirationDate = try serializer.getDate(Constants.EXPIRES, options) else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidExpires("Mssing document expires")
+        }
         self.setExpirationDate(expirationDate)
 
         //proof
         node = doc.get(forKey: Constants.PROOF)
-        guard let _ = node else {
-            throw DIDError.malformedDocument("missing document proof")
-        }
+        try checkArgument(node != nil, "missing document proof")
         try parseProof(node!)
     
         try sanitize()
@@ -3123,18 +3108,11 @@ public class DIDDocument: NSObject {
     private func parsePublicKeys(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
 
-        guard array?.count ?? 0 > 0 else {
-            throw DIDError.malformedDocument("invalid publicKeys, should not be empty.")
-        }
-
+        try checkArgument(array != nil || !array!.isEmpty, "invalid publicKeys, should not be empty.")
         for node in array! {
-            do {
-                let pk = try PublicKey.fromJson(node, self.subject)
-                _ = appendPublicKey(pk)
-                _publickeys.append(pk)
-            } catch {
-                throw DIDError.malformedDocument()
-            }
+            let pk = try PublicKey.fromJson(node, self.subject)
+            _ = appendPublicKey(pk)
+            _publickeys.append(pk)
         }
     }
 
@@ -3143,25 +3121,21 @@ public class DIDDocument: NSObject {
         guard array?.count ?? 0 > 0 else {
             return
         }
-
+        
         for node in array! {
-            do {
-                var pk: PublicKey
-                if let _ = node.asDictionary() {
-                    pk =  try PublicKey.fromJson(node, self.subject)
-                }
-                else {
-                    let serializer = JsonSerializer(node)
-                    var options: JsonSerializer.Options
-                    options = JsonSerializer.Options()
-                                            .withRef(subject)
-                    let didUrl = try serializer.getDIDURL(options)
-                    pk = try publicKey(ofId: didUrl!)!
-                }
-                _ = try appendAuthenticationKey(pk.getId()!)
-            } catch {
-                throw DIDError.malformedDocument()
+            var pk: PublicKey
+            if let _ = node.asDictionary() {
+                pk =  try PublicKey.fromJson(node, self.subject)
             }
+            else {
+                let serializer = JsonSerializer(node)
+                var options: JsonSerializer.Options
+                options = JsonSerializer.Options()
+                    .withRef(subject)
+                let didUrl = try serializer.getDIDURL(options)
+                pk = try publicKey(ofId: didUrl!)!
+            }
+            _ = try appendAuthenticationKey(pk.getId()!)
         }
     }
 
@@ -3172,22 +3146,18 @@ public class DIDDocument: NSObject {
         }
 
         for node in array! {
-            do {
-                // ADD
-                var key = node.toString()
-                var _: PublicKey?
-                for pk in publicKeys {
-                    if key.hasPrefix("#") {
-                        key = subject.toString() + key
-                    }
-                    let didURL = try DIDURL(key)
-                    if pk.getId() == didURL {
-                        let rf = PublicKeyReference(didURL, pk)
-                        self._authorizations.append(rf)
-                    }
+            // ADD
+            var key = node.toString()
+            var _: PublicKey?
+            for pk in publicKeys {
+                if key.hasPrefix("#") {
+                    key = subject.toString() + key
                 }
-            } catch {
-                throw DIDError.malformedDocument()
+                let didURL = try DIDURL(key)
+                if pk.getId() == didURL {
+                    let rf = PublicKeyReference(didURL, pk)
+                    self._authorizations.append(rf)
+                }
             }
         }
     }
@@ -3208,13 +3178,9 @@ public class DIDDocument: NSObject {
         guard array?.count ?? 0 > 0 else {
             return
         }
-
+        
         for node in array! {
-            do {
-                _ = appendService(try Service.fromJson(node, self.subject))
-            } catch {
-                throw DIDError.malformedDocument()
-            }
+            _ = appendService(try Service.fromJson(node, self.subject))
         }
     }
 
@@ -3231,21 +3197,12 @@ public class DIDDocument: NSObject {
     /// - Returns: DIDDocument instance.
     @objc
     public class func convertToDIDDocument(fromData data: Data) throws -> DIDDocument {
-        guard !data.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
-
-        let node: Dictionary<String, Any>?
+        try checkArgument(!data.isEmpty, "invalid data.")
         
-        do {
-            node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
-        } catch {
-            throw DIDError.malformedDocument()
-        }
-
+        let node = try JSONSerialization.jsonObject(with: data, options: []) as? Dictionary<String, Any>
         let doc = DIDDocument()
         try doc.parse(JsonNode(node!))
-
+        
         return doc
     }
     
@@ -3255,9 +3212,7 @@ public class DIDDocument: NSObject {
     /// - Returns: DIDDocument instance.
     @objc
     public class func convertToDIDDocument(fromDictionary: [String: Any]) throws -> DIDDocument {
-        guard !fromDictionary.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!fromDictionary.isEmpty, "invalid fromDictionary.")
 
         let doc = DIDDocument()
         try doc.parse(JsonNode(fromDictionary))

@@ -97,7 +97,7 @@ public class FileSystemStorage: DIDStorage {
             try metadata.serialize(path)
         } catch {
             Log.i(TAG, "Initialize DID store error ", storeRoot)
-            throw DIDError.didStoreError("Initialize DIDStore \(storeRoot) error.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Initialize DIDStore \(storeRoot) error.")
         }
     }
 
@@ -108,7 +108,7 @@ public class FileSystemStorage: DIDStorage {
         // Further to check the '_rootPath' is not a file path.
         guard FileManager.default.fileExists(atPath: storeRoot, isDirectory: &isDir) && isDir.boolValue else {
             Log.i(TAG, "Path ", storeRoot, " not a directory")
-            throw DIDError.didStoreError("Invalid DIDStore ' \(storeRoot) '.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid DIDStore ' \(storeRoot) '.")
         }
         try postOperations()
         let path = try fullPath(false, currentDataDir, METADATA)
@@ -128,7 +128,7 @@ public class FileSystemStorage: DIDStorage {
                 }
                 else {
                     Log.e(TAG, "Path ", storeRoot, "not a DID store")
-                    throw DIDError.didStoreError("Invalid DIDStore ' \(storeRoot) '.")
+                    throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid DIDStore ' \(storeRoot) '.")
                 }
             }
         }
@@ -144,7 +144,7 @@ public class FileSystemStorage: DIDStorage {
             }
         } catch {
             Log.e(TAG, "Check DID store error, failed load store metadata")
-            throw  DIDError.CheckedError.DIDStoreError.DIDStorageError.DIDStorageError("Can not check the store metadata")
+            throw  DIDError.CheckedError.DIDStoreError.DIDStorageError("Can not check the store metadata")
         }
     }
     
@@ -209,7 +209,7 @@ public class FileSystemStorage: DIDStorage {
         }
 
         guard let _ = handle else {
-            throw DIDError.unknownFailure("opening file at \(path) error")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("opening file at \(path) error")
         }
 
         return handle!
@@ -257,7 +257,7 @@ public class FileSystemStorage: DIDStorage {
                 try metadata.serialize(file)
             }
         } catch {
-            throw DIDError.didStoreError("Store root identity metadata error: \(id)")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Store root identity metadata error: \(id)")
         }
     }
 
@@ -271,7 +271,7 @@ public class FileSystemStorage: DIDStorage {
 
             return metadata
         } catch {
-            throw DIDError.didStoreError("Load root identity metadata error: \(id)")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Load root identity metadata error: \(id)")
         }
     }
 
@@ -391,7 +391,7 @@ public class FileSystemStorage: DIDStorage {
                 try metadata.serialize(file)
             }
         } catch {
-            throw DIDError.didStoreError("store DID metadata error")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("store DID metadata error")
         }
     }
     
@@ -424,7 +424,7 @@ public class FileSystemStorage: DIDStorage {
             }
             return try DIDDocument.convertToDIDDocument(fromData: data)
         } catch {
-            throw DIDError.didStoreError("load DIDDocument error")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("load DIDDocument error")
         }
     }
 
@@ -482,7 +482,7 @@ public class FileSystemStorage: DIDStorage {
                 try metadata.serialize(file)
             }
         } catch {
-            throw DIDError.didStoreError("store credential meta error")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("store credential meta error")
         }
     }
 
@@ -512,7 +512,7 @@ public class FileSystemStorage: DIDStorage {
             
             return try VerifiableCredential.fromJson(for: path)
         } catch {
-            throw DIDError.didStoreError("load credential error")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("load credential error")
         }
     }
 
@@ -583,7 +583,7 @@ public class FileSystemStorage: DIDStorage {
             let file = try getPrivateKeyFile(id, true)
             try file.writeTextToPath(privateKey)
         } catch {
-            throw DIDError.didStoreError("store private key error.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("store private key error.")
         }
     }
 
@@ -592,7 +592,7 @@ public class FileSystemStorage: DIDStorage {
             let file = try getPrivateKeyFile(id, false)
             return try file.readTextFromPath()
         } catch {
-            throw DIDError.didStoreError("load private key error.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("load private key error.")
         }
     }
 
@@ -770,11 +770,11 @@ public class FileSystemStorage: DIDStorage {
         var path = try fullPath(".meta")
         if try !path.fileExists() {
             Log.e(TAG, "Abort upgrade DID store, invalid DID store metadata file")
-            throw DIDError.didStoreError("Directory '\(storeRoot)' is not a DIDStore.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Directory '\(storeRoot)' is not a DIDStore.")
         }
         let data = FileHandle(forReadingAtPath: path)!.readDataToEndOfFile()
         guard data.count == 8 else {
-            throw DIDError.didStoreError("Directory \(storeRoot) is not DIDStore directory")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Directory \(storeRoot) is not DIDStore directory")
         }
         let versionArray : [UInt8] = [UInt8](data[4...7])
         var version : UInt32 = 0
@@ -790,11 +790,11 @@ public class FileSystemStorage: DIDStorage {
         
         guard data[0...3].elementsEqual(MAGIC) else {
             Log.e(TAG, "Abort upgrade DID store, failed load DID store metadata file")
-            throw DIDError.didStoreError("Check DIDStore '\(storeRoot)' error.")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Check DIDStore '\(storeRoot)' error.")
         }
         guard version == 2 else {
             Log.e(TAG, "Abort upgrade DID store, invalid DID store version")
-            throw DIDError.CheckedError.DIDStoreError.DIDStorageError.DIDStoreVersionMismatchError("Version: \(version)")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageErrors.DIDStoreVersionMismatchError("Version: \(version)")
         }
         // upgrade to data journal directory
         currentDataDir = DATA_DIR + JOURNAL_SUFFIX
@@ -807,7 +807,7 @@ public class FileSystemStorage: DIDStorage {
         dir = try fullPath("private")
         if try !dir.dirExists() {
             Log.e(TAG, "Abort upgrade DID store, invalid root identity folder")
-            throw DIDError.didStoreError("Invalid root identity folder")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid root identity folder")
         }
         // Root identity
         path = try fullPath("private" + "key")
@@ -817,7 +817,7 @@ public class FileSystemStorage: DIDStorage {
         }
         if privateKey == nil || privateKey!.isEmpty {
             Log.e(TAG, "Abort upgrade DID store, invalid root private key")
-            throw DIDError.didStoreError("Invalid root private key")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid root private key")
         }
         path = try fullPath("private" + "/" + "key.pub")
         var publicKey: String?
@@ -826,7 +826,7 @@ public class FileSystemStorage: DIDStorage {
         }
         if publicKey == nil || publicKey!.isEmpty {
             Log.e(TAG, "Abort upgrade DID store, invalid root public key")
-            throw DIDError.didStoreError("Invalid root public key")
+            throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid root public key")
         }
         path = try fullPath("private" + "/" + "mnemonic")
         var mnemonic: String?
@@ -867,7 +867,7 @@ public class FileSystemStorage: DIDStorage {
             }
             if try !path.fileExists() {
                 Log.e(TAG, "Abort upgrade DID store, invalid DID document: \(element)")
-                throw DIDError.didStoreError("Invalid DID document: \(element)")
+                throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid DID document: \(element)")
             }
             let doc = try DIDDocument.convertToDIDDocument(fromFileAtPath: path)
             try storeDid(doc)
@@ -949,7 +949,7 @@ public class FileSystemStorage: DIDStorage {
         if try stageFile.fileExists() {
             if try dataJournal.fileExists() {
                 if try dataDir.dirExists() {
-                    throw DIDError.didStoreError("Data conflict when upgrade")
+                    throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Data conflict when upgrade")
                 }
                 try dataDir.createDir(true)
                 try rename(dataJournal, dataDir)
@@ -1023,7 +1023,7 @@ public class FileSystemStorage: DIDStorage {
             return instance as! T
         }
         
-        throw DIDError.notFoundError("TODO:")
+        throw DIDError.CheckedError.DIDStoreError.DIDStorageError("TODO:")
     }
     
     private func postOperations() throws {

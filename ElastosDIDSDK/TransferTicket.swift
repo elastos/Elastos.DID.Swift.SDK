@@ -244,11 +244,11 @@ public class TransferTicket: NSObject {
             }
             else {
                 guard try document()!.hasController(controller.subject) else {
-                    throw DIDError.UncheckedError.IllegalArgumentError.NotControllerError(controller.subject.toString())
+                    throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError(controller.subject.toString())
                 }
             }
         } catch {
-            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(DIDError.desription(error as! DIDError))
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
         }
         
         let signKey = controller.defaultPublicKeyId()

@@ -78,26 +78,28 @@ public class DIDDocumentProof: NSObject {
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(Constants.DEFAULT_PUBLICKEY_TYPE)
-                                .withHint("document proof type")
-        let type = try serializer.getString(Constants.TYPE, options)
+        guard let type = try serializer.getString(Constants.TYPE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing document proof type")
+        }
 
         options = JsonSerializer.Options()
                                 .withOptional()
-                                .withHint("document proof type")
-        let created = try serializer.getDate(Constants.CREATED, options)
+        guard let created = try serializer.getDate(Constants.CREATED, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing document proof created date")
+        }
 
         options = JsonSerializer.Options()
                                 .withOptional()
                                 .withRef(refSginKey?.did)
-                                .withHint("document proof creator")
         var creator = try serializer.getDIDURL(Constants.CREATOR, options)
         if  creator == nil {
             creator = refSginKey
         }
 
         options = JsonSerializer.Options()
-                                .withHint("document proof signature")
-        let signature = try serializer.getString(Constants.SIGNATURE_VALUE, options)
+        guard let signature = try serializer.getString(Constants.SIGNATURE_VALUE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing document proof signature")
+        }
 
         return DIDDocumentProof(type, created, creator, signature)
     }

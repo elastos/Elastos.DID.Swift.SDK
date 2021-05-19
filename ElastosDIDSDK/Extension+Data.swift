@@ -28,7 +28,7 @@ extension Data {
         let json = try JSONSerialization.jsonObject(with: self, options: .mutableContainers)
         let dic = json as? [String: Any]
         guard let _ = dic else {
-            throw DIDError.unknownFailure("Change json to [String: Any] failed.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError("Change json to [String: Any] failed.")
         }
         return dic!
     }
@@ -39,7 +39,7 @@ extension Data {
         let dic = json as? [String: String]
         
         guard let _ = dic else {
-            throw DIDError.unknownFailure("Change json to [String: Any] failed.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError("Change json to [String: Any] failed.")
         }
         return dic!
     }

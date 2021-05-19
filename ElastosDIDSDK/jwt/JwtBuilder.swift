@@ -183,8 +183,8 @@ public class JwtBuilder: NSObject {
     @objc
     public func setClaimsWithJson(value: String) throws -> JwtBuilder {
         let dic = try JSONSerialization.jsonObject(with: value.data(using: .utf8)!, options: []) as? [String : Any]
-        guard dic != nil else {
-            throw DIDError.illegalArgument("TODO")
+        guard let _ = dic else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError("Invalid json.")
         }
         return setClaims(claim: dic! )
     }

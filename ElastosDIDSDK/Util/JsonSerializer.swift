@@ -22,12 +22,6 @@
 
 import Foundation
 
-typealias JsonSerializerErrorGenerator = (String) -> DIDError
-
-let malformedDocumentError = { (description) -> DIDError in
-    return DIDError.malformedDocument(description)
-}
-
 class JsonSerializer {
     private var node: JsonNode
 
@@ -35,66 +29,66 @@ class JsonSerializer {
         self.node = data
     }
 
-    func getString(_ keyName: String, _ options: Options) throws -> String {
+    func getString(_ keyName: String, _ options: Options) throws -> String? {
         let child = node.get(forKey: keyName)
 
         guard let _ = child else {
             if options.optional {
-                return options.refValue! as! String
+                return options.refValue! as? String
             } else {
-                throw options.error("missing \(options.hint)")
+                return nil
             }
         }
 
         let value = child!.asString()
         guard !(value?.isEmpty ?? false) else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
         return value ?? ""
     }
 
-    func getInteger(_ keyName: String, _ options: Options) throws -> Int {
+    func getInteger(_ keyName: String, _ options: Options) throws -> Int? {
         let child = node.get(forKey: keyName)
 
         guard let _ = child else {
             if options.optional {
-                return options.refValue as! Int
+                return options.refValue as? Int
             } else {
-                throw options.error("invalid \(options.hint)")
+                return nil
             }
         }
 
         let value = child!.asInteger()
         guard let _ = value else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
         return value!
     }
 
-    func getDID(_ keyName: String, _ options: Options) throws -> DID {
+    func getDID(_ keyName: String, _ options: Options) throws -> DID? {
         let child = node.get(forKey: keyName)
 
         guard let _ = child else {
             if options.optional {
                 if options.refValue == nil {
-                    throw options.error("missing \(options.hint)")
+                    return nil
                 }
-                return options.refValue as! DID
+                return options.refValue as? DID
             } else {
-                throw options.error("missing \(options.hint)")
+                return nil
             }
         }
 
         let value = child!.asString()
         guard !(value?.isEmpty ?? false) else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
 
         let did: DID
         do {
             did = try DID(value!)
         } catch {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
         return did
     }
@@ -106,13 +100,13 @@ class JsonSerializer {
             if options.optional {
                 return nil
             } else {
-                throw options.error("missing \(options.hint)")
+                return nil
             }
         }
 
         let value = child!.asString()
         guard !(value?.isEmpty ?? false) else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
 
         let id: DIDURL
@@ -125,7 +119,7 @@ class JsonSerializer {
                 id = try DIDURL(value!)
             }
         } catch {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
         return id
     }
@@ -137,12 +131,12 @@ class JsonSerializer {
             if options.optional {
                 return nil
             } else {
-                throw options.error("missing \(options.hint)")
+                return nil
             }
         }
 
         guard !(value!.isEmpty) else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
 
         let id: DIDURL
@@ -155,30 +149,30 @@ class JsonSerializer {
                 id = try DIDURL(value!)
             }
         } catch {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
         return id
     }
 
-    func getDate(_ keyName: String, _ options: Options) throws -> Date {
+    func getDate(_ keyName: String, _ options: Options) throws -> Date? {
         let child = node.get(forKey: keyName)
 
         guard let _ = child else {
             if options.optional {
-                return options.refValue! as! Date
+                return options.refValue! as? Date
             } else {
-                throw options.error("missing \(options.hint)")
+                return nil
             }
         }
 
         let value = child!.asString()
         guard !(value?.isEmpty ?? false) else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
 
         let date = DateFormatter.convertToUTCDateFromString(value!)
         guard let _ = date else {
-            throw options.error("invalid \(options.hint)")
+            return nil
         }
 
         return date!
@@ -188,12 +182,10 @@ class JsonSerializer {
         var optional: Bool
         var refValue: Any?
         var hint: String
-        var error: JsonSerializerErrorGenerator
-
+        
         init() {
             self.optional = false
             self.hint = ""
-            self.error = malformedDocumentError
         }
 
         func withOptional() -> Options {
@@ -207,16 +199,6 @@ class JsonSerializer {
 
         func withRef(_ ref: Any?) -> Options {
             self.refValue = ref
-            return self
-        }
-
-        func withHint(_ hint: String) -> Options {
-            self.hint = hint
-            return self
-        }
-
-        func withError(_ error: @escaping JsonSerializerErrorGenerator) -> Options {
-            self.error = error
             return self
         }
     }

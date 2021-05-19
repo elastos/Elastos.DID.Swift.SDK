@@ -70,9 +70,7 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Returns: VerifiableCredentialBuilder instance.
     @objc(withIdString:error:)
     public func withId(_ id: String) throws -> VerifiableCredentialBuilder {
-        guard !id.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!id.isEmpty , "id is nil")
 
         return try withId(DIDURL(_target, id))
     }
@@ -157,9 +155,8 @@ public class VerifiableCredentialBuilder: NSObject {
     @objc(withPropertiesWithJson:error:)
     public func withProperties(_ json: String) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
-        guard !json.isEmpty else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(!json.isEmpty, "properties is nil")
+
         // TODO: CHECK
         let dic = try (JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [JSONSerialization.ReadingOptions.init(rawValue: 0)]) as? [String: Any])
         guard let _ = dic else {
@@ -180,9 +177,7 @@ public class VerifiableCredentialBuilder: NSObject {
     @objc(withPropertiesWithJsonNode:errro:)
     public func withProperties(_ properties: JsonNode) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
-        guard properties.count > 0 else {
-            throw DIDError.illegalArgument()
-        }
+        try checkArgument(properties.count > 0, "properties is nil ")
 
         let subject = VerifiableCredentialSubject(_target)
         subject.setProperties(properties)
@@ -225,7 +220,7 @@ public class VerifiableCredentialBuilder: NSObject {
         }
 
         guard let data = _credential!.toJson(true, true).data(using: .utf8) else {
-            throw DIDError.illegalArgument("credential is nil")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("credential is nil")
         }
         let signature = try _forDoc.sign(_signKey, storePassword, [data])
         let proof = VerifiableCredentialProof(_signKey, signature)

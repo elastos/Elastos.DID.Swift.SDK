@@ -141,7 +141,7 @@ public class DIDHDKey: NSObject {
         let extendedkeyPointer: UnsafeMutablePointer<CChar> = UnsafeMutablePointer<CChar>.allocate(capacity: 256)
         let cextendedkey = HDKey_SerializePubBase58(key, extendedkeyPointer,Int32(256))
         guard let _ = cextendedkey else {
-            throw DIDError.notFoundError("HDKey_SerializePubBase58 error.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("HDKey_SerializePubBase58 error.")
         }
 
         return String(cString: cextendedkey!)
@@ -267,7 +267,7 @@ public class DIDHDKey: NSObject {
         var size: Int32 = 512
         let re = PEM_WritePublicKey(cpub, cprivateKey, &size)
         if re < 0 {
-            throw DIDError.unknownFailure("PEM_ReadPublicKey error.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("PEM_ReadPublicKey error.")
         }
         let cstr = String(cString: cprivateKey)
         return cstr
@@ -285,7 +285,7 @@ public class DIDHDKey: NSObject {
         var count = 512
         let re = PEM_WritePrivateKey(cpub, cpri, cPEM_privateKey, &count)
         if re < 0 {
-            throw DIDError.unknownFailure("PEM_ReadPublicKey error.")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("PEM_ReadPublicKey error.")
         }
         let cstr = String(cString: cPEM_privateKey)
         return cstr

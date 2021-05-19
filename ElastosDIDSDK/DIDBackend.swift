@@ -104,7 +104,7 @@ public class DIDBackend: NSObject {
 
         init(_ resolver: String) throws {
             guard !resolver.isEmpty else {
-                throw DIDError.illegalArgument()
+                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError("resolver is empty")
             }
             url = URL(string: resolver)!
         }
@@ -127,7 +127,7 @@ public class DIDBackend: NSObject {
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
             } catch {
-                throw DIDError.illegalArgument()
+                throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError(error.localizedDescription)
             }
 
             let semaphore = DispatchSemaphore(value: 0)
@@ -157,7 +157,8 @@ public class DIDBackend: NSObject {
             semaphore.wait()
 
             guard let _ = result else {
-                throw DIDError.didResolveError(errDes ?? "Unknown error")
+                
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError(errDes ?? "Unknown error")
             }
 
             return result!
@@ -340,7 +341,6 @@ public class DIDBackend: NSObject {
         if tx?.request.operation != IDChainRequestOperation.CREATE && tx?.request.operation != IDChainRequestOperation.UPDATE && tx?.request.operation != IDChainRequestOperation.TRANSFER {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, unknown operation.")
         }
-        print("!tx!.request.isValid() star ======================== ")
         if try (tx == nil || !tx!.request.isValid()) {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, signature mismatch.")
         }

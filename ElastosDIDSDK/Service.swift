@@ -75,26 +75,29 @@ public class Service: DIDObject {
 
         options = JsonSerializer.Options()
                                 .withRef(ref)
-                                .withHint("service id")
-        let id = try serializer.getDIDURL(Constants.ID, options)
+        guard let id = try serializer.getDIDURL(Constants.ID, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing service id")
+        }
 
         options = JsonSerializer.Options()
-                                .withHint("service type")
-        let type = try serializer.getString(Constants.TYPE, options)
+        guard let type = try serializer.getString(Constants.TYPE, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing service type")
+        }
 
         options = JsonSerializer.Options()
-                                .withHint("service endpoint")
-        let endpoint = try serializer.getString(Constants.SERVICE_ENDPOINT, options)
+        guard let endpoint = try serializer.getString(Constants.SERVICE_ENDPOINT, options) else {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing service endpoint")
+        }
 
         // custom properties
         node.remove(Constants.ID)
         node.remove(Constants.TYPE)
         node.remove(Constants.SERVICE_ENDPOINT)
         if node.count > 0 {
-            return Service(id!, type, endpoint, node)
+            return Service(id, type, endpoint, node)
         }
         
-        return Service(id!, type, endpoint)
+        return Service(id, type, endpoint)
     }
 
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {

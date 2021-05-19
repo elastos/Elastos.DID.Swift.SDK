@@ -307,7 +307,7 @@ public class Claims: NSObject {
     public func putAllWithJson(json: String) throws {
         let dic = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: []) as? [String : Any]
         guard let _ = dic else {
-            throw DIDError.UncheckedError.IllegalArgumentError.DataParsingError()
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DataParsingError()
         }
         putAll(dic: dic!)
     }
