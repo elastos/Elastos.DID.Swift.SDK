@@ -2117,12 +2117,12 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(1, svcss.count)
         XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svcss[0].getId())
 
-        svcss = doc.selectServices(byId: try DIDURL(doc.subject, "#openid"), andType: nil)
+        svcss = try doc.selectServices(byId: try DIDURL(doc.subject, "#openid"))
         XCTAssertEqual(1, svcss.count)
         XCTAssertEqual(try DIDURL(doc.subject, "#openid"),
                      svcss[0].getId())
 
-        svcss = doc.selectServices(byType: "CarrierAddress")
+        svcss = try doc.selectServices(byType: "CarrierAddress")
         XCTAssertEqual(1, svcss.count)
         XCTAssertEqual(try DIDURL(doc.subject, "#carrier"),
                 svcss[0].getId())
@@ -2140,7 +2140,7 @@ class DIDDoucumentTests: XCTestCase {
                                    andType: "CredentialRepositoryService")
         XCTAssertEqual(0, svcss.count)
 
-        svcss = doc.selectServices(byType: "notExistType")
+        svcss = try doc.selectServices(byType: "notExistType")
         XCTAssertEqual(0, svcss.count)
     }
     
@@ -2196,14 +2196,14 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(1, svcs.count)
             XCTAssertEqual(try DIDURL(doc.subject, "#vcr"), svcs[0].getId())
 
-            svcs = doc.selectServices(byId: try DIDURL(doc.subject, "#openid"), andType: nil)
+            svcs = try doc.selectServices(byId: try DIDURL(doc.subject, "#openid"))
             XCTAssertEqual(0, svcs.count)
 
             // Service not exist, should return a empty list.
             svcs = try doc.selectServices(byId: "#notExistService", andType: "CredentialRepositoryService")
             XCTAssertEqual(0, svcs.count)
 
-            svcs = doc.selectServices(byType: "notExistType")
+            svcs = try doc.selectServices(byType: "notExistType")
             XCTAssertEqual(0, svcs.count)
         } catch {
             XCTFail()
@@ -2259,7 +2259,7 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(5, doc.serviceCount)
 
         // Try to select new added 2 services
-        let svcs = doc.selectServices(byType: "Service.Testing")
+        let svcs = try doc.selectServices(byType: "Service.Testing")
         XCTAssertEqual(2, svcs.count)
         XCTAssertEqual("Service.Testing", svcs[0].getType())
         XCTAssertEqual("Service.Testing", svcs[1].getType())
@@ -2333,7 +2333,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(6, doc.serviceCount)
             
             // Try to select new added 2 services
-            let svcs = doc.selectServices(byType: "Service.Testing")
+            let svcs = try doc.selectServices(byType: "Service.Testing")
             XCTAssertEqual(3, svcs.count)
             let re1 = !svcs[0].properties.isEmpty || !svcs[1].properties.isEmpty || !svcs[2].properties.isEmpty
             let re2 = svcs[2].properties.isEmpty || svcs[1].properties.isEmpty || svcs[0].properties.isEmpty
@@ -2393,7 +2393,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(4, doc.serviceCount)
 
             // Try to select new added 2 services
-            let svcs = doc.selectServices(byType: "Service.Testing")
+            let svcs = try doc.selectServices(byType: "Service.Testing")
             XCTAssertEqual(2, svcs.count)
             XCTAssertEqual("Service.Testing", svcs[0].getType())
             XCTAssertEqual("Service.Testing", svcs[1].getType())
@@ -2469,7 +2469,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(5, doc.serviceCount)
 
             // Try to select new added 2 services
-            let svcs = doc.selectServices(byType: "Service.Testing")
+            let svcs = try doc.selectServices(byType: "Service.Testing")
             XCTAssertEqual(3, svcs.count)
             XCTAssertEqual("Service.Testing", svcs[0].getType())
             XCTAssertTrue(!svcs[0].properties.isEmpty)

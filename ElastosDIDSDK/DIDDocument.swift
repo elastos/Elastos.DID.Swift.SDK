@@ -1203,14 +1203,22 @@ public class DIDDocument: NSObject {
         return serviceMap.values() { value -> Bool in return true }
     }
 
+    private func selectServices(_ byId: DIDURL?, _ andType: String?) throws -> Array<Service>  {
+        var svc: [Service] = serviceMap.select(byId, andType) { value -> Bool in return true }
+        try svc.sort { (svcA, svcB) -> Bool in
+            return try svcA.compareTo(svcB) == ComparisonResult.orderedAscending
+        }
+        return svc
+    }
+    
     /// Get Service conforming to type or identifier of key.
     /// - Parameters:
     ///   - byId: An identifier of Service to be selected.
     ///   - andType: The type of Service.
     /// - Returns: Array of Service keys selected.
     @objc
-    public func selectServices(byId: DIDURL, andType: String?) -> Array<Service>  {
-        return serviceMap.select(byId, andType) { value -> Bool in return true }
+    public func selectServices(byId: DIDURL, andType: String) throws -> Array<Service>  {
+        return try selectServices(byId, andType)
     }
 
     /// Get Service conforming to type or identifier of key.
@@ -1219,18 +1227,39 @@ public class DIDDocument: NSObject {
     ///   - andType: The type of Service.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: Array of Service keys selected.
-    @objc
-    public func selectServices(byId: String, andType: String?) throws -> Array<Service>  {
+    @objc (selectServicesbyIdString:andType:error:)
+    public func selectServices(byId: String, andType: String) throws -> Array<Service>  {
         let id = try DIDURL(subject, byId)
-        return selectServices(byId: id, andType: andType)
+        return try selectServices(byId: id, andType: andType)
+    }
+
+    /// Get Service conforming to type or identifier of key.
+    /// - Parameters:
+    ///   - byId: An identifier of Service to be selected.
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: Array of Service keys selected.
+    @objc
+    public func selectServices(byId: DIDURL) throws -> Array<Service>  {
+        return try selectServices(byId, nil)
+    }
+    
+    /// Get Service conforming to type or identifier of key.
+    /// - Parameters:
+    ///   - byId: An identifier of Service to be selected.
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: Array of Service keys selected.
+    @objc (selectServicesbyIdString:error:)
+    public func selectServices(byId: String) throws -> Array<Service>  {
+        let id = try DIDURL(subject, byId)
+        return try selectServices(id, nil)
     }
 
     /// Get Service conforming to type or identifier of key.
     /// - Parameter byType: The type of Service.
     /// - Returns: Array of Service keys selected.
     @objc
-    public func selectServices(byType: String) -> Array<Service>  {
-        return serviceMap.select(nil, byType) { value -> Bool in return true }
+    public func selectServices(byType: String) throws -> Array<Service>  {
+        return try selectServices(nil, byType)
     }
 
     /// Get service according to identifier of credential.
@@ -1619,6 +1648,9 @@ public class DIDDocument: NSObject {
         }
         self.serviceMap = svcs
         self._services = svcs.values({ vaule -> Bool in return true })
+        try _services.sort { (serviceA, serviceB) -> Bool in
+            return try serviceA.compareTo(serviceB) == ComparisonResult.orderedAscending
+        }
     }
     
     private func sanitizeProof() throws {

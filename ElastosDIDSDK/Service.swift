@@ -186,3 +186,9 @@ extension Service {
         return equalsTo(object as! DIDObject)
     }
 }
+
+extension Service {
+    public func compareTo(_ service: Service) throws -> ComparisonResult {
+        return self.id.compareTo(service.id)
+    }
+}
