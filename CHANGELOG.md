@@ -1,3 +1,11 @@
+05/19/2021 Li Aihong liaihong@trinity-tech.io
+
+**version 1.10**, main changes to previous version:
+
+```markdown
+- Add LICENSE file.
+```
+
 01/12/2021 Li Aihong liaihong@trinity-tech.io
 
 **version 1.9**, main changes to previous version:
