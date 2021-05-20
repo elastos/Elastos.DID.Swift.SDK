@@ -31,14 +31,21 @@ public class Service: DIDObject {
     private let TYPE = "type"
     private let SERVICE_ENDPOINT = "serviceEndpoint"
 
-    private var _endpoint: String?
-    private var _id: DIDURL?
+    private var _endpoint: String
+    private var _id: DIDURL
     private var _properties: JsonNode = JsonNode()
-    private var _type: String?
+    private var _type: String
     
+    /// Create a Service object with given values.
+    /// - Parameters:
+    ///   - id: the service id
+    ///   - type: the service type
+    ///   - endpoint: the service endpoint, could be URL or any application defined address
+    ///   - properties: a map for the extra properties
     init(_ id: DIDURL, _ type: String, _ endpoint: String, _ properties: JsonNode) {
         self._endpoint = endpoint
         self._id = id
+        self._type = type
         if properties.count != 0 {
             self._properties = properties
             self._properties.remove(ID)
@@ -49,20 +56,36 @@ public class Service: DIDObject {
         super.init(id, type)
     }
     
+    /// Create a Service object with given values.
+    /// - Parameters:
+    ///   - id: the service id
+    ///   - type: the service type
+    ///   - endpoint: the service endpoint, could be URL or any application defined address
     init(_ id: DIDURL, _ type: String, _ endpoint: String) {
         self._endpoint = endpoint
         self._id = id
+        self._type = type
         super.init(id, type)
     }
-
+    
+    /// Get the service id.
     @objc public var id: DIDURL {
-        return _id!
+        return _id
     }
     
+    /// Get the service type.
+    @objc public var type: String {
+        return _type
+    }
+    /// Get the service endpoint.
     @objc public var endpoint: String {
-        return _endpoint!
+        return _endpoint
     }
     
+    /// Helper getter method for properties serialization.
+    /// NOTICE: Should keep the alphabetic serialization order.
+    /// a String to Object Dictionay include all application defined
+    ///         properties
     @objc public var properties: [String: Any] {
        let proStr = _properties.toString()
         
