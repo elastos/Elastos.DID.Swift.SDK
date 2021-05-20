@@ -22,10 +22,20 @@
 
 import Foundation
 
+/// MultiSignature is a digital signature scheme which allows a group of
+/// users to sign a single document.
 public class MultiSignature: NSObject {
     private var _m: Int
     private var _n: Int
     
+    /// Create a MultiSignature instance with given signature specification.
+    ///
+    /// The MultiSignature can be of the m-of-n type where any m private
+    /// keys out of a possible n are required to sign/verify the signature.
+    ///
+    /// - Parameters:
+    ///   - m: m required keys
+    ///   - n: n possible keys
     public init(_ m: Int, _ n: Int) throws {
         _m = m
         _n = n
@@ -33,6 +43,8 @@ public class MultiSignature: NSObject {
         try apply(m, n)
     }
     
+    /// Copy constructor.
+    /// - Parameter ms: the source MultiSignature object
     init(_ ms: MultiSignature) throws {
         _m = ms._m
         _n = ms._n
@@ -40,6 +52,8 @@ public class MultiSignature: NSObject {
         try apply(ms._m, ms._n)
     }
     
+    /// Create a MultiSignature instance with given signature specification.
+    /// - Parameter mOfN: the string format m-of-n(m:n)
     public init(_ mOfN: String) throws {
         if mOfN.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid multisig spec")
@@ -61,15 +75,52 @@ public class MultiSignature: NSObject {
         }
     }
     
+    /// Get the m of requested signatures.
     public var m: Int {
         return _m
     }
     
+    /// Get the n of possible signatures.
     public var n: Int {
         return _n
     }
     
+    /// Return the string representation of this MultiSignature object.
     public override var description: String {
         return String("\(m):\(n)")
+    }
+}
+
+/// Compares this MultiSignature to the specified object.
+/// The result is true if and only if the argument is not nil and
+/// is a MultiSignature object that represents the same schema.
+///
+/// @param obj the object to compare this MultiSignature against
+/// @return true if the given object represents a MultiSignature
+///            equivalent to this object, false otherwise
+extension MultiSignature {
+    public func equalsTo(_ other: MultiSignature) -> Bool {
+        if (self == other) {
+            return true
+        }
+        return m == other.m && n == other.n
+    }
+
+    public static func == (lhs: MultiSignature, rhs: MultiSignature) -> Bool {
+        return lhs.equalsTo(rhs)
+    }
+
+    public static func != (lhs: MultiSignature, rhs: MultiSignature) -> Bool {
+        return !lhs.equalsTo(rhs)
+    }
+
+    @objc
+    public override func isEqual(_ object: Any?) -> Bool {
+        if object is MultiSignature {
+            return equalsTo(object as! MultiSignature)
+        }
+        else {
+            return equalsTo(object as! MultiSignature)
+        }
     }
 }
