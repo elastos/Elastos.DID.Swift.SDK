@@ -23,39 +23,65 @@
 import Foundation
 import ObjectMapper
 
+/// The Proof class represents the proof content of DID Document.
 @objc(DIDDocumentProof)
 public class DIDDocumentProof: NSObject {
-    private var _type: String?
-    private var _createdDate: Date?
+    private var _type: String
+    private var _createdDate: Date
     private var _creator: DIDURL?
-    private var _signature: String?
+    private var _signature: String
     
-    init(_ type: String, _ createdDate: Date, _ creator: DIDURL?, _ signature: String) {
+    /// Constructs a Proof object with the given values.
+    /// - Parameters:
+    ///   - type: the type of Proof
+    ///   - createdDate: the create time stamp
+    ///   - creator: the key that sign this proof
+    ///   - signature: the signature string
+    init(_ type: String, _ createdDate: Date, _ creator: DIDURL, _ signature: String) {
         self._type = type
         self._createdDate = createdDate
         self._creator = creator
         self._signature = signature
     }
     
+    /// Constructs a Proof object with the given values.
+    /// - Parameters:
+    ///   - type: the type of Proof
+    ///   - createdDate: the create time stamp
+    ///   - signature: the signature string
+    init(_ type: String, _ createdDate: Date, _ signature: String) {
+        self._type = type
+        self._createdDate = createdDate
+        self._signature = signature
+    }
+    
+    /// Constructs a Proof object with the given values.
+    /// - Parameters:
+    ///   - creator: the key that sign this proof
+    ///   - signature: the signature string
     convenience init(_ creator: DIDURL, _ signature: String) {
         self.init(Constants.DEFAULT_PUBLICKEY_TYPE, DateFormatter.currentDate(), creator, signature)
     }
+    
+    /// Constructs a Proof object with the given values.
+    /// - Parameter signature: the signature string
+    convenience init(_ signature: String) {
+        self.init(Constants.DEFAULT_PUBLICKEY_TYPE, DateFormatter.currentDate(), signature)
+    }
 
-    /// The default type is ECDSAsecp256r1, which can be omitted.
+    /// Get the proof type.
     @objc
     public var type: String {
-        return self._type!
+        return self._type
     }
 
-    /// The signature creation time can be omitted.
+    /// Get the create time of this proof object.
     @objc
     public var createdDate: Date {
-        return self._createdDate!
+        return self._createdDate
     }
 
-    /// Key reference to verify the signature,
-    /// the value must be a reference to the key corresponding to the DID topic,
-    /// can be omitted
+    /// Get the key id that sign this proof object
     @objc
     public var creator: DIDURL? {
         return self._creator
@@ -65,10 +91,10 @@ public class DIDDocumentProof: NSObject {
         self._creator = newValue
     }
     
-    /// The signed value, using Base64 encoding
+    /// Get signature string.
     @objc
     public var signature: String {
-        return self._signature!
+        return self._signature
     }
 
     class func fromJson(_ node: JsonNode, _ refSginKey: DIDURL?) throws -> DIDDocumentProof {
@@ -101,7 +127,10 @@ public class DIDDocumentProof: NSObject {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Mssing document proof signature")
         }
 
-        return DIDDocumentProof(type, created, creator, signature)
+        if let _ = creator {
+            return DIDDocumentProof(type, created, creator!, signature)
+        }
+        return DIDDocumentProof(type, created, signature)
     }
 
     func toJson(_ generator: JsonGenerator, _ normalized: Bool) {
@@ -110,7 +139,7 @@ public class DIDDocumentProof: NSObject {
         // type
         if normalized || self.type != Constants.DEFAULT_PUBLICKEY_TYPE {
             generator.writeFieldName(Constants.TYPE)
-            generator.writeString(self._type!)
+            generator.writeString(self._type)
         }
 
         // createdDate
