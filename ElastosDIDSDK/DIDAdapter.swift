@@ -25,7 +25,7 @@ import Foundation
 /// DIDAdapter is support method to create did transaction
 public protocol DIDAdapter: DIDTransactionAdapter {
 
-    /// Perform the DID related resolve.
-    /// - Parameter request: the resolve request
+    /// Perform the resolve request.
+    /// - Parameter request: a string representation of resolve request.
     func resolve(_ request: String) throws -> Data
 }

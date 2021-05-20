@@ -22,13 +22,18 @@
 
 import Foundation
 
+/// The default DIDAdapter implementation for the Elastos ID chain.
+///
+/// This adapter only provided resolve capability, it means you can not publish
+/// ID transactions with this adapter. The sub class can implement the
+/// createIdTransaction method to support publish capability.
 public class DefaultDIDAdapter: DIDAdapter {
     private let TAG = NSStringFromClass(DefaultDIDAdapter.self)
     let MAINNET_RESOLVER = "http://api.elastos.io:20606"
     let TESTNET_RESOLVER = "http://api.elastos.io:21606"
     private var resolver: String
     
-    /// Set default resolver according to specified url.
+    /// Create a DefaultDIDAdapter instance with given resolver endpoint.
     /// - Parameter resolver: the resolver url string
     public init(_ resolver: String) {
         switch resolver.lowercased() {
@@ -44,6 +49,11 @@ public class DefaultDIDAdapter: DIDAdapter {
         }
     }
     
+    /// Perform a HTTP POST request with given request body to the url.
+    /// - Parameters:
+    ///   - urlString: the target HTTP endpoint
+    ///   - body: the request body
+    /// - Returns: an input data object of the response body
     func performRequest(_ urlString: String, _ body: String) throws -> Data {
         let url = URL(string: urlString)!
         var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
