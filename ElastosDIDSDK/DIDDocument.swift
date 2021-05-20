@@ -108,6 +108,10 @@ public class DIDDocument: NSObject {
             return value!
         }
 
+        func values() -> Array<T> {
+            return values { _ -> Bool in return true }
+        }
+        
         func values(_ fulfill: (T) -> Bool) -> Array<T> {
             var result = Array<T>()
             var preKeys = Array<DIDURL>()
@@ -247,11 +251,7 @@ public class DIDDocument: NSObject {
     /// Get contoller's DID.
     /// - Returns: the Controllers DID list or empty list if no controller
     public func controllers() -> [DID] {
-        var ctrls: [DID] = []
-        if !_controllers.isEmpty {
-            ctrls = _controllers
-        }
-        return ctrls
+        return _controllers
     }
     
     /// Get controller count.
@@ -263,7 +263,7 @@ public class DIDDocument: NSObject {
     /// Get contoller's DID.
     /// - Returns: the Controller's DID if only has one controller, other wise nil
     var controller: DID? {
-        return !_controllers.isEmpty && _controllers.count == 1 ? _controllers[0] : nil
+        return _controllers.count == 1 ? _controllers[0] : nil
     }
     
     /// Check if current DID has controller.
@@ -275,7 +275,7 @@ public class DIDDocument: NSObject {
     /// Check if current DID has specific controller.
     /// - Returns: true if has, otherwise false
     public func hasController(_ did: DID) -> Bool {
-        return !_controllers.isEmpty && _controllers.contains(did)
+        return _controllers.contains(did)
     }
     
     /// Get controller's DID document.
@@ -293,17 +293,14 @@ public class DIDDocument: NSObject {
     }
     
     public func setEffectiveController(_ controller: DID?) throws {
-        guard isCustomizedDid() else {
-            throw DIDError.UncheckedError.UnsupportedOperationError.NotCustomizedDIDError("Not customized DID")
-        }
-        
+        try checkIsCustomized()
         guard controller != nil else {
             _effectiveController = controller
             return
         }
         
         guard hasController(controller!) else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError("No this controller")
+            throw DIDError.UncheckedError.IllegalArgumentErrors.NotControllerError("Not contoller for target DID")
         }
         _effectiveController = controller
         
@@ -351,27 +348,47 @@ public class DIDDocument: NSObject {
         return pks
     }
 
-    /// Select public keys with the specified key id or key type.
-    /// - Parameters:
-    ///   - byId: the key id
-    ///   - andType: the type string
-    /// - Returns: the matched PublicKey array
-    @objc
-    public func selectPublicKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
-        let id = try canonicalId(byId)
-        var pks = self.publicKeyMap.select(byId, andType) { value -> Bool in return true }
-        pks.forEach { pk in
-            if pk.getId() != id || (andType != nil && pk.getType() != andType) {
-                pks.append(pk)
-            }
+    private func selectPublicKeys(_ byId: DIDURL?, _ andType: String?) throws -> Array<PublicKey> {
+        try checkArgument(byId != nil || andType != nil, "Invalid select args")
+        var id: DIDURL? = nil
+        if let _ = byId {
+            id = try canonicalId(byId!)
         }
-        if hasController() {
-           try _controllerDocs.values.forEach({ doc in
-               try pks.append(contentsOf: doc.selectAuthenticationKeys(byId: id, andType: andType))
-            })
+        
+        var pks: [PublicKey] = []
+        for pk in publicKeyMap.values() {
+            if (id != nil && pk.id != id) {
+                continue
+            }
+            if (andType != nil && pk.type != andType) {
+                continue
+            }
+            
+            pks.append(pk)
+        }
+        
+        if (hasController()) {
+            try _controllerDocs.values.forEach{ doc in
+                if let _ = id {
+                    try pks.append(contentsOf: doc.selectAuthenticationKeys(byId: id!, andType: andType))
+                }
+                else {
+                    pks.append(contentsOf: doc.selectAuthenticationKeys(byType: andType!))
+                }
+            }
         }
         
         return pks
+    }
+    
+    /// Select the public keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    ///   - andType: the type string
+    /// - Returns: an array of the matched public keys
+    @objc
+    public func selectPublicKeys(byId: DIDURL, andType: String) throws -> Array<PublicKey> {
+        return try selectPublicKeys(byId, andType)
     }
 
     /// Select public keys with the specified key id or key type.
@@ -379,32 +396,34 @@ public class DIDDocument: NSObject {
     ///   - byId: the key id
     ///   - andType: the type string
     /// - Throws: If an error occurred, throw error
-    /// - Returns: the matched PublicKey array
-//    @objc
-    public func selectPublicKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
-        let id = try DIDURL(subject, byId)
-        return try selectPublicKeys(byId: id, andType: andType)
+    /// - Returns: an array of the matched public keys
+    @objc (selectPublicKeysbyIdString:andType:error:)
+    public func selectPublicKeys(byId: String, andType: String) throws -> Array<PublicKey> {
+        return try selectPublicKeys(byId: try DIDURL(subject, byId), andType: andType)
+    }
+    
+    /// Select the public keys by the specified key id or key type.
+    /// - Parameter byId: the key id
+    /// - Throws: If an error occurred, throw error
+    /// - Returns: an array of the matched public keys
+    public func selectPublicKeys(byId: DIDURL) throws -> Array<PublicKey> {
+        return try selectPublicKeys(byId, nil)
+    }
+    
+    /// Select the public keys by the specified key id or key type.
+    /// - Parameter byId: the key id
+    /// - Throws: If an error occurred, throw error
+    /// - Returns: an array of the matched public keys
+    public func selectPublicKeys(byId: String) throws -> Array<PublicKey> {
+        return try selectPublicKeys(byId: try DIDURL(subject, byId))
     }
 
     /// Get public key conforming to type or identifier.
     /// - Parameter byType: The type of public key to be selected.
-    /// - Returns: Array of public keys selected.
+    /// - Returns: an array of the matched public keys
     @objc
-    public func selectPublicKeys(byType: String) -> Array<PublicKey> {
-        var pks = self.publicKeyMap.select(nil, byType) { value -> Bool in return true }
-        
-        pks.forEach { pk in
-            if pk.getType() != byType {
-                pks.append(pk)
-            }
-        }
-        if hasController() {
-            _controllerDocs.values.forEach({ doc in
-                pks.append(contentsOf: doc.selectAuthenticationKeys(byType: byType))
-            })
-        }
-        
-        return pks
+    public func selectPublicKeys(byType: String) throws -> Array<PublicKey> {
+        return try selectPublicKeys(nil, byType)
     }
 
     /// Get public key matched specified key id.
