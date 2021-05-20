@@ -77,7 +77,7 @@ class DIDStoreTests: XCTestCase {
                 var resolved = try doc.subject.resolve()
                 XCTAssertNil(resolved)
 
-                try doc.publish(storePassword)
+                try doc.publish(using: storePassword)
 
                 file = getFile("ids/" + doc.subject.methodSpecificId +  "/document")
                 XCTAssertTrue(try file.exists())
@@ -113,7 +113,7 @@ class DIDStoreTests: XCTestCase {
                 let alias = "my did " + i
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
-                try doc.publish(storePassword)
+                try doc.publish(using: storePassword)
                  dids.append(doc.subject)
             }
 
@@ -374,7 +374,7 @@ class DIDStoreTests: XCTestCase {
                 var resolved = try doc.subject.resolve()
                 XCTAssertNil(resolved)
 
-                try doc.publish(storePassword)
+                try doc.publish(using: storePassword)
 
                 var path = "ids/" + doc.subject.methodSpecificId + "/document"
                 var file = getFile(path)

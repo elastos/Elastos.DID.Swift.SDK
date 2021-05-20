@@ -46,7 +46,7 @@ class IDChainOperationsTest: XCTestCase {
             let did = doc.subject
             
             print("Publishing new DID \(did.toString())...")
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             print("Publish new DID \(did.toString())...OK({}s)")
             
             waitForWalletAvaliable()
@@ -72,7 +72,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Publishing new DID \(did)...")
             var lock = XCTestExpectation()
-            doc.publishAsync(storePassword).done{ _ in
+            doc.publishAsync(using: storePassword).done{ _ in
                 print("Publish new DID \(did)...OK({}s)")
                 XCTAssertTrue(true)
                 lock.fulfill()
@@ -110,7 +110,7 @@ class IDChainOperationsTest: XCTestCase {
             let lock = XCTestExpectation()
             print("Publishing new DID and resolve \(did)...")
             
-            doc.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }.done{ resolved in
@@ -159,7 +159,7 @@ class IDChainOperationsTest: XCTestCase {
             try store?.storeDid(using: doc!)
             
             print("Updating DID \(did)...")
-            try doc!.publish(storePassword)
+            try doc!.publish(using: storePassword)
             print("Update DID \(did)...OK({}s)")
             
             waitForWalletAvaliable()
@@ -220,7 +220,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc!)
             
             print("Updating DID \(did)...")
-            try doc!.publish(storePassword)
+            try doc!.publish(using: storePassword)
             
             print("Update DID \(did)...OK({}s)" )
             
@@ -296,7 +296,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Updating DID \(did)...")
             lock = XCTestExpectation()
-            doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc!.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)
@@ -381,7 +381,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Updating DID \(did)...")
             lock = XCTestExpectation()
-            doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc!.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)
             }
@@ -462,7 +462,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
             
             print("Publishing new DID \(did)...")
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             print("Publish new DID \(did)...OK({}s)")
             
             waitForWalletAvaliable()
@@ -515,7 +515,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc!)
             
             print("Updating DID {}...", did)
-            try doc!.publish(storePassword)
+            try doc!.publish(using: storePassword)
             print("Update DID \(did)...OK({}s)")
             
             waitForWalletAvaliable()
@@ -591,7 +591,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc!)
             
             print("Updating DID \(did)...")
-            try doc!.publish(storePassword)
+            try doc!.publish(using: storePassword)
             print("Update DID \(did)...OK({}s)")
             
             waitForWalletAvaliable()
@@ -664,7 +664,7 @@ class IDChainOperationsTest: XCTestCase {
             print("Publishing new DID \(did)...")
             var resolved: DIDDocument?
             let lock = XCTestExpectation()
-            doc.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Publish new DID \(did)...OK({}s)")
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)
@@ -737,7 +737,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Updating DID \(did)...")
             lock = XCTestExpectation()
-            doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc!.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)
@@ -812,7 +812,7 @@ class IDChainOperationsTest: XCTestCase {
             
             print("Updating DID \(did)...")
             lock = XCTestExpectation()
-            doc!.publishAsync(storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+            doc!.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
                 print("Update DID \(did)...OK({}s)")
                 waitForWalletAvaliable()
                 return did.resolveAsync(true)

@@ -355,11 +355,11 @@ public class CompatibleData {
         
         switch did {
         case "foobar", "foo", "bar", "baz":
-            try doc.publish(getDocument("user1").defaultPublicKeyId()!, storePassword)
+            try doc.publish(with: getDocument("user1").defaultPublicKeyId()!, using: storePassword)
             break
         default:
             print("09090909090909")
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             break
         }
         data[key] = doc
@@ -554,7 +554,7 @@ class InstantData {
             
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             
             idIssuer = doc
         }
@@ -642,7 +642,7 @@ class InstantData {
             _ = try db.appendCredential(with: vcEmail)
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
 
             idUser1 = doc
         }
@@ -797,7 +797,7 @@ class InstantData {
             _ = try db.appendCredential(with: "#profile", subject: props, using: storePassword)
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
 
             idUser2 = doc
         }
@@ -809,7 +809,7 @@ class InstantData {
         if (idUser3 == nil) {
             let doc = try testData.identity!.newDid(storePassword)
             doc.getMetadata().setAlias("User3")
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
 
             idUser3 = doc
         }
@@ -821,7 +821,7 @@ class InstantData {
         if (idUser4 == nil) {
             let doc = try testData.identity!.newDid(storePassword)
             doc.getMetadata().setAlias("User4")
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             
             idUser4 = doc
         }
@@ -834,7 +834,7 @@ class InstantData {
             _ = try getIssuerDocument()
             
             let did = try DID("did:elastos:example")
-            var doc = try idIssuer!.newCustomizedDid(did, storePassword)
+            var doc = try idIssuer!.newCustomizedDid(withId: did, storePassword)
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
             let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
@@ -861,7 +861,7 @@ class InstantData {
             
             doc = try db.sealed(using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             
             idExampleCorp = doc
         }
@@ -878,7 +878,7 @@ class InstantData {
             
             let controllers = [idUser1!.subject, idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:foobar")
-            var doc = try idUser1!.newCustomizedDid(did, controllers, 2, storePassword)
+            var doc = try idUser1!.newCustomizedDid(withId: did, controllers, 2, storePassword)
             let signKey = idUser1!.defaultPublicKeyId()
             
             // Add public keys embedded credentials
@@ -929,9 +929,9 @@ class InstantData {
             _ = try db.appendCredential(with: vcProfile)
             _ = try db.appendCredential(with: vcEmail)
             doc = try db.sealed(using: storePassword)
-            doc = try idUser3!.sign(doc, storePassword)
+            doc = try idUser3!.sign(with: doc, using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(signKey!, storePassword)
+            try doc.publish(with: signKey!, using: storePassword)
             
             idFooBar = doc
         }
@@ -1032,8 +1032,8 @@ class InstantData {
             let doc = try getFooBarDocument()
             let user4 = try getUser4Document()
 
-            var tt = try idUser1!.createTransferTicket(doc.subject, user4.subject, storePassword)
-            tt = try idUser3!.sign(tt, storePassword)
+            var tt = try idUser1!.createTransferTicket(withId: doc.subject, to: user4.subject, using: storePassword)
+            tt = try idUser3!.sign(with: tt, using: storePassword)
 
             ttFooBar = tt
         }
@@ -1048,12 +1048,12 @@ class InstantData {
 
             let controllers = [idUser2!.subject]
             let did = try DID("did:elastos:foo")
-            var doc = try idUser1!.newCustomizedDid(did, controllers, 2, storePassword)
-            doc = try idUser2!.sign(doc, storePassword)
+            var doc = try idUser1!.newCustomizedDid(withId: did, controllers, 2, storePassword)
+            doc = try idUser2!.sign(with: doc, using: storePassword)
             try testData.store!.storeDid(using: doc)
 
             try doc.setEffectiveController(idUser2!.subject)
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             try doc.setEffectiveController(nil)
 
             idFoo = doc
@@ -1095,11 +1095,11 @@ class InstantData {
             
             let controllers = [idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:bar")
-            var doc = try idUser1!.newCustomizedDid(did, controllers, 3, storePassword)
-            doc = try idUser2!.sign(doc, storePassword)
-            doc = try idUser3!.sign(doc, storePassword)
+            var doc = try idUser1!.newCustomizedDid(withId: did, controllers, 3, storePassword)
+            doc = try idUser2!.sign(with: doc, using: storePassword)
+            doc = try idUser3!.sign(with: doc, using: storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(idUser3!.defaultPublicKeyId()!, storePassword)
+            try doc.publish(with: idUser3!.defaultPublicKeyId()!, using: storePassword)
             
             idBar = doc
         }
@@ -1115,9 +1115,9 @@ class InstantData {
 
             let controllers = [idUser2!.subject, idUser3!.subject]
             let did = try DID("did:elastos:baz")
-            let doc = try idUser1!.newCustomizedDid(did, controllers, 1, storePassword)
+            let doc = try idUser1!.newCustomizedDid(withId: did, controllers, 1, storePassword)
             try testData.store!.storeDid(using: doc)
-            try doc.publish(idUser1!.defaultPublicKeyId()!, storePassword)
+            try doc.publish(with: idUser1!.defaultPublicKeyId()!, using: storePassword)
 
             idBaz = doc
         }
@@ -1130,7 +1130,7 @@ class InstantData {
             let doc = try getBazDocument()
             let user4 = try getUser4Document()
 
-            let tt = try idUser2!.createTransferTicket(doc.subject, user4.subject, storePassword)
+            let tt = try idUser2!.createTransferTicket(withId: doc.subject, to: user4.subject, using: storePassword)
 
             ttBaz = tt
         }

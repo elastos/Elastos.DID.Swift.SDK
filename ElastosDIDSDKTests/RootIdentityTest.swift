@@ -110,7 +110,7 @@ class RootIdentityTest: XCTestCase {
             var resolved = try doc.subject.resolve()
             XCTAssertNil(resolved)
             
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -138,7 +138,7 @@ class RootIdentityTest: XCTestCase {
             var resolved = try doc.subject.resolve()
             XCTAssertNil(resolved)
             
-            try doc.publish(storePassword)
+            try doc.publish(using: storePassword)
             
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
