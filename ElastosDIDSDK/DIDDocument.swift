@@ -24,6 +24,14 @@ import Foundation
 import PromiseKit
 import ObjectMapper
 
+/// DID documents contain information associated with a DID.
+/// They typically express verification methods, such as cryptographic
+/// public keys, and services relevant to interactions with the DID subject.
+///
+/// <p>
+/// The generic properties supported in a DID document are specified by the
+/// <a href="https://github.com/elastos/Elastos.DID.Method">Elastos DID Method Specification</a>.
+/// </p>
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
     private static let TAG = NSStringFromClass(DIDDocument.self)
@@ -196,6 +204,10 @@ public class DIDDocument: NSObject {
         serviceMap = EntryMap<Service>()
     }
 
+    /// Copy constructor.
+    /// - Parameters:
+    ///   - doc: the document be copied
+    ///   - withProof: copy with the proof or not
     init(_ doc: DIDDocument, _ withProof: Bool) {
         publicKeyMap = EntryMap<PublicKey>()
         credentialMap = EntryMap<VerifiableCredential>()
@@ -221,7 +233,7 @@ public class DIDDocument: NSObject {
         _metadata = doc._metadata
     }
 
-    /// Get subject of DIDDocument.
+    /// Get subject of this DIDDocument.
     /// - return: the DID object
     @objc
     public var subject: DID {
@@ -284,14 +296,20 @@ public class DIDDocument: NSObject {
         return _controllerDocs[did]
     }
     
+    /// Get the current effective controller for the customized DIDDocument.
     public var effectiveController: DID? {
         return _effectiveController
     }
     
+    /// Get the current effective controller's document for the
+    /// customized DIDDocument.
+    /// - Returns: the effective controller's document or null if not set
     func effectiveControllerDocument() -> DIDDocument? {
         return _effectiveController == nil ? nil : controllerDocument(_effectiveController!)
     }
     
+    /// Set the current effective controller for the customized DIDDocument.
+    /// - Parameter controller: the new effective controller
     public func setEffectiveController(_ controller: DID?) throws {
         try checkIsCustomized()
         guard controller != nil else {
@@ -311,17 +329,19 @@ public class DIDDocument: NSObject {
         }
     }
     
+    /// Check if this document is a multisig document.
     public var isMultiSignature: Bool {
         return _multisig != nil
     }
     
+    /// Get the multisig specification of this document.
     public var multiSignature: MultiSignature? {
         get {
             return _multisig
         }
     }
 
-    /// Get the count of public keys.
+    /// Get the number of the public keys.
     /// A DID Document must include a publicKey property.
     @objc
     public var publicKeyCount: Int {
@@ -335,8 +355,8 @@ public class DIDDocument: NSObject {
         return count
     }
 
-    /// Get the public keys array.
-    /// - Returns: the PublicKey array.
+    /// Get all the public keys.
+    /// - Returns: a array of PublicKey object
     @objc
     public func publicKeys() -> Array<PublicKey> {
         var pks = self.publicKeyMap.values() { value -> Bool in return true }
@@ -369,12 +389,7 @@ public class DIDDocument: NSObject {
         
         if (hasController()) {
             try _controllerDocs.values.forEach{ doc in
-                if let _ = id {
-                    try pks.append(contentsOf: doc.selectAuthenticationKeys(byId: id!, andType: andType))
-                }
-                else {
-                    pks.append(contentsOf: doc.selectAuthenticationKeys(byType: andType!))
-                }
+                try pks.append(contentsOf: doc.selectAuthenticationKeys(id, andType))
             }
         }
         
@@ -426,7 +441,7 @@ public class DIDDocument: NSObject {
         return try selectPublicKeys(nil, byType)
     }
 
-    /// Get public key matched specified key id.
+    /// Get the specific public key.
     /// - Parameter ofId: the key id string
     /// - Returns: the PublicKey object
     //    @objc
@@ -443,18 +458,18 @@ public class DIDDocument: NSObject {
         return pk
     }
 
-    /// Get public key according to identifier of public key.
-    /// - Parameter ofId: An identifier of public key.
+    /// Get the specific public key.
+    /// - Parameter ofId: the key id
     /// - Throws: If an error occurred, throw error
-    /// - Returns: The handle to public key
+    /// - Returns: the PublicKey object
     public func publicKey(ofId: String) throws -> PublicKey? {
         return try publicKey(ofId: canonicalId(ofId)!)
     }
 
-    /// Get public key according to identifier of public key.
-    /// - Parameter ofId: An identifier of public key.
+    /// Get the specific public key with Object-C
+    /// - Parameter ofId: the key id
     /// - Throws: If an error occurred, throw error
-    /// - Returns: The handle to public key
+    /// - Returns: the PublicKey object
     @objc
     public func publicKey(ofId: String, error: NSErrorPointer) -> PublicKey? {
         do {
@@ -481,7 +496,7 @@ public class DIDDocument: NSObject {
         return try publicKey(ofId: forId) != nil
     }
 
-    /// Check key if public key or not.
+    /// Check if the specified public key exists with Object-C
     /// - Parameter forId: An identifier of public key.
     /// - Throws: If an error occurred, throw error
     /// - Returns: True if has public key, or false.
@@ -535,14 +550,16 @@ public class DIDDocument: NSObject {
         return nil
     }
     
+    /// Get default public key id
+    /// - Returns: the default public key id
     public func defaultPublicKeyId() -> DIDURL? {
         let pk = defaultPublicKey()
 
         return pk != nil ? pk?.getId() : nil
     }
     
-    /// Get default key of did document.
-    /// - Returns: the default key
+    /// Get default public key.
+    /// - Returns: the default public key
     public func defaultPublicKey() -> PublicKey? {
         if _defaultPublicKey != nil {
             return _defaultPublicKey!
@@ -555,7 +572,10 @@ public class DIDDocument: NSObject {
         return nil
     }
     
-    func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
+    ///  Get the keyPair_PublicKey data for the given public key.
+    /// - Parameter ofId: the public key id
+    /// - Returns: the publicKey data
+    public func keyPair_PublicKey(ofId: DIDURL) throws -> Data {
         try checkAttachedStore()
         guard try containsPublicKey(forId: ofId) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No publicKey key: \(ofId)")
@@ -572,7 +592,12 @@ public class DIDDocument: NSObject {
         return publicKeyData.data(using: .utf8)!
     }
 
-    func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
+    /// Get the keyPair_PrivateKey data for the given public key.
+    /// - Parameters:
+    ///   - ofId: the public key id
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the privateKey data
+    public func keyPair_PrivateKey(ofId: DIDURL, using storePassword: String) throws -> Data {
         try checkAttachedStore()
         guard try containsPublicKey(forId: ofId) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("No publicKey key: \(ofId)")
@@ -592,12 +617,14 @@ public class DIDDocument: NSObject {
         return privateKeyData.data(using: .utf8)!
     }
 
-    /// The result is extended private key format, the real private key is 32 bytes long start from position 46.
+    /// Derive a private key from this DID. The new private key will derive from
+    /// the default private key of the this DIDDocument.
     /// - Parameters:
-    ///   - index: the index
-    ///   - storePassword: the password for DIDStore
-    /// - Throws: the extended private key format. (the real private key is 32 bytes long start from position 46)
-    /// - Returns: there is no DID store to get root private key
+    ///   - index: the derive index
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the extended private key format. (the real private key is
+    ///         32 bytes long start from position 46)
     public func derive(index: Int, storePassword: String) throws -> String {
 
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
@@ -643,13 +670,15 @@ public class DIDDocument: NSObject {
             return path
         }
 
-    /// Derive the extended private key according to identifier string and security code.
+    /// Derive a private key from this DID. The new private key will derive from
+    /// the default private key of the this DIDDocument.
     /// - Parameters:
     ///   - identifier: the identifier string
     ///   - securityCode: the security code
     ///   - storePassword: the password for DID store
     /// - Throws: DIDStoreError there is no DID store to get root private key
-    /// - Returns: the extended derived private key
+    /// - Returns: the extended private key format. (the real private key is
+    ///         32 bytes long start from position 46)
     public func derive(_ identifier: String, _ securityCode: Int, _ storePassword: String) throws -> String {
         try checkArgument(!identifier.isEmpty, "Invalid identifier")
         try checkAttachedStore()
@@ -789,7 +818,7 @@ public class DIDDocument: NSObject {
         return true
     }
     
-    /// Get the count of authentication keys.
+    /// Get the numbers of the authentication keys.
     @objc
     public var authenticationKeyCount: Int {
         var count = publicKeyMap.count() { value -> Bool in
@@ -805,8 +834,8 @@ public class DIDDocument: NSObject {
         return count
     }
 
-    /// Get the authentication key array.
-    /// - Returns: the matched authentication key array.
+    /// Get all the authentication keys.
+    /// - Returns: an array of the authentication keys
     @objc
     public func authenticationKeys() -> Array<PublicKey> {
         var pks = publicKeyMap.values() { value -> Bool in
@@ -814,63 +843,90 @@ public class DIDDocument: NSObject {
         }
         
         if hasController() {
-            _controllerDocs.values.forEach({ doc in
+            _controllerDocs.values.forEach{ doc in
                 pks.append(contentsOf: doc.authenticationKeys())
-            })
+            }
         }
         
         return pks
     }
-
-    /// Get authentication key conforming to type or identifier of key.
-    /// - Parameters:
-    ///   - byId: An identifier of authentication key to be selected.
-    ///   - andType: The type of authentication key to be selected.
-    /// - Returns: The array of authentication keys.
     
-    public func selectAuthenticationKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
-        let id = try canonicalId(byId)
+    private func selectAuthenticationKeys(_ byId: DIDURL?, _ andType: String?) throws -> Array<PublicKey> {
+        try checkArgument(byId != nil || andType != nil, "Invalid select args")
+        var id: DIDURL? = nil
+        if let _ = byId {
+            id = try canonicalId(byId!)
+        }
         
-        var pks =  publicKeyMap.select(byId, andType) { value -> Bool in
-            return (value as PublicKey).isAuthenticationKey
+        var pks: [PublicKey] = []
+        for pk in publicKeyMap.values() {
+            if !pk.isAuthenticationKey {
+                continue
+            }
+            if id != nil && pk.id != id {
+                continue
+            }
+            
+            if andType != nil && pk.type != andType {
+                continue
+            }
+            
+            pks.append(pk)
         }
         
         if hasController() {
-           try _controllerDocs.values.forEach({ doc in
-               pks.append(contentsOf: try doc.selectAuthenticationKeys(byId: id, andType: andType))
-            })
+            try _controllerDocs.values.forEach{ doc in
+                pks.append(contentsOf: try doc.selectAuthenticationKeys(id, andType))
+            }
         }
         
         return pks
     }
-
-    /// Select the authentication key matched the key id or the type.
+    
+    /// Select the authentication keys by the specified key id or key type.
     /// - Parameters:
-    ///   - byId: An identifier of authentication key to be selected.
-    ///   - andType: The type of authentication key to be selected.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: The matched authentication key array
-    @objc
-    public func selectAuthenticationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
-        let id = try canonicalId(byId)
-        return try selectAuthenticationKeys(byId: id!, andType: andType)
+    ///   - byId: the key id
+    ///   - andType: the key type
+    /// - Returns: an array of the matched authentication keys
+    public func selectAuthenticationKeys(byId: DIDURL, andType: String) throws -> Array<PublicKey> {
+        return try selectAuthenticationKeys(byId, andType)
     }
 
-    /// Get authentication key conforming to type or identifier of key.
-    /// - Parameter byType: The type of authentication key to be selected.
-    /// - Returns: The array of authentication keys.
+    /// Select the authentication keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    ///   - andType: the key type
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched authentication keys
     @objc
-    public func selectAuthenticationKeys(byType: String) -> Array<PublicKey> {
-        var pks = publicKeyMap.select(nil, byType) { value -> Bool in
-            return (value as PublicKey).isAuthenticationKey
-        }
-        if hasController() {
-            _controllerDocs.values.forEach({ doc in
-               pks.append(contentsOf: doc.selectAuthenticationKeys(byType: byType))
-            })
-        }
-        
-        return pks
+    public func selectAuthenticationKeys(byId: String, andType: String) throws -> Array<PublicKey> {
+        return try selectAuthenticationKeys(byId: try canonicalId(byId)!, andType: andType)
+    }
+
+    /// Select the authentication keys by the specified key id or key type.
+    /// - Parameter byType: The type of authentication key to be selected.
+    /// - Returns: an array of the matched authentication keys
+    @objc
+    public func selectAuthenticationKeys(byType: String) throws -> Array<PublicKey> {
+        return try selectAuthenticationKeys(nil, byType)
+    }
+    
+    /// Select the authentication keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched authentication keys
+    public func selectAuthenticationKeys(byId: DIDURL) throws -> Array<PublicKey> {
+        return try selectAuthenticationKeys(byId, nil)
+    }
+    
+    /// Select the authentication keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched authentication keys
+    public func selectAuthenticationKeys(byId: String) throws -> Array<PublicKey> {
+        return try selectAuthenticationKeys(try canonicalId(byId)!, nil)
     }
 
     /// Get authentication key with specified key id.
@@ -891,11 +947,11 @@ public class DIDDocument: NSObject {
         return try authenticationKey(ofId: try canonicalId(ofId)!)
     }
     
-    /// Get authentication key according to identifier of authentication key.
+    /// Get authentication key according to identifier of authentication key with Object-C
     /// A DID Document must include a authentication property.
-    /// - Parameter ofId: An identifier of authentication key.
+    /// - Parameter ofId: the key id string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: The handle to public key.
+    /// - Returns: the matched authentication key object
     @objc
     public func authenticationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
@@ -906,18 +962,18 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Check key if authentiacation key or not.
-    /// - Parameter forId: An identifier of authentication key.
+    /// Check whether the given key is authentication key.
+    /// - Parameter forId: the key id string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: true if has authentication key, or false.
+    /// - Returns: true if the key is an authentication key, false otherwise
     public func containsAuthenticationKey(forId: String) throws -> Bool {
         return try containsAuthenticationKey(forId: canonicalId(forId)!)
     }
 
-    /// Check key if authentiacation key or not.
+    /// Check whether the given key is authentication key with Object-C
     /// - Parameter forId: An identifier of authentication key.
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: true if has authentication key, or false.
+    /// - Returns: true if the key is an authentication key, false otherwise
     @objc
     public func containsAuthenticationKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
@@ -970,7 +1026,7 @@ public class DIDDocument: NSObject {
         return true
     }
 
-    /// Get the count of authorization keys.
+    /// Get the numbers of the authorization keys.
     @objc
     public var authorizationKeyCount: Int {
         return publicKeyMap.count() { value -> Bool in
@@ -978,8 +1034,8 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Get the array of authorization keys.
-    /// - Returns: The array of authentication keys.
+    /// Get all the authorization keys.
+    /// - Returns: an array of authorization keys
     @objc
     public func authorizationKeys() -> Array<PublicKey> {
         return publicKeyMap.values() { value -> Bool in
@@ -987,63 +1043,83 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Select the authorization key array matched the key id or the type.
-    /// - Parameters:
-    ///   - byId: An identifier of authorization key to be selected.
-    ///   - andType: The type of authorization key to be selected.
-    /// - Returns: the matched authorization key array
-//    @objc
-    public func selectAuthorizationKeys(byId: DIDURL, andType: String?) throws -> Array<PublicKey> {
-        let id = try canonicalId(byId)
+    private func selectAuthorizationKeys(_ byId: DIDURL?, _ andType: String?) throws -> Array<PublicKey> {
+        try checkArgument(byId != nil || andType != nil, "Invalid select args")
+
+        let id = byId != nil ? try canonicalId(byId!) : nil
         return  publicKeyMap.select(id, andType) { value -> Bool in
             return (value as PublicKey).isAuthorizationKey
         }
     }
-
-    /// Get authorization key conforming to type or identifier of key.
+    
+    /// Select the authorization keys by the specified key id or key type.
     /// - Parameters:
-    ///   - byId: An identifier of authorization key to be selected.
-    ///   - andType: The type of authorization key to be selected.
+    ///   - byId: the key id
+    ///   - andType: the key type
+    /// - Returns: an array of the matched authorization keys
+//    @objc
+    public func selectAuthorizationKeys(byId: DIDURL, andType: String) throws -> Array<PublicKey> {
+        return try selectAuthorizationKeys(byId, andType)
+    }
+
+    /// Select the authorization keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    ///   - andType: the key type
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: Array of authorization keys selected.
+    /// - Returns: an array of the matched authorization keys
     @objc
-    public func selectAuthorizationKeys(byId: String, andType: String?) throws -> Array<PublicKey> {
+    public func selectAuthorizationKeys(byId: String, andType: String) throws -> Array<PublicKey> {
         let id = try DIDURL(subject, byId)
         return try selectAuthorizationKeys(byId: id, andType: andType)
     }
-
-    /// Get authorization key conforming to type or identifier of key.
-    /// - Parameter byType: An identifier of authorization key to be selected.
-    /// - Returns: Array of authorization keys selected.
-    @objc
-    public func selectAuthorizationKeys(byType: String) -> Array<PublicKey> {
-        return publicKeyMap.select(nil, byType) { value -> Bool in
-            return (value as PublicKey).isAuthorizationKey
-        }
-    }
-
-    /// Get authorization key according to identifier of key.
-    /// - Parameter ofId: An identifier of authorization key.
-    /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
-    public func authorizationKey(ofId: DIDURL) throws -> PublicKey? {
-        
-        let pk = try publicKey(ofId: ofId)
-        
-        return (pk != nil && pk!.isAuthorizationKey) ? pk!  : nil
-    }
-
-    /// Get authorization key according to identifier of key.
-    /// - Parameter ofId: An identifier of authorization key.
+    
+    /// Select the authorization keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
+    /// - Returns: an array of the matched authorization keys
+    public func selectAuthorizationKeys(byId: DIDURL) throws -> Array<PublicKey> {
+        return try selectAuthorizationKeys(byId, nil)
+    }
+    
+    /// Select the authorization keys by the specified key id or key type.
+    /// - Parameters:
+    ///   - byId: the key id
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched authorization keys
+    public func selectAuthorizationKeys(byId: String) throws -> Array<PublicKey> {
+        return try selectAuthorizationKeys(byId: try DIDURL(subject, byId))
+    }
+    
+    /// Select the authorization keys by the specified key id or key type.
+    /// - Parameter byType: the key type
+    /// - Returns: an array of the matched authorization keys
+    @objc
+    public func selectAuthorizationKeys(byType: String) throws -> Array<PublicKey> {
+        return try selectAuthorizationKeys(nil, byType)
+    }
+
+    /// Get the specific authorization key.
+    /// - Parameter ofId: the key id
+    /// - Returns: the PublicKey object
+    public func authorizationKey(ofId: DIDURL) throws -> PublicKey? {
+        let pk = try publicKey(ofId: ofId)
+        return pk != nil && pk!.isAuthorizationKey ? pk! : nil
+    }
+
+    /// Get the specific authorization key.
+    /// - Parameter ofId: the key id
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: the PublicKey object
     public func authorizationKey(ofId: String) throws -> PublicKey?  {
         return try authorizationKey(ofId: canonicalId(ofId)!)
     }
 
-    /// Get authorization key according to identifier of key.
-    /// - Parameter ofId: An identifier of authorization key.
+    /// Get the specific authorization key with Object-C.
+    /// - Parameter ofId: the key id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has authorization key, return the handle to public key,Otherwise, return nil.
+    /// - Returns: the PublicKey object
     @objc
     public func authorizationKey(ofId: String, error: NSErrorPointer) -> PublicKey?  {
         do {
@@ -1054,18 +1130,18 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Check key if authorization key or not.
-    /// - Parameter forId: An identifier of authorization key.
+    /// Check whether the given key is authorization key.
+    /// - Parameter forId: the key id string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: true if has authorization key, or false.
+    /// - Returns: true if the key is an authorization key, false otherwise
     public func containsAuthorizationKey(forId: String) throws -> Bool {
         return try containsAuthorizationKey(forId: canonicalId(forId)!)
     }
 
-    /// Check key if authorization key or not.
-    /// - Parameter forId: An identifier of authorization key.
+    /// Check whether the given key is authorization key with Object-C.
+    /// - Parameter forId: the key id string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: true if has authorization key, or false.
+    /// - Returns: true if the key is an authorization key, false otherwise
     @objc
     public func containsAuthorizationKey(forId: String, error: NSErrorPointer) -> Bool {
         do {
@@ -1076,9 +1152,9 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Check key if authorization key or not.
-    /// - Parameter forId: An identifier of authorization key.
-    /// - Returns: true if has authorization key, or false.
+    /// Check whether the given key is authorization key.
+    /// - Parameter forId: the key id string
+    /// - Returns: true if the key is an authorization key, false otherwise
     public func containsAuthorizationKey(forId: DIDURL) throws -> Bool {
         return try authorizationKey(ofId: forId) != nil
     }
@@ -1113,70 +1189,92 @@ public class DIDDocument: NSObject {
         return true
     }
 
-    /// Get the count of credentials.
+    /// Get the numbers of the credentials.
     @objc
     public var credentialCount: Int {
         return credentialMap.count() { value -> Bool in return true }
     }
 
-    /// Get the array of credentials.
-    /// - Returns: Array of authorization keys.
+    /// Get all the credential.
+    /// - Returns: an array of the credential objects
     @objc
     public func credentials() -> Array<VerifiableCredential> {
         return credentialMap.values() { value -> Bool in return true }
     }
 
-    /// Select the Credential array matched the given credential id or the type.
-    /// - Parameters:
-    ///   - byId: An identifier of credential key to be selected.
-    ///   - andType: The type of credential key to be selected.
-    /// - Returns: the matched Credential array
-    @objc
-    public func selectCredentials(byId: DIDURL, andType: String?) throws -> Array<VerifiableCredential>  {
-        let id = try canonicalId(byId)
+    private func selectCredentials(_ byId: DIDURL?, _ andType: String?) throws -> Array<VerifiableCredential>  {
+        let id = byId != nil ? try canonicalId(byId!) : nil
         return credentialMap.select(id, andType) { value -> Bool in return true }
     }
-
-    /// Get credential key conforming to type or identifier of key.
+    
+    /// Select the credentials by the specified id or type.
     /// - Parameters:
-    ///   - byId: An identifier of credential key to be selected.
-    ///   - andType: The type of credential key to be selected.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: Array of credential keys selected.
-//    @objc
-    public func selectCredentials(byId: String, andType: String?) throws -> Array<VerifiableCredential>  {
-        let id = try canonicalId(byId)
-        return try selectCredentials(byId: id!, andType: andType)
-    }
-
-    /// Get credential key conforming to type or identifier of key.
-    /// - Parameter byType: The type of credential key to be selected.
-    /// - Returns: Array of credential keys selected.
+    ///   - byId: the credential id
+    ///   - andType: the credential type
+    /// - Returns: an array of the matched credentials
     @objc
-    public func selectCredentials(byType: String) -> Array<VerifiableCredential>  {
-        return credentialMap.select(nil, byType) { value -> Bool in return true }
+    public func selectCredentials(byId: DIDURL, andType: String) throws -> Array<VerifiableCredential>  {
+        return try selectCredentials(byId, andType)
     }
 
-    /// Get credential according to identifier of credential.
-    /// - Parameter ofId: An identifier of Credential.
-    /// - Returns: If has the credential, return the handle to Credential. Otherwise, return nil
+    /// Select the credentials by the specified id or type.
+    /// - Parameters:
+    ///   - byId: the credential id
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched credentials
+//    @objc
+    public func selectCredentials(byId: String) throws -> Array<VerifiableCredential>  {
+        return try selectCredentials(byId: try canonicalId(byId)!)
+    }
+
+    /// Select the credentials by the specified id or type.
+    /// - Parameters:
+    ///   - byId: the credential id
+    /// - Returns: an array of the matched credentials
+    @objc
+    public func selectCredentials(byId: DIDURL) throws -> Array<VerifiableCredential>  {
+        return try selectCredentials(byId, nil)
+    }
+
+    /// Select the credentials by the specified id or type.
+    /// - Parameters:
+    ///   - byId: the credential id
+    ///   - andType: the credential type
+    /// - Throws: if an error occurred, throw error.
+    /// - Returns: an array of the matched credentials
+//    @objc
+    public func selectCredentials(byId: String, andType: String) throws -> Array<VerifiableCredential>  {
+        return try selectCredentials(byId: try canonicalId(byId)!, andType: andType)
+    }
+    
+    /// Select the credentials by the specified id or type.
+    /// - Parameter byType: the credential type
+    /// - Returns: an array of the matched credentials
+    @objc
+    public func selectCredentials(byType: String) throws -> Array<VerifiableCredential>  {
+        return try selectCredentials(nil, byType)
+    }
+
+    /// Get the specific credential.
+    /// - Parameter ofId: the credential id
+    /// - Returns: the credential object
     @objc
     public func credential(ofId: DIDURL) -> VerifiableCredential? {
         return credentialMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
-    /// Get credential according to identifier of credential.
-    /// - Parameter ofId: An identifier of Credential.
+    /// Get the specific credential.
+    /// - Parameter ofId: the credential id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has the credential, return the handle to Credential. Otherwise, return nil
+    /// - Returns: the credential object. Otherwise, return nil
     public func credential(ofId: String) throws -> VerifiableCredential? {
         return credential(ofId: try DIDURL(subject, ofId))
     }
 
-    /// Get credential according to identifier of credential.
-    /// - Parameter ofId: An identifier of Credential.
+    /// Get the specific credential with Object-C
+    /// - Parameter ofId: the credential id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has the credential, return the handle to Credential. Otherwise, return nil
+    /// - Returns: the credential object. Otherwise, return nil
     @objc
     public func credential(ofId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
@@ -1209,14 +1307,14 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// Get the count of service keys.
+    /// Get the numbers of the services.
     @objc
     public var serviceCount: Int {
         return serviceMap.count() { value -> Bool in return true }
     }
 
-    /// Get the array of services.
-    /// - Returns: Array of services keys.
+    /// Get all the services.
+    /// - Returns: an array of the services
     @objc
     public func services() -> Array<Service> {
         return serviceMap.values() { value -> Bool in return true }
@@ -1224,83 +1322,80 @@ public class DIDDocument: NSObject {
 
     private func selectServices(_ byId: DIDURL?, _ andType: String?) throws -> Array<Service>  {
         var svc: [Service] = serviceMap.select(byId, andType) { value -> Bool in return true }
+        // TODO:
         try svc.sort { (svcA, svcB) -> Bool in
             return try svcA.compareTo(svcB) == ComparisonResult.orderedAscending
         }
         return svc
     }
     
-    /// Get Service conforming to type or identifier of key.
+    /// Select the services by the specified id or type.
     /// - Parameters:
-    ///   - byId: An identifier of Service to be selected.
-    ///   - andType: The type of Service.
-    /// - Returns: Array of Service keys selected.
+    ///   - byId: the service id
+    ///   - andType: the service type
+    /// - Returns: an array of the matched services
     @objc
     public func selectServices(byId: DIDURL, andType: String) throws -> Array<Service>  {
         return try selectServices(byId, andType)
     }
 
-    /// Get Service conforming to type or identifier of key.
+    /// Select the services by the specified id or type.
     /// - Parameters:
-    ///   - byId: An identifier of Service to be selected.
-    ///   - andType: The type of Service.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: Array of Service keys selected.
+    ///   - byId: the service id
+    ///   - andType: the service type
+    /// - Returns: an array of the matched services
     @objc (selectServicesbyIdString:andType:error:)
     public func selectServices(byId: String, andType: String) throws -> Array<Service>  {
         let id = try DIDURL(subject, byId)
         return try selectServices(byId: id, andType: andType)
     }
 
-    /// Get Service conforming to type or identifier of key.
+    /// Select the services by the specified id or type.
     /// - Parameters:
-    ///   - byId: An identifier of Service to be selected.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: Array of Service keys selected.
+    ///   - byId: the service id
+    /// - Returns: an array of the matched services
     @objc
     public func selectServices(byId: DIDURL) throws -> Array<Service>  {
         return try selectServices(byId, nil)
     }
     
-    /// Get Service conforming to type or identifier of key.
+    /// Select the services by the specified id or type.
     /// - Parameters:
-    ///   - byId: An identifier of Service to be selected.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: Array of Service keys selected.
+    ///   - byId: the service id
+    /// - Returns: an array of the matched services
     @objc (selectServicesbyIdString:error:)
     public func selectServices(byId: String) throws -> Array<Service>  {
         let id = try DIDURL(subject, byId)
         return try selectServices(id, nil)
     }
 
-    /// Get Service conforming to type or identifier of key.
-    /// - Parameter byType: The type of Service.
-    /// - Returns: Array of Service keys selected.
+    /// Select the services by the specified id or type.
+    /// - Parameters:
+    ///   - andType: the service type
+    /// - Returns: an array of the matched services
     @objc
     public func selectServices(byType: String) throws -> Array<Service>  {
         return try selectServices(nil, byType)
     }
 
-    /// Get service according to identifier of credential.
-    /// - Parameter ofId: An identifier of service key.
-    /// - Returns: If has service, return the handle to service,Otherwise, return nil.
+    /// Get the specific service.
+    /// - Parameter ofId: the service id
+    /// - Returns: the service object
     @objc
     public func service(ofId: DIDURL) -> Service? {
         return serviceMap.get(forKey: ofId) { value -> Bool in return true }
     }
 
-    /// Get service according to identifier of credential.
-    /// - Parameter ofId: An identifier of service key.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has service, return the handle to service,Otherwise, return nil.
+    /// Get the specific service.
+    /// - Parameter ofId: the service id
+    /// - Returns: the service object
     public func service(ofId: String) throws -> Service? {
         return service(ofId: try DIDURL(subject, ofId))
     }
 
-    /// Get service according to identifier of credential.
-    /// - Parameter ofId: An identifier of service key.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: If has service, return the handle to service,Otherwise, return nil.
+    /// Get the specific service with Object-C
+    /// - Parameter ofId: the service id
+    /// - Returns: the service object
     @objc
     public func service(ofId: String, error: NSErrorPointer) -> Service? {
         do {
@@ -1321,7 +1416,7 @@ public class DIDDocument: NSObject {
         return serviceMap.remove(id)
     }
 
-    /// Get expire time about DID Document.
+    /// Get expire time of this DIDDocument.
     @objc
     public var expirationDate: Date? {
         return self._expires
@@ -1331,36 +1426,40 @@ public class DIDDocument: NSObject {
         self._expires = expirationDate
     }
     
-    /// Get last modified time.
+    /// Get last modified time of this DIDDocument.
     public var lastModified: Date? {
         return proof.createdDate
     }
     
-    /// Get last modified time.
+    /// Get signature of this DIDDocumet.
+    ///
+    /// For single-signed DIDDocument object, the document signature is the
+    /// proof's signature. For multi-signed DIDDocument object, the document
+    /// signature is the first proof's signature.
     public var signature: String? {
         return proof.signature
     }
 
-    /// Get Proof object from did document.
+    /// Get the proof object of this DIDDocument. if this document is a
+    /// multi-signed document, this method returns the first proof object.
     var proof: DIDDocumentProof {
         // Guaranteed that this field would not be nil because the object
         // was generated by "builder".
         return _proofs[0]
     }
 
-    // This type of getXXXX function would specifically be provided for
-    // sdk internal when we can't be sure about it's validity/integrity.
+    // Get all Proof objects.
     public func proofs() -> [DIDDocumentProof] {
         return _proofs
     }
     
-    /// Get current object's DID context.
+    /// Return the subject DID.
     var serializeContextDid: DID {
         return subject
     }
     
     /// Sanitize routine before sealing or after deserialization.
-    /// - Throws: DIDError
+    /// - Throws: MalformedDocumentError if the document object is invalid
     func sanitize() throws {
         try sanitizeControllers()
         try sanitizePublickKey()
@@ -1726,17 +1825,16 @@ public class DIDDocument: NSObject {
                 return compareResult == ComparisonResult.orderedDescending
             }
         }
-        
     }
     
-    /// Set DID Metadata object for did document.
-    /// - Parameter metadata: the DIDMetadata object
+    /// Set the metadata object for this DIDDocument.
+    /// - Parameter metadata: a DIDMetadata object
     func setMetadata(_ metadata: DIDMetadata) {
         self._metadata = metadata
         subject.setMetadata(metadata)
     }
 
-    /// Get DIDMetaData object from did document.
+    /// Get the metadata object of this DIDDocument.
     /// - Returns: the DIDMetadata object
     @objc
     public func getMetadata() -> DIDMetadata {
@@ -1753,22 +1851,22 @@ public class DIDDocument: NSObject {
     }
 
     ///
-    /// Check that document is deactivated or not.
-    /// true if document is deactivated, otherwise false.
+    /// Check if this DIDDocument is deactivated.
+    /// true if deactivated, false otherwise
     @objc
     public var isDeactivated: Bool {
         return getMetadata().isDeactivated
     }
 
-    /// Check that document is expired or not.
-    /// true if document is expired, otherwise false.
+    /// Check if this DIDDocument is expired.
+    /// true if expired, false otherwise
     @objc
     public var isExpired: Bool {
         return DateFormatter.isExipired(self.expirationDate!)
     }
 
-    /// Check that document is genuine or not.
-    /// true if document is genuine, otherwise false.
+    /// Check is this DIDDocument is genuine.
+    /// true if genuine, false otherwise
     public func isGenuine() throws -> Bool {
         // Proofs count should match with multisig
         let expectedProofs = _multisig == nil ? 1 : _multisig!.m
@@ -1819,8 +1917,9 @@ public class DIDDocument: NSObject {
         }
     }
     
-    /// Check whether the ticket is qualified.
-    /// - Returns: true is the ticket is qualified else false
+    /// Check if this DIDDocument is qualified. It means the proof matched
+    /// With the multisig specification.
+    /// - Returns: true if qualified, false otherwise
     public func isQualified() -> Bool {
         guard _proofs.count != 0 else {
             return false
@@ -1829,8 +1928,8 @@ public class DIDDocument: NSObject {
         return _proofs.count == (_multisig == nil ? 1 : _multisig!.m)
     }
 
-    /// Check that document is valid or not.
-    /// true if document is valid, otherwise false.
+    /// Check if this DIDDocument is valid.
+    /// true if valid, false otherwise
     public func isValid() throws -> Bool {
         if try isDeactivated || isExpired || !isGenuine() {
             return false
@@ -1865,24 +1964,23 @@ public class DIDDocument: NSObject {
         return doc
     }
 
-    /// Get DIDDocument Builder to modify document.
-    /// - Returns: DIDDocumentBuilder instance.
+    /// Get DIDDocument Builder object to editing this DIDDocument.
+    /// - Returns: the DIDDocumentBuilder object
     @objc
     public func editing() throws -> DIDDocumentBuilder {
         if !isCustomizedDid() {
-           try checkAttachedStore()
+            try checkAttachedStore()
             return try DIDDocumentBuilder(self)
         }
-        else {
-            guard effectiveController != nil else {
-                throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError()
-            }
-            
-            return try editing(effectiveControllerDocument()!)
+        guard effectiveController != nil else {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError()
         }
-       
+        return try editing(effectiveControllerDocument()!)
     }
 
+    /// Get DIDDocument Builder object to editing this DIDDocument.
+    /// - Parameter controller: the effective controller to editing a customized DIDDocument
+    /// - Returns: the DIDDocumentBuilder object
     @objc
     public func editing(_ controller: DIDDocument) throws -> DIDDocumentBuilder {
         try checkIsCustomized()
@@ -1900,70 +1998,70 @@ public class DIDDocument: NSObject {
         return try DIDDocumentBuilder(self, controller)
     }
     
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     public func sign(using storePassword: String, for data: Data...) throws -> String {
         return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc
     public func sign(using storePassword: String, for data: [Data]) throws -> String {
         return try sign(self.defaultPublicKeyId()!, storePassword, data)
     }
 
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     public func sign(withId: DIDURL, using storePassword: String, for data: Data...) throws -> String {
         return try sign(withId, storePassword, data)
     }
 
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc
     public func sign(withId: DIDURL, using storePassword: String, for data: [Data]) throws -> String {
         return try sign(withId, storePassword, data)
     }
 
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     public func sign(withId: String, using storePassword: String, for data: Data...) throws -> String {
         return try sign(try DIDURL(self.subject, withId), storePassword, data)
     }
 
-    /// Sign data by DID.
+    /// Sign the data by the specified key.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - storePassword: Pass word to sign.
-    ///   - data: To sign of data list.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - data: the data be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc(sign:storePassword:data:error:)
     public func sign(withId: String, using storePassword: String, for data: [Data]) throws -> String {
         return try sign(try DIDURL(self.subject, withId), storePassword, data)
@@ -1976,18 +2074,25 @@ public class DIDDocument: NSObject {
         return try signDigest(withId: id, using: storePassword, for: digest)
     }
 
-    /// Sign digest by DID.
+    /// Sign the digest by the specified key.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - storePassword: Pass word to sign.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - storePassword: the password for the DIDStore
+    ///   - digest: the data digest to be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc
     public func signDigest(using storePassword: String, for digest: Data) throws -> String {
         return try signDigest(withId: self.defaultPublicKeyId()!, using: storePassword, for: digest)
     }
 
+    /// Sign the digest by the specified key.
+    /// - Parameters:
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - digest: the data digest to be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc
     public func signDigest(withId: DIDURL, using storePassword: String, for digest: Data) throws -> String {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
@@ -2021,13 +2126,13 @@ public class DIDDocument: NSObject {
         return Data(buffer: cdigestPointerToArry)
     }
 
-    /// Sign digest by DID.
+    /// Sign the digest by the specified key.
     /// - Parameters:
-    ///   - withId: Public key to sign
-    ///   - storePassword: Pass word to sign.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: The  string of signature data.
+    ///   - withId: the key id to sign the data
+    ///   - storePassword: the password for the DIDStore
+    ///   - digest: the data digest to be signed
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signature string
     @objc(signDigest:storePassword:digest:error:)
     public func signDigest(withId: String, using storePassword: String, for digest: Data) throws -> String {
         let _id = try DIDURL(subject, withId)
@@ -2046,13 +2151,12 @@ public class DIDDocument: NSObject {
         return try verify(self.defaultPublicKeyId()!, signature, data)
     }
 
-    /// verify data.
+    /// Verify the signature by the specific key and the data.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - signature: Signature data.
-    ///   - data: To verify of data list
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - signature: the signature string
+    ///   - data: the data to be checked
+    /// - Returns: true if the signature was verified, false otherwise
     @objc
     public func verify(signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
@@ -2063,24 +2167,24 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// verify data.
+    /// Verify the signature by the specific key and the data.
     /// - Parameters:
-    ///   - withId: Public key to sign
-    ///   - signature: Signature data.
-    ///   - data: To verify of data list
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - data: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     public func verify(withId: DIDURL, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(withId, signature, data)
     }
 
-    /// verify data.
+    /// Verify the signature by the specific key and the data with Object-C
     /// - Parameters:
-    ///   - withId: Public key to sign
-    ///   - signature: Signature data.
-    ///   - data: To verify of data list
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - data: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     @objc
     public func verifyUsingObjectC(withId: DIDURL, using signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
@@ -2091,24 +2195,24 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// verify data.
+    /// Verify the signature by the specific key and the data.
     /// - Parameters:
-    ///   - withId: Public key to sign
-    ///   - signature: Signature data.
-    ///   - data: To verify of data list
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - data: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     public func verify(withId: String, using signature: String, onto data: Data...) throws -> Bool {
         return try verify(DIDURL(self.subject, withId), signature, data)
     }
 
-    /// verify data.
+    /// Verify the signature by the specific key and the data.
     /// - Parameters:
-    ///   - withId: Public key to sign
-    ///   - signature: Signature data.
-    ///   - data: To verify of data list
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - data: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     @objc
     public func verify(withId: String, using signature: String, onto data: [Data], error: NSErrorPointer) -> Bool {
         do {
@@ -2128,25 +2232,25 @@ public class DIDDocument: NSObject {
         return try verifyDigest(withId: id, using: sigature, for: digest)
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest.
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - signature: the signature string
+    ///   - digest: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     public func verifyDigest(signature: String, for digest: Data) throws -> Bool {
 
         return try verifyDigest(withId: self.defaultPublicKeyId()!, using: signature, for: digest)
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest with Object-C
     /// SDK will get default key from DID
     /// - Parameters:
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - signature: the signature string
+    ///   - digest: the data to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     @objc
     public func verifyDigest(signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
@@ -2157,13 +2261,13 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - digest: the data digest to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data) throws -> Bool {
         try checkArgument(!signature.isEmpty, "Invalid sigature.")
         try checkArgument(!digest.isEmpty, "Invalid digest.")
@@ -2186,13 +2290,13 @@ public class DIDDocument: NSObject {
         return re == 0 ? true : false
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest.
     /// - Parameters:
-    ///   - withId: Public key to sign.
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - withId: the key id
+    ///   - signature: the signature string
+    ///   - digest: the data digest to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     @objc
     public func verifyDigest(withId: DIDURL, using signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
@@ -2203,26 +2307,26 @@ public class DIDDocument: NSObject {
         }
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest.
     /// - Parameters:
-    ///   - id: Public key to sign.
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - id: the key id
+    ///   - signature: the signature string
+    ///   - digest: the data digest to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     public func verifyDigest(withId id: String, using signature: String, for digest: Data) throws -> Bool {
         let _id = try DIDURL(subject, id)
 
         return try verifyDigest(withId: _id, using: signature, for: digest)
     }
 
-    /// verify digest.
+    /// Verify the signature by the specific key and the data digest.
     /// - Parameters:
-    ///   - id: Public key to sign.
-    ///   - signature: Signature data.
-    ///   - digest: The digest to sign.
-    /// - Throws: If no error occurs, throw error.
-    /// - Returns: True on success, or false.
+    ///   - id: the key id
+    ///   - signature: the signature string
+    ///   - digest: the data digest to be checked
+    /// - Throws: if no error occurs, throw error.
+    /// - Returns: true if the signature was verified, false otherwise
     @objc(verifyDigest:signature:digest:error:)
     public func verifyDigest(withId id: String, using signature: String, for digest: Data, error: NSErrorPointer) -> Bool {
         do {
@@ -2232,24 +2336,54 @@ public class DIDDocument: NSObject {
             return false
         }
     }
-
-    public func newCustomizedDid(_ did: DID, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
+    
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - force: do not try to resolving the DID, create the document directly
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: DID, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
         return try newCustomizedDid(did, nil, 1, force, storePassword)
     }
     
-    public func newCustomizedDid(_ did: DID, _ storePassword: String) throws -> DIDDocument {
-        return try newCustomizedDid(did, false, storePassword)
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: DID, _ storePassword: String) throws -> DIDDocument {
+        return try newCustomizedDid(withId: did, false, storePassword)
     }
     
-    public func newCustomizedDid(_ did: String, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - force: do not try to resolving the DID, create the document directly
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: String, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
         return try newCustomizedDid(DID.valueOf(did)!, nil, 1, force, storePassword)
     }
     
-    public func newCustomizedDid(_ did: String, _ storePassword: String) throws -> DIDDocument {
-        return try newCustomizedDid(DID.valueOf(did)!, false, storePassword)
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: String, _ storePassword: String) throws -> DIDDocument {
+        return try newCustomizedDid(withId: did, false, storePassword)
     }
     
-    public func newCustomizedDid(_ did: DID, _ controllers: [DID]?, _ multisig: Int, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
+    private func newCustomizedDid(_ did: DID, _ controllers: [DID]?, _ multisig: Int, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
         
         try checkAttachedStore()
         var ctrls: [DID] = []
@@ -2285,12 +2419,45 @@ public class DIDDocument: NSObject {
         }
     }
     
-    public func newCustomizedDid(_ did: DID, _ controllers: [DID], _ multisig: Int, _ storePassword: String) throws -> DIDDocument {
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - controllers: the other controllers for the new customized DID
+    ///   - multisig: how many signatures are required
+    ///   - force: do not try to resolving the DID, create the document directly
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveException if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreException if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: DID, _ controllers: [DID], _ multisig: Int, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
+        return try newCustomizedDid(did, controllers, multisig, force, storePassword)
+    }
+    
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - controllers: the other controllers for the new customized DID
+    ///   - multisig: how many signatures are required
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveException if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreException if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: DID, _ controllers: [DID], _ multisig: Int, _ storePassword: String) throws -> DIDDocument {
         
         return try newCustomizedDid(did, controllers, multisig, false, storePassword)
     }
     
-    public func newCustomizedDid(_ did: String, _ controllers: [String], _ multisig: Int, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - controllers: the other controllers for the new customized DID
+    ///   - multisig: how many signatures are required
+    ///   - force: do not try to resolving the DID, create the document directly
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveException if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreException if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: String, _ controllers: [String], _ multisig: Int, _ force: Bool, _ storePassword: String) throws -> DIDDocument {
         var _controllers: [DID] = []
         try controllers.forEach { ctrl in
            try _controllers.append(DID(ctrl))
@@ -2299,12 +2466,30 @@ public class DIDDocument: NSObject {
         return try newCustomizedDid(DID.valueOf(did)!, _controllers, multisig, force, storePassword)
     }
     
-    public func newCustomizedDid(_ did: String, _ controllers: [String], _ multisig: Int, _ storePassword: String) throws -> DIDDocument {
+    /// Create a new customized DID using current DID as the controller.
+    /// - Parameters:
+    ///   - did: the new customized identifier
+    ///   - controllers: the other controllers for the new customized DID
+    ///   - multisig: how many signatures are required
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveException if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreException if an error occurred when accessing the store
+    /// - Returns: the new created DIDDocument
+    public func newCustomizedDid(withId did: String, _ controllers: [String], _ multisig: Int, _ storePassword: String) throws -> DIDDocument {
         
-        return try newCustomizedDid(did, controllers, multisig, false, storePassword)
+        return try newCustomizedDid(withId: did, controllers, multisig, false, storePassword)
     }
     
-    public func createTransferTicket(to did: DID, _ storePassword: String) throws -> TransferTicket {
+    /// Create a TransferTicket object for the this (customized) DIDDocument.
+    /// The document should have an effective controller, otherwise this method
+    /// will fail.
+    /// - Parameters:
+    ///   - did: who the did will transfer to
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the TransferTicket object
+    public func createTransferTicket(to did: DID, using storePassword: String) throws -> TransferTicket {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkIsCustomized()
         try checkAttachedStore()
@@ -2315,7 +2500,17 @@ public class DIDDocument: NSObject {
         return ticket
     }
     
-    public func createTransferTicket(_ did: DID, _ to: DID, _ storePassword: String) throws -> TransferTicket {
+    /// Create a TransferTicket object for the this (customized) DIDDocument.
+    /// The document should have an effective controller, otherwise this method
+    /// will fail.
+    /// - Parameters:
+    ///   - did: the target customized DID to be transfer
+    ///   - to: who the did will transfer to
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDResolveError if an error occurred when resolving the DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the TransferTicket object
+    public func createTransferTicket(withId did: DID, to: DID, using storePassword: String) throws -> TransferTicket {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkIsPrimitive()
         try checkAttachedStore()
@@ -2338,7 +2533,14 @@ public class DIDDocument: NSObject {
         return ticket
     }
     
-    public func sign(_ ticket: TransferTicket, _ storePassword: String) throws -> TransferTicket {
+    /// Sign and seal the TransferTicket object. The current DID should be
+    /// the controller of the DID that the TransferTicket to be transfer.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket object to be sign
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signed TransferTicket object
+    public func sign(with ticket: TransferTicket, using storePassword: String) throws -> TransferTicket {
         
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
@@ -2347,7 +2549,14 @@ public class DIDDocument: NSObject {
         return ticket
     }
     
-    public func sign(_ doc: DIDDocument, _ storePassword: String) throws -> DIDDocument {
+    /// Sign and seal the customized DIDDocument object. The current DID should
+    /// be the controller of the target DIDDocument.
+    /// - Parameters:
+    ///   - doc: the customized DIDDocument object to be sign
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the signed DIDDocument object
+    public func sign(with doc: DIDDocument, using storePassword: String) throws -> DIDDocument {
         
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
@@ -2372,7 +2581,7 @@ public class DIDDocument: NSObject {
         }
     }
     
-    public func publish(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    private func publish(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         var sigK = signKey
         try checkArgument(ticket.isValid(), "Invalid ticket")
         try checkArgument(ticket.subject == subject, "Ticket mismatch with current DID")
@@ -2404,47 +2613,156 @@ public class DIDDocument: NSObject {
         try DIDBackend.sharedInstance().transferDid(self, ticket, sigK!, storePassword, adapter as? DIDAdapter)
     }     
     
-    public func publish(_ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String) throws {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, of signKey: DIDURL, using storePassword: String, adapter: DIDTransactionAdapter) throws {
+        return try publish(ticket, signKey, storePassword, adapter)
+    }
+    
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, of signKey: DIDURL, using storePassword: String) throws {
         try publish(ticket, signKey, storePassword, nil)
     }
     
-    public func publish(_ ticket: TransferTicket, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, of signKey: String, using storePassword: String, adapter: DIDTransactionAdapter?) throws {
         try publish(ticket, canonicalId(signKey), storePassword, adapter)
     }
     
-    public func publish(_ ticket: TransferTicket, _ signKey: String, _ storePassword: String) throws {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, of signKey: String, using storePassword: String) throws {
         try publish(ticket, canonicalId(signKey), storePassword, nil)
     }
     
-    public func publish(_ ticket: TransferTicket, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, using storePassword: String, adapter: DIDTransactionAdapter) throws {
         try publish(ticket, nil, storePassword, adapter)
     }
     
-    public func publish(_ ticket: TransferTicket, _ storePassword: String) throws {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with ticket: TransferTicket, using storePassword: String) throws {
         try publish(ticket, nil, storePassword, nil)
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: a new CompletableStage
+    private func publishAsync(_ ticket: TransferTicket, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try publish(ticket, signKey, storePassword, adapter) }
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, of signKey: DIDURL, using storePassword: String, adapter: DIDTransactionAdapter) throws -> Promise<Void> {
+        return try publishAsync(ticket, signKey, storePassword, adapter)
+    }
+    
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, of signKey: DIDURL, using storePassword: String) throws -> Promise<Void> {
         return try publishAsync(ticket, signKey, storePassword, nil)
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, of signKey: String, using storePassword: String, adapter: DIDTransactionAdapter) throws -> Promise<Void> {
         return try publishAsync(ticket, canonicalId(signKey), storePassword, adapter)
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ signKey: String, _ storePassword: String) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, of signKey: String, using storePassword: String) throws -> Promise<Void> {
         return try publishAsync(ticket, canonicalId(signKey), storePassword, nil)
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if nil the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, using storePassword: String, adapter: DIDTransactionAdapter) throws -> Promise<Void> {
         return try publishAsync(ticket, nil, storePassword, adapter)
     }
     
-    public func publishAsync(_ ticket: TransferTicket, _ storePassword: String) throws -> Promise<Void> {
+    /// Publish a DID transfer transaction for current (customized) DIDDocument
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - ticket: the TransferTicket for current DID
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: a new CompletableStage
+    public func publishAsync(with ticket: TransferTicket, using storePassword: String) throws -> Promise<Void> {
         return try publishAsync(ticket, nil, storePassword, nil)
     }
     
@@ -2454,7 +2772,7 @@ public class DIDDocument: NSObject {
     ///   - force: force = true, must be publish whether the local document is lastest one or not;
     ///            force = false, must not be publish if the local document is not the lastest one,
     ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: DIDURL?, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) throws {
+    private func publish(_ signKey: DIDURL?, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         if signKey == nil && defaultPublicKeyId() == nil {
@@ -2535,185 +2853,250 @@ public class DIDDocument: NSObject {
     
     /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: DIDURL, _ force: Bool, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: DIDURL, force: Bool, using storePassword: String, adapter: DIDAdapter) throws {
+        return try publish(signKey, force, storePassword, adapter)
+    }
+    
+    /// Publish DID Document to the ID chain.
+    /// - Parameters:
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: DIDURL, force: Bool, using storePassword: String) throws {
         try publish(signKey, force, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDAdapter) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) throws {
         try publish(signKey, false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: DIDURL, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: DIDURL, using storePassword: String) throws {
         try publish(signKey, false, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: String, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: String, force: Bool, using storePassword: String, adapter: DIDAdapter) throws {
         try publish(canonicalId(signKey), force, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: String, _ force: Bool, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: String, force: Bool, using storePassword: String) throws {
         try publish(canonicalId(signKey), force, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: String, _ storePassword: String, _ adapter: DIDAdapter) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: String, using storePassword: String, adapter: DIDAdapter) throws {
         try publish(canonicalId(signKey), false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ signKey: String, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(with signKey: String, using storePassword: String) throws {
         try publish(canonicalId(signKey), false, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
-    /// Specify the default key to sign.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ storePassword: String, _ adapter: DIDAdapter) throws {
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(using storePassword: String, adapter: DIDAdapter) throws {
         try publish(nil, false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain without force mode.
-    /// Specify the default key to sign.
+    /// Publish DID Document to the ID chain.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    public func publish(_ storePassword: String) throws {
+    ///   - storePassword: the password for the DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Throws DIDBackendError if an error occurred when publishing the transaction
+    public func publish(using storePassword: String) throws {
         try publish(nil, false, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: DIDURL?, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    private func publishAsync(_ signKey: DIDURL?, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try publish(signKey, force, storePassword, adapter) }
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: signKey the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: DIDURL, _ force: Bool, _ storePassword: String) -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: DIDURL, force: Bool, using storePassword: String, adapter: DIDAdapter) -> Promise<Void> {
+        return publishAsync(signKey, force, storePassword, adapter)
+    }
+    
+    /// Publish DID Document to the ID chain in asynchronous mode.
+    /// - Parameters:
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: DIDURL, force: Bool, using storePassword: String) -> Promise<Void> {
         return publishAsync(signKey, force, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: signKey the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///              force = false, must not be publish if the local document is not the lastest one,
-    ///              and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: String, _ force: Bool, _ storePassword: String, _ adapter: DIDAdapter?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try publish(signKey, force, storePassword, adapter) }
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: String, force: Bool, using storePassword: String, _ adapter: DIDAdapter) throws -> Promise<Void> {
+        return try publishAsync(DIDURL.valueOf(signKey), force, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - force: force = true, must be publish whether the local document is lastest one or not;
-    ///            force = false, must not be publish if the local document is not the lastest one,
-    ///            and must resolve at first.
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: String, _ force: Bool, _ storePassword: String) -> Promise<Void> {
-        return publishAsync(signKey, force, storePassword, nil)
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: String, force: Bool, using storePassword: String) throws -> Promise<Void> {
+        return try publishAsync(DIDURL.valueOf(signKey), force, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDAdapter) -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) -> Promise<Void> {
         return publishAsync(signKey, false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - force: if true will ignore the conflict between local copy and
+    ///                 the chain copy; otherwise will check the conflict
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: DIDURL, using storePassword: String) -> Promise<Void> {
         return publishAsync(signKey, false, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: String, _ storePassword: String, _ adapter: DIDAdapter) -> Promise<Void> {
-        return publishAsync(signKey, false, storePassword, adapter)
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: String, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
+        return try publishAsync(DIDURL.valueOf(signKey), false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return publishAsync(signKey, false, storePassword, nil)
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func publishAsync(with signKey: String, using storePassword: String) throws -> Promise<Void> {
+        return try publishAsync(DIDURL.valueOf(signKey), false, storePassword, nil)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode and specify the default key to sign.
+    /// Publish DID Document to the ID chain in asynchronous mode.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    public func publishAsync(_ storePassword: String, _ adapter: DIDAdapter) -> Promise<Void> {
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func publishAsync(using storePassword: String, adapter: DIDAdapter) -> Promise<Void> {
         return publishAsync(nil, false, storePassword, adapter)
     }
     
-    /// Publish DID content(DIDDocument) to chain with asynchronous mode.
-    /// Also this method is defined without force mode and specify the default key to sign.
-    /// - Parameter storePassword: the password for DIDStore
-    public func publishAsync(_ storePassword: String) -> Promise<Void> {
+    /// Publish DID Document to the ID chain in asynchronous mode.
+    /// - Parameters:
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func publishAsync(using storePassword: String) -> Promise<Void> {
         return publishAsync(nil, false, storePassword, nil)
     }
     
-    /// Deactivate self use authentication key.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    private func deactivate(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws {
         try checkAttachedStore()
         if signKey == nil && defaultPublicKeyId() == nil {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
@@ -2755,106 +3138,125 @@ public class DIDDocument: NSObject {
         }
     }
     
-    /// Deactivate self use authentication key.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ signKey: DIDURL, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(with signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) throws {
+        return try deactivate(signKey, storePassword, adapter)
+    }
+    
+    /// Deactivate this DID using the authentication key.
+    /// - Parameters:
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    public func deactivate(with signKey: DIDURL, using storePassword: String) throws {
         try deactivate(signKey, storePassword, nil)
     }
     
-    /// Deactivate self use authentication key.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ signKey: String, _ storePassword: String, _ adapter: DIDAdapter?) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(with signKey: String, using storePassword: String, adapter: DIDAdapter) throws {
         try deactivate(canonicalId(signKey), storePassword, adapter)
     }
     
-    /// Deactivate self use authentication key.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ signKey: String, _ storePassword: String) throws {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    public func deactivate(with signKey: String, using storePassword: String) throws {
         try deactivate(canonicalId(signKey), storePassword, nil)
     }
     
-    /// Deactivate self use authentication key.
-    /// Specify the default key to sign.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ storePassword: String, _ adapter: DIDAdapter) throws {
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(using storePassword: String, adapter: DIDAdapter) throws {
         try deactivate(nil, storePassword, adapter)
     }
     
-    /// Deactivate self use authentication key.
-    /// Specify the default key to sign.
+    /// Deactivate this DID using the authentication key.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ storePassword: String) throws {
+    ///   - storePassword: the password for the DIDStore
+    public func deactivate(using storePassword: String) throws {
         try deactivate(nil, storePassword, nil)
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ signKey: DIDURL?,_ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    private func deactivateAsync(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try deactivate(signKey, storePassword, adapter) }
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ signKey: DIDURL,_ storePassword: String) throws -> Promise<Void> {
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func deactivateAsync(with signKey: DIDURL, using storePassword: String) throws -> Promise<Void> {
         return try deactivateAsync(signKey, storePassword, nil)
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ signKey: String,_ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try deactivate(signKey, storePassword, adapter) }
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func deactivateAsync(with signKey: String, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
+        return try deactivateAsync(canonicalId(signKey), storePassword, adapter)
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - signKey: the key to sign
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ signKey: String, _ storePassword: String) throws -> Promise<Void> {
-        return try deactivateAsync(signKey, storePassword, nil)
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func deactivateAsync(with signKey: String, using storePassword: String) throws -> Promise<Void> {
+        return try deactivateAsync(canonicalId(signKey), storePassword, nil)
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
-    /// Specify the default key to sign.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ storePassword: String, _ adapter: DIDAdapter) throws -> Promise<Void> {
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// - Returns: the new Promise
+    public func deactivateAsync(using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
         return try deactivateAsync(nil, storePassword, adapter)
     }
     
-    /// Deactivate self use authentication key with asynchronous mode.
-    /// Specify the default key to sign.
+    /// Deactivate this DID using the authentication key in asynchronous mode.
     /// - Parameters:
-    ///   - storePassword: the password for DIDStore
-    /// - Returns: the new Promise, no result.
-    public func deactivateAsync(_ storePassword: String) throws -> Promise<Void> {
+    ///   - storePassword: the password for the DIDStore
+    /// - Returns: the new Promise
+    public func deactivateAsync(using storePassword: String) throws -> Promise<Void> {
         return try deactivateAsync(nil, storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID.
+    /// Deactivate the target DID with the authorization.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: signKey the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: DID, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws {
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///           authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    private func deactivate(_ target: DID, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
         if signKey == nil && defaultPublicKeyId() == nil {
@@ -2927,102 +3329,147 @@ public class DIDDocument: NSObject {
         }
     }
     
+    /// Deactivate the target DID with the authorization.
+    /// - Parameters:
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///           authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(with target: DID, of signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) throws {
+        try deactivate(target, signKey, storePassword, adapter)
+    }
+    
     /// Deactivate target DID by authorizor's DID.
     /// - Parameters:
     ///   - target: target the target DID
     ///   - signKey: the authorizor's key to sign
     ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: DID, _ signKey: DIDURL, _ storePassword: String) throws {
+    public func deactivate(with target: DID, of signKey: DIDURL, using storePassword: String) throws {
         try deactivate(target, signKey, storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID.
+    /// Deactivate the target DID with the authorization.
     /// - Parameters:
-    ///   - target: the target DID string
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: String, _ signKey: String?, _ storePassword: String, _ adapter: DIDAdapter?) throws {
-        try deactivate(DID.valueOf(target)!, signKey == nil ? nil : canonicalId(signKey!), storePassword, adapter)
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///           authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(with target: String, of signKey: String, using storePassword: String, adapter: DIDAdapter) throws {
+        try deactivate(DID.valueOf(target)!, canonicalId(signKey), storePassword, adapter)
     }
     
-    /// Deactivate target DID by authorizor's DID.
+    /// Deactivate the target DID with the authorization.
     /// - Parameters:
-    ///   - target: the target DID string
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: String, _ signKey: String, _ storePassword: String) throws {
-        try deactivate(target, signKey, storePassword, nil)
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///           authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    public func deactivate(with target: String, of signKey: String, using storePassword: String) throws {
+        try deactivate(DID.valueOf(target)!, canonicalId(signKey), storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID.
+    /// Deactivate the target DID with the authorization.
     /// - Parameters:
-    ///   - target: the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: DID, _ storePassword: String, _ adapter: DIDAdapter) throws {
+    ///   - target: the DID to be deactivated
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    public func deactivate(with target: DID, using storePassword: String, adapter: DIDAdapter) throws {
         try deactivate(target, nil , storePassword, adapter)
     }
     
-    /// Deactivate target DID by authorizor's DID.
+    /// Deactivate the target DID with the authorization.
     /// - Parameters:
-    ///   - target: the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivate(_ target: DID, _ storePassword: String) throws {
+    ///   - target: the DID to be deactivated
+    ///   - storePassword: the password for the DIDStore
+    public func deactivate(with target: DID, using storePassword: String) throws {
         try deactivate(target, nil, storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: DID, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///              authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// -Returns: the new promise
+    private func deactivateAsync(_ target: DID, _ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try deactivate(target, signKey, storePassword, adapter) }
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: DID, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDAdapter) throws -> Promise<Void> {
-        return try deactivateAsync(target, signKey, storePassword, nil)
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///              authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: DID, of signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
+        return try deactivateAsync(target, signKey, storePassword, adapter)
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: String, _ signKey: String, _ storePassword: String, _ adapter: DIDAdapter?) throws -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try deactivate(target, signKey, storePassword, adapter) }
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///              authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: String, of signKey: DIDURL, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
+        return try deactivateAsync(DID.valueOf(target)!, signKey, storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: String, _ signKey: String, _ storePassword: String) throws -> Promise<Void> {
-        return try deactivateAsync(target, signKey, storePassword, nil)
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///              authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: String, of signKey: String, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
+        return try deactivateAsync(DID.valueOf(target)!, DIDURL.valueOf(signKey), storePassword, nil)
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: DID, _ storePassword: String, _ adapter: DIDAdapter) throws -> Promise<Void> {
+    ///   - target: the DID to be deactivated
+    ///   - signKey: the key to sign the transaction, should be
+    ///              authorized by the target DID
+    ///   - storePassword: the password for the DIDStore
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: String, of signKey: String, using storePassword: String) throws -> Promise<Void> {
+        return try deactivateAsync(DID.valueOf(target)!, DIDURL.valueOf(signKey), storePassword, nil)
+    }
+    
+    /// Deactivate the target DID with the authorization in asynchronous mode.
+    /// - Parameters:
+    ///   - target: the DID to be deactivated
+    ///   - storePassword: the password for the DIDStore
+    ///   - adapter: an optional DIDTransactionAdapter, if null the method will
+    ///           use the default adapter from the DIDBackend
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: DID, using storePassword: String, adapter: DIDAdapter) throws -> Promise<Void> {
         return try deactivateAsync(target, nil, storePassword, adapter)
     }
     
-    /// Deactivate target DID by authorizor's DID with asynchronous mode.
+    /// Deactivate the target DID with the authorization in asynchronous mode.
     /// - Parameters:
-    ///   - target: target the target DID
-    ///   - signKey: the authorizor's key to sign
-    ///   - storePassword: the password for DIDStore
-    public func deactivateAsync(_ target: DID, _ storePassword: String) throws -> Promise<Void> {
+    ///   - target: the DID to be deactivated
+    ///   - storePassword: the password for the DIDStore
+    /// -Returns: the new promise
+    public func deactivateAsync(with target: DID, using storePassword: String) throws -> Promise<Void> {
         return try deactivateAsync(target, nil, storePassword, nil)
     }
 
