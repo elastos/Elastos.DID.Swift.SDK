@@ -28,8 +28,11 @@ import Foundation
 @objc(DIDBackend)
 public class DIDBackend: NSObject {
     private let TAG = NSStringFromClass(DIDBackend.self)
+    /// The default initial capacity for the resolve cache.
     private static let DEFAULT_CACHE_INITIAL_CAPACITY = 16
+    /// The default maximum capacity for the resolve cache.
     private static let DEFAULT_CACHE_MAX_CAPACITY = 64
+    /// The default cache T
     private static let DEFAULT_CACHE_TTL = 10 * 60 * 1000
     private var _random: String = ""
     
@@ -39,7 +42,6 @@ public class DIDBackend: NSObject {
     private var resolveHandle: ResolveHandle?
     private static var instance: DIDBackend?
     private var cache: LRUCache<ResolveRequest, ResolveResult>
-    
     
     class TransactionResult: NSObject {
         private var _transactionId: String?
@@ -165,52 +167,51 @@ public class DIDBackend: NSObject {
         }
     }
     
-    /// Create a DIDBackend with the adapter and the cache specification.
+    /// Construct a DIDBackend instance with the adapter and the cache specification.
     /// - Parameters:
-    ///   - adapter: the DIDAdapter object
-    ///   - initialCacheCapacity: the initial cache size, 0 for default size
-    ///   - maxCacheCapacity: the maximum cache capacity, 0 for default capacity
-    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    ///   - adapter: a DIDAdapter implementation
+    ///   - initialCacheCapacity: the initial cache size
+    ///   - maxCacheCapacity: the maximum cache capacity
+    ///   - cacheTtl: the live time for the cached entries
     init(_ adapter: DIDAdapter, _ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ cacheTtl: Int) {
         self._adapter = adapter
         cache = LRUCache<ResolveRequest, ResolveResult>(initialCacheCapacity, maxCacheCapacity)
     }
 
-    /// Initialize the DIDBackend with the adapter and the cache specification.
-    /// - Parameter adapter: the DIDAdapter object
+    /// Initialize the DIDBackend with the given adapter and the cache specification.
+    /// - Parameter adapter: a DIDAdapter implementation
     public class func initialize(_ adapter: DIDAdapter, _ initialCacheCapacity: Int, _ maxCacheCapacity: Int, _ cacheTtl: Int) throws {
         try checkArgument(initialCacheCapacity <= maxCacheCapacity, "Invalid cache capacity")
         let c = initialCacheCapacity < maxCacheCapacity ? initialCacheCapacity : maxCacheCapacity
         instance = DIDBackend(adapter, c, maxCacheCapacity, cacheTtl)
     }
     
-    /// Initialize the DIDBackend with the adapter and the cache specification.
+    /// Initialize the DIDBackend with the given adapter and the cache specification.
     /// - Parameters:
-    ///   - adapter: the DIDAdapter object
-    ///   - maxCacheCapacity: the maximum cache capacity, 0 for default capacity
-    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    ///   - adapter: a DIDAdapter implementation
+    ///   - maxCacheCapacity: the initial cache size
+    ///   - cacheTtl: the maximum cache capacity
     public class func initialize(_ adapter: DIDAdapter, _ maxCacheCapacity: Int, _ cacheTtl: Int) throws {
         instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, maxCacheCapacity, cacheTtl)
     }
     
     /// Initialize the DIDBackend with the adapter and the cache specification.
     /// - Parameters:
-    ///   - adapter: the DIDAdapter object
-    ///   - cacheTtl: the live time for the cached entries, 0 for default
+    ///   - adapter: a DIDAdapter implementation
+    ///   - cacheTtl: the maximum cache capacity
     public class func initialize(_ adapter: DIDAdapter, _ cacheTtl: Int) throws {
         instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, DEFAULT_CACHE_MAX_CAPACITY, cacheTtl)
     }
     
     /// Initialize the DIDBackend with the adapter and the cache specification.
     /// - Parameters:
-    ///   - adapter: the DIDAdapter object
+    ///   - adapter: a DIDAdapter implementation
     public class func initialize(_ adapter: DIDAdapter) throws {
         instance = DIDBackend(adapter, DEFAULT_CACHE_INITIAL_CAPACITY, DEFAULT_CACHE_MAX_CAPACITY, DEFAULT_CACHE_TTL)
     }
     
-    /// Get DIDBackend instance.
-    /// - Parameter adapter: A handle to DIDAdapter.
-    /// - Returns: DIDBackend instance.
+    /// Get the previous initialized DIDBackend instance.
+    /// - Returns: the DIDBackend instance
     @objc
     public class func sharedInstance() -> DIDBackend {
             return instance!
@@ -279,8 +280,8 @@ public class DIDBackend: NSObject {
         return bio as! DIDBiography
     }
     
-    ///  Resolve all DID transactions.
-    /// - Parameter did: the specified DID object
+    ///  Resolve all transactions for a specific DID.
+    /// - Parameter did: the DID object to be resolve
     /// - Returns: the DIDBiography object
     func resolveDidBiography(_ did: DID) throws -> DIDBiography? {
         let biography = try resolveDidBiography(did, true, false)
@@ -290,11 +291,11 @@ public class DIDBackend: NSObject {
         return biography
     }
     
-    /// Resolve DID content(DIDDocument).
+    /// Resolve the specific DID.
     /// - Parameters:
-    ///   - did: the DID object
-    ///   - force: force = true, DID content must be from chain.
-    ///            force = false, DID content could be from chain or local cache.
+    ///   - did: the DID object to be resolve
+    ///   - force: ignore the local cache and resolve from the ID chain if true;
+    ///                   try to use cache first if false.
     /// - Returns: the DIDDocument object
     func
     resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
@@ -357,8 +358,8 @@ public class DIDBackend: NSObject {
         return doc
     }
     
-    /// Resolve DID content(DIDDocument).
-    /// - Parameter did: the DID object
+    /// Resolve the specific DID.
+    /// - Parameter did: the DID object to be resolve
     /// - Returns: the DIDDocument object
     func resolveDid(_ did: DID) throws -> DIDDocument? {
         return try resolveDid(did, false)
@@ -381,10 +382,37 @@ public class DIDBackend: NSObject {
         } as! CredentialBiography
     }
     
+    /// Resolve the all the credential transactions.
+    ///
+    /// If the credential already declared on the ID chain, this method will
+    /// return all credential transactions include the revoke transaction.
+    /// The issuer parameter will be ignored in this case.
+    ///
+    /// If the credential not declared on the ID chain, this method will
+    /// return the revoke transactions from the credential owner if it exists;
+    /// If an issuer DID is given, this method also will return the revoke
+    /// transactions from the given issuer if it exists
+    ///
+    /// - Parameters:
+    ///   - id: the credential id
+    ///   - issuer: an optional issuer'd DID
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: a CredentialBiography object
     func resolveCredentialBiography(_ id: DIDURL, _ issuer: DID) throws -> CredentialBiography? {
         return try resolveCredentialBiography(id, issuer, false)
     }
     
+    ///  Resolve the all the credential transactions.
+    ///
+    /// If the credential already declared on the ID chain, this method will
+    /// return all credential transactions include the revoke transaction.
+    ///
+    /// If the credential not declared on the ID chain, this method will
+    /// return the revoke transactions from the credential owner if it exists.
+    ///
+    /// - Parameter id: the credential id
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: a CredentialBiography object
     func resolveCredentialBiography(_ id: DIDURL) throws -> CredentialBiography? {
         return try resolveCredentialBiography(id, nil, false)
     }
@@ -445,25 +473,60 @@ public class DIDBackend: NSObject {
         return vc
     }
     
+    /// Resolve the specific credential.
+    /// - Parameters:
+    ///   - id: the credential id
+    ///   - issuer: an optional issuer'd DID
+    ///   - force: ignore the local cache and resolve from the ID chain if true;
+    ///                   try to use cache first if false.
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: the VerifiableCredential object
     func resolveCredential(_ id: DIDURL, _ issuer: DID, _ force: Bool) throws -> VerifiableCredential? {
         try resolveCredential(id: id, issuer: issuer, force: force)
     }
     
+    /// Resolve the specific credential.
+    /// - Parameters:
+    ///   - id: the credential id
+    ///   - issuer: an optional issuer'd DID
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: the VerifiableCredential object
     func resolveCredential(_ id: DIDURL, _ issuer: DID) throws -> VerifiableCredential? {
         
         return try resolveCredential(id: id, issuer: issuer, force: false)
     }
     
+    /// Resolve the specific credential.
+    /// - Parameters:
+    ///   - id: the credential id
+    ///   - force: ignore the local cache and resolve from the ID chain if true;
+    ///                  try to use cache first if false.
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: the VerifiableCredential object
     func resolveCredential(_ id: DIDURL, _ force: Bool) throws -> VerifiableCredential? {
         
         return try resolveCredential(id: id, issuer: nil, force: force)
     }
     
+    /// Resolve the specific credential.
+    /// - Parameter id: the credential id
+    /// - Throws: DIDResolveError if an error occurred when resolving the credential
+    /// - Returns: the VerifiableCredential object
     func resolveCredential(_ id: DIDURL) throws -> VerifiableCredential? {
         
         return try resolveCredential(id: id, issuer: nil, force: false)
     }
     
+    /// List the declared credentials that owned by the specific DID from
+    /// the ID chain.
+    /// - Parameters:
+    ///   - did: the target DID
+    ///   - skip: set to skip N credentials ahead in this request
+    ///           (useful for pagination).
+    ///   - limit: set the limit of credentials returned in the request
+    ///           (useful for pagination).
+    /// - Throws: DIDResolveError
+    /// - Returns: an array of DIDURL denoting the credentials
     func listCredentials(_ did: DID, _ skip: Int, _ limit: Int) throws -> [DIDURL] {
         Log.i(TAG, "List credentials for ", did)
         let request = CredentialListRequest(generateRequestId())
@@ -508,63 +571,91 @@ public class DIDBackend: NSObject {
         cache.removeValue(for: request)
     }
     
+    /// Clear all data that cached by this DIDBackend instance.
     public func clearCache() {
         cache.clear()
     }
     
-    /// Publish 'create' id transaction for the new did.
+    /// Publish a new DID creation transaction to the ID chain.
     /// - Parameters:
-    ///   - doc: the DIDDocument object
-    ///   - signKey: the key to sign
+    ///   - doc: the DIDDocument object to be publish
+    ///   - signKey: the key to sign the transaction
     ///   - storePassword: the password for DIDStore
+    ///   - throws DIDTransactionError if an error when publish the transaction
+    ///   - throws DIDStoreError if an error occurred when accessing the store
     func createDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.create(doc, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
     }
     
-    /// Publish 'Update' id transaction for the existed did.
+    /// Publish a DID update transaction to the ID chain.
     /// - Parameters:
-    ///   - doc: the DIDDocument object
+    ///   - doc: the DIDDocument object to be update
     ///   - previousTxid: the previous transaction id string
-    ///   - signKey: the key to sign
+    ///   - signKey: the key to sign the transaction
     ///   - storePassword: the password for DIDStore
+    ///   - throws DIDTransactionError if an error when publish the transaction
+    ///   - throws DIDStoreError if an error occurred when accessing the store
     func updateDid(_ doc: DIDDocument, _ previousTxid: String, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.update(doc, previousTxid, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
     }
     
+    /// Publish a customized DID transfer transaction to the ID chain.
+    /// - Parameters:
+    ///   - doc: the new DIDDocument object after transfer
+    ///   - ticket: the valid TransferTicket object
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for DIDStore
+    ///   - adapter: a DIDTransactionAdapter instance or null for default
+    /// - Throws: DIDTransactionError if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func transferDid(_ doc: DIDDocument, _ ticket: TransferTicket, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.transfer(doc, ticket, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
     }
     
-    /// Publish id transaction to deactivate the existed did.
+    /// Publish a DID deactivate transaction to the ID chain.
     /// - Parameters:
-    ///   - doc: the DIDDocument object
-    ///   - signKey: the key to sign
+    ///   - doc: the DIDDocument object to be deactivate
+    ///   - signKey: the key to sign the transaction
     ///   - storePassword: the password for DIDStore
+    ///   - DIDTransactionException if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func deactivateDid(_ doc: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.deactivate(doc, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(doc.subject)
     }
     
-    /// Publish id transaction to deactivate the existed did.
+    /// Publish a DID deactivate transaction to the ID chain.
     /// - Parameters:
-    ///   - target: the DID to be deactivated
-    ///   - targetSignKey: the key to sign of specified DID
-    ///   - signer: the signer's DIDDocument object
-    ///   - signKey: the key to sign
+    ///   - target: the target DIDDocument object to be deactivate
+    ///   - targetSignKey: the authorization key of the target DIDDocument
+    ///   - signer: the authorized DID document by the target DID
+    ///   - signKey: the key to sign the transaction
     ///   - storePassword: the password for DIDStore
+    ///   - adapter: a DIDTransactionAdapter instance or null for default
+    /// - Throws DIDTransactionExrror if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func deactivateDid(_ target: DIDDocument, _ targetSignKey: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try DIDRequest.deactivate(target, targetSignKey, signer, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidDidCache(target.subject)
     }
     
+    /// Publish a credential declare transaction to the ID chain.
+    /// - Parameters:
+    ///   - vc: a VerifiableCredential object to be declared
+    ///   - signer: the credential controller's DIDDocument
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for DIDStore
+    ///   - adapter: a DIDTransactionAdapter instance or null for default
+    /// - Throws: DIDTransactionError if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func declareCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.declare(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
@@ -572,6 +663,15 @@ public class DIDBackend: NSObject {
         invalidCredentialCache(vc.getId()!, vc.getIssuer())
     }
     
+    /// Publish a credential revoke transaction to the ID chain.
+    /// - Parameters:
+    ///   - vc: a VerifiableCredential object to be revoke
+    ///   - signer: the credential controller or issuer's DIDDocument
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for DIDStore
+    ///   - adapter: a DIDTransactionAdapter instance or null for default
+    /// - Throws: DIDTransactionError if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func revokeCredential(_ vc: VerifiableCredential, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
@@ -579,6 +679,15 @@ public class DIDBackend: NSObject {
         invalidCredentialCache(vc.getId()!, vc.getIssuer())
     }
     
+    /// Publish a credential revoke transaction to the ID chain.
+    /// - Parameters:
+    ///   - vc: a VerifiableCredential id to be revoke
+    ///   - signer: the credential controller or issuer's DIDDocument
+    ///   - signKey: the key to sign the transaction
+    ///   - storePassword: the password for DIDStore
+    ///   - adapter: a DIDTransactionAdapter instance or null for default
+    /// - Throws: DIDTransactionError if an error when publish the transaction
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     func revokeCredential(_ vc: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter?) throws {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)

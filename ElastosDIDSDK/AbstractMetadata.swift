@@ -29,7 +29,9 @@ public class AbstractMetadata: NSObject {
     let FINGERPRINT = "fingerprint"
     let DEFAULT_ROOT_IDENTITY = "defaultRootIdentity"
     let ALIAS = "alias"
+    /// The naming prefix for user defined metadata properties.
     let USER_EXTRA_PREFIX = "UX-"
+    /// The naming prefix for user defined metadata properties.
     static let USER_EXTRA_PREFIX = "UX-"
 
     var _props: [String: String] = [: ]
@@ -45,45 +47,69 @@ public class AbstractMetadata: NSObject {
     /// The default constructor for JSON deserialize creator.
     override init() { }
     
-    /// Set store for Abstract Metadata.
-    /// - Parameter store: the DIDStore
+    /// Attach this metadata object with a DID store.
+    /// - Parameter store: a DID store object
     func attachStore(_ store: DIDStore) {
         self._store = store
     }
     
+    /// Detach this metadata object from the DID store.
     func detachStore() {
         self._store = nil
     }
     
-    /// Get store from Abstract Metadata.
+    /// Get DID store if the metadata is attached with a store.
     var store: DIDStore? {
         return _store
     }
     
-    /// Judge whether the Abstract Metadata attach the store or not.
-    /// the returned value is true if there is store attached meta data;
-    /// the returned value is false if there is no store attached meta data.
+    /// Indicate whether the metadata object is attach the store.
+    /// true if attached with a store, otherwise false
     var attachedStore: Bool {
         return _store != nil
     }
     
+    /// Get all metadata properties as a map object.
     var properties: [String: String] {
         return _props
     }
     
+    /// Set the specified property name with with the specified value in
+    /// this metadata. If the metadata previously contained this property,
+    /// the old value is replaced.
+    /// - Parameters:
+    ///   - name: the property name to be set
+    ///   - value: value to be associated with the property name
     func put(_ name: String, _ value: String?) {
         _props[name] = value
         save()
     }
     
+    ///  Returns the value of the specified property name,
+    /// or nil if this metadata not contains the property name.
+    /// - Parameter name: the property name to be get
+    /// - Returns: the value of the specified property name, or
+    ///        nil if this metadata not contains the property name
     func get(_ name: String) -> String? {
         return _props[name]
     }
     
+    ///  Type safe put method. Set the specified property name with with
+    ///  the specified value in this metadata. If the metadata previously
+    ///  contained this property, the old value is replaced.
+    /// - Parameters:
+    ///   - name: the property name to be set
+    ///   - value: value to be associated with the property name
     func put(_ name: String, _ value: Bool) {
         put(name, String(value))
     }
     
+    ///  Type safe getter for boolean properties. Returns the boolean value
+    ///  of the specified property name, or false if this metadata not contains
+    ///  the property name.
+    /// - Parameter name: the property name to be get
+    /// - Returns: the boolean value of the specified property name, or
+    ///            false if this metadata not contains the property name
     func getBoolean(_ name: String) -> Bool {
         let result = get(name)
         guard result == "true" else {
@@ -92,50 +118,81 @@ public class AbstractMetadata: NSObject {
         return true
     }
     
+    /// Type safe put method. Set the specified property name with with
+    /// the specified value in this metadata. If the metadata previously
+    /// contained this property, the old value is replaced.
+    /// - Parameters:
+    ///   - name: the property name to be set
+    ///   - value: value to be associated with the property name
     func put(_ name: String, _ value: Int?) {
         put(name, value == nil ? nil : String(value!))
     }
     
+    /// Type safe getter for integer properties. Returns the integer value
+    /// of the specified property name, or 0 if this metadata not contains
+    /// the property name.
+    /// - Parameter name: the property name to be get
+    /// - Returns: the integer value of the specified property name, or
+    ///         0 if this metadata not contains the property name
     func getInteger(_ name: String) -> Int? {
         let result = get(name)
         return result == nil ? nil : Int(result!)
     }
     
+    /// Type safe put method. Set the specified property name with with
+    /// the specified value in this metadata. If the metadata previously
+    /// contained this property, the old value is replaced.
+    /// - Parameters:
+    ///   - name: the property name to be set
+    ///   - value: value to be associated with the property name
     func put(_ name: String, _ value: Date?) {
         put(name, value == nil ? nil : DateFormatter.convertToUTCStringFromDate(value!))
     }
     
+    /// Type safe getter for datetime properties. Returns the datatime value
+    /// of the specified property name, or {@code null}  if this metadata not
+    /// contains the property name.
+    /// - Parameter name: the property name to be get
+    /// - Returns: the Date value of the specified property name, or
+    ///         nil if this metadata not contains the property name
     func getDate(_ name: String) -> Date? {
         let result = get(name)
         return result == nil ? nil : DateFormatter.convertToUTCDateFromString(result!)
     }
     
+    /// Removes the specified property name from this metadata object if present.
+    /// - Parameter name: the property name to be remove
+    /// - Returns: the previous value associated with name, or
+    ///         nil if there was no mapping for name.
     func remove(_ name: String) throws -> String? {
         let value = _props.removeValue(forKey: name)
         save()
         return value
     }
     
+    /// - Returns: true if this metadata contains no properties.
     func isEmpty() -> Bool {
         return _props.isEmpty
     }
     
     /// Set alias.
-    /// - Parameter alias: alias string
+    /// - Parameter alias: a new alias
     public func setAlias(_ alias: String) {
         put(ALIAS, alias)
     }
     
-    /// Get alias.
-    /// - Returns: alias string
+    /// Get the alias property.
+    /// - Returns: alias current alias or nil if not set before
     public func getAlias() -> String? {
         return get(ALIAS)
     }
     
-    /// Set Extra element.
+    /// Set a user defined property name with with the specified value in
+    /// this metadata. If the metadata previously contained this property,
+    /// the old value is replaced.
     /// - Parameters:
-    ///   - key: the key string
-    ///   - value: the value string
+    ///   - key: the user defined property key to be set
+    ///   - value: value to be associated with the property name
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: String) throws {
         guard key.isEmpty else {
@@ -145,9 +202,11 @@ public class AbstractMetadata: NSObject {
         put(USER_EXTRA_PREFIX + key, value)
     }
     
-    /// Get Extra element.
-    /// - Parameter key: the key string
-    /// - Returns: the value string
+    /// Returns the value of the user defined property name,
+    /// or nil if this metadata not contains the property name.
+    /// - Parameter key: the user defined property name to be get
+    /// - Returns: the value of the specified property name, or
+    ///         nil if this metadata not contains the property name
     /// - Throws: throw an exception when the key is empty
     public func getExtra(_ key: String) throws -> String? {
         guard key.isEmpty else {
@@ -157,10 +216,12 @@ public class AbstractMetadata: NSObject {
         return get(USER_EXTRA_PREFIX + key)
     }
     
-    /// Set Extra element.
+    /// Type safe setter for user defined properties. Set the specified property
+    /// name with the specified value in this metadata. If the metadata
+    /// previously contained this property, the old value is replaced.
     /// - Parameters:
-    ///   - key: the key string
-    ///   - value: the value bool
+    ///   - key: the property key to be set
+    ///   - value: value to be associated with the property name
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: Bool) throws {
         guard key.isEmpty else {
@@ -170,10 +231,13 @@ public class AbstractMetadata: NSObject {
         put(USER_EXTRA_PREFIX + key, value)
     }
     
-    /// Get Extra element.
-    /// - Parameter key: the key string
+    /// Type safe getter for boolean user defined properties. Returns the
+    /// boolean value of the specified property name, or false if this metadata
+    /// not contains the property name.
+    /// - Parameter key: the property key to be get
     /// - Throws: throw an exception when the key is empty
-    /// - Returns: the value bool
+    /// - Returns: the boolean value of the specified property name, or
+    ///         false if this metadata not contains the property name
     public func getExtraBoolean(_ key: String) throws -> Bool? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -182,6 +246,12 @@ public class AbstractMetadata: NSObject {
         return getBoolean(USER_EXTRA_PREFIX + key)
     }
     
+    /// Type safe setter for user defined properties. Set the specified property
+    /// name with the specified value in this metadata. If the metadata
+    /// previously contained this property, the old value is replaced.
+    /// - Parameters:
+    ///   - key: the property name to be set
+    ///   - value: value to be associated with the property name
     public func setExtra(_ key: String, _ value: Int) throws {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -190,6 +260,12 @@ public class AbstractMetadata: NSObject {
         put(USER_EXTRA_PREFIX + key, value)
     }
     
+    /// Type safe getter for integer user defined properties. Returns the
+    /// integer value of the specified property name, or false if this metadata
+    /// not contains the property name.
+    /// - Parameter key: the property name to be get
+    /// - Returns: the integer value of the specified property name, or
+    ///        nil if this metadata not contains the property name
     public func getExtraInteger(_ key: String) throws -> Int? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -198,6 +274,12 @@ public class AbstractMetadata: NSObject {
         return getInteger(USER_EXTRA_PREFIX + key)
     }
     
+    /// Type safe setter for user defined properties. Set the specified property
+    /// name with the specified value in this metadata. If the metadata
+    /// previously contained this property, the old value is replaced.
+    /// - Parameters:
+    ///   - key: the property key to be set
+    ///   - value: value to be associated with the property name
     public func setExtra(_ key: String, _ value: Date) throws {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -206,6 +288,12 @@ public class AbstractMetadata: NSObject {
         put(USER_EXTRA_PREFIX + key, value)
     }
     
+    /// Type safe getter for date time user defined properties. Returns the
+    /// date time value of the specified property name, or false if this metadata
+    /// not contains the property name.
+    /// - Parameter key: the property name to be get
+    /// - Returns: the Date value of the specified property name, or
+    ///         nil if this metadata not contains the property name
     public func getExtraDate(_ key: String) throws -> Date? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -214,6 +302,11 @@ public class AbstractMetadata: NSObject {
         return getDate(USER_EXTRA_PREFIX + key)
     }
     
+    /// Removes the specified user defined property name from this metadata
+    /// object if present.
+    /// - Parameter key: the user defined property name to be remove
+    /// - Returns: the previous value associated with key, or
+    ///         nil if there was no mapping for key.
     public func removeExtra(_ key: String) throws -> String? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
@@ -222,8 +315,8 @@ public class AbstractMetadata: NSObject {
         return try remove(USER_EXTRA_PREFIX + key)
     }
     
-    /// Merge two metadata.
-    /// - Parameter metadata: metadata the metadata to be merged.
+    /// Merge another metadata object into this metadata object.
+    /// - Parameter metadata: the metadata to be merge
     public func merge(_ metadata: AbstractMetadata) {
         if metadata == self {
             return
@@ -248,6 +341,10 @@ public class AbstractMetadata: NSObject {
         return DIDMetadata()
     }
     
+    /// Abstract method to save the modified metadata to the attached store if
+    /// this metadata attached with a store.
+    /// If the child metadata class provide the save implementation, the metadata
+    /// object will auto save after any modifications.
     func save() { }
     
     func serialize(_ path: String) throws {

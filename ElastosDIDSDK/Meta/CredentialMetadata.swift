@@ -104,6 +104,8 @@ public class CredentialMetadata: AbstractMetadata {
         return try super.clone()
     }
     
+    /// Save this metadata object to the attached store if this metadata
+    /// attached with a store.
     override func save() {
         if attachedStore {
             try? store?.storeCredentialMetadata(id!, self)
