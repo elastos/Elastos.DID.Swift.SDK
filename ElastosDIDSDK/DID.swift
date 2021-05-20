@@ -24,20 +24,31 @@ import Foundation
 import PromiseKit
 import ObjectMapper
 
-/// DID is a globally unique identifier that does not require a centralized registration authority.
-/// It includes method specific string. (elastos:id:ixxxxxxxxxx).
+/**
+ * DID is a globally unique identifier that does not require
+ * a centralized registration authority.
+ *
+ * <p>
+ * The generic DID scheme is a URI scheme conformant with
+ * <a href="https://tools.ietf.org/html/rfc3986">RFC3986</a>
+ * </p>
+ */
 @objc(DID)
 public class DID: NSObject {
-    private static let TAG = "DID"
+    private static let TAG = NSStringFromClass(DID.self)
+    /// The default method name for Elastos DID method.
+    @objc public static let METHOD: String = "elastos"
 
     private var _method: String?
     private var _methodSpecificId: String?
     private var _metadata: DIDMetadata?
 
-    @objc public static let METHOD: String = "elastos"
-
     override init() {}
     
+    /// Create a DID identifier with given method name and method specific id.
+    /// - Parameters:
+    ///   - method: a method name. e.g. "elastos"
+    ///   - methodSpecificId: the method specific id string
     init(_ method: String, _ methodSpecificId: String) {
         self._method = method
         self._methodSpecificId = methodSpecificId
@@ -64,11 +75,16 @@ public class DID: NSObject {
         }
     }
     
+    /// Create a DID object from the given string. The method will parse the
+    /// DID method and the method specific id from the string if the string is
+    /// not empty. Otherwise will return nil.
+    /// - Parameter did: an identifier string.
+    /// - Returns: the DID object if the did is not empty, otherwise nil
     public class func valueOf(_ did: String) throws -> DID? {
         return did.isEmpty ? nil : try DID(did)
     }
 
-    ///  Get method of DID.
+    /// Get the did method name.
     @objc
     public var method: String {
         return _method!
@@ -78,18 +94,20 @@ public class DID: NSObject {
         self._method = method
     }
 
-    /// Get method specific string of DID.
+    /// Get the method specific id string.
     @objc
     public var methodSpecificId: String {
         return _methodSpecificId!
     }
-
+    
+    /// Set the method specific id string.
+    /// - Parameter methodSpecificId: the method specific id string.
     func setMethodSpecificId(_ methodSpecificId: String) {
         self._methodSpecificId = methodSpecificId
     }
 
-    /// Get DID MetaData from did.
-    /// - Returns: Return the handle to DIDMetaData. Otherwise
+    /// Get the metadata object that associated with this DID.
+    /// - Returns: the metadata object
     @objc
     public func getMetadata() -> DIDMetadata {
         if  self._metadata == nil {
@@ -97,23 +115,26 @@ public class DID: NSObject {
         }
         return _metadata!
     }
-
+    
+    /// Set the metadata that related with this DID.
+    /// - Parameter newValue: a metadata object
     func setMetadata(_ newValue: DIDMetadata) {
         self._metadata = newValue
     }
     
-    /// Check deactivated
+    /// Check the DID is deactivated or not.
     @objc
     public var isDeactivated: Bool {
         return getMetadata().isDeactivated
     }
 
-    /// Get the newest DID Document from chain.
-    /// - Parameter force: Indicate if load document from cache or not.
-    ///  force = true, document gets only from chain. force = false, document can get from cache,
-    ///   if no document is in the cache, resolve it from chain.
+    /// Resolve the DID document.
+    /// - Parameter force: if true then ignore the local cache and resolve the DID
+    ///                 from the ID chain directly; otherwise will try to load
+    ///                 the document from the local cache, if the local cache
+    ///                 not contains this DID, then resolve it from the ID chain
     /// - Throws: If error occurs, throw error.
-    /// - Returns: Return the handle to DID Document.
+    /// - Returns: the DIDDocument object
     public func resolve(_ force: Bool) throws -> DIDDocument? {
         let doc = try DIDBackend.sharedInstance().resolveDid(self, force)
         if doc != nil {
@@ -123,12 +144,13 @@ public class DID: NSObject {
         return doc
     }
 
-    /// Get the newest DID Document from chain.
-    /// - Parameter force: Indicate if load document from cache or not.
-    ///  force = true, document gets only from chain. force = false, document can get from cache,
-    ///   if no document is in the cache, resolve it from chain.
+    /// Resolve the DID document.
+    /// - Parameter force: if true then ignore the local cache and resolve the DID
+    ///                 from the ID chain directly; otherwise will try to load
+    ///                 the document from the local cache, if the local cache
+    ///                 not contains this DID, then resolve it from the ID chain
     /// - Throws: If error occurs, throw error.
-    /// - Returns: Return the handle to DID Document.
+    /// - Returns: the DIDDocument object
     @objc
     public func resolve(_ force: Bool, error: NSErrorPointer) -> DIDDocument? {
         do {
@@ -139,16 +161,16 @@ public class DID: NSObject {
         }
     }
 
-    /// Get the newest DID Document from chain.
+    /// Resolve the DID document.
     /// - Throws: If error occurs, throw error.
-    /// - Returns: Return the handle to DID Document
+    /// - Returns: the DIDDocument object
     public func resolve() throws -> DIDDocument? {
         return try resolve(false)
     }
 
-    /// Get the newest DID Document from chain.
+    /// Resolve the DID document With Object-C
     /// - Throws: If error occurs, throw error.
-    /// - Returns: Return the handle to DID Document
+    /// - Returns: the DIDDocument object
     @objc
     public func resolve(error: NSErrorPointer) -> DIDDocument? {
         do {
@@ -159,20 +181,22 @@ public class DID: NSObject {
         }
     }
 
-    /// Get the newest DID Document asynchronously from chain.
-    /// - Parameter force: Indicate if load document from cache or not.
-    ///  force = true, document gets only from chain. force = false, document can get from cache,
-    ///   if no document is in the cache, resolve it from chain.
-    /// - Returns: Return the handle to DID Document.
+    /// Resolve DID Document in asynchronous mode.
+    /// - Parameter force: if true then ignore the local cache and resolve the DID
+    ///                 from the ID chain directly; otherwise will try to load
+    ///                 the document from the local cache, if the local cache
+    ///                 not contains this DID, then resolve it from the ID chain
+    /// - Returns: a new Promise, the result is the resolved DIDDocument
     public func resolveAsync(_ force: Bool) -> Promise<DIDDocument?> {
         return DispatchQueue.global().async(.promise){ [self] in try self.resolve(force) }
     }
 
-    /// Get the newest DID Document asynchronously from chain.
-    /// - Parameter force: Indicate if load document from cache or not.
-    ///  force = true, document gets only from chain. force = false, document can get from cache,
-    ///   if no document is in the cache, resolve it from chain.
-    /// - Returns: Return the handle to DID Document.
+    /// Resolve DID Document in asynchronous mode with Object-C
+    /// - Parameter force: if true then ignore the local cache and resolve the DID
+    ///                 from the ID chain directly; otherwise will try to load
+    ///                 the document from the local cache, if the local cache
+    ///                 not contains this DID, then resolve it from the ID chain
+    /// - Returns: a new Promise, the result is the resolved DIDDocument
     @objc
     public func resolveAsyncUsingObjectC(_ force: Bool) -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
@@ -186,14 +210,14 @@ public class DID: NSObject {
         })
     }
 
-    /// Get the newest DID Document asynchronously from chain.
-    /// - Returns: Return the handle to DID Document.
+    /// Resolve DID Document in asynchronous mode.
+    /// - Returns: a new Promise, the result is the resolved DIDDocument
     public func resolveAsync() -> Promise<DIDDocument?> {
         return resolveAsync(false)
     }
 
-    /// Get the newest DID Document asynchronously from chain.
-    /// - Returns: Return the handle to DID Document.
+    /// Resolve DID Document in asynchronous mode with Object-C.
+    /// - Returns: a new Promise, the result is the resolved DIDDocument.
     @objc
     public func resolveAsyncUsingObjectC() -> AnyPromise {
         return resolveAsyncUsingObjectC(false)
@@ -206,14 +230,17 @@ public class DID: NSObject {
         return try DIDBackend.sharedInstance().resolveDidBiography(self)
     }
     
+    /// Resolve all DID transactions in asynchronous mode.
+    /// - Returns: a new Promise, the result is the resolved DIDBiography
+    ///            object if success; nil otherwise
     public func resolveBiographyAsync() throws -> Promise<DIDBiography?> {
         
         return DispatchQueue.global().async(.promise){ [self] in try DIDBackend.sharedInstance().resolveDidBiography(self) }
     }
 
-    /// Resolve all DID transactions in asynchronous model.
-    /// - Returns: the result is the DIDHistory interface for
-    ///            resolved transactions if success; null otherwise.
+    /// Resolve all DID transactions in asynchronous mode with Object-C.
+    /// - Returns: a new Promise, the result is the resolved DIDBiography
+    ///            object if success; nil otherwise
     @objc
     public func resolveHistoryAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
@@ -229,6 +256,8 @@ public class DID: NSObject {
 }
 
 extension DID {
+    
+    /// Return the string representation of this DID object.
     func toString() -> String {
         return String("did:\(_method!):\(_methodSpecificId!)")
     }
@@ -269,10 +298,7 @@ extension DID {
 }
 
 extension DID {
-    //TODO:
-//    public func hash(into hasher: inout Hasher) {
-//        hasher.combine(self.toString())
-//    }
+    /// Returns a hash code for this DID object.
     @objc
     public override var hash: Int {
         return self.toString().hash
@@ -307,6 +333,7 @@ extension DID {
 
 extension DID {
     
+    /// Compares this DID with the specified DID.
     public func compareTo(_ did: DID) throws -> ComparisonResult {
         
         var result = self.method.compare(did.method)
