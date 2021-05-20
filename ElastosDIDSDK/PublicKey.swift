@@ -28,18 +28,25 @@ import ObjectMapper
 @objc(PublicKey)
 public class PublicKey: DIDObject {
     
-    private var _controller: DID?
-    private var _keyBase58: String?
-    private var _id: DIDURL?
-    private var _type: String?
+    private var _controller: DID
+    private var _keyBase58: String
+    private var _id: DIDURL
+    private var _type: String
     
     private var authenticationKey: Bool?
     private var authorizationKey: Bool?
-
+    
+    /// Constructs a PublicKey instance with the given values.
+    /// - Parameters:
+    ///   - id: the id of the PublicKey
+    ///   - type: the key type, default type is "ECDSAsecp256r1"
+    ///   - controller: the DID who holds the private key
+    ///   - keyBase58: the base58 encoded public key
     init(_ id: DIDURL, _ type: String, _ controller: DID, _ keyBase58: String) {
         self._controller = controller
         self._keyBase58 = keyBase58
-
+        self._id = id
+        self._type = type
         self.authenticationKey = false
         self.authorizationKey = false
 
@@ -49,9 +56,19 @@ public class PublicKey: DIDObject {
     convenience init(_ id: DIDURL, _ controller: DID, _ keyBase58: String) {
         self.init(id, Constants.DEFAULT_PUBLICKEY_TYPE, controller, keyBase58)
     }
+    
+    /// Get the PublicKey id.
+    @objc public var id: DIDURL {
+        return _id
+    }
+    
+    /// Get the PublicKey type.
+    @objc public var type: String {
+        return _type
+    }
 
-    /// DID of the corresponding private key controller
-    @objc public var controller: DID? {
+    /// Get the controller of this PublicKey.
+    @objc public var controller: DID {
         return _controller
     }
     
@@ -59,34 +76,41 @@ public class PublicKey: DIDObject {
         self._controller = newVaule
     }
 
-    /// Base58 encoded public key
+    /// Get the base58 encoded public key string.
     @objc public var publicKeyBase58: String {
-        return _keyBase58!
+        return _keyBase58
     }
 
-    /// [UInt8] public key
+    /// Get the raw binary public key [UInt8].
     @objc public var publicKeyBytes: [UInt8] {
-        return Base58.bytesFromBase58(_keyBase58!)
+        return Base58.bytesFromBase58(_keyBase58)
     }
-
+    
+    /// Get the raw binary public key Data.
     public var publicKeyData: Data {
         return Data(publicKeyBytes)
     }
 
-    /// Check publickey is authentication key or not.
+    /// Check if the key is an authentication key.
     @objc public var isAuthenticationKey: Bool {
         return authenticationKey!
     }
-
+    
+    /// Set this PublicKey as an authentication key or not.
+    /// - Parameter newValue: true set this key as an authentication key;
+    ///           false remove this key from authentication keys
     func setAuthenticationKey(_ newValue: Bool) {
         self.authenticationKey = newValue
     }
 
-    /// Check publickey is athorization key or not.
+    /// Check if the key is an authorization key.
     @objc public var isAuthorizationKey: Bool {
         return authorizationKey!
     }
-
+    
+    /// Set this PublicKey as an authorization key or not.
+    /// - Parameter newValue: true set this key as an authorization key;
+    ///           false remove this key from authorization keys
     func setAuthorizationKey(_ newValue: Bool) {
         self.authorizationKey = newValue
     }
@@ -136,7 +160,7 @@ public class PublicKey: DIDObject {
         // controller
         if normalized || ref == nil || ref != controller {
             generator.writeFieldName(Constants.CONTROLLER);
-            generator.writeString(controller!.toString())
+            generator.writeString(controller.toString())
         }
 
         // publicKeyBase58
@@ -176,7 +200,6 @@ extension PublicKey {
         try checkArgument(self.getId() != nil || key.getId() != nil, "id is nil")
         var result = self.getId()!.compareTo(key.getId()!)
         
-        try checkArgument(self.publicKeyBase58 != nil || key.publicKeyBase58 != nil, "publicKeyBase58 is nil")
         if result == ComparisonResult.orderedSame {
             result = self.publicKeyBase58.compare(key.publicKeyBase58)
         } else {
@@ -192,32 +215,9 @@ extension PublicKey {
         
         if result == ComparisonResult.orderedSame {
             
-            try checkArgument(self.controller != nil || key.controller != nil, "controller is nil")
-            return try self.controller!.compareTo(self.controller!)
+            return try self.controller.compareTo(self.controller)
         } else {
             return result
         }
     }
-     
-    
-//    @Override
-//            public int compareTo(PublicKey key) {
-//                int rc = id.compareTo(key.id);
-//
-//                if (rc != 0)
-//                    return rc;
-//                else
-//                    rc = keyBase58.compareTo(key.keyBase58);
-//
-//                if (rc != 0)
-//                    return rc;
-//                else
-//                    rc = type.compareTo(key.type);
-//
-//                if (rc != 0)
-//                    return rc;
-//                else
-//                    return controller.compareTo(key.controller);
-//            }
-
 }
