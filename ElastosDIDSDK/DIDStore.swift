@@ -1102,7 +1102,7 @@ public class DIDStore: NSObject {
         }
         let identities = try storage!.listRootIdentities()
         for identity in identities {
-            try identity.synchronize(h)
+            try identity.synchronize(handle: h)
         }
         let dids = try storage!.listDids()
         for did in dids {
