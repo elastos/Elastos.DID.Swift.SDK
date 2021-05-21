@@ -22,6 +22,13 @@
 
 import Foundation
 
+///  Mnemonic object compliant with
+/// <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">the BIP 39
+/// specification</a>. Support all languages that listed in bip-0039.
+///
+/// <p>
+/// Mnemonic object can generate a random mnemonic words list, or convert the
+/// works list to seed that use to generate the root extended private key.
 @objc(Mnemonic)
 public class Mnemonic: NSObject {
     @objc public static let DID_CHINESE_SIMPLIFIED = "chinese_simplified"

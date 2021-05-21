@@ -50,10 +50,10 @@ public class TransferTicket: NSObject {
 
     var proofs: [DID: TransferTicketProof] = [: ]
     
-    /// Transfer ticket constructor.
+    /// Create a TransferTicket for the target DID.
     /// - Parameters:
-    ///   - target: the subject did
-    ///   - to: the new owner's DID
+    ///   - target: the target did document object
+    ///   - to: (one of) the new owner's DID
     init(_ target: DIDDocument, _ to: DID) throws {
         guard target.isCustomizedDid() else {
             throw DIDError.UncheckedError.IllegalStateError.NotCustomizedDIDError(target.subject.toString())
@@ -66,12 +66,21 @@ public class TransferTicket: NSObject {
         super.init()
     }
 
+    /// Create a TransferTicket for the target DID.
+    /// - Parameters:
+    ///   - did: the target DID object
+    ///   - to: (one of) the new owner's DID
+    ///   - txid: the latest transaction id of the target DID
     init(_ did: DID, _ to: DID, _ txid: String) {
         self.id  = did
         self.to = to
         self.txid = txid
     }
     
+    /// Copy constructor.
+    /// - Parameters:
+    ///   - ticket: the source object
+    ///   - withProof: if copy with the proof objects
     init(_ ticket: TransferTicket, _ withProof: Bool) {
         self.id = ticket.id
         self.to = ticket.to
@@ -117,7 +126,7 @@ public class TransferTicket: NSObject {
         return doc
     }
     
-      /// Check whether the ticket is tampered or not.
+      /// Check whether the ticket is genuine or not.
     /// - Returns: true is the ticket is genuine else false
     public func isGenuine() throws -> Bool {
         if doc == nil {
@@ -167,7 +176,7 @@ public class TransferTicket: NSObject {
         return true
     }
     
-    /// Check whether the ticket is genuine and still valid to use.
+    /// Check whether the ticket is genuine and valid to use.
     /// - Returns: true is the ticket is valid else false
     public func isValid() throws -> Bool {
         let doc = try document()
@@ -190,6 +199,8 @@ public class TransferTicket: NSObject {
     }
     
     /// Check whether the ticket is qualified.
+    /// Qualified check will only check the number of signatures whether matched
+    /// with the multisig property of the target DIDDocument.
     /// check will only check the number of signatures meet the requirement.
     /// - Returns: true is the ticket is qualified else false
     public func isQualified() throws -> Bool {
@@ -231,6 +242,11 @@ public class TransferTicket: NSObject {
         }
     }
 
+    /// Seal this TransferTicket object with given controller.
+    /// - Parameters:
+    ///   - controller: the DID controller who seal the ticket object
+    ///   - storePassword: the password of DIDStore
+    /// - Throws: DIDStoreError if an error occurred when access the DIDStore
     func seal(_ controller: DIDDocument, _ storePassword: String) throws {
         do {
             guard try !isQualified() else {
