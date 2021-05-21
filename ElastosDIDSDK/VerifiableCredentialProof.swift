@@ -43,19 +43,23 @@ public class VerifiableCredentialProof: NSObject {
         self._signature = signature
     }
     
+    /// Constructs the Proof object with the given values.
+    /// - Parameters:
+    ///   - method: the verification method, normally it's a public key
+    ///   - signature: the signature encoded in base64 URL safe format
     init(_ method: DIDURL, _ signature: String) {
         self._type = Constants.DEFAULT_PUBLICKEY_TYPE
         self._verificationMethod = method
         self._signature = signature
     }
 
-    /// TGet the verification method type.
+    /// Get the verification method type.
     @objc
     public var type: String {
         return _type
     }
     
-    /// Get the created.
+    /// Get the created time stamp.
     public var created: Date? {
         return _created
     }
@@ -66,6 +70,7 @@ public class VerifiableCredentialProof: NSObject {
         return _verificationMethod
     }
 
+    /// Get the signature.
     /// the signature encoded in URL safe base64 string
     @objc
     public var signature: String {

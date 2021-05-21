@@ -23,24 +23,35 @@
 import Foundation
 import ObjectMapper
 
+/// The credential Subject object contains one or more properties that are
+/// each related to a credential owner.
+///
+/// This id field is mandatory, should be the contoller's DID.
+/// All the other fields could be defined by the application.
+/// In order to support the JSON serialization, all values should be
+/// JSON serializable.
 @objc(VerifiableCredentialSubject)
-/// The object keeps the credential subject contents.
 public class VerifiableCredentialSubject: NSObject {
     private let TAG = NSStringFromClass(VerifiableCredentialSubject.self)
     private var _id: DID?
     private var _properties: JsonNode = JsonNode()
     private let ID = "id"
 
+    /// Constructs the credential Subject object with given controller.
+    /// - Parameter id: the controller of this subject
     init(_ id: DID) {
         self._id = id
     }
 
-    /// Get id property from Credential.
+    /// Get the controller.
+    /// the controller's DID object
     @objc
     public var did: DID {
         return self._id!
     }
     
+    /// Set the controller of the Subject object.
+    /// - Parameter newVaule: the controller's DID
     func setId(_ newVaule: DID) {
         self._id = newVaule
     }
@@ -51,23 +62,27 @@ public class VerifiableCredentialSubject: NSObject {
         return self._properties.count
     }
 
-    /// Get string of subject properties in Credential.
-    /// - Returns: properties as string.
+    /// Helper getter method for properties serialization.
+    /// NOTICE: Should keep the alphabetic serialization order.
+    ///
+    /// return a String include all application defined
+    ///         properties
     @objc
     public func getPropertiesAsString() -> String {
         return self._properties.toString()
     }
 
-    /// Get array of subject properties in Credential.
-    /// - Returns: Array of credential
+    /// Get the subject properties.
+    /// return a String to JsonNode map include all application defined
+    ///         properties
     @objc
     public func getProperties() -> JsonNode? {
         return self._properties.deepCopy()
     }
     
-    
-    /// Get array of subject properties in Credential.
-    /// - Returns: Array of credential
+    /// Get the subject properties.
+    /// return a String to Object map include all application defined
+    ///         properties
     @objc
     public func properties() -> [String: Any] {
         let proStr = _properties.toString()
@@ -105,12 +120,16 @@ public class VerifiableCredentialSubject: NSObject {
         self._properties.remove("id")
     }
     
-    func setProperties(_ name: String, _ value: Any) {
+    /// Helper setter method for properties deserialization.
+    /// - Parameters:
+    ///   - name: the property name
+    ///   - value: the property value
+    func setProperties(_ key: String, _ value: Any) {
         
-        guard name != ID else {
+        guard key != ID else {
             return
         }
-        _properties.setValue(value, forKey: name)
+        _properties.setValue(value, forKey: key)
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialSubject {
