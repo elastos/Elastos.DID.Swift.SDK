@@ -22,6 +22,7 @@
 
 import Foundation
 
+/// Presentation Builder object to create presentation.
 @objc(VerifiablePresentationBuilder)
 public class VerifiablePresentationBuilder: NSObject {
     private let DEFAULT_PRESENTATION_TYPE = "VerifiablePresentation"
@@ -31,14 +32,21 @@ public class VerifiablePresentationBuilder: NSObject {
     private var _nonce: String?
 
     private var presentation: VerifiablePresentation?
-
+    
+    /// Create a Builder object with given holder and sign key.
+    /// - Parameters:
+    ///   - holder: the holder's DID document
+    ///   - signKey: the key to sign the presentation
     init(_ holder: DIDDocument, _ signKey: DIDURL) {
         self._holder = holder
         self._signKey = signKey
 
         self.presentation = VerifiablePresentation(_holder.subject)
     }
-
+    
+    /// Set the id for the presentation.
+    /// - Parameter id: the presentation id
+    /// - Returns: the Builder instance for method chaining
     public func withId(_ id: DIDURL) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
         try checkArgument((id.did == nil || id.did == _holder.subject),
@@ -48,11 +56,17 @@ public class VerifiablePresentationBuilder: NSObject {
        return self
     }
     
+    /// Set the id for the presentation.
+    /// - Parameter id: the presentation id
+    /// - Returns: the Builder instance for method chaining
     public func withId(_ id: String) throws -> VerifiablePresentationBuilder {
         
         return try withId(DIDURL.valueOf(_holder.subject, id)!)
     }
     
+    /// Set credential types.
+    /// - Parameter type: the type strings
+    /// - Returns: the Builder instance for method chaining
     public func withType(_ type: String) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
         presentation!._types.append(type)
@@ -60,6 +74,9 @@ public class VerifiablePresentationBuilder: NSObject {
        return self
     }
    
+    /// Set credential types.
+    /// - Parameter type: the type strings
+    /// - Returns: the Builder instance for method chaining
     public func withTypes(_ types: Array<String>) throws -> VerifiablePresentationBuilder {
 
         try checkNotSealed()
@@ -68,6 +85,9 @@ public class VerifiablePresentationBuilder: NSObject {
         return self
      }
     
+    /// Set credential types.
+    /// - Parameter type: the type strings
+    /// - Returns: the Builder instance for method chaining
     public func withTypes(_ types: String...) throws -> VerifiablePresentationBuilder {
         
         return try withTypes(types)
@@ -113,10 +133,10 @@ public class VerifiablePresentationBuilder: NSObject {
         }
     }
     
-    /// Set realm for presentation.
-    /// - Parameter realm: Target areas to which the expression applies, such as website domain names, application names, etc.
+    /// Set realm for the new presentation.
+    /// - Parameter realm: the realm string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiablePresentationBuilder instance.
+    /// - Returns: the Builder instance for method chaining
     @objc
     public func withRealm(_ realm: String) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
@@ -126,10 +146,10 @@ public class VerifiablePresentationBuilder: NSObject {
         return self
     }
 
-    /// Set nonce for presentation.
-    /// - Parameter nonce: Random value used for signature operation
+    /// Set nonce for the new presentation.
+    /// - Parameter nonce:  the nonce string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiablePresentationBuilder instance.
+    /// - Returns: the Builder instance for method chaining
     @objc
     public func withNonce(_ nonce: String) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
@@ -139,10 +159,11 @@ public class VerifiablePresentationBuilder: NSObject {
         return self
     }
 
-    /// Finish modiy VerifiablePresentation.
-    /// - Parameter storePassword: Pass word to sign.
+    /// Seal the presentation object, attach the generated proof to the
+    /// presentation.
+    /// - Parameter storePassword: the password for DIDStore
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: A handle to VerifiablePresentation.
+    /// - Returns: the new presentation object
     @objc
     public func sealed(using storePassword: String) throws -> VerifiablePresentation {
         try checkNotSealed()

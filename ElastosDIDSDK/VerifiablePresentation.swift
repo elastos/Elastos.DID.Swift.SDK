@@ -23,6 +23,14 @@
 import Foundation
 import PromiseKit
 
+/// A Presentation object is used to combine and present credentials.
+/// They can be packaged in such a way that the authorship of the data is
+/// verifiable. The data in a presentation is often all about the same
+/// subject, but there is no limit to the number of subjects or issuers
+/// in the presentation.
+///
+/// This also helps prevent a verifier from reusing a verifiable presentation as
+/// their own.
 @objc(VerifiablePresentation)
 public class VerifiablePresentation: NSObject {
     /// Default presentation type
@@ -46,15 +54,21 @@ public class VerifiablePresentation: NSObject {
     private var _verifiableCredentials: [DIDURL: VerifiableCredential] = [: ]
     private var _proof: VerifiablePresentationProof?
     
+    /// Default constructor.
     override init() {
         self._createdDate = DateFormatter.currentDate()
     }
     
+    /// Constructs a presentation object for given holder.
+    /// - Parameter holder: the holder's DID of this presentation object
     init(_ holder: DID) {
         self._holder = holder
         self._createdDate = DateFormatter.currentDate()
     }
     
+    /// Copy constructor.
+    /// - Parameters:
+    ///   - vp: the source VerifiablePresentation object
     init(_ vp: VerifiablePresentation, _ withProof: Bool) {
         self._id = vp.id
         self._types = vp.types
@@ -67,6 +81,7 @@ public class VerifiablePresentation: NSObject {
         }
     }
 
+    /// Get the id of this presentation object.
     public var id: DIDURL? {
         return _id
     }
@@ -75,6 +90,7 @@ public class VerifiablePresentation: NSObject {
         _id = id
     }
     
+    /// Get the types of this presentation object.
     public var types: [String] {
         return _types
     }
@@ -84,6 +100,7 @@ public class VerifiablePresentation: NSObject {
         return credentials.count
     }
     
+    /// Get the holder of this presentation object.
     public var holder: DID? {
         // NOTICE:
         //
@@ -97,7 +114,7 @@ public class VerifiablePresentation: NSObject {
         return h
     }
 
-    /// Get time created Presentation.
+    /// Get the time created this presentation object.
     @objc
     public var createdDate: Date {
         return _createdDate
@@ -107,13 +124,13 @@ public class VerifiablePresentation: NSObject {
         self._createdDate = newDate
     }
 
-    /// Get Credential count in Presentation.
+    /// Get the count of Credentials in this presentation object.
     @objc
     public var cedentialCount: Int {
         return _verifiableCredentials.count
     }
 
-    /// Get Credential list for signing the Presentation.
+    /// Get all Credentials in this presentation object.
     @objc
     public var credentials: Array<VerifiableCredential> {
         return _credentialsArray
@@ -126,9 +143,9 @@ public class VerifiablePresentation: NSObject {
         self._verifiableCredentials[credential.getId()!] = credential
     }
 
-    /// Get Credential list for signing the Presentation.
-    /// - Parameter ofId: The Credential Id.
-    /// - Returns: The handle to Credential
+    /// Get the specified credential.
+    /// - Parameter ofId: the specified credential id
+    /// - Returns: the credential object
     public func credential(ofId: DIDURL) throws -> VerifiableCredential? {
         var id = ofId
         if id.did == nil {
@@ -137,18 +154,16 @@ public class VerifiablePresentation: NSObject {
         return self._verifiableCredentials[id]
     }
 
-    /// Get Credential list for signing the Presentation.
-    /// - Parameter ofId: The Credential Id.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: The handle to Credential
+    /// Get the specified credential.
+    /// - Parameter ofId: the specified credential id
+    /// - Returns: the credential object
     public func credential(ofId: String) throws -> VerifiableCredential? {
         return self._verifiableCredentials[try DIDURL(self.holder!, ofId)]
     }
 
-    /// Get Credential list for signing the Presentation.
-    /// - Parameter ofId: The Credential Id.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: The handle to Credential
+    /// Get the specified credential with Object-c
+    /// - Parameter ofId: the specified credential id
+    /// - Returns: the credential object
     @objc
     public func credential(ofId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
@@ -159,6 +174,7 @@ public class VerifiablePresentation: NSObject {
         }
     }
 
+    /// Sanitize routine before sealing or after deserialization.
     func sanitize() throws {
         guard !types.isEmpty else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation type")
@@ -185,7 +201,7 @@ public class VerifiablePresentation: NSObject {
         }
     }
 
-    /// Check whether the Presentation is genuine or not.
+    /// Check whether the presentation is genuine or not.
     public func isGenuine() throws -> Bool {
         let holderDoc = try holder!.resolve()
 
@@ -228,14 +244,14 @@ public class VerifiablePresentation: NSObject {
         return (try? holderDoc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
     }
 
-    /// Presentation is genuine or not.
+    /// Check whether the presentation is genuine or not in asynchronous mode.
     /// - Returns: flase if not genuine, true if genuine.
     public func isGenuineAsync() -> Promise<Bool> {
         return Promise<Bool> { $0.fulfill(try isGenuine()) }
     }
 
 
-    /// Presentation is genuine or not.
+    /// Check whether the presentation is genuine or not in asynchronous mode with Object-C
     /// - Returns: flase if not genuine, true if genuine.
     @objc
     public func isGenuineAsyncUsingObjectC() -> AnyPromise {
@@ -244,7 +260,7 @@ public class VerifiablePresentation: NSObject {
         })
     }
 
-    /// Presentation is valid or not.
+    /// Check whether the presentation is valid or not.
     public func isValid() throws -> Bool {
         let doc: DIDDocument?
         do {
@@ -288,13 +304,13 @@ public class VerifiablePresentation: NSObject {
         return (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
     }
 
-    /// Presentation is valid or not.
+    /// Check whether the credential is valid in asynchronous mode.
     /// - Returns: flase if not valid, true if valid.
     public func isValidAsync() -> Promise<Bool> {
         return Promise<Bool> { $0.fulfill(try isValid()) }
     }
 
-    /// Presentation is valid or not.
+    /// Check whether the credential is valid in asynchronous mode with Object-C
     /// - Returns: flase if not valid, true if valid.
     @objc
     public func isValidAsyncUsingObjectC() -> AnyPromise {
@@ -303,16 +319,12 @@ public class VerifiablePresentation: NSObject {
         })
     }
 
-    /// Get presentation proof.
+    /// Get the proof object of this presentation.
     @objc
     public var proof: VerifiablePresentationProof {
         // Guaranteed that this field would not be nil becausesi the object
         // was generated by "builder".
         return _proof!
-    }
-
-    func getProof() -> VerifiablePresentationProof? {
-        return _proof
     }
 
     func setProof(_ proof: VerifiablePresentationProof) {

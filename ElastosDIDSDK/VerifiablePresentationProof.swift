@@ -22,6 +22,8 @@
 
 import Foundation
 
+/// The proof information for verifiable presentation.
+/// The default proof type is ECDSAsecp256r1.
 @objc(VerifiablePresentationProof)
 public class VerifiablePresentationProof: NSObject {
     private let _type: String
@@ -30,6 +32,13 @@ public class VerifiablePresentationProof: NSObject {
     private let _nonce: String
     private let _signature: String
     
+    /// Create the proof object with the given values.
+    /// - Parameters:
+    ///   - type: the type string
+    ///   - method: the sign key
+    ///   - realm: where is presentation use
+    ///   - nonce: the nonce string
+    ///   - signature: the signature string
     init(_ type: String,  _ method: DIDURL, _ realm: String,  _ nonce: String, _ signature: String) {
         self._type = type
         self._verificationMethod = method
@@ -38,35 +47,41 @@ public class VerifiablePresentationProof: NSObject {
         self._signature = signature
     }
     
+    /// Create the proof object with the given values.
+    /// - Parameters:
+    ///   - method: the sign key
+    ///   - realm: where is presentation use
+    ///   - nonce: the nonce string
+    ///   - signature: the signature string
     convenience init(_ method: DIDURL, _ realm: String, _ nonce: String, _ signature: String) {
         self.init(Constants.DEFAULT_PUBLICKEY_TYPE, method, realm, nonce, signature)
     }
 
-    /// The type of target data is a verifiable expression
+    /// Get the proof type.
     @objc
     public var type: String {
         return _type
     }
 
-    /// Proof method, the value is the public key reference used for signing and verification in the provider DID document
+    /// Get the verification method.
     @objc
     public var verificationMethod: DIDURL {
         return _verificationMethod
     }
 
-    /// Target areas to which the expression applies, such as website domain names, application names, etc.
+    /// Get the realm string of this presentation object.
     @objc
     public var realm: String {
         return _realm
     }
 
-    /// Random value used for signature operation
+    /// Get the nonce string of this presentation object.
     @objc
     public var nonce: String {
         return _nonce
     }
 
-    /// The signed value, using Base64 encoding
+    /// Get signature value of this presentation object.
     @objc
     public var signature: String {
         return _signature
