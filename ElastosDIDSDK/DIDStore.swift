@@ -25,11 +25,19 @@ import PromiseKit
 
 public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDocument) -> DIDDocument
 
-/// DIDStore is local store for specified DID.
+/// This class represents a storage facility for DID objects and private keys.
+
+/// The DIDStore manages different types of entries:
+/// - RootIdentity
+/// - DIDDocument
+/// - VerifiableCredential
+/// - PrivateKey
 @objc(DIDStore)
 public class DIDStore: NSObject {
     private let TAG = NSStringFromClass(DIDStore.self)
+    /// The type string for DIDStore.
     static let DID_STORE_TYPE = "did:elastos:store"
+    /// Current DIDStore version.
     static let DID_STORE_VERSION = 3
     @objc public static let CACHE_INITIAL_CAPACITY = 16
     @objc public static let CACHE_MAX_CAPACITY = 128 // 128
@@ -43,6 +51,7 @@ public class DIDStore: NSObject {
     private var metadata: DIDStoreMetadata?
     private static var storePath: String = ""
 
+    /// the default conflict handle implementation.
     public static let defaultConflictHandle: ConflictHandler = { (c, l) -> DIDDocument in
         l.getMetadata().setPublishTime(c.getMetadata().publishTime!)
         l.getMetadata().setSignature(c.getMetadata().signature!)
@@ -135,26 +144,24 @@ public class DIDStore: NSObject {
         return try DIDStore(initialCacheCapacity, maxCacheCapacity, storage)
     }
     
-    /// Initialize or check the DIDStore.
+    /// Open a DIDStore instance with given storage location.
     /// - Parameters:
-    ///   - atPath: The path of DIDStore’s root.
-    ///   - initialCacheCapacity: min cache capacity
-    ///   - maxCacheCapacity: max cache capacity
+    ///   - atPath: the storage location for the DIDStore
+    ///   - initialCacheCapacity: the initial cache capacity
+    ///   - maxCacheCapacity: the maximum cache capacity
     /// - Throws: If error occurs, throw error.
-    /// - Returns: DIDStore instance.
+    /// - Returns: the DIDStore object
     @objc
     public class func open(atPath: String,
-             initialCacheCapacity: Int,
-                 maxCacheCapacity: Int) throws -> DIDStore {
-
+                           initialCacheCapacity: Int,
+                           maxCacheCapacity: Int) throws -> DIDStore {
+        
         return try openStore(atPath, initialCacheCapacity, maxCacheCapacity)
     }
     
-    /// Initialize or check the DIDStore.
+    /// Open a DIDStore instance with given storage location.
     /// - Parameters:
-    ///   - atPath: The path of DIDStore’s root.
-    ///   - withType: The type is support ‘filesystem’
-    ///   - adapter: The handle to DIDAdapter.
+    ///   - atPath: the storage location for the DIDStore
     /// - Throws: If error occurs, throw error.
     /// - Returns: DIDStore instance.
     @objc
@@ -163,6 +170,7 @@ public class DIDStore: NSObject {
         return try openStore(atPath, CACHE_INITIAL_CAPACITY, CACHE_MAX_CAPACITY)
     }
     
+    /// Close this DIDStore object.
     public func close() {
         cache.clear()
         metadata = nil
@@ -170,6 +178,9 @@ public class DIDStore: NSObject {
     }
     
     private func calcFingerprint(_ password: String) throws -> String {
+        /// Here should use Argon2, better to avoid the password attack.
+        /// But spongycastle library not include the Argon2 implementation,
+        /// so here we use one-time AES encryption to secure the password hash.
         var md5 = MD5Helper()
         var bytes = [UInt8](password.data(using: .utf8)!)
         md5.update(&bytes)
@@ -183,7 +194,6 @@ public class DIDStore: NSObject {
         
         return hex
     }
-    
     
     class func encryptToBase64(_ input: Data, _ storePassword: String) throws -> String {
         let cinput: UnsafePointer<UInt8> = input.withUnsafeBytes{ (by: UnsafePointer<UInt8>) -> UnsafePointer<UInt8> in
@@ -247,6 +257,11 @@ public class DIDStore: NSObject {
         return result
     }
     
+    /// Save the RootIdentity object with private keys to this DID store.
+    /// - Parameters:
+    ///   - identity: an RootIdentity object
+    ///   - storePassword: the password for this DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     func storeRootIdentity(_ identity: RootIdentity, _ storePassword: String) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         var encryptedMnemonic: String = ""
@@ -256,7 +271,7 @@ public class DIDStore: NSObject {
         let encryptedPrivateKey = try encrypt(identity.rootPrivateKey!.serialize(), storePassword)
         let publicKey = try identity.preDerivedPublicKey.serializePublicKeyBase58()
         try storage!.storeRootIdentity(identity.getId(), encryptedMnemonic,
-                encryptedPrivateKey, publicKey, identity.index)
+                                       encryptedPrivateKey, publicKey, identity.index)
         if metadata?.defaultRootIdentity == nil {
             try metadata!.setDefaultRootIdentity(identity.getId())
         }
@@ -264,10 +279,17 @@ public class DIDStore: NSObject {
         try cache.removeValue(for: Key.forRootIdentityPrivateKey(identity.getId()))
     }
     
+    /// Save the RootIdentity object to this DID store(Update the derive index
+    /// only).
+    /// - Parameter identity: an RootIdentity object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     func storeRootIdentity(_ identity: RootIdentity) throws {
         try storage!.updateRootIdentityIndex(identity.getId(), identity.index)
     }
     
+    /// Set the identity as the default RootIdentity of the DIDStore.
+    /// - Parameter identity: a RootIdentity object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     func setDefaultRootIdentity(_ identity: RootIdentity) throws {
         if try !containsRootIdentity(try identity.getId()) {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid identity, not exists in the store")
@@ -275,9 +297,9 @@ public class DIDStore: NSObject {
         try metadata!.setDefaultRootIdentity(identity.getId())
     }
     
-    /// Load private identity from DIDStore.
-    /// - Parameter id: the password for DIDStore
-    /// - Returns: the HDKey object(private identity)
+    /// Load a RootIdentity object from this DIDStore.
+    /// - Parameter id: the id of the RootIdentity
+    /// - Returns: the RootIdentity object, null if the identity not exists
     public func loadRootIdentity(_ id: String) throws -> RootIdentity? {
         try checkArgument(!id.isEmpty, "Invalid id")
         do {
@@ -288,9 +310,7 @@ public class DIDStore: NSObject {
                     
                     return identity
                 }
-                else {
-                    return nil
-                }
+                return nil
             }
             return value as? RootIdentity
         } catch {
@@ -298,6 +318,9 @@ public class DIDStore: NSObject {
         }
     }
     
+    /// Load the default RootIdentity object from this DIDStore.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the default RootIdentity object, null if the identity exists
     public func loadRootIdentity() throws -> RootIdentity? {
         let id = metadata?.defaultRootIdentity
         if id == nil || id!.isEmpty {
@@ -305,28 +328,30 @@ public class DIDStore: NSObject {
             if ids.count != 1 {
                 return nil
             }
-            else {
-                let identity = ids[0]
-                try metadata!.setDefaultRootIdentity(identity.getId())
-                return identity
-            }
+            let identity = ids[0]
+            try metadata!.setDefaultRootIdentity(identity.getId())
+            return identity
         }
         
         return try loadRootIdentity(id!)
     }
     
-    /// Judge whether private identity exists in DIDStore.
-    /// - Returns: the returned value is true if private identity exists;
-    ///            the returned value if false if private identity doesnot exist.
+    /// Check whether the RootIdentity exists in this DIDStore.
+    /// - Parameter id: the id of the RootIdentity to be check
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if exists else false
     public func containsRootIdentity(_ id: String) throws -> Bool {
   
         return try storage!.loadRootIdentity(id) != nil
     }
     
-    /// Export mnemonic from DIDStore
+    /// Export the mnemonic of the specific RootIdentity from this DIDStore.
     /// - Parameters:
+    ///   - id: the id of the RootIdentity
     ///   - storePassword: the password for DIDStore
-    /// - Returns: the mnemonic string
+    /// - Throws: DIDStoreException if an error occurred when accessing the store
+    /// - Returns: the mnemonic string, null if the identity not exists or does
+    ///           not have mnemonic
     func exportRootIdentityMnemonic(_ id: String, _ storePassword: String) throws -> String? {
         try checkArgument(!id.isEmpty, "Invalid id");
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
@@ -334,11 +359,13 @@ public class DIDStore: NSObject {
         if encryptedMnemonic != nil {
             return String(data: try decrypt(encryptedMnemonic!, storePassword), encoding: .utf8)
         }
-        else {
-            return nil
-        }
+        return nil
     }
     
+    /// Check whether the RootIdentity has mnemonic.
+    /// - Parameter id: the id of the RootIdentity
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if exists else false
     func containsRootIdentityMnemonic(_ id: String) throws -> Bool {
         try checkArgument(!id.isEmpty, "Invalid id");
         let encryptedMnemonic = try storage?.loadRootIdentityMnemonic(id)
@@ -376,6 +403,10 @@ public class DIDStore: NSObject {
         return key
     }
     
+    /// Delete the specific RootIdentity object from this store.
+    /// - Parameter id: the id of RootIdentity object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the identity exists and delete successful; false otherwise
     public func deleteRootIdentity(_ id: String) throws -> Bool {
         try checkArgument(!id.isEmpty, "Invalid id")
         let success = try storage!.deleteRootIdentity(id)
@@ -390,19 +421,34 @@ public class DIDStore: NSObject {
         return success
     }
     
+    /// List all RootIdentity object from this store.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of RootIdentity objects
     public func listRootIdentities() throws -> [RootIdentity] {
         return try storage!.listRootIdentities()
     }
     
+    /// Check whether the this store has RootIdentity objects.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store has RootIdentity objects else false
     public func containsRootIdentities() throws -> Bool {
         return try storage!.containsRootIdenities()
     }
     
+    /// Save the RootIdentity metadata to this store.
+    /// - Parameters:
+    ///   - id: the id of the RootIdentity object
+    ///   - metadata: a RootIdentity.Metadata object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     func storeRootIdentityMetadata(_ id: String, _ metadata: RootIdentityMetadata) throws {
         try checkArgument(!id.isEmpty, "Invalid id")
         try storage?.storeRootIdentityMetadata(id, metadata)
     }
    
+    /// Read the RootIdentity metadata from this store.
+    /// - Parameter id: the id of the RootIdentity object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: a RootIdentityMetadata object
     func loadRootIdentityMetadata(_ id: String) throws -> RootIdentityMetadata {
         try checkArgument(!id.isEmpty, "Invalid id")
         var metadata = try storage?.loadRootIdentityMetadata(id)
@@ -417,9 +463,9 @@ public class DIDStore: NSObject {
         return metadata!
     }
     
-    /// Store DID Document in DID Store.
-    /// - Parameter doc: The handle to DID Document.
-    /// - Throws: If error occurs, throw error.
+    /// Save the DID document to this store.
+    /// - Parameter doc: the DIDDocument object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     @objc
     public func storeDid(using doc: DIDDocument) throws {
         try storage!.storeDid(doc)
@@ -437,11 +483,11 @@ public class DIDStore: NSObject {
         cache.setValue(doc, for: Key.forDidDocument(doc.subject))
     }
     
-    /// Load DID Document from DID Store.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
-     public func loadDid(_ did: DID) throws -> DIDDocument? {
+    /// Read the specific DID document from this store.
+    /// - Parameter did: the DID to be load
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the DIDDocument object
+    public func loadDid(_ did: DID) throws -> DIDDocument? {
         var doc: DIDDocument?
         let vaule = cache.getValue(for: Key.forDidDocument(did))
         
@@ -458,19 +504,19 @@ public class DIDStore: NSObject {
         
         return doc
     }
-
-    /// Load DID Document from DID Store.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
+    
+    /// Read the specific DID document from this store.
+    /// - Parameter did: the DID to be load
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the DIDDocument object
     public func loadDid(_ did: String) throws -> DIDDocument? {
         return try loadDid(DID(did))
     }
-
-    /// Load DID Document from DID Store.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
+    
+    /// Read the specific DID document from this store with Object-C
+    /// - Parameter did: the DID to be load
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the DIDDocument object
     @objc
     public func loadDid(_ did: DID, error: NSErrorPointer) -> DIDDocument? {
         do {
@@ -480,11 +526,11 @@ public class DIDStore: NSObject {
             return nil
         }
     }
-
-    /// Load DID Document from DID Store.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to DID Document. Otherwise, return nil.
+    
+    /// Read the specific DID document from this store with Object-C
+    /// - Parameter did: the DID to be load
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: DIDStoreError if an error occurred when accessing the store
     @objc(loadDidWithString:error:)
     public func loadDid(_ did: String, error: NSErrorPointer) -> DIDDocument? {
         do {
@@ -495,25 +541,25 @@ public class DIDStore: NSObject {
         }
     }
     
-    /// Check if contain specific DID or not.
-    /// - Parameter did: The handle to DID.
-    /// - Returns: true on success, false if an error occurred.
+    /// Check if this store contains the specific DID.
+    /// - Parameter did: the specified DID
+    /// - Returns: true if the store contains this DID, false otherwise
     public func containsDid(_ did: DID) throws -> Bool {
         return try loadDid(did) != nil
     }
 
     /// Check if contain specific DID or not.
     /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store.
     /// - Returns: true on success, false if an error occurred.
     public func containsDid(_ did: String) throws -> Bool {
         return try containsDid(try DID(did))
     }
-
-    /// Check if contain specific DID or not.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: true on success, false if an error occurred.
+    
+    /// Check if this store contains the specific DID with Object-C
+    /// - Parameter did: the specified DID
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store contains this DID, false otherwise
     @objc
     public func containsDid(_ did: String, error: NSErrorPointer) -> Bool {
         do {
@@ -524,15 +570,20 @@ public class DIDStore: NSObject {
         }
     }
     
+    /// Save the DID Metadata to this store.
+    /// - Parameters:
+    ///   - did: the owner of the metadata object
+    ///   - metadata: the DID metadata object
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     func storeDidMetadata(_  did: DID, _ metadata: DIDMetadata) throws {
         try storage?.storeDidMetadata(did, metadata)
         metadata.attachStore(self)
         cache.setValue(metadata, for: Key.forDidMetadata(did))
     }
     
-    /// Load Meta data for the specified DID.
-    /// - Parameter did: the specified DID
-    /// - Returns: the Meta data
+    /// Read the specific DID metadata object for this store.
+    /// - Parameter did: a DID to be load
+    /// - Returns: the DID metadata object
     func loadDidMetadata(_ did: DID) throws -> DIDMetadata {
         let metadata = try cache.getValue(for: Key.forDidMetadata(did), { () -> NSObject? in
             var metadata = try storage!.loadDidMetadata(did)
@@ -550,14 +601,21 @@ public class DIDStore: NSObject {
         return metadata as! DIDMetadata
     }
 
+    /// Read the specific DID metadata object for this store.
+    /// - Parameter did: a DID to be load
+    /// - Returns: the DID metadata object
     func loadDidMetadata(_ did: String) throws -> DIDMetadata {
         let _did = try DID(did)
         return try loadDidMetadata(_did)
     }
-
-    /// Delete the specified DID.
-    /// - Parameter did: the specified DID
-    /// - Returns: true on success, false if an error occurred.
+    
+    /// Delete the specific DID from this store.
+    ///
+    /// When delete the DID, all private keys, credentials that owned by this
+    /// DID will also be deleted.
+    ///
+    /// - Parameter did: the DID to be delete
+    /// - Returns: true if the DID exist and deleted successful, false otherwise
     @objc
     public func deleteDid(_ did: DID) -> Bool {
         let success = storage!.deleteDid(did)
@@ -578,18 +636,24 @@ public class DIDStore: NSObject {
         return success
     }
     
-    /// Delete specific DID.
-    /// - Parameter did: The identifier of DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: true on success, false if an error occurred.
+    /// Delete the specific DID from this store.
+    ///
+    /// When delete the DID, all private keys, credentials that owned by this
+    /// DID will also be deleted.
+    ///
+    /// - Parameter did: the DID to be delete
+    /// - Returns: true if the DID exist and deleted successful, false otherwise
     public func deleteDid(_ did: String) throws -> Bool {
         return try deleteDid(DID(did))
     }
     
-    /// Delete specific DID.
-    /// - Parameter did: The identifier of DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: true on success, false if an error occurred.
+    /// Delete the specific DID from this store with Object-C
+    ///
+    /// When delete the DID, all private keys, credentials that owned by this
+    /// DID will also be deleted.
+    ///
+    /// - Parameter did: the DID to be delete
+    /// - Returns: true if the DID exist and deleted successful, false otherwise
     @objc
     public func deleteDid(_ did: String, error: NSErrorPointer) -> Bool {
         do {
@@ -600,10 +664,9 @@ public class DIDStore: NSObject {
         }
     }
     
-    
-    /// List all DIDs according to the specified condition.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: the DID array.
+    /// List all DIDs from this store.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of DIDs
     @objc
     public func listDids() throws -> Array<DID> {
         let dids = try storage!.listDids()
@@ -616,9 +679,9 @@ public class DIDStore: NSObject {
         return dids
     }
     
-    /// Store the specified Credential.
-    /// - Parameter credential: the Credential object
-    /// - Throws: If error occurs, throw error.
+    /// Save the credential object to this store.
+    /// - Parameter credential: a VerifiableCredential object
+    /// - Throws:  DIDStoreError if an error occurred when accessing the store
     @objc
     public func storeCredential(using credential: VerifiableCredential) throws {
         try storage!.storeCredential(credential)
@@ -631,13 +694,12 @@ public class DIDStore: NSObject {
         
         cache.setValue(credential, for: Key.forCredential(credential.getId()!))
     }
-
-    /// Load the specified Credential.
+    
+    /// Read the specific credential object from this store.
     /// - Parameters:
-    ///   - did: the owner of Credential
-    ///   - byId: the identifier of Credential
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the Credential object. Otherwise, return nil.
+    ///   - byId: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: DIDURL) throws -> VerifiableCredential? {
         
         let value = try cache.getValue(for: Key.forCredential(byId)) { () -> NSObject? in
@@ -653,16 +715,20 @@ public class DIDStore: NSObject {
         return value as? VerifiableCredential
     }
     
+    /// Read the specific credential object from this store.
+    /// - Parameters:
+    ///   - byId: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: String) throws -> VerifiableCredential? {
         return try loadCredential(byId: DIDURL.valueOf(byId))
     }
     
-    /// Load Credential from DID Store.
+    /// Read the specific credential object from this store with Object-C
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - byId: The identifier of credential.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to Credential. Otherwise, return nil.
+    ///   - byId: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the VerifiableCredential object
     @objc
     public func loadCredential(byId: DIDURL, error: NSErrorPointer) -> VerifiableCredential? {
         do {
@@ -672,13 +738,12 @@ public class DIDStore: NSObject {
             return nil
         }
     }
-
-    /// Load Credential from DID Store.
+    
+    /// Read the specific credential object from this store with Object-C
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - byId: The identifier of credential.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: If no error occurs, return the handle to Credential. Otherwise, return nil.
+    ///   - byId: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the VerifiableCredential object
     @objc(loadCredentialbyId:error:)
     public func loadCredential(byId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
@@ -688,38 +753,42 @@ public class DIDStore: NSObject {
             return nil
         }
     }
-
-    /// Check if contain any credential of specific DID.
+    
+    /// Check whether this store contains the specific credential.
     /// - Parameters:
-    ///   - did: the owner of Credential
-    ///   - id: the identifier of Credential
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store contains this credential, false otherwise
     public func containsCredential(_ id: DIDURL) throws -> Bool {
         return try loadCredential(byId: id) != nil
     }
     
-    /// Check if contain any credential of specific DID.
+    /// Check whether this store contains the specific credential.
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - id: The identifier of credential.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the credential id
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store contains this credential, false otherwise
     public func containsCredential(_ id: String) throws -> Bool {
         return try containsCredential(DIDURL.valueOf(id))
     }
     
-    /// Check if contain any credential of specific DID.
-    /// - Parameter did: the owner of Credential
-    /// - Returns: true on success, false if an error occurred.
+    /// Check whether this store contains the credentials that owned by the
+    /// specific DID.
+    /// - Parameters:
+    ///   - did: the credential owner's DID
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store contains this credential, false otherwise
     @objc
     public func containsCredentials(_ did:DID) -> Bool {
         return storage!.containsCredentials(did)
     }
     
-    /// Check if contain any credential of specific DID.
-    /// - Parameter did: The handle to DID.
-    /// - Returns: true on success, false if an error occurred.
+    /// Check whether this store contains the credentials that owned by the
+    /// specific DID.
+    /// - Parameters:
+    ///   - did: the credential owner's DID
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if the store contains this credential, false otherwise
     @objc(containsCredentialsWithDid:)
     public func containsCredentials(_ did: String) -> Bool {
         do {
@@ -729,11 +798,10 @@ public class DIDStore: NSObject {
         }
     }
     
-    /// Store meta data for the specified Credential.
+    /// Save the credential's metadata to this store.
     /// - Parameters:
-    ///   - did: the owner of the specified Credential
-    ///   - id: the identifier of Credential
-    ///   - metadata: the meta data for Credential
+    ///   - id: the credential id
+    ///   - metadata: the credential metadata object
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
         try storage!.storeCredentialMetadata(id, metadata)
         metadata.attachStore(self)
@@ -741,14 +809,18 @@ public class DIDStore: NSObject {
         cache.setValue(metadata, for: Key.forCredentialMetadata(id))
     }
     
+    /// Save the credential's metadata to this store.
+    /// - Parameters:
+    ///   - id: the credential id
+    ///   - metadata: the credential metadata object
     func storeCredentialMetadata(_ id: String, _ metadata: CredentialMetadata) throws {
         try storeCredentialMetadata(DIDURL.valueOf(id), metadata)
     }
     
-    /// Load the meta data about the specified Credential.
+    /// Read the credential's metadata from this store.
     /// - Parameters:
-    ///   - byId: the identifier of Credential
-    /// - Returns: the meta data for Credential
+    ///   - byId: the credential id
+    /// - Returns: the credential metadata object
     func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {        
         let value = try cache.getValue(for: Key.forCredentialMetadata(byId)) { () -> NSObject? in
             var metadata = try storage?.loadCredentialMetadata(byId)
@@ -766,15 +838,18 @@ public class DIDStore: NSObject {
         return value as! CredentialMetadata
     }
     
+    /// Read the credential's metadata from this store.
+    /// - Parameters:
+    ///   - byId: the credential id
+    /// - Returns: the credential metadata object
     func loadCredentialMetadata(_ byId: String) throws -> CredentialMetadata? {
         return try loadCredentialMetadata(DIDURL.valueOf(byId))
     }
     
-    /// Delete the specified Credential.
+    /// Delete the specific credential from this store.
     /// - Parameters:
-    ///   - did: the owner of Credential
-    ///   - id: the identifier of Credential
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the credential id to be delete
+    /// - Returns: true if the credential exist and deleted successful, false otherwise
     @objc
     public func deleteCredential(_ id: DIDURL) -> Bool{
         let success = storage!.deleteCredential(id)
@@ -787,19 +862,18 @@ public class DIDStore: NSObject {
         return success
     }
     
-    /// List the Credentials owned the specified DID.
+    /// Delete the specific credential from this store.
     /// - Parameters:
-    ///   - did: the owner of Credential
-    ///   - id: The identifier of credential.
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the credential id to be delete
+    /// - Returns: true if the credential exist and deleted successful, false otherwise
     public func deleteCredential(_ id: String) throws -> Bool{
         return try deleteCredential(DIDURL.valueOf(id))
     }
     
-    /// List credentials of specific DID.
-    /// - Parameter did: The handle to DID.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: the Credential array owned the specified DID.
+    /// List all credentials that owned the specific DID.
+    /// - Parameter did: the credential owner's DID
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of DIDURL denoting the credentials
     @objc
     public func listCredentials(for did: DID) throws -> Array<DIDURL> {
         let ids = try storage!.listCredentials(did)
@@ -810,27 +884,27 @@ public class DIDStore: NSObject {
         return ids
     }
     
-    /// List the Credentials owned the specified DID.
-    /// - Parameter did: the owner of Credential
-    /// - Throws: if error occurs, throw error.
-    /// - Returns: the Credential array owned the specified DID.
+    /// List all credentials that owned the specific DID.
+    /// - Parameter did: the credential owner's DID
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of DIDURL denoting the credentials
     @objc(listCredentials:error:)
     public func listCredentials(for did: String) throws -> Array<DIDURL> {
         return try listCredentials(for: DID(did))
     }
     
-    /// Store private key. Encrypt and encode private key with base64url method.
+    /// Save the DID's private key to the store, the private key will be encrypt
+    /// using the store password.
     /// - Parameters:
-    ///   - did: the owner of key
-    ///   - id: the identifier of key
-    ///   - privateKey: the original private key(32 bytes)
-    ///   - storePassword: the password for DIDStore
-    /// - Throws: If error occurs, throw error.
+    ///   - id: the private key id
+    ///   - privateKey: the binary extended private key
+    ///   - storePassword: the password for this store
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     @objc
     public func storePrivateKey(for id: DIDURL,
-                             privateKey: Data,
-                    using storePassword: String) throws {
-
+                                privateKey: Data,
+                                using storePassword: String) throws {
+        
         try checkArgument(privateKey.count != 0, "Invalid private key")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         
@@ -838,17 +912,17 @@ public class DIDStore: NSObject {
         try storage!.storePrivateKey(id, encryptedKey)
     }
     
-    /// Store private key.
+    /// Save the DID's private key to the store, the private key will be encrypt
+    /// using the store password.
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - id: The handle to public key identifier.
-    ///   - privateKey: Private key string.
-    ///   - storePassword: Password for DIDStore.
-    /// - Throws: If error occurs, throw error.
+    ///   - id: the private key id
+    ///   - privateKey: the binary extended private key
+    ///   - storePassword: the password for this store
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
     @objc(storePrivateKeyId:privateKey:storePassword:error:)
     public func storePrivateKey(for id: String,
-                             privateKey: Data,
-                    using storePassword: String) throws {
+                                privateKey: Data,
+                                using storePassword: String) throws {
         let _key = try DIDURL.valueOf(id)
 
         return try storePrivateKey(for: _key, privateKey: privateKey, using: storePassword)
@@ -880,20 +954,18 @@ public class DIDStore: NSObject {
         return try decrypt(encryptedKey!, storePassword)
     }
     
-    /// Check if contain specific private key of specific DID.
+    /// Check if this store contains the specific private key.
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - id: The identifier of public key.
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the key id
+    /// - Returns: true if this store contains the specific key, false otherwise
     public func containsPrivateKey(for id: DIDURL) throws -> Bool {
         return try loadPrivateKey(id) != nil
     }
     
-    /// Check if contain specific private key of specific DID.
+    /// Check if this store contains the specific private key.
     /// - Parameters:
-    ///   - did: The handle to DID.
-    ///   - id: The identifier of public key.
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the key id
+    /// - Returns: true if this store contains the specific key, false otherwise
     public func containsPrivateKey(for id: String) throws -> Bool {
         do {
             let _key = try DIDURL.valueOf(id)
@@ -902,17 +974,21 @@ public class DIDStore: NSObject {
             return false
         }
     }
-
-    /// Check if contain any private key of specific DID.
-    /// - Parameter did: The handle to DID.
-    /// - Returns: true on success, false if an error occurred.
+    
+    /// Check if this store contains the private keys that owned by the
+    /// specific DID.
+    /// - Parameter did: the owner's DID
+    /// - Returns: true if this store contains the private keys owned by the the
+    ///            DID, false otherwise
     public func containsPrivateKeys(for did: DID) throws -> Bool {
         return try storage!.containsPrivateKeys(did)
     }
     
-    /// Check if contain any private key of specific DID.
-    /// - Parameter did: The handle to DID.
-    /// - Returns: true on success, false if an error occurred.
+    /// Check if this store contains the private keys that owned by the
+    /// specific DID.
+    /// - Parameter did: the owner's DID
+    /// - Returns: true if this store contains the private keys owned by the the
+    ///            DID, false otherwise
     @objc(containsPrivateKeys:)
     public func containsPrivateKeys(for did: String) -> Bool {
         do {
@@ -921,12 +997,11 @@ public class DIDStore: NSObject {
             return false
         }
     }
-
-    /// Delete the private key owned to the specified key.
+    
+    /// Delete the specific private key from this store.
     /// - Parameters:
-    ///   - did: the owner of key
-    ///   - id: the identifier of publick key
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the key id
+    /// - Returns: true if the private key exist and deleted successful, false otherwise
     @objc
     public func deletePrivateKey(for id: DIDURL) -> Bool {
         let success = storage!.deletePrivateKey(id)
@@ -937,11 +1012,10 @@ public class DIDStore: NSObject {
         return success
     }
     
-    /// Delete the private key owned to the specified key.
+    /// Delete the specific private key from this store.
     /// - Parameters:
-    ///   - did: the owner of key
-    ///   - id: the identifier of key
-    /// - Returns: true on success, false if an error occurred.
+    ///   - id: the key id
+    /// - Returns: true if the private key exist and deleted successful, false otherwise
     @objc(deletePrivateKeyId:)
     public func deletePrivateKey(for id: String) -> Bool {
         do {
@@ -953,13 +1027,12 @@ public class DIDStore: NSObject {
         }
     }
     
-    /// Sign the digest data by the specified key.
+    /// Sign the digest using the specified key.
     /// - Parameters:
-    ///   - did: the owner of sign key
-    ///   - id: the identifier of sign key
-    ///   - storePassword: storePassword the password for DIDStore
-    ///   - digest: the digest data
-    /// - Returns: the signature string
+    ///   - id: the key id
+    ///   - storePassword: the password for this store
+    ///   - digest: the binary digest of data
+    /// - Returns: the base64(URL safe) encoded signature string
     func sign(WithId id: DIDURL, using storePassword: String, for digest: Data, _ capacity: Int) throws -> String {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(digest.count > 0, "Invalid digest")
@@ -981,15 +1054,21 @@ public class DIDStore: NSObject {
         return sig
     }
 
+    /// Sign the digest using the specified key.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - storePassword: the password for this store
+    ///   - digest: the binary digest of data
+    /// - Returns: the base64(URL safe) encoded signature string
     func sign(WithId id: String, using storePassword: String, for digest: Data, capacity: Int) throws -> String {
 
         return try sign(WithId: DIDURL.valueOf(id), using: storePassword, for: digest, capacity)
     }
     
-    ///  Change password for DIDStore.
+    ///  Change the password for this store.
     /// - Parameters:
-    ///   - oldPassword: oldPassword the old password
-    ///   - newPassword: newPassword the new password
+    ///   - oldPassword: the old password
+    ///   - newPassword: the new password
     @objc
     public func changePassword(_ oldPassword: String, _ newPassword: String) throws {
         try checkArgument(!oldPassword.isEmpty, "Invalid old password")
@@ -1005,6 +1084,17 @@ public class DIDStore: NSObject {
         cache.clear()
     }
 
+    /// Synchronize all RootIdentities, DIDs and credentials in this store.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter conflictHandler: an application defined handle to process the conflict
+    ///                  between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     private func synchronize(_ conflictHandler: ConflictHandler?) throws {
         var h = conflictHandler
         if h == nil {
@@ -1026,7 +1116,7 @@ public class DIDStore: NSObject {
                 localDoc!.getMetadata().detachStore()
                 if (localDoc!.signature == (resolvedDoc?.signature) ||
                         (localDoc!.proof.signature == (
-                                localDoc!.getMetadata().signature))) {
+                            localDoc!.getMetadata().signature))) {
                     finalDoc?.getMetadata().merge(localDoc!.getMetadata())
                 } else {
                     Log.d(TAG, did.toString(), " on-chain copy conflict with local copy.")
@@ -1057,14 +1147,62 @@ public class DIDStore: NSObject {
         }
     }
     
+    /// Synchronize all RootIdentities, DIDs and credentials in this store.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter conflictHandler: an application defined handle to process the conflict
+    ///                  between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    public func synchronize(conflictHandler: @escaping ConflictHandler) throws {
+        try synchronize(conflictHandler)
+    }
+    
+    /// Synchronize all RootIdentities, DIDs and credentials in this store.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
     public func synchronize() throws {
         try synchronize(nil)
     }
     
+    /// Synchronize all RootIdentities, DIDs and credentials in
+    /// asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter conflictHandler: an application defined handle to process the conflict
+    ///                  between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: a new Promise
     public func synchronizeAsync(_ handle: @escaping ConflictHandler) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try synchronize(handle) }
     }
     
+    /// Synchronize all RootIdentities, DIDs and credentials in
+    /// asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: a new Promise
     public func synchronizeAsync() -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try synchronize(nil) }
     }
@@ -1079,22 +1217,37 @@ public class DIDStore: NSObject {
             }
         })
     }
-
-    /// Synchronize DIDStore asynchronously.
-    /// - Parameters:
-    ///   - storePassword: The pass word of DID holder.
-    ///   - conflictHandler: The method to merge document.
-    /// - Returns: Void
+    
+    /// Synchronize all RootIdentities, DIDs and credentials in
+    /// asynchronous mode with Object-C
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter conflictHandler: an application defined handle to process the conflict
+    ///                  between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: a new AnyPromise
     @objc
     public func synchornizeAsyncUsingObjectC(_ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
 
         return synchronizeAsync_oc(conflictHandler)
     }
-
-    /// Synchronize DIDStore asynchronously.
-    /// - Parameter storePassword: The pass word of DID holder.
-    /// - Throws: If error occurs, throw error.
-    /// - Returns: Void
+    
+    /// Synchronize all RootIdentities, DIDs and credentials in
+    /// asynchronous mode with Object-C
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: a new Promise
     @objc
     public func synchornizeAsyncUsingObjectC() throws -> AnyPromise {
 
@@ -1109,50 +1262,50 @@ public class DIDStore: NSObject {
     }
     
     private func exportDid(_ did: DID, _ password: String, _ storePassword: String) throws -> DIDExport {
-            // All objects should load directly from storage,
-            // avoid affects the cached objects.
-            let doc = try storage!.loadDid(did)
-            if (doc == nil) {
-                throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Export DID \(did.toString()) failed, not exist.")
-            }
-            
-            doc!.setMetadata(try storage!.loadDidMetadata(did)!)
-            
-            Log.i(TAG, "Exporting \(did.toString()...)")
-
-            let de = DIDExport(DID_EXPORT, did)
-            de.setDocument(doc!)
-            
-            if (storage!.containsCredentials(did)) {
-                var ids = try listCredentials(for: did)
-                ids = ids.sorted { (didurlA, didurlB) -> Bool in
-                    return didurlA.compareTo(didurlB) == ComparisonResult.orderedAscending
-                }
-                for id in ids {
-                    Log.d(TAG, "Exporting credential \(id.toString())...")
-                    
-                    let vc = try storage!.loadCredential(id)
-                    if let _ = try storage!.loadCredentialMetadata(id) {
-                        vc!.setMetadata(try storage!.loadCredentialMetadata(id)!)
-                    }
-                    de.appendCredential(vc!)
-                }
-            }
-            
-            if (try storage!.containsPrivateKeys(did)) {
-                let pks = doc!.publicKeys()
-                for pk in pks {
-                    let id = pk.getId()
-                    let key = try storage!.loadPrivateKey(id!)
-                    if key != "" {
-                        Log.d(TAG, "Exporting private key \(String(describing: id?.toString()))...")
-                        try de.appendPrivatekey(id!, key, storePassword, password)
-                    }
-                }
-            }
-            
-            return try de.sealed(using: password)
+        // All objects should load directly from storage,
+        // avoid affects the cached objects.
+        let doc = try storage!.loadDid(did)
+        if (doc == nil) {
+            throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Export DID \(did.toString()) failed, not exist.")
         }
+        
+        doc!.setMetadata(try storage!.loadDidMetadata(did)!)
+        
+        Log.i(TAG, "Exporting \(did.toString()...)")
+        
+        let de = DIDExport(DID_EXPORT, did)
+        de.setDocument(doc!)
+        
+        if (storage!.containsCredentials(did)) {
+            var ids = try listCredentials(for: did)
+            ids = ids.sorted { (didurlA, didurlB) -> Bool in
+                return didurlA.compareTo(didurlB) == ComparisonResult.orderedAscending
+            }
+            for id in ids {
+                Log.d(TAG, "Exporting credential \(id.toString())...")
+                
+                let vc = try storage!.loadCredential(id)
+                if let _ = try storage!.loadCredentialMetadata(id) {
+                    vc!.setMetadata(try storage!.loadCredentialMetadata(id)!)
+                }
+                de.appendCredential(vc!)
+            }
+        }
+        
+        if (try storage!.containsPrivateKeys(did)) {
+            let pks = doc!.publicKeys()
+            for pk in pks {
+                let id = pk.getId()
+                let key = try storage!.loadPrivateKey(id!)
+                if key != "" {
+                    Log.d(TAG, "Exporting private key \(String(describing: id?.toString()))...")
+                    try de.appendPrivatekey(id!, key, storePassword, password)
+                }
+            }
+        }
+        
+        return try de.sealed(using: password)
+    }
     
     /// Export the specific DID with all DID objects that related with this DID,
     /// include: document, credentials, private keys and their metadata.
@@ -1351,8 +1504,8 @@ public class DIDStore: NSObject {
         let id = RootIdentity.getId(try pk.serializePublicKey())
 
         try storage!.storeRootIdentity(id, encryptedMnemonic, encryptedPrivateKey,
-                publicKey, rie.index)
-
+                                       publicKey, rie.index)
+        
         if (rie.isDefault && metadata?.defaultRootIdentity == nil) {
             try metadata!.setDefaultRootIdentity(id)
         }
@@ -1413,7 +1566,7 @@ public class DIDStore: NSObject {
         for ri in ris {
             let rootIdentityStr = try "rootIdentity-" + ri.getId()
             let ert = try exportRootIdentity(ri.id!, password, storePassword).serialize(true).toDictionary()
-                arrayRis.append([rootIdentityStr: ert])
+            arrayRis.append([rootIdentityStr: ert])
         }
         let dids = try listDids()
         for did in dids {
