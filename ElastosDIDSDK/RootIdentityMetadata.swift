@@ -27,24 +27,35 @@ public class RootIdentityMetadata: AbstractMetadata {
     public let DEFAULT_DID = "defaultDid"
     var id: String?
     
+    /// Construct a Metadata object with given values.
+    /// - Parameters:
+    ///   - id: the id of the RootIdentity object
+    ///   - store: the target DIDStore
     init(_ id: String?, _ store: DIDStore) {
         self.id = id
         super.init(store)
     }
     
+    /// Construct a Metadata object with given values.
+    /// - Parameter id: the id of the RootIdentity object
     init(_ id: String) {
         self.id = id
         super.init()
     }
     
+    /// The default constructor for JSON deserializer.
     override init() {
         super.init()
     }
     
+    /// Set the RootIdentity's id that this metadata related to.
+    /// - Parameter id:
     func setId(_ id: String) {
         self.id = id
     }
     
+    /// Set the default DID of this RootIdentity.
+    /// - Parameter did: a DID object that derived by this RootIdentity object
     func setDefaultDid(_ did: DID) {
         put(DEFAULT_DID, did.toString())
     }
@@ -54,6 +65,8 @@ public class RootIdentityMetadata: AbstractMetadata {
         return try DID.valueOf(get(DEFAULT_DID)!)
     }
     
+    /// Save the modified metadata to the attached store if this metadata
+    /// attached with a store.
     override func save() {
         if attachedStore {
             do {

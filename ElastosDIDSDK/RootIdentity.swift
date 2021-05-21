@@ -23,6 +23,13 @@
 import Foundation
 import PromiseKit
 
+
+ /// The RootIdentity is a top-level object that represents a real user who
+/// owns a series of DIDs
+///
+/// The users could use RootIdentity object to derive a series of DIDs,
+/// all these DIDs are managed by this root identity object.
+/// At the same time, these DIDs are independent to the 3rd party verifiers.
 public class RootIdentity: NSObject {
     private let TAG = NSStringFromClass(RootIdentity.self)
     var mnemonic: String?
@@ -52,12 +59,17 @@ public class RootIdentity: NSObject {
         self.index = index
     }
     
-    /// Initialize private identity by mnemonic.
+    /// Create a RootIdentity from mnemonic and an optional passphrase.
     /// - Parameters:
     ///   - mnemonic: the mnemonic string
     ///   - passphrase: the password for mnemonic to generate seed
+    ///   - overwrite: true will overwrite the identity if the identity exists
+    ///                in the store, false will raise exception if the identity
+    ///                exists in the store
+    ///   - store: the DIDStore where to save this identity
     ///   - storePassword: the password for DIDStore
-    public static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+    /// - Returns: the RootIdentity object
+    private static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let _passphrase = passphrase == nil ? "" : passphrase
@@ -74,11 +86,65 @@ public class RootIdentity: NSObject {
         return identity
     }
     
-    public static func create(_ mnemonic: String, _ passphrase: String?, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+    /// Create a RootIdentity from mnemonic and an optional passphrase.
+    /// - Parameters:
+    ///   - mnemonic: the mnemonic string
+    ///   - passphrase: the password for mnemonic to generate seed
+    ///   - overwrite: true will overwrite the identity if the identity exists
+    ///                in the store, false will raise exception if the identity
+    ///                exists in the store
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the RootIdentity object
+    public static func create(_ mnemonic: String, _ passphrase: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+        return try create(mnemonic, passphrase, overwrite, store, storePassword)
+    }
+    
+    /// Create a RootIdentity from mnemonic and an optional passphrase.
+    /// - Parameters:
+    ///   - mnemonic: the mnemonic string
+    ///   - overwrite: true will overwrite the identity if the identity exists
+    ///                in the store, false will raise exception if the identity
+    ///                exists in the store
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the RootIdentity object
+    public static func create(_ mnemonic: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+        return try create(mnemonic, nil, overwrite, store, storePassword)
+    }
+    
+    /// Create a RootIdentity from mnemonic and an optional passphrase.
+    /// - Parameters:
+    ///   - mnemonic: the mnemonic string
+    ///   - passphrase: the password for mnemonic to generate seed
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the RootIdentity object
+    public static func create(_ mnemonic: String, _ passphrase: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         return try create(mnemonic, passphrase, false, store, storePassword)
     }
     
-    public static func create(_ extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+    /// Create a RootIdentity from mnemonic and an optional passphrase.
+    /// - Parameters:
+    ///   - mnemonic: the mnemonic string
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the RootIdentity object
+    public static func create(_ mnemonic: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+        return try create(mnemonic, nil, false, store, storePassword)
+    }
+    
+    /// Create a RootIdentity from a root extended private key.
+    /// - Parameters:
+    ///   - extentedPrivateKey: the root extended private key
+    ///   - overwrite: true will overwrite the identity if the identity exists
+    ///                in the store, false will raise exception if the identity
+    ///                exists in the store
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the RootIdentity object
+    public static func create(with extentedPrivateKey: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
         try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
@@ -94,29 +160,48 @@ public class RootIdentity: NSObject {
         return identity
     }
     
-    public static func create(_ extentedPrivateKey: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        return try create(extentedPrivateKey, false, store, storePassword)
+    /// Create a RootIdentity from a root extended private key.
+    /// - Parameters:
+    ///   - extentedPrivateKey: the root extended private key
+    ///   - store: the DIDStore where to save this identity
+    ///   - storePassword: the password for DIDStore
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the RootIdentity object
+    public static func create(with extentedPrivateKey: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+        return try create(with: extentedPrivateKey, false, store, storePassword)
     }
     
+    /// Create a public key only RootIdentity instance.
+    /// - Parameters:
+    ///   - preDerivedPublicKey: the pre-derived extended public key
+    ///   - index: current available derive index
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: the RootIdentity object
     public static func create(_ preDerivedPublicKey: String, _ index: Int) throws -> RootIdentity {
         let key = DIDHDKey.deserializeBase58(preDerivedPublicKey)
         return try RootIdentity(key, index)
     }
     
-    public func wipe() throws {
+    private func wipe() throws {
         rootPrivateKey?.wipe()
         mnemonic = nil
         rootPrivateKey = nil
     }
     
+    /// Get the attached DIDStore instance.
     var store: DIDStore? {
         return metadata?.store
     }
     
+    /// Get the metadata object of this RootIdentity.
+    /// - Parameter metadata: the metadata object
     func setMetadata(_ metadata: RootIdentityMetadata) {
         self.metadata = metadata
     }
     
+    /// Calculate the id of RootIdentity object from the pre-derived public key.
+    /// - Parameter key: the pre-derived public key in bytes array
+    /// - Returns: the id of RootIdentity object
     static func getId(_ key: [UInt8]) -> String {
         let md5 = MD5Helper()
         var _key = key
@@ -127,7 +212,9 @@ public class RootIdentity: NSObject {
         return hex
     }
     
-    func getId() throws -> String {
+    /// Get the id of this RootIdentity object.
+    /// - Returns: the id of this RootIdentity object
+    public func getId() throws -> String {
         if id == nil {
             id = RootIdentity.getId(try preDerivedPublicKey.serializePublicKey())
         }
@@ -135,6 +222,8 @@ public class RootIdentity: NSObject {
         return id!
     }
     
+    /// Get the alias of this RootIdentity object.
+    /// Set the alias for this RootIdentity object.
     public var alias: String? {
         set{
             metadata?.setAlias(newValue!)
@@ -144,41 +233,56 @@ public class RootIdentity: NSObject {
         }
     }
     
+    /// Get the default DID of this RootIdentity object.
     public func defaultDid() throws -> DID {
         return try metadata!.getDefaultDid()!
     }
     
+    /// Set this RootIdentity as the global default identity in current DIDStore.
     public func setAsDefault() throws {
         try store!.setDefaultRootIdentity(self)
     }
     
+    /// Set the default DID for this RootIdentity object.
+    ///
+    /// The default DID object should derived from this RootIdentity.
+    /// - Parameter did: a DID object
     public func setDefaultDid(_ did: DID) throws {
         metadata!.setDefaultDid(did)
     }
     
+    /// Set the default DID for this RootIdentity object.
+    ///
+    /// The default DID object should derived from this RootIdentity.
+    /// - Parameter did: a DID object
     public func setDefaultDid(_ did: String) throws {
         try metadata!.setDefaultDid(DID.valueOf(did)!)
     }
     
+    /// Set the default DID for this RootIdentity object.
+    /// - Parameter index: the index of default DID derived from
     public func setDefaultDid(_ index: Int) throws {
         try metadata!.setDefaultDid(getDid(index))
     }
     
-    public func setIndex(_ idx: Int) throws {
+    /// Set the next available derive index for this RootIdentity.
+    /// - Parameter idx: the next available derive index
+    func setIndex(_ idx: Int) throws {
         index = idx
         try store!.storeRootIdentity(self)
     }
     
-    public func incrementIndex() throws -> Int {
+    /// Increase the next available derive index for this RootIdentity.
+    func incrementIndex() throws -> Int {
         index = index + 1
         try store!.storeRootIdentity(self)
         
         return index
     }
     
-    /// Get DID with specified index.
-    /// - Parameter index: the index
-    /// - Returns: the DID object
+    /// Get DID that derived from the specific index.
+    /// - Parameter index: the derive index
+    /// - Returns: a DID object
     public func getDid(_ index: Int) throws -> DID {
         
         let key = try preDerivedPublicKey.derive("0/\(index)")
@@ -187,7 +291,7 @@ public class RootIdentity: NSObject {
         return did
     }
     
-    public static func lazyCreateDidPrivateKey(_ id: DIDURL, _ store: DIDStore, _ storePassword: String) throws -> Data? {
+    static func lazyCreateDidPrivateKey(_ id: DIDURL, _ store: DIDStore, _ storePassword: String) throws -> Data? {
         let  doc = try store.loadDid(id.did!)
         guard let _ = doc else {
             throw DIDError.CheckedError.DIDStoreError.MissingDocumentError("Missing document for DID: \(String(describing: id.did))")
@@ -211,11 +315,12 @@ public class RootIdentity: NSObject {
         return sk
     }
     
-    /// Create a new DID with specified index and get this DID's Document content.
+    /// Create a new DID that derive from the specified index.
     /// - Parameters:
-    ///   - index: the index to create new did.
+    ///   - index: the derive index
+    ///   - overwrite: true for overwriting the existing one, fail otherwise
     ///   - storePassword: the password for DIDStore
-    /// - Returns: the DIDDocument content related to the new DID
+    /// - Returns: the new created DIDDocument object
     public func newDid(_ index: Int, _ overwrite: Bool, _ storePassword: String) throws -> DIDDocument {
         try checkArgument(index >= 0, "Invalid index")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
@@ -250,15 +355,21 @@ public class RootIdentity: NSObject {
         return doc!
     }
     
+    /// Create a new DID that derive from the specified index.
+    /// - Parameters:
+    ///   - index: the derive index
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the new created DIDDocument object
     public func newDid(_ index: Int, _ storePassword: String) throws -> DIDDocument {
         
         return try newDid(index, false, storePassword)
     }
     
-    /// Create a new DID without alias and get this DID's Document content.
+    /// Create a new DID that derive from the specified index.
     /// - Parameters:
+    ///   - overwrite: true for overwriting the existing one, fail otherwise
     ///   - storePassword: the password for DIDStore
-    /// - Returns: the DIDDocument content related to the new DID
+    /// - Returns: the new created DIDDocument object
     public func newDid(_ overwrite: Bool, _ storePassword: String) throws -> DIDDocument {
         
         let doc = try newDid(index, overwrite, storePassword)
@@ -267,23 +378,44 @@ public class RootIdentity: NSObject {
         return doc
     }
     
+    /// Create a new DID that derive from the specified index.
+    /// - Parameters:
+    ///   - storePassword: the password for DIDStore
+    /// - Returns: the new created DIDDocument object
     public func newDid(_ storePassword: String) throws -> DIDDocument {
         
         return try newDid(false, storePassword)
     }
     
+    /// Check whether this RootIdentity created from mnemonic.
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if this RootIdentity created from mnemonic, false otherwise
     public func hasMnemonic() throws -> Bool {
         return try store!.containsRootIdentityMnemonic(getId())
     }
     
-    /// Export mnemonic from DIDStore
+    /// Export mnemonic that generated this RootIdentity object.
     /// - Parameter storePassword: the password for DIDStore
     /// - Returns: the mnemonic string
     public func exportMnemonic(_ storePassword: String) throws -> String {
         return try store!.exportRootIdentityMnemonic(getId(), storePassword)!
     }
     
-    public func synchronize(_ index: Int, _ handle: ConflictHandler?) throws -> Bool {
+    /// Synchronize the specific DID from ID chain.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - index: the DID derive index
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
+    private func synchronize(index: Int, _ handle: ConflictHandler?) throws -> Bool {
         try checkArgument(index >= 0, "Invalid index")
         var h = handle
         if h == nil {
@@ -324,27 +456,93 @@ public class RootIdentity: NSObject {
         return true
     }
     
+    /// Synchronize the specific DID from ID chain.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - index: the DID derive index
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
+    public func synchronize(_ index: Int, _ handle: @escaping ConflictHandler) throws -> Bool {
+        return try synchronize(index: index, handle)
+    }
+    
+    /// Synchronize the specific DID from ID chain.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - index: the DID derive index
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
     public func synchronize(_ index: Int) throws -> Bool {
-        return try synchronize(index, nil)
+        return try synchronize(index: index, nil)
     }
     
-    public func synchronizeAsync(_ index: Int, _ handle: ConflictHandler?) throws -> Promise<Bool> {
-        return DispatchQueue.global().async(.promise){ [self] in try synchronize(index, handle) }
+    /// Synchronize the specific DID from ID chain in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - index: the DID derive index
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Returns: a new Promise, the result is the boolean value that
+    ///             indicate the synchronize result
+    public func synchronizeAsync(_ index: Int, _ handle: @escaping ConflictHandler) throws -> Promise<Bool> {
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(index: index, handle) }
     }
     
+    /// Synchronize the specific DID from ID chain in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - index: the DID derive index
+    /// - Returns: a new Promise, the result is the boolean value that
+    ///             indicate the synchronize result
     public func synchronizeAsync(_ index: Int) throws -> Promise<Bool> {
-        return DispatchQueue.global().async(.promise){ [self] in try synchronize(index, nil) }
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(index: index, nil) }
     }
     
     /// Synchronize DIDStore.
     /// - Parameter handle: the handle to ConflictHandle
-    public func synchronize(_ handle: ConflictHandler?) throws {
+    
+    /// Synchronize all DIDs that derived from this RootIdentity object.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter handle: an application defined handle to process the conflict
+    ///                     between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    func synchronize(handle: ConflictHandler?) throws {
         Log.i(TAG, "Synchronize root identity ", try getId())
         var lastIndex = index - 1
         var blanks = 0
         var i = 0
         while (i < lastIndex || blanks < 20) {
-            if try synchronize(i, handle) {
+            if try synchronize(index: i, handle) {
                 if (i > lastIndex){
                     lastIndex = i
                 }
@@ -362,17 +560,65 @@ public class RootIdentity: NSObject {
         }
     }
     
-    public func synchronize() throws {
-        try synchronize(nil)
-    }
-    
-    /// Synchronize DIDStore with asynchronous mode.
+    /// Synchronize DIDStore.
     /// - Parameter handle: the handle to ConflictHandle
-    public func synchronizeAsync(_ handle: ConflictHandler?) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try synchronize(handle) }
+    
+    /// Synchronize all DIDs that derived from this RootIdentity object.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter handle: an application defined handle to process the conflict
+    ///                     between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    public func synchronize(_ handle: @escaping ConflictHandler) throws {
+        try synchronize(handle: handle)
     }
     
+    /// Synchronize DIDStore.
+    /// - Parameter handle: the handle to ConflictHandle
+    
+    /// Synchronize all DIDs that derived from this RootIdentity object.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Throws DIDStoreError if an error occurred when accessing the store
+    public func synchronize() throws {
+        try synchronize(handle: nil)
+    }
+
+    /// Synchronize all DIDs that derived from this RootIdentity object in
+    /// asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameter handle: an application defined handle to process the conflict
+    ///                     between the chain copy and the local copy
+    /// - Returns: a new Promise
+    public func synchronizeAsync(_ handle: @escaping ConflictHandler) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(handle: handle) }
+    }
+    
+    /// Synchronize all DIDs that derived from this RootIdentity object in
+    /// asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Returns: a new Promise
     public func synchronizeAsync() -> Promise<Void> {
-        return synchronizeAsync(nil)
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(handle: nil) }
     }
 }
