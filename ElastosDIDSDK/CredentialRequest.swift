@@ -206,11 +206,11 @@ public class CredentialRequest: IDChainRequest {
         }
         
         if operation == IDChainRequestOperation.DECLARE {
-            signer = try credential?.getSubject()?.did.resolve()
+            signer = try credential?.subject?.did.resolve()
         }
         else {
            if credential != nil {
-            signer = try credential?.getSubject()?.did.resolve()
+            signer = try credential?.subject?.did.resolve()
             }
            else {
             signer = try proof?.verificationMethod.did?.resolve()

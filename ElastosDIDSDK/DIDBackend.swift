@@ -660,7 +660,7 @@ public class DIDBackend: NSObject {
         let request = try CredentialRequest.declare(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidCredentialCache(vc.getId()!, nil)
-        invalidCredentialCache(vc.getId()!, vc.getIssuer())
+        invalidCredentialCache(vc.getId()!, vc.issuer)
     }
     
     /// Publish a credential revoke transaction to the ID chain.
@@ -676,7 +676,7 @@ public class DIDBackend: NSObject {
         let request = try CredentialRequest.revoke(vc, signer, signKey, storePassword)
         try createTransaction(request, adapter)
         invalidCredentialCache(vc.getId()!, nil)
-        invalidCredentialCache(vc.getId()!, vc.getIssuer())
+        invalidCredentialCache(vc.getId()!, vc.issuer)
     }
     
     /// Publish a credential revoke transaction to the ID chain.
