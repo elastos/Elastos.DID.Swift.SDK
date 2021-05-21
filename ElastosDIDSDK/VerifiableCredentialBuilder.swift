@@ -22,6 +22,7 @@
 
 import Foundation
 
+/// Create a credential builder.
 @objc(VerifiableCredentialBuilder)
 public class VerifiableCredentialBuilder: NSObject {
     private var _issuer: VerifiableCredentialIssuer
@@ -47,10 +48,10 @@ public class VerifiableCredentialBuilder: NSObject {
         }
     }
 
-    /// Set  an identifier for credential
-    /// - Parameter id: An identifier of credential.
+    /// Set the credential id.
+    /// - Parameter id: the credential id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc
     public func withId(_ id: DIDURL) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -64,10 +65,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
     
-    /// Set  an identifier for credential
-    /// - Parameter id: An identifier of credential.
+    /// Set the credential id.
+    /// - Parameter id: the credential id
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc(withIdString:error:)
     public func withId(_ id: String) throws -> VerifiableCredentialBuilder {
         try checkArgument(!id.isEmpty , "id is nil")
@@ -75,10 +76,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return try withId(DIDURL(_target, id))
     }
 
-    /// Set  type for credential
+    /// Set Credential types.
     /// - Parameter types: the credential types, which declare what data to expect in the credential
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     public func withTypes(_ types: String...) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
         try checkArgument(types.count > 0, "Invalid types")
@@ -87,10 +88,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
    
-    /// Set  type for credential
+    /// Set Credential types.
     /// - Parameter types: the credential types, which declare what data to expect in the credential
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc
     public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
 
@@ -103,7 +104,7 @@ public class VerifiableCredentialBuilder: NSObject {
 
     /// Set credential default expiration date
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc
     public func withDefaultExpirationDate() throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -112,10 +113,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
     
-    /// Set credential expiration date
-    /// - Parameter expirationDate: when the credential will expire
+    /// Set expire time for the credential.
+    /// - Parameter expirationDate: the expires time
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc
     public func withExpirationDate(_ expirationDate: Date) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -129,10 +130,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
     
-    /// Set claims about the subject of the credential.
-    /// - Parameter properites: Credential dictionary data.
+    /// Set the claim properties to the credential subject from a dictionary object.
+    /// - Parameter properites: a dictionary include the claims
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc
     public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -148,10 +149,10 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
     
-    /// Set claims about the subject of the credential.
+    /// Set the claim properties to the credential subject from JSON string.
     /// - Parameter json: Credential dictionary string
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc(withPropertiesWithJson:error:)
     public func withProperties(_ json: String) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -170,10 +171,24 @@ public class VerifiableCredentialBuilder: NSObject {
         return self
     }
     
+    /// Add new claim property to the credential subject.
+    /// - Parameters:
+    ///   - key: the property name
+    ///   - value: the property value
+    /// - Returns: VerifiableCredentialBuilder object.
+    @objc(withPropertiesWith::error:)
+    public func withProperties(_ key: String, _ value: String) throws -> VerifiableCredentialBuilder {
+        try checkNotSealed()
+        try checkArgument(!key.isEmpty && key != "id", "Invalid name")
+        _credential?.subject?.setProperties(key, value)
+        
+        return self
+    }
+    
     /// Set claims about the subject of the credential.
     /// - Parameter properties: Credential dictionary JsonNode
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder instance.
+    /// - Returns: VerifiableCredentialBuilder object.
     @objc(withPropertiesWithJsonNode:errro:)
     public func withProperties(_ properties: JsonNode) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
@@ -201,10 +216,11 @@ public class VerifiableCredentialBuilder: NSObject {
         _credential?.setProof(nil)
     }
 
-    /// Finish modiy VerifiableCredential.
-    /// - Parameter storePassword: Pass word to sign.
+    /// Seal the credential object, attach the generated proof to the
+    /// credential.
+    /// - Parameter storePassword: the password for DIDStore
     /// - Throws: if an error occurred, throw error.
-    /// - Returns: A handle to VerifiableCredential.
+    /// - Returns: the sealed credential object
     @objc
     public func sealed(using storePassword: String) throws -> VerifiableCredential {
         try checkNotSealed()
@@ -236,8 +252,8 @@ public class VerifiableCredentialBuilder: NSObject {
 
     private func maxExpirationDate() -> Date {
         
-        guard _credential?.getIssuanceDate() == nil else {
-            return DateFormatter.convertToWantDate(_credential!.getIssuanceDate()!, Constants.MAX_VALID_YEARS)
+        guard _credential?.issuanceDate == nil else {
+            return DateFormatter.convertToWantDate(_credential!.issuanceDate!, Constants.MAX_VALID_YEARS)
         }
         return DateFormatter.convertToWantDate(Date(), Constants.MAX_VALID_YEARS)
     }
