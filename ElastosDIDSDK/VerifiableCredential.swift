@@ -22,42 +22,19 @@
 
 import Foundation
 import PromiseKit
-import ObjectMapper
 
-//@objc(VerifiableCredentialA)
-public class VerifiableCredentialA: Mappable {
-
-    public required init?(map: Map) {
-//        super.init()
-    }
-    
-    public func mapping(map: Map) {
-        issuanceDate <- (map["issuanceDate"], ISO8601DateTransform())
-        string <- map["string"]
-    }
-    
-    public var issuanceDate: Date?
-    public var string: String?
-
-
-}
-/// Credential is a set of one or more claims made by the same entity.
-/// Credentials might also include an identifier and metadata to describe properties of the credential.
+/// A verifiable credential can represent the information that a physical
+/// credential represents. The addition of technologies, such as digital
+/// signatures, makes verifiable credentials more tamper-evident and more
+/// trustworthy than their physical counterparts.
+///
+/// <p>
+/// This class following W3C's
+/// <a href="https://www.w3.org/TR/vc-data-model/">Verifiable Credentials Data Model 1.0</a>
+/// specification.
+/// </p>
 @objc(VerifiableCredential)
-public class VerifiableCredential: DIDObject, Mappable {
-
-    public required init?(map: Map) {
-        super.init()
-    }
-    
-    public func mapping(map: Map) {
-        _id = try! DIDURL(map.value("id") as String)
-        _types <- map["type"]
-        _subject <- map["credentialSubject"]
-        _issuanceDate <- (map["issuanceDate"], ISO8601DateTransform())
-        _expirationDateString <- map["expirationDate"]
-    }
-    
+public class VerifiableCredential: DIDObject {
     private let TAG = NSStringFromClass(VerifiableCredential.self)
     private let ID = "id"
     private let TYPE = "type"
@@ -110,6 +87,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
     }
 
+    /// Get the id of this credential object
+    /// the id of this credential
     public var id: DIDURL? {
         return _id
     }
@@ -119,8 +98,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         self._id = id
     }
 
-    /// Get string of Credential types.
-    /// - Returns: String of Credential type.
+    /// Get the credential type.
+    /// - Returns: the type string
     @objc
     public override func getType() -> String {
         var builder = ""
@@ -140,8 +119,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         return builder
     }
 
-    /// Get array of Credential types.
-    /// - Returns: Array of Credential types.
+    /// Get the credential type.
+    /// - Returns: the type array
     @objc
     public func getTypes() -> [String] {
         return self._types
@@ -157,7 +136,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
     }
 
-    /// Get DID issuer of Credential.
+    /// Get the issuer of this credential.
     @objc
     public var issuer: DID? {
         // Guaranteed that this field would not be nil because the object
@@ -169,7 +148,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         self._issuer = newIssuer
     }
 
-    /// Get date of issuing credential.
+    /// Get the issuance time.
     @objc
     public var issuanceDate: Date? {
         // Guaranteed that this field would not be nil because the object
@@ -205,6 +184,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         return self._metadata!
     }
 
+    /// Set meta data for this credential object.
+    /// - Parameter newValue: the metadata object
     func setMetadata(_ newValue: CredentialMetadata) {
         self._metadata = newValue
         getId()!.setMetadata(newValue)
@@ -217,21 +198,21 @@ public class VerifiableCredential: DIDObject, Mappable {
         return getMetadata()
     }
     
+    /// Checks if there is an expiration time specified.
+    /// - Returns: whether the credential has expiration time
     public func hasExpirationDate() -> Bool {
         return _expirationDate != nil
     }
     
+    /// Get last modified time.
+    /// the last modified time, maybe null for old version credential object
     public var lastModified: Date? {
         return proof!.created
     }
     
-    /// claims about the subject of the credential
+    /// Get Credential subject object.
     @objc
     public var subject: VerifiableCredentialSubject? {
-        return _subject
-    }
-
-    func getSubject() -> VerifiableCredentialSubject? {
         return _subject
     }
 
@@ -239,13 +220,9 @@ public class VerifiableCredential: DIDObject, Mappable {
         self._subject = newSubject
     }
 
-    /// digital proof that makes the credential tamper-evident
+    /// Get Credential proof object.
     @objc
     public var proof: VerifiableCredentialProof? {
-        return _proof
-    }
-
-    func getProof() -> VerifiableCredentialProof? {
         return _proof
     }
 
@@ -293,6 +270,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         return metadata.store
     }
     
+    /// Check if this credential is a self proclaimed or not.
     public var isSelfProclaimed: Bool {
         return issuer == subject?.did
     }
@@ -362,8 +340,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         return _expirationDate != nil ? DateFormatter.isExipired(_expirationDate!) : false
     }
 
-    /// Check if the Credential is expired or not.
-    /// Issuance always occurs before any other actions involving a credential.
+    /// Check if this credential object is expired or not.
+    /// whether the credential object is expired
     @objc
     public var isExpired: Bool {
         do {
@@ -373,7 +351,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
     }
 
-    /// Credential is expired or not asynchronous.
+    /// Check if this credential object is expired or not in asynchronous mode.
     /// - Returns: Issuance always occurs before any other actions involving a credential.
     public func isExpiredAsync() -> Promise<Bool> {
         return DispatchQueue.global().async(.promise){ [self] in isExpired }
@@ -388,9 +366,9 @@ public class VerifiableCredential: DIDObject, Mappable {
         })
     }
 
-    /// Check whether the Credential is genuine or not.
+    /// Check whether this credential object is genuine or not.
     /// Issuance always occurs before any other actions involving a credential.
-    /// return: flase if not genuine, true if genuine.
+    /// return: whether the credential object is genuine
     public func isGenuine() throws -> Bool {
         guard id?.did == subject?.did else {
             return false
@@ -495,6 +473,9 @@ public class VerifiableCredential: DIDObject, Mappable {
        return DispatchQueue.global().async(.promise){ [self] in try isRevoked() }
     }
     
+    /// Check whether this credential object was declared or not.
+    /// - Throws: whether the credential object was declared
+    /// - Returns: DIDResolveError if error occurs when resolve the DIDs
     public func wasDeclared() throws -> Bool {
         let bio = try DIDBackend.sharedInstance().resolveCredentialBiography(id!, issuer!)
         guard bio!.status != CredentialBiographyStatus.STATUS_NOT_FOUND else {
@@ -507,6 +488,14 @@ public class VerifiableCredential: DIDObject, Mappable {
         }
         
         return false
+    }
+    
+    /// Check whether this credential object was declared or not.
+    /// - Throws: whether the credential object was declared
+    /// - Returns: the new Promise if success; false otherwise.
+    ///            The boolean result was declared or not
+    public func wasDeclaredAsync() -> Promise<Bool> {
+       return DispatchQueue.global().async(.promise){ [self] in try wasDeclared() }
     }
     
     private func declare(signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) throws {
@@ -552,54 +541,181 @@ public class VerifiableCredential: DIDObject, Mappable {
         try DIDBackend.sharedInstance().declareCredential(self, owner!, sk!, storePassword, adapter as? DIDAdapter)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try declare(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ signKey: DIDURL, _ storePassword: String) throws {
         try declare(signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try declare(signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ signKey: String, _ storePassword: String) throws {
         try declare(signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: nil)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try declare(signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func declare(_ storePassword: String) throws {
         try declare(signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
-    public func declareAsync(_ signKey: DIDURL?, _ storePassword: String, _ adapter: DIDTransactionAdapter?) -> Promise<Void> {
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Returns: a new Promise
+    private func declareAsync(signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try declare(signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
-    public func declareAsync(_ signKey: DIDURL?, _ storePassword: String) -> Promise<Void> {
-        return declareAsync(signKey, storePassword, nil)
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Returns: a new Promise
+    public func declareAsync(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return declareAsync(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
+    public func declareAsync(_ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
+        return declareAsync(signKey: signKey, storePassword: storePassword, adapter: nil)
+    }
+    
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func declareAsync(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storePassword, adapter) }
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - signKey: the contoller's key id to sign the declare transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func declareAsync(_ signKey: String, _ storePassword: String) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try declare(signKey, storePassword) }
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Returns: a new Promise
     public func declareAsync(_ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try declare(storePassword, adapter) }
     }
     
+    /// Publish this credential object to the ID chain, declare it to the public
+    /// in asynchronous mode.
+    ///
+    /// Only the owner of the credential object who can declare credential to
+    /// public.
+    ///
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func declareAsync(_ storePassword: String) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try declare(storePassword) }
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     private func revoke(signer: DIDDocument?, signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkAttachedStore()
@@ -652,114 +768,355 @@ public class VerifiableCredential: DIDObject, Mappable {
         try DIDBackend.sharedInstance().revokeCredential(self, sg!, sk!, storePassword, adapter as? DIDAdapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
         try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signer: signer, signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ storePassword: String) throws {
         try revoke(signer: signer, signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signer: nil, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signKey: DIDURL, _ storePassword: String) throws {
         try revoke(signer: nil, signKey: signKey, storePassword: storePassword, adapter: nil)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     private func revoke(signer: DIDDocument? = nil, signKey: String, storePassword: String, adapter: DIDTransactionAdapter? = nil) throws {
         try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signer: DIDDocument, _ signKey: String, _ storePassword: String) throws {
         try revoke(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ signKey: String, _ storePassword: String) throws {
         try revoke(signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
         try revoke(signer: nil, signKey: nil, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     public func revoke(_ storePassword: String) throws {
         try revoke(signer: nil, signKey: nil, storePassword: storePassword, adapter: nil)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Returns: a new Promise
     private func revokeAsync(signer: DIDDocument? = nil, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
         return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(signer: signer, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ storePassword: String) -> Promise<Void> {
         return revokeAsync(signer: signer, storePassword: storePassword, adapter: nil)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
         return revokeAsync(signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Returns: a new Promise
     private func revokeAsync(signer: DIDDocument? = nil, signKey: String, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
         return DispatchQueue.global().async(.promise){ [self] in try revoke(signer: signer, signKey: DIDURL.valueOf(subject!.did, signKey), storePassword: storePassword, adapter: adapter) }
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ signer: DIDDocument, _ signKey: String, _ storePassword: String) -> Promise<Void> {
         return revokeAsync(signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ signKey: String, _ storePassword: String) -> Promise<Void> {
         return revokeAsync(signKey: signKey, storePassword: storePassword)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Returns: a new Promise
     public func revokeAsync(_ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
         return revokeAsync(storePassword: storePassword, adapter: adapter)
     }
     
+    /// Revoke this credential object and announce the revocation to the ID
+    /// chain in asynchronous mode.
+    ///
+    /// The credential owner and issuer both can revoke the credential.
+    /// - Parameters:
+    ///   - storePassword: the password of the DID store
+    /// - Returns: a new Promise
     public func revokeAsync(_ storePassword: String) -> Promise<Void> {
         return revokeAsync(storePassword: storePassword)
     }
     
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
     private class func revoke(id: DIDURL, signer: DIDDocument, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         guard signer.getMetadata().attachedStore else {
@@ -792,74 +1149,223 @@ public class VerifiableCredential: DIDObject, Mappable {
         try DIDBackend.sharedInstance().revokeCredential(id, signer, sk!, storePassword, adapter as? DIDAdapter)
     }
     
-    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(id, issuer, signKey, storePassword, adapter)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id, signer, signKey, storePassword, adapter)
     }
     
-    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
-        try revoke(id: id, signer: issuer, signKey: signKey, storePassword: storePassword)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) throws {
+        try revoke(id: id, signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
-    public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(id: DIDURL.valueOf(id), signer: issuer, signKey: DIDURL.valueOf(issuer.subject, signKey), storePassword: storePassword, adapter: adapter)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: String, _ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id: DIDURL.valueOf(id), signer: signer, signKey: DIDURL.valueOf(signer.subject, signKey), storePassword: storePassword, adapter: adapter)
     }
    
-    public class func revoke(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String) throws {
-        try revoke(id: DIDURL.valueOf(id), signer: issuer, signKey: DIDURL.valueOf(issuer.subject, signKey), storePassword: storePassword)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: String, _ signer: DIDDocument, _ signKey: String, _ storePassword: String) throws {
+        try revoke(id: DIDURL.valueOf(id), signer: signer, signKey: DIDURL.valueOf(signer.subject, signKey), storePassword: storePassword)
     }
     
-    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(id: id, signer: issuer, storePassword: storePassword, adapter: adapter)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id: id, signer: signer, storePassword: storePassword, adapter: adapter)
     }
     
-    public class func revoke(_ id: DIDURL, _ issuer: DIDDocument, _ storePassword: String) throws {
-        try revoke(id: id, signer: issuer, storePassword: storePassword)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: DIDURL, _ signer: DIDDocument, _ storePassword: String) throws {
+        try revoke(id: id, signer: signer, storePassword: storePassword)
     }
     
-    public class func revoke(_ id: String, _ issuer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
-        try revoke(id: DIDURL.valueOf(id), signer: issuer, storePassword: storePassword, adapter: adapter)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: String, _ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) throws {
+        try revoke(id: DIDURL.valueOf(id), signer: signer, storePassword: storePassword, adapter: adapter)
     }
    
-    public class func revoke(_ id: String, _ issuer: DIDDocument, _ storePassword: String) throws {
-        try revoke(id: DIDURL.valueOf(id), signer: issuer, storePassword: storePassword)
+    /// Revoke a credential by id and announce the revocation to the ID chain.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revoke(_ id: String, _ signer: DIDDocument, _ storePassword: String) throws {
+        try revoke(id: DIDURL.valueOf(id), signer: signer, storePassword: storePassword)
     }
     
-    private class func revokeAsync(id: DIDURL, issuer: DIDDocument, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id: id, signer: issuer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object, use the
+    ///                   DIDBackend's default implementation if nil
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    private class func revokeAsync(id: DIDURL, signer: DIDDocument, signKey: DIDURL? = nil, storePassword: String, adapter: DIDTransactionAdapter? = nil) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id: id, signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter) }
     }
     
-    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return revokeAsync(id: id, issuer: issuer, signKey: signKey, storePassword: storePassword, adapter: adapter)
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return revokeAsync(id: id, signer: signer, signKey: signKey, storePassword: storePassword, adapter: adapter)
     }
     
-    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
-        return revokeAsync(id: id, issuer: issuer, signKey: signKey, storePassword: storePassword)
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: DIDURL, _ signer: DIDDocument, _ signKey: DIDURL, _ storePassword: String) -> Promise<Void> {
+        return revokeAsync(id: id, signer: signer, signKey: signKey, storePassword: storePassword)
     }
     
-    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storePassword, adapter) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: String, _ signer: DIDDocument, _ signKey: String, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, signer, signKey, storePassword, adapter) }
     }
     
-    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ signKey: String, _ storePassword: String) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, signKey, storePassword) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - signKey: the key id to sign the revoke transaction
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: String, _ signer: DIDDocument, _ signKey: String, _ storePassword: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, signer, signKey, storePassword) }
     }
 
-    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storePassword, adapter) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    ///   - adapter: an optional DIDTransactionAdapter object
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: String, _ signer: DIDDocument, _ storePassword: String, _ adapter: DIDTransactionAdapter) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, signer, storePassword, adapter) }
     }
     
-    public class func revokeAsync(_ id: DIDURL, _ issuer: DIDDocument, _ storePassword: String) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storePassword) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: DIDURL, _ signer: DIDDocument, _ storePassword: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, signer, storePassword) }
     }
     
-    public class func revokeAsync(_ id: String, _ issuer: DIDDocument, _ storePassword: String) -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, issuer, storePassword) }
+    /// Revoke a credential by id and announce the revocation to the ID chain
+    /// in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the credential to be revoke
+    ///   - signer: the DID document of credential owner or issuer
+    ///   - storePassword: the password of the DID store
+    /// - Throws: DIDStoreError if an error occurred when accessing the DID store
+    /// - Throws DIDBackendError if an error occurred when publish the transaction
+    public class func revokeAsync(_ id: String, _ signer: DIDDocument, _ storePassword: String) -> Promise<Void> {
+        return DispatchQueue.global().async(.promise){ [self] in try revoke(id, signer, storePassword) }
     }
     
-    private class func resolve(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> VerifiableCredential? {
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - signer: optional, the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
+    private class func resolve(_ id: DIDURL, _ signer: DID?, _ force: Bool) throws -> VerifiableCredential? {
         var vc: VerifiableCredential? = nil
-        if let _ = issuer {
-            vc = try DIDBackend.sharedInstance().resolveCredential(id, issuer!, force)
+        if let _ = signer {
+            vc = try DIDBackend.sharedInstance().resolveCredential(id, signer!, force)
         }
         else {
             vc = try DIDBackend.sharedInstance().resolveCredential(id, force)
@@ -872,134 +1378,424 @@ public class VerifiableCredential: DIDObject, Mappable {
         return vc
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL, _ issuer: DID, _ force: Bool) -> VerifiableCredential {
         return resolve(id, issuer, force)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     private class func resolve(_ id: String, _ issuer: String?, _ force: Bool) throws -> VerifiableCredential? {
         return try resolve(DIDURL.valueOf(id), issuer != nil ? DID.valueOf(issuer!) : nil, force)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ issuer: String, _ force: Bool) throws -> VerifiableCredential? {
         return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), force)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL, _ issuer: DID) -> VerifiableCredential {
         return resolve(id, issuer, false)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ issuer: String) throws -> VerifiableCredential? {
         return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), false)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL, _ force: Bool) throws -> VerifiableCredential? {
         return try resolve(id, nil, force)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ force: Bool) throws -> VerifiableCredential? {
         return try resolve(DIDURL.valueOf(id), nil, force)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL) throws -> VerifiableCredential? {
         return try resolve(id, nil, false)
     }
     
+    /// Resolve the specific VerifiableCredential object.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String) throws -> VerifiableCredential? {
         return try resolve(DIDURL.valueOf(id), nil, false)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     private class func resolveAsync(_ id: DIDURL, _ issuer: DID?, _ force: Bool) -> Promise<VerifiableCredential?> {
         return DispatchQueue.global().async(.promise){ [self] in try resolve(id, issuer, force) }
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: DIDURL, _ issuer: DID, _ force: Bool) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, issuer, force)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     private class func resolveAsync(_ id: String, _ issuer: String?, _ force: Bool) -> Promise<VerifiableCredential?> {
         return DispatchQueue.global().async(.promise){ [self] in try resolve(id, issuer, force) }
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: String, _ issuer: String, _ force: Bool) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, issuer, force)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: DIDURL, _ issuer: DID) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, issuer, false)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: String, _ issuer: String) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, issuer, false)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: DIDURL, _ force: Bool) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, force)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - force: if true then ignore the local cache and resolve the
+    ///            credential from the ID chain directly; otherwise will try
+    ///            to load the credential from the local cache, if the local
+    ///            cache not contains this credential, then resolve it from
+    ///            the ID chain
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: String, _ force: Bool) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, nil, force)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: DIDURL) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, nil, false)
     }
     
+    /// Resolve the specific VerifiableCredential object in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Returns: a new Promise, the result is the resolved
+    ///             VerifiableCredential object if success; nil otherwise
     public class func resolveAsync(_ id: String) -> Promise<VerifiableCredential?> {
         return resolveAsync(id, nil, false)
     }
     
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolveBiography(_ id: DIDURL, _ issuer: DID) throws -> CredentialBiography? {
         return try DIDBackend.sharedInstance().resolveCredentialBiography(id, issuer)
     }
     
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolveBiography(_ id: DIDURL) throws -> CredentialBiography {
         return try DIDBackend.sharedInstance().resolveCredentialBiography(id)!
     }
     
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolveBiography(_ id: String, _ issuer: String) throws -> CredentialBiography? {
         return try DIDBackend.sharedInstance().resolveCredentialBiography(DIDURL.valueOf(id), DID.valueOf(issuer)!)
     }
     
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
+    public class func resolveBiography(_ id: DIDURL, _ issuer: String) throws -> CredentialBiography? {
+        return try DIDBackend.sharedInstance().resolveCredentialBiography(id, DID.valueOf(issuer)!)
+    }
+    
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
+    public class func resolveBiography(_ id: String, _ issuer: DID) throws -> CredentialBiography? {
+        return try DIDBackend.sharedInstance().resolveCredentialBiography(DIDURL.valueOf(id), issuer)
+    }
+    
+    /// Resolve all transaction of the specific credential.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Throws: DIDResolveError if an error occurred when resolving DID
+    /// - Returns: the resolved VerifiableCredential object
     public class func resolveBiography(_ id: String) throws -> CredentialBiography? {
         return try DIDBackend.sharedInstance().resolveCredentialBiography(DIDURL.valueOf(id))
     }
     
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
     public class func resolveBiographyAsync(_ id: DIDURL, _ issuer: DID) -> Promise<CredentialBiography?> {
         return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
     }
     
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
     public class func resolveBiographyAsync(_ id: DIDURL) -> Promise<CredentialBiography> {
         return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id) }
     }
     
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
     public class func resolveBiographyAsync(_ id: String, _ issuer: String) -> Promise<CredentialBiography?> {
         return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
     }
     
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
+    public class func resolveBiographyAsync(_ id: DIDURL, _ issuer: String) -> Promise<CredentialBiography?> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
+    }
+    
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    ///   - issuer: the issuer's did
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
+    public class func resolveBiographyAsync(_ id: String, _ issuer: DID) -> Promise<CredentialBiography?> {
+        return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id, issuer) }
+    }
+    
+    /// Resolve all transaction of the specific credential in asynchronous mode.
+    /// - Parameters:
+    ///   - id: the id of the target credential
+    /// - Returns: a new Promise, the result is the resolved
+    ///             CredentialBiography object if success; nil otherwise
     public class func resolveBiographyAsync(_ id: String) -> Promise<CredentialBiography?> {
         return DispatchQueue.global().async(.promise){ [self] in try resolveBiography(id) }
     }
     
+    /// List the published credentials that owned by the specific DID.
+    /// - Parameters:
+    ///   - did: the did to be list
+    ///   - skip: set to skip N credentials ahead in this request
+    ///           (useful for pagination).
+    ///   - limit: set the limit of credentials returned in the request
+    ///           (useful for pagination).
+    /// - Throws: DIDResolveError if an error occurred when resolving the list
+    /// - Returns: an array of DIDURL denoting the credentials
     public class func list(_ did: DID, _ skip: Int, _ limit: Int) throws -> [DIDURL] {
         return try DIDBackend.sharedInstance().listCredentials(did, skip, limit)
     }
     
+    /// List the published credentials that owned by the specific DID.
+    /// - Parameters:
+    ///   - did: the did to be list
+    ///   - limit: set the limit of credentials returned in the request
+    ///           (useful for pagination).
+    /// - Throws: DIDResolveError if an error occurred when resolving the list
+    /// - Returns: an array of DIDURL denoting the credentials
     public class func list(_ did: DID, _ limit: Int) throws -> [DIDURL] {
         return try list(did, 0, limit)
     }
     
+    /// List the published credentials that owned by the specific DID.
+    /// - Parameters:
+    ///   - did: the did to be list
+    /// - Throws: DIDResolveError if an error occurred when resolving the list
+    /// - Returns: an array of DIDURL denoting the credentials
     public class func list(_ did: DID) throws -> [DIDURL] {
         return try list(did, 0, 0)
     }
     
+    /// List the published credentials that owned by the specific DID in
+    /// asynchronous mode.
+    /// - Parameters:
+    ///   - did: the did to be list
+    ///   - skip: set to skip N credentials ahead in this request
+    ///           (useful for pagination).
+    ///   - limit: set the limit of credentials returned in the request
+    ///           (useful for pagination).
+    /// - Returns: a new Promise, the result is an array of DIDURL
+    ///           denoting the credentials
     public class func listAsync(_ did: DID, _ skip: Int, _ limit: Int) -> Promise<[DIDURL]> {
         return DispatchQueue.global().async(.promise){ [self] in try list(did, skip, limit) }
     }
     
+    /// List the published credentials that owned by the specific DID in
+    /// asynchronous mode.
+    /// - Parameters:
+    ///   - did: the did to be list
+    ///   - limit: set the limit of credentials returned in the request
+    ///           (useful for pagination).
+    /// - Returns: a new Promise, the result is an array of DIDURL
+    ///           denoting the credentials
     public class func listAsync(_ did: DID, _ limit: Int) -> Promise<[DIDURL]> {
         return listAsync(did, 0, limit)
     }
     
+    /// List the published credentials that owned by the specific DID in
+    /// asynchronous mode.
+    /// - Parameters:
+    ///   - did: the did to be list
+    /// - Returns: a new Promise, the result is an array of DIDURL
+    ///           denoting the credentials
     public class func listAsync(_ did: DID) -> Promise<[DIDURL]> {
         return listAsync(did, 0, 0)
     }
@@ -1068,7 +1864,7 @@ public class VerifiableCredential: DIDObject, Mappable {
         setId(id)
         setProof(proof)
 
-        guard let _ = getIssuer() else {
+        guard let _ = self.issuer else {
             setIssuer(self.subject!.did)
             return
         }
@@ -1100,10 +1896,11 @@ public class VerifiableCredential: DIDObject, Mappable {
         return try fromJson(JsonNode(data!), nil)
     }
 
-    /// Get one DID’s Credential from json context.
-    /// - Parameter json: Json context about credential.
+    /// Parse the VerifiableCredential object from a string JSON
+    /// representation.
+    /// - Parameter json: Json context to deserialize the VerifiableCredential object
     /// - Throws: If error occurs, throw error.
-    /// - Returns: VerifiableCredential instance.
+    /// - Returns: the VerifiableCredential object
     @objc(fromJsonWithJson:error:)
     public class func fromJson(_ json: String) throws -> VerifiableCredential {
         return try fromJson(json.data(using: .utf8)!)
@@ -1114,7 +1911,8 @@ public class VerifiableCredential: DIDObject, Mappable {
         return try fromJson(path.readTextFromPath())
     }
 
-    /// Get one DID’s Credential from json context.
+    /// Parse the VerifiableCredential object from a string JSON
+    /// representation.
     /// - Parameter json: Json context about credential.
     /// - Throws: If error occurs, throw error.
     /// - Returns: VerifiableCredential instance.
