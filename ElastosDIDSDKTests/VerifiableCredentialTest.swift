@@ -40,12 +40,12 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
             XCTAssertTrue(vc.getType().contains("TwitterCredential"))
             
-            XCTAssertEqual(issuer.subject, vc.getIssuer())
+            XCTAssertEqual(issuer.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
             XCTAssertEqual("@john", vc.subject?.getProperties()?.get(forKey: "twitter")?.asString())
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
@@ -77,13 +77,13 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
             
-            XCTAssertEqual(user.subject, vc.getIssuer())
+            XCTAssertEqual(user.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
             XCTAssertEqual("Singapore", vc.subject?.getProperties()?.get(forKey: "nation")?.asString())
             XCTAssertEqual("S653258Z07", vc.subject?.getProperty(ofName: "passport")?.asString())
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertTrue(vc.isSelfProclaimed)
@@ -116,14 +116,14 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("JsonCredential"))
             XCTAssertTrue(vc.getType().contains("TestCredential"))
             
-            XCTAssertEqual(issuer.subject, vc.getIssuer())
+            XCTAssertEqual(issuer.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
             XCTAssertEqual("Technologist", vc.subject?.getProperty(ofName: "Description")?.asString())
             XCTAssertEqual(true, vc.subject?.getProperty(ofName: "booleanValue")?.asBool())
             XCTAssertEqual(1234, vc.subject?.getProperty(ofName: "numberValue")?.asNumber() as? Int)
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(vc.getExpirationDate)
             
             XCTAssertFalse(vc.isSelfProclaimed)
@@ -150,12 +150,12 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
             XCTAssertFalse(vc.getType().contains("ProfileCredential"))
             
-            XCTAssertEqual(issuer.subject, vc.getIssuer())
+            XCTAssertEqual(issuer.subject, vc.issuer)
             XCTAssertEqual(foo.subject, vc.subject?.did)
             
             XCTAssertEqual("foo@example.com", vc.subject?.getProperty(ofName: "email")?.asString())
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
@@ -182,13 +182,13 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("LicenseCredential"))
             XCTAssertFalse(vc.getType().contains("ProfileCredential"))
             
-            XCTAssertEqual(exampleCorp.subject, vc.getIssuer())
+            XCTAssertEqual(exampleCorp.subject, vc.issuer)
             XCTAssertEqual(foobar.subject, vc.subject?.did)
             
             XCTAssertEqual("20201021C889", vc.subject?.getProperty(ofName: "license-id")?.asString())
             XCTAssertEqual("Consulting", vc.subject?.getProperty(ofName: "scope")?.asString())
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
@@ -214,13 +214,13 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
             XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
             
-            XCTAssertEqual(foobar.subject, vc.getIssuer())
+            XCTAssertEqual(foobar.subject, vc.issuer)
             XCTAssertEqual(foobar.subject, vc.subject?.did)
             
             XCTAssertEqual("https://foobar.com/outsourcing", vc.subject?.getProperty(ofName: "Outsourceing")?.asString())
             XCTAssertEqual("https://foobar.com/consultation", vc.subject?.getProperty(ofName: "consultation")?.asString())
             
-            XCTAssertNotNil(vc.getIssuanceDate())
+            XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(vc.getExpirationDate)
             
             XCTAssertTrue(vc.isSelfProclaimed)
@@ -354,7 +354,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(metadata.getTransactionId())
             XCTAssertFalse(try resolved!.isRevoked())
             
-            let bio = try VerifiableCredential.resolveBiography(id!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(id!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(1, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
@@ -407,7 +407,7 @@ class VerifiableCredentialTest: XCTestCase {
                 XCTAssertNotNil(metadata.getTransactionId())
                 XCTAssertFalse(try resolved!.isRevoked())
                 
-                let bio = try VerifiableCredential.resolveBiography(id!, credential!.getIssuer()!)
+                let bio = try VerifiableCredential.resolveBiography(id!, credential!.issuer!)
                 XCTAssertNotNil(bio)
                 XCTAssertEqual(1, bio?.getAllTransactions().count)
                 XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
@@ -499,7 +499,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(metadata.getTransactionId())
             XCTAssertTrue(try resolved!.isRevoked())
             
-            let bio = try VerifiableCredential.resolveBiography(id!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(id!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(2, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
@@ -596,7 +596,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(metadata.getTransactionId())
             XCTAssertFalse(try resolved!.isRevoked())
             
-            let bio = try VerifiableCredential.resolveBiography(id!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(id!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(1, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
@@ -667,7 +667,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(metadata.getTransactionId())
             XCTAssertTrue(try resolved!.isRevoked())
             
-            let bio = try VerifiableCredential.resolveBiography(id!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(id!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(2, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
@@ -741,7 +741,7 @@ class VerifiableCredentialTest: XCTestCase {
                 }
             }
             
-            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(1, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
@@ -878,7 +878,7 @@ class VerifiableCredentialTest: XCTestCase {
                 }
             }
             
-            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(1, bio!.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
@@ -925,7 +925,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertFalse(try credential.isRevoked())
             
             // Sign key for issuer
-            let issuer = try credential.getIssuer()!.resolve()
+            let issuer = try credential.issuer!.resolve()
             var signKey: DIDURL? = nil
             if (issuer!.controllerCount() > 1) {
                 let rnd = Int(arc4random())
@@ -959,7 +959,7 @@ class VerifiableCredentialTest: XCTestCase {
                     XCTFail()
                 }
             }
-            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.getIssuer()!)
+            let bio = try VerifiableCredential.resolveBiography(credential.getId()!, credential.issuer!)
             XCTAssertNotNil(bio)
             XCTAssertEqual(1, bio!.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)

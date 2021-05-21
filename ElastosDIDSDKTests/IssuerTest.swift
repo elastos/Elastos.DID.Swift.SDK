@@ -106,7 +106,7 @@ class IssuerTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
 
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
@@ -148,7 +148,7 @@ class IssuerTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
             XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
 
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("Testing Issuer", vc.subject!.properties()["name"] as? String)
@@ -191,7 +191,7 @@ class IssuerTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
 
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
@@ -236,7 +236,7 @@ class IssuerTest: XCTestCase {
             XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
 
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
@@ -279,7 +279,7 @@ class IssuerTest: XCTestCase {
             XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
 
             
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("Testing Issuer", vc.subject!.properties()["name"] as? String)
@@ -316,7 +316,7 @@ class IssuerTest: XCTestCase {
             XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
 
             
-            XCTAssertEqual(issuerDoc?.subject, vc.getIssuer())
+            XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)
             //TODO:
             XCTAssertEqual("Technologist", vc.subject!.getProperties()!.get(forKey: "Description")!.asString())
