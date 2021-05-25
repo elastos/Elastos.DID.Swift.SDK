@@ -2,13 +2,13 @@
 import XCTest
 @testable import ElastosDIDSDK
 
-
 class DIDStoreTests: XCTestCase {
-    let testData: TestData = TestData()
+    var testData: TestData!
     var store: DIDStore?
     var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
 
     override func setUp() {
+        testData = TestData()
         store = testData.store!
 //        try! simulatedIDChain.httpServer.start(in_port_t(DEFAULT_PORT), forceIPv4: true)
 //        simulatedIDChain.start()
