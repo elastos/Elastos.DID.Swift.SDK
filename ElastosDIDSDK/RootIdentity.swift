@@ -69,7 +69,7 @@ public class RootIdentity: NSObject {
     ///   - store: the DIDStore where to save this identity
     ///   - storePassword: the password for DIDStore
     /// - Returns: the RootIdentity object
-    private static func create(_ mnemonic: String, _ passphrase: String?, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
+    private static func create(mnemonic: String, passphrase: String?, overwrite: Bool, store: DIDStore, storePassword: String) throws -> RootIdentity {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let _passphrase = passphrase == nil ? "" : passphrase
@@ -97,7 +97,7 @@ public class RootIdentity: NSObject {
     ///   - storePassword: the password for DIDStore
     /// - Returns: the RootIdentity object
     public static func create(_ mnemonic: String, _ passphrase: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        return try create(mnemonic, passphrase, overwrite, store, storePassword)
+        return try create(mnemonic: mnemonic, passphrase: passphrase, overwrite: overwrite, store: store, storePassword: storePassword)
     }
     
     /// Create a RootIdentity from mnemonic and an optional passphrase.
@@ -110,7 +110,7 @@ public class RootIdentity: NSObject {
     ///   - storePassword: the password for DIDStore
     /// - Returns: the RootIdentity object
     public static func create(_ mnemonic: String, _ overwrite: Bool, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        return try create(mnemonic, nil, overwrite, store, storePassword)
+        return try create(mnemonic: mnemonic, passphrase: nil, overwrite: overwrite, store: store, storePassword: storePassword)
     }
     
     /// Create a RootIdentity from mnemonic and an optional passphrase.
@@ -121,7 +121,7 @@ public class RootIdentity: NSObject {
     ///   - storePassword: the password for DIDStore
     /// - Returns: the RootIdentity object
     public static func create(_ mnemonic: String, _ passphrase: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        return try create(mnemonic, passphrase, false, store, storePassword)
+        return try create(mnemonic: mnemonic, passphrase: passphrase, overwrite: false, store: store, storePassword: storePassword)
     }
     
     /// Create a RootIdentity from mnemonic and an optional passphrase.
@@ -131,7 +131,7 @@ public class RootIdentity: NSObject {
     ///   - storePassword: the password for DIDStore
     /// - Returns: the RootIdentity object
     public static func create(_ mnemonic: String, _ store: DIDStore, _ storePassword: String) throws -> RootIdentity {
-        return try create(mnemonic, nil, false, store, storePassword)
+        return try create(mnemonic: mnemonic, passphrase: nil, overwrite: false, store: store, storePassword: storePassword)
     }
     
     /// Create a RootIdentity from a root extended private key.
