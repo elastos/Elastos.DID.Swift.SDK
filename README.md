@@ -3,7 +3,7 @@ Elastos.DID.Swift.SDK
 
 ## Introduction
 
-**Elastos DID (Decentralized Identifier) Swift framework** is a set of Swift APIs for Elastos DID used by dApps on iOS/MacOS platforms, where Elastos DID is the DID system of Elastos ecosystem with compatibility to W3C DIDs specs. 
+**Elastos DID (Decentralized Identifier) Swift framework** is a set of Swift APIs for Elastos DID used by dApps on iOS/macOS platforms, where Elastos DID is the DID system of Elastos ecosystem with compatibility to W3C DIDs specs. 
 
 > Decentralized Identifiers (DIDs) are a new type of identifier for verifiable, decentralized digital identity. These new identifiers are designed to enable the controller of a DID to prove control over it and to be implemented independently of any centralized registry, identity provider, or certificate authority. DIDs are URLs that relate a DID subject to means for trustable interactions with that subject. DIDs resolve to DID Documents — simple documents that describe how to use that specific DID. Each DID Document may express cryptographic material, verification methods, and/or service endpoints. These provide a set of mechanisms which enable a DID controller to prove control of the DID. Service endpoints enable trusted interactions with the DID subject.
 > 
@@ -50,11 +50,11 @@ $ cmake -DHDKEY_ONLY=ON \
 $ make install
 ```
 
-Noticed that only the architectures of **x86-64** (simulator) and **am64** (device) are supported.
+Please notice that only the architectures of **x86-64** (simulator) and **amd64** (device) are supported.
 
 ### 2.Import DID NDK
 
-The directory **"Externals/HDKey"** would rely on native shared libraries built from upper step, and should have following directory structure:
+The directory **"Externals/HDKey"** would rely on native shared libraries built from upper steps and should have the following directory structure:
 
 ```
 Externals/HDKey
@@ -71,7 +71,7 @@ Then follow the instruction of **PLACEHOLDER.md** , and import native headers an
 
 ### 3. Build DID SDK
 
-Once all native dependencies are ready,  use **Apple Xcode** to open the workspace and start to build for **Swift DID SDK**.
+Once all native dependencies are ready,  use **Apple Xcode** to open the workspace and build for **Swift DID SDK**.
 
 ### 4. Output
 
@@ -106,7 +106,7 @@ COMING SOON
 
 ## Thanks
 
-Sincerely thanks to all teams and projects that we relies on directly or indirectly.
+Sincerely thanks to all teams and projects that we rely on directly or indirectly.
 
 ## Contributing
 
