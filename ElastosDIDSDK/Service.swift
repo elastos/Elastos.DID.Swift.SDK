@@ -21,7 +21,6 @@
 */
 
 import Foundation
-import ObjectMapper
 
 /// A service endpoint may represent any type of service the subject wishes to advertise,
 /// including decentralized identity management services for further discovery, authentication, authorization, or interaction.

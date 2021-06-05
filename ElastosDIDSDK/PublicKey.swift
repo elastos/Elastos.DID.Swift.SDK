@@ -21,7 +21,6 @@
 */
 
 import Foundation
-import ObjectMapper
 
 /// Public keys are used for digital signatures, encryption and other cryptographic operations,
 /// which are the basis for purposes such as authentication or establishing secure communication with service endpoints.

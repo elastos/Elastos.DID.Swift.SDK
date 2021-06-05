@@ -21,7 +21,6 @@
 */
 
 import Foundation
-import ObjectMapper
 
 public class PublicKeyReference: NSObject {
      private var _id: DIDURL?

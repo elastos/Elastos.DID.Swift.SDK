@@ -21,7 +21,6 @@
 */
 
 import Foundation
-import ObjectMapper
 
 /// The Proof class represents the proof content of DID Document.
 @objc(DIDDocumentProof)

@@ -22,7 +22,6 @@
 
 import Foundation
 import PromiseKit
-import ObjectMapper
 
 /// DID documents contain information associated with a DID.
 /// They typically express verification methods, such as cryptographic

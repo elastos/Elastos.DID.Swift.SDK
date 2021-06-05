@@ -21,7 +21,6 @@
 */
 
 import Foundation
-import ObjectMapper
 
 /// The credential Subject object contains one or more properties that are
 /// each related to a credential owner.
