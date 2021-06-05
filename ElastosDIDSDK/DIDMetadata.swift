@@ -139,7 +139,7 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the publish time of the DID that kept in this metadata
     /// object.
     /// - Returns: the published time
-    var publishTime: Date? {
+    public var publishTime: Date? {
         return getDate(PUBLISHED)
     }
     
