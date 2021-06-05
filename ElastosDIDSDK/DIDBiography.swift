@@ -24,7 +24,7 @@ import Foundation
 
 
 public class DIDBiography: ResolveResult {
-    private let DID = "did"
+    private let DID_STRING = "did"
     private let STATUS = "status"
     private let TRANSACTION = "transaction"
     
@@ -97,7 +97,7 @@ public class DIDBiography: ResolveResult {
     public func serialize() -> String {
         let generator = JsonGenerator()
         generator.writeStartObject()
-        generator.writeStringField(DID, did.toString())
+        generator.writeStringField(DID_STRING, did.toString())
         generator.writeNumberField(STATUS, status.rawValue)
         if count > 0 {
             generator.writeFieldName("transaction")
@@ -125,7 +125,7 @@ public class DIDBiography: ResolveResult {
                 _txs.append(didtx)
             }
         }
-        let bio = DIDBiography(try ElastosDIDSDK.DID(did), status!)
+        let bio = DIDBiography(try DID(did), status!)
         bio._txs = _txs
         
         return bio
