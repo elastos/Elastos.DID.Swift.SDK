@@ -81,7 +81,7 @@ class RootIdentityTest: XCTestCase {
             
             XCTAssertFalse(try store!.containsRootIdentities())
             
-            try RootIdentity.create(rootKey, store!, storePassword)
+            try RootIdentity.create(with: rootKey, store!, storePassword)
             XCTAssertTrue(try store!.containsRootIdentities())
             
             let store2 = try DIDStore.open(atPath: storeRoot)

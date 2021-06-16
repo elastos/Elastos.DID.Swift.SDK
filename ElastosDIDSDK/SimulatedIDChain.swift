@@ -540,7 +540,6 @@ public class SimulatedIDChain {
                 switch method {
                 case DIDResolveRequest.METHOD_NAME:
                     let drr: DIDResolveRequest  = DIDResolveRequest(json["id"] as! String)
-//                    print("json[\"params\"] == \(json["params"])")
                     let params: [Dictionary] = json["params"] as! [Dictionary<String, Any>]
                     try! drr.setParameters(params[0]["did"] as! String, false)
                     let response = try! resolveDid(drr)

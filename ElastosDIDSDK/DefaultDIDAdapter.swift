@@ -27,7 +27,7 @@ import Foundation
 /// This adapter only provided resolve capability, it means you can not publish
 /// ID transactions with this adapter. The sub class can implement the
 /// createIdTransaction method to support publish capability.
-public class DefaultDIDAdapter: DIDAdapter {
+open class DefaultDIDAdapter: DIDAdapter {
     private let TAG = NSStringFromClass(DefaultDIDAdapter.self)
     let MAINNET_RESOLVER = "http://api.elastos.io:20606"
     let TESTNET_RESOLVER = "http://api.elastos.io:21606"
@@ -100,7 +100,7 @@ public class DefaultDIDAdapter: DIDAdapter {
         return try performRequest(resolver, request)
     }
     
-    public func createIdTransaction(_ payload: String, _ memo: String?) throws {
+    open func createIdTransaction(_ payload: String, _ memo: String?) throws {
      
         throw DIDError.CheckedError.DIDBackendError.UnsupportedOperationError("Not implemented")
     }
