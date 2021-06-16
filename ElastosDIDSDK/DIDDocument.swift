@@ -3981,12 +3981,12 @@ public class DIDDocument: NSObject {
     public func convertFromDIDDocument(_ normalized: Bool, asURL: URL) throws {
         let data: Data = try convertFromDIDDocument(normalized)
         let fileManager = FileManager.default
-        if !fileManager.fileExists(atPath: asURL.absoluteString) {
-            let dirPath = asURL.absoluteString.dirname()
+        if !fileManager.fileExists(atPath: asURL.path) {
+            let dirPath = asURL.path.dirname()
             if !FileManager.default.fileExists(atPath: dirPath) {
                 try fileManager.createDirectory(atPath: dirPath, withIntermediateDirectories: true, attributes: nil)
             }
-            fileManager.createFile(atPath: asURL.absoluteString, contents: nil, attributes: nil)
+            fileManager.createFile(atPath: asURL.path, contents: nil, attributes: nil)
         }
         let handle = try FileHandle(forWritingTo: asURL)
         handle.write(data)
