@@ -1362,7 +1362,7 @@ public class VerifiableCredential: DIDObject {
     ///            the ID chain
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
-    private class func resolve(_ id: DIDURL, _ signer: DID?, _ force: Bool) throws -> VerifiableCredential? {
+    private class func resolve(id: DIDURL, _ signer: DID?, _ force: Bool) throws -> VerifiableCredential? {
         var vc: VerifiableCredential? = nil
         if let _ = signer {
             vc = try DIDBackend.sharedInstance().resolveCredential(id, signer!, force)
@@ -1389,8 +1389,8 @@ public class VerifiableCredential: DIDObject {
     ///            the ID chain
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
-    public class func resolve(_ id: DIDURL, _ issuer: DID, _ force: Bool) -> VerifiableCredential {
-        return resolve(id, issuer, force)
+    public class func resolve(_ id: DIDURL, _ issuer: DID, _ force: Bool) throws -> VerifiableCredential? {
+        return try resolve(id: id, issuer, force)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1405,7 +1405,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     private class func resolve(_ id: String, _ issuer: String?, _ force: Bool) throws -> VerifiableCredential? {
-        return try resolve(DIDURL.valueOf(id), issuer != nil ? DID.valueOf(issuer!) : nil, force)
+        return try resolve(id: DIDURL.valueOf(id), issuer != nil ? DID.valueOf(issuer!) : nil, force)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1420,7 +1420,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ issuer: String, _ force: Bool) throws -> VerifiableCredential? {
-        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), force)
+        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer)!, force)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1429,8 +1429,8 @@ public class VerifiableCredential: DIDObject {
     ///   - issuer: the issuer's did
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
-    public class func resolve(_ id: DIDURL, _ issuer: DID) -> VerifiableCredential {
-        return resolve(id, issuer, false)
+    public class func resolve(_ id: DIDURL, _ issuer: DID)throws -> VerifiableCredential? {
+        return try resolve(id, issuer, false)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1440,7 +1440,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ issuer: String) throws -> VerifiableCredential? {
-        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer), false)
+        return try resolve(DIDURL.valueOf(id), DID.valueOf(issuer)!, false)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1454,7 +1454,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL, _ force: Bool) throws -> VerifiableCredential? {
-        return try resolve(id, nil, force)
+        return try resolve(id: id, nil, force)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1468,7 +1468,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String, _ force: Bool) throws -> VerifiableCredential? {
-        return try resolve(DIDURL.valueOf(id), nil, force)
+        return try resolve(id: DIDURL.valueOf(id), nil, force)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1477,7 +1477,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: DIDURL) throws -> VerifiableCredential? {
-        return try resolve(id, nil, false)
+        return try resolve(id: id, nil, false)
     }
     
     /// Resolve the specific VerifiableCredential object.
@@ -1486,7 +1486,7 @@ public class VerifiableCredential: DIDObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DID
     /// - Returns: the resolved VerifiableCredential object
     public class func resolve(_ id: String) throws -> VerifiableCredential? {
-        return try resolve(DIDURL.valueOf(id), nil, false)
+        return try resolve(id: DIDURL.valueOf(id), nil, false)
     }
     
     /// Resolve the specific VerifiableCredential object in asynchronous mode.
@@ -1501,7 +1501,7 @@ public class VerifiableCredential: DIDObject {
     /// - Returns: a new Promise, the result is the resolved
     ///             VerifiableCredential object if success; nil otherwise
     private class func resolveAsync(_ id: DIDURL, _ issuer: DID?, _ force: Bool) -> Promise<VerifiableCredential?> {
-        return DispatchQueue.global().async(.promise){ [self] in try resolve(id, issuer, force) }
+        return DispatchQueue.global().async(.promise){ [self] in try resolve(id: id, issuer, force) }
     }
     
     /// Resolve the specific VerifiableCredential object in asynchronous mode.
