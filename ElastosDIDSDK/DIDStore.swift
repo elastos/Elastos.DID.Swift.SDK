@@ -498,7 +498,9 @@ public class DIDStore: NSObject {
             if doc != nil {
                 let metadata = try storage!.loadDidMetadata(did)
                 metadata?.attachStore(self)
-                doc?.setMetadata(metadata!)
+                if let _ = metadata {
+                    doc?.setMetadata(metadata!)
+                }
             }
         }
         
@@ -1137,12 +1139,12 @@ public class DIDStore: NSObject {
             let vcIds = try storage!.listCredentials(did)
             for vcId in vcIds {
                 let localVc = try storage!.loadCredential(vcId)
-                let resolvedVc = VerifiableCredential.resolve(vcId, localVc!.issuer!)
+                let resolvedVc = try VerifiableCredential.resolve(vcId, localVc!.issuer!)
                 if resolvedVc == nil {
                     continue
                 }
-                resolvedVc.getMetadata().merge(localVc!.getMetadata())
-                try storage!.storeCredential(resolvedVc)
+                resolvedVc!.getMetadata().merge(localVc!.getMetadata())
+                try storage!.storeCredential(resolvedVc!)
             }
         }
     }
