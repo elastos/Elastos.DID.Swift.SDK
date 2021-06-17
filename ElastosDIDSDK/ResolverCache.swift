@@ -21,7 +21,7 @@
 */
 
 import Foundation
-
+/*
 @objc(ResolverCache)
 public class ResolverCache: NSObject {
     private static let TAG = "ResolverCache"
@@ -138,4 +138,4 @@ public class ResolverCache: NSObject {
         cache.removeValue(for: did)
     }
 }
-
+*/
