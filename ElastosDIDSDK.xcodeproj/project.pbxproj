@@ -32,7 +32,6 @@
 		110B81FF264E4BC400F6477F /* extension+FileSystemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */; };
 		110B8203264E4BF600F6477F /* extension+Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8202264E4BF600F6477F /* extension+Dictionary.swift */; };
 		110B8207264E4C2500F6477F /* extension+Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8206264E4C2500F6477F /* extension+Array.swift */; };
-		11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 11133F5923C48B4600BFDA3E /* SPVWrapper.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CA74B1235E06B7006E66F7 /* Base64.swift */; };
 		1134978824C5391600286294 /* HDKeyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1134978724C5391600286294 /* HDKeyTest.swift */; };
 		1137CFAB2398DE1C00250D4F /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
@@ -337,13 +336,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11133F5823C48B4600BFDA3E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 11267024238CC7120086740D;
-			remoteInfo = SPVWrapper;
-		};
 		1155D94C2352FACE00DF8C9D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 11F262A123260CF30009C103 /* Project object */;
@@ -360,7 +352,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				11133F5C23C48C3200BFDA3E /* SPVWrapper.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -379,7 +370,6 @@
 		110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+FileSystemStorage.swift"; path = "Util/extension+FileSystemStorage.swift"; sourceTree = "<group>"; };
 		110B8202264E4BF600F6477F /* extension+Dictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+Dictionary.swift"; path = "Util/extension+Dictionary.swift"; sourceTree = "<group>"; };
 		110B8206264E4C2500F6477F /* extension+Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "extension+Array.swift"; path = "Util/extension+Array.swift"; sourceTree = "<group>"; };
-		11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SPVWrapper.xcodeproj; path = SPVWrapper/SPVWrapper.xcodeproj; sourceTree = "<group>"; };
 		1125B5752382302800D396B6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
 		1125B5852382351700D396B6 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = "Externals/libhdkey/lib/-iphonesimulator/libboost_thread.a"; sourceTree = "<group>"; };
 		1125B5862382351700D396B6 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = "Externals/libhdkey/lib/-iphonesimulator/libspvsdk.a"; sourceTree = "<group>"; };
@@ -840,14 +830,6 @@
 			path = base58;
 			sourceTree = "<group>";
 		};
-		11133F5523C48B4600BFDA3E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				11133F5923C48B4600BFDA3E /* SPVWrapper.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		114A73C22490A4FB00262228 /* jwt */ = {
 			isa = PBXGroup;
 			children = (
@@ -1190,7 +1172,6 @@
 				119B29AB2578ED8D0084B859 /* ByteBuffer */,
 				119B29922578ED210084B859 /* CryptorECC */,
 				11C3ECCE2477807300DF1B4F /* SwiftJWT */,
-				11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */,
 				110AD2FD234E44BA006578D6 /* base58 */,
 				116C94E8234D825B00BA9777 /* HDKey */,
 			);
@@ -1482,12 +1463,6 @@
 			mainGroup = 11F262A023260CF30009C103;
 			productRefGroup = 11F262AB23260CF40009C103 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 11133F5523C48B4600BFDA3E /* Products */;
-					ProjectRef = 11133F5423C48B4600BFDA3E /* SPVWrapper.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				11F262A923260CF40009C103 /* ElastosDIDSDK */,
@@ -1496,16 +1471,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		11133F5923C48B4600BFDA3E /* SPVWrapper.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SPVWrapper.framework;
-			remoteRef = 11133F5823C48B4600BFDA3E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1155D9442352FACE00DF8C9D /* Resources */ = {
