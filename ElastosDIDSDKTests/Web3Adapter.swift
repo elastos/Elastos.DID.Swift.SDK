@@ -21,7 +21,8 @@ class Web3Adapter: DefaultDIDAdapter {
     let contractMethod = "publishDidTransaction"
     var lastTxHash: String = ""
 
-    public init(_ rpcEndpoint: String = "http://52.80.107.251:1111", _ contractAddress: String = "0xEA2256bd30cfeC643203d1a6f36A90A4fD17863E", _ walletFile: String, _ walletPassword: String = "password") {
+//    public init(_ rpcEndpoint: String = "http://52.80.107.251:1111", _ contractAddress: String = "0xEA2256bd30cfeC643203d1a6f36A90A4fD17863E", _ walletFile: String, _ walletPassword: String = "password") {
+    public init(_ rpcEndpoint: String, _ contractAddress: String, _ walletFile: String, _ walletPassword: String) {
         let walletData = FileManager.default.contents(atPath: walletFile)
         self.contractAddress = contractAddress
         self.password = walletPassword
@@ -44,7 +45,9 @@ class Web3Adapter: DefaultDIDAdapter {
         let ethereumAddress = EthereumAddress(wallet.address)!
         _ = try! keystoreManager.UNSAFE_getPrivateKeyData(password: password, account: ethereumAddress).toHexString()
 
-        self.web33 = web3(provider: Web3HttpProvider(URL(string: endpoint)!, network: Networks.Mainnet)!)
+//        self.web33 = web3(provider: Web3HttpProvider(URL(string: endpoint)!, network: Networks.Custom(networkID: 23))!)
+        self.web33 = web3(provider: Web3HttpProvider(URL(string: endpoint)!, network: Networks.Custom(networkID: 23))!)
+
         web33.addKeystoreManager(keystoreManager)
         self.walletAddress = EthereumAddress(wallet.address)! // Address which balance we want to know
         let balanceResult = try! web33.eth.getBalance(address: walletAddress)
@@ -69,12 +72,11 @@ class Web3Adapter: DefaultDIDAdapter {
         var options = TransactionOptions.defaultOptions
         options.value = 0
         options.from = walletAddress
-        options.gasPrice = .manual(3000000000000)
-        options.gasLimit = .limited(1000000)
+        options.gasPrice = .manual(1000000000000) // 12
+        options.gasLimit = .limited(8000000) // 6
+//        options.nonce = .manual(0)
         web33.transactionOptions = options
         let contract = web33.contract(contractABI!, at: contractAddress, abiVersion: abiVersion)!
-//            web3contract(web3: web33, abiString: contractABI!, at: contractAddress, transactionOptions: options, abiVersion: abiVersion)!
-//        web33.contract(contractABI!, at: contractAddress, abiVersion: abiVersion)!
         let tx = contract.write(
             contractMethod,
             parameters: parameters,
@@ -82,15 +84,16 @@ class Web3Adapter: DefaultDIDAdapter {
             transactionOptions: options)!
         tx.transactionOptions.from = walletAddress
         tx.transactionOptions.value = 0
-        
+//        tx.transaction.UNSAFE_setChainID(23)
         do {
             let transactionSendingResult = try tx.send(password: password, transactionOptions: options)
             self.lastTxHash = transactionSendingResult.hash
             print(transactionSendingResult.transaction)
             print(transactionSendingResult.hash)
-
+            let detial = try web33.eth.getTransactionDetails(self.lastTxHash)
+            print("detial.blockNumber == \(detial.blockNumber)")
         } catch {
-            print(error)
+            print("error == \(error)")
         }
     }
 

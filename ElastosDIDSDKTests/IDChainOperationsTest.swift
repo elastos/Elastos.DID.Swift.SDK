@@ -11,14 +11,14 @@ class IDChainOperationsTest: XCTestCase {
     var adapter: Web3Adapter?
     
     override func setUp() {
-        adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, "password")
+        adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, walletPassword)
         try! DIDBackend.initialize(adapter!)
 
         store = IDChainOperationsTest.testData.store
         print(self.store as Any)
         identity = try! IDChainOperationsTest.testData.getRootIdentity()
         mnemonic = IDChainOperationsTest.testData.mnemonic
-        waitForWalletAvaliable()
+//        waitForWalletAvaliable()
     }
     
     override func tearDown() {
@@ -27,7 +27,7 @@ class IDChainOperationsTest: XCTestCase {
     
     func waitForWalletAvaliable() {
         while true {
-            Thread.sleep(forTimeInterval: 30)
+            Thread.sleep(forTimeInterval: 20)
             if adapter!.isAvailable() {
                 print("OK")
                 break
@@ -35,7 +35,7 @@ class IDChainOperationsTest: XCTestCase {
             else {
                 print(".")
             }
-            Thread.sleep(forTimeInterval: 60)
+            Thread.sleep(forTimeInterval: 20)
         }
     }
 
@@ -271,14 +271,14 @@ class IDChainOperationsTest: XCTestCase {
             
             var resolved: DIDDocument?
             var lock = XCTestExpectation()
-            let rf = did.resolveAsync(true).done { doc in
+            did.resolveAsync(true).done { doc in
                 resolved = doc
                 lock.fulfill()
             }.catch { error in
                 XCTFail()
                 lock.fulfill()
             }
-            wait(for: [lock], timeout: 1000)
+            wait(for: [lock], timeout: 10000)
             XCTAssertEqual(did, resolved!.subject)
             XCTAssertTrue(try resolved!.isValid())
             XCTAssertEqual(doc?.proof.signature, resolved?.proof.signature)

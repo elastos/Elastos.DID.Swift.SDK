@@ -24,7 +24,6 @@
 		0E568F5F89CD94B76CE6213E /* Pods_ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED7485A64A06C161BCD31D48 /* Pods_ElastosDIDSDK.framework */; };
 		11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1C239D1B31008A4500 /* DIDURLTest.swift */; };
 		11054F1F239D2088008A4500 /* DIDTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1E239D2088008A4500 /* DIDTest.swift */; };
-		110830CF241FA0E4000FDD2B /* ResolverCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110830CA241FA0E4000FDD2B /* ResolverCache.swift */; };
 		110AD2FF234E44C8006578D6 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
 		110B81BB264BCD5500F6477F /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		110B81BC264BCD5500F6477F /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -371,7 +370,6 @@
 		0681BAC6ED686527AFAFA123 /* Pods-ElastosDIDSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDKTests.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDKTests/Pods-ElastosDIDSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		11054F1C239D1B31008A4500 /* DIDURLTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDURLTest.swift; sourceTree = "<group>"; };
 		11054F1E239D2088008A4500 /* DIDTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTest.swift; sourceTree = "<group>"; };
-		110830CA241FA0E4000FDD2B /* ResolverCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResolverCache.swift; sourceTree = "<group>"; };
 		1109D08423275CFE00A03D56 /* Antlr4.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Antlr4.framework; sourceTree = "<group>"; };
 		110AD2FE234E44C8006578D6 /* Base58.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base58.swift; sourceTree = "<group>"; };
 		110B81B9264BCD5500F6477F /* HDkey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HDkey.h; sourceTree = "<group>"; };
@@ -1349,7 +1347,6 @@
 		A31ACE6223F19A58008EC032 /* Backend */ = {
 			isa = PBXGroup;
 			children = (
-				110830CA241FA0E4000FDD2B /* ResolverCache.swift */,
 				11CACA9026120D65004145CB /* CredentialBiography.swift */,
 				11CACAC92612E957004145CB /* CredentialList.swift */,
 				11CACAC52612E66B004145CB /* CredentialListRequest.swift */,
@@ -1751,7 +1748,6 @@
 				A31ACE2323F199BA008EC032 /* VerifiableCredential.swift in Sources */,
 				11B62848264BA8BA00B20904 /* Extension+String.swift in Sources */,
 				11D1F75E257F3A5400BC5A54 /* PredictionContext.swift in Sources */,
-				110830CF241FA0E4000FDD2B /* ResolverCache.swift in Sources */,
 				11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */,
 				11C3ECE62477807300DF1B4F /* JWTError.swift in Sources */,
 				A31ACE3B23F19A22008EC032 /* DateFormatter.swift in Sources */,
