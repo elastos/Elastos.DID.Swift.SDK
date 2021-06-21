@@ -54,7 +54,7 @@ open class DefaultDIDAdapter: DIDAdapter {
     ///   - urlString: the target HTTP endpoint
     ///   - body: the request body
     /// - Returns: an input data object of the response body
-    func performRequest(_ urlString: String, _ body: String) throws -> Data {
+    public func performRequest(_ urlString: String, _ body: String) throws -> Data {
         let url = URL(string: urlString)!
         var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
         request.httpMethod = "POST"
