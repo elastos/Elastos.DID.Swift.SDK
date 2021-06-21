@@ -496,11 +496,9 @@ public class DIDStore: NSObject {
             doc = try storage!.loadDid(did)
 
             if doc != nil {
-                let metadata = try storage!.loadDidMetadata(did)
-                metadata?.attachStore(self)
-                if let _ = metadata {
-                    doc?.setMetadata(metadata!)
-                }
+                let metadata = try loadDidMetadata(did)
+                metadata.attachStore(self)
+                doc?.setMetadata(metadata)
             }
         }
         
