@@ -177,7 +177,7 @@ public class DIDExport: NSObject {
         }
         
         if privateKeys.count > 0 {
-            generator.writeFieldName("privatekey")
+            generator.writeFieldName("privateKey")
             generator.writeStartArray()
             for sk in privateKeys {
                 try sk.serialize(generator)
@@ -212,7 +212,7 @@ public class DIDExport: NSObject {
             }
         }
         
-        let privatekey = content["privatekey"] as? [[String: Any]]
+        let privatekey = content["privateKey"] as? [[String: Any]]
         if let _ = privatekey {
             for sk in privatekey! {
                 didex._privatekeys.append(try DIDExportPrivateKey.deserialize(sk))
