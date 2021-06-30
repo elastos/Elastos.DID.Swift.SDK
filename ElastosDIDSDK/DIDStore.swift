@@ -46,6 +46,7 @@ public class DIDStore: NSObject {
     private var documentCache: LRUCache<DID, DIDDocument>?
     private var credentialCache: LRUCache<DIDURL, VerifiableCredential>?
     private let DID_EXPORT = "did.elastos.export/2.0"
+    private static let DID_LAZY_PRIVATEKEY = "lazy-private-key"
 
     var storage: DIDStorage?
     private var metadata: DIDStoreMetadata?
@@ -893,6 +894,15 @@ public class DIDStore: NSObject {
         return try listCredentials(for: DID(did))
     }
     
+    /// Save the DID's lazy private key string to the store.
+    /// - Parameter id: the private key id
+    /// - Throws: if an error occurred when accessing the store
+    func storeLazyPrivateKey(_ id: DIDURL) throws {
+
+        try storage?.storePrivateKey(id, DIDStore.DID_LAZY_PRIVATEKEY)
+        cache.setValue(DIDStore.DID_LAZY_PRIVATEKEY as NSObject, for: Key.forDidPrivateKey(id))
+    }
+
     /// Save the DID's private key to the store, the private key will be encrypt
     /// using the store password.
     /// - Parameters:
@@ -946,7 +956,7 @@ public class DIDStore: NSObject {
     func loadPrivateKey(_ id: DIDURL, _ storePassword: String) throws -> Data? {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let encryptedKey = try loadPrivateKey(id)
-        guard let _ = encryptedKey else {
+        guard encryptedKey != DIDStore.DID_LAZY_PRIVATEKEY else {
             // fail-back to lazy private key generation
             return try RootIdentity.lazyCreateDidPrivateKey(id, self, storePassword)
         }
