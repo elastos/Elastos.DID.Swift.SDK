@@ -453,6 +453,7 @@ public class RootIdentity: NSObject {
         metadata.setIndex(index)
         try store!.storeDid(using: finalDoc!)
         
+        try store!.storeLazyPrivateKey(finalDoc!.defaultPublicKeyId()!)
         return true
     }
     
