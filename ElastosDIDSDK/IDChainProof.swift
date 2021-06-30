@@ -70,11 +70,13 @@ public class IDChainProof: NSObject {
     }
     
     class func parse(_ content: JsonNode) throws -> IDChainProof {
-        let type = content.get(forKey: "type")!.asString()
+        let type = content.get(forKey: "type")?.asString()
         let signature = content.get(forKey: "signature")!.asString()
         let verificationMethod = content.get(forKey: "verificationMethod")!.asString()
-        
-        return try IDChainProof(type!,DIDURL(verificationMethod!), signature!)
+        if let _ = type {
+            return try IDChainProof(type!,DIDURL(verificationMethod!), signature!)
+        }
+        return try IDChainProof(DIDURL(verificationMethod!), signature!)
     }
 }
 
