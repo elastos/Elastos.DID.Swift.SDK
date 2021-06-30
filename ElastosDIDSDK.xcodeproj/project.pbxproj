@@ -280,7 +280,6 @@
 		11D4B9B523535E7000453218 /* DIDDoucumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */; };
 		11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9C623545A5700453218 /* DIDStoreTests.swift */; };
 		11D8DBD22438CB8300E8E787 /* DIDTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */; };
-		11DA0797238B92A00066CC86 /* SPVAdaptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DA0796238B929F0066CC86 /* SPVAdaptor.swift */; };
 		11E09CBC23A8DB5A009B6A8D /* IssuerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */; };
 		11E09CBE23A8E033009B6A8D /* RootIdentityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBD23A8E033009B6A8D /* RootIdentityTest.swift */; };
 		11E7519F23A7570A0022C592 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E7519E23A7570A0022C592 /* TestData.swift */; };
@@ -668,7 +667,6 @@
 		11DA06E8238B7B760066CC86 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = ElastosDIDSDKTests/spvadapter/lib/libsqlite3.a; sourceTree = "<group>"; };
 		11DA06E9238B7B760066CC86 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ElastosDIDSDKTests/spvadapter/lib/libcurl.a; sourceTree = "<group>"; };
 		11DA06EA238B7B760066CC86 /* libboost_thread.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_thread.a; path = ElastosDIDSDKTests/spvadapter/lib/libboost_thread.a; sourceTree = "<group>"; };
-		11DA0796238B929F0066CC86 /* SPVAdaptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPVAdaptor.swift; sourceTree = "<group>"; };
 		11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuerTest.swift; sourceTree = "<group>"; };
 		11E09CBD23A8E033009B6A8D /* RootIdentityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityTest.swift; sourceTree = "<group>"; };
 		11E7519E23A7570A0022C592 /* TestData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
@@ -846,7 +844,6 @@
 			isa = PBXGroup;
 			children = (
 				1183E3A0261F4D3100F8CEF0 /* resources */,
-				11DA0796238B929F0066CC86 /* SPVAdaptor.swift */,
 				11C489682637F17B002C479E /* Web3Adapter.swift */,
 				116CAA56236008FD00BBEE4F /* TestUtils */,
 				11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */,
@@ -1599,7 +1596,6 @@
 				11D03AD423A9D05600549296 /* VerifiableCredentialTest.swift in Sources */,
 				11D03ADA23A9D50200549296 /* VerifiablePresentationTest.swift in Sources */,
 				111F4B7B239E315C00FEE4E0 /* Base64.swift in Sources */,
-				11DA0797238B92A00066CC86 /* SPVAdaptor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
