@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = 'ElastosDIDSDK'
-  s.version      = '2.0.2-pre'
+  s.version      = '2.1.0'
   s.summary      = 'Elastos Hive iOS SDK Distribution.'
   s.swift_version = '4.2'
   s.description  = 'Elastos hive ios sdk framework distribution.'
