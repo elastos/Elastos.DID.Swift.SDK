@@ -44,7 +44,7 @@ public class DIDStoreMetadata: AbstractMetadata {
     }
     
     public var version: Int {
-        return getInteger(VERSION)!
+        return getInteger(VERSION, -1)!
     }
     
     func setFingerprint(_ fingerprint: String) throws {
@@ -75,6 +75,17 @@ public class DIDStoreMetadata: AbstractMetadata {
                 Log.e(TAG, "INTERNAL - error store metadata for DIDStore")
             }
         }
+    }
+
+    /// Returns a shallow copy of this instance: the property names and values
+    /// themselves are not cloned.
+    /// - Returns: a shallow copy of this object
+    public override func clone() throws -> DIDStoreMetadata {
+        let metaData = DIDStoreMetadata()
+        metaData._store = store
+        metaData._props = properties
+        
+        return metaData
     }
     
 //    func serialize(_ path: String) throws {

@@ -449,11 +449,21 @@ public class RootIdentity: NSObject {
             }
         }
         let metadata = finalDoc!.getMetadata()
+
+        metadata.setPublishTime((resolvedDoc?.getMetadata().publishTime)!)
+        metadata.setSignature(resolvedDoc?.proof.signature)
+
         metadata.setRootIdentityId(try getId())
         metadata.setIndex(index)
+        metadata.attachStore(store!)
+
+        if (localDoc != nil) {
+            localDoc!.getMetadata().attachStore(store!)
+        }
         try store!.storeDid(using: finalDoc!)
         
         try store!.storeLazyPrivateKey(finalDoc!.defaultPublicKeyId()!)
+
         return true
     }
     

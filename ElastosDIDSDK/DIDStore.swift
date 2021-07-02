@@ -54,8 +54,8 @@ public class DIDStore: NSObject {
 
     /// the default conflict handle implementation.
     public static let defaultConflictHandle: ConflictHandler = { (c, l) -> DIDDocument in
-        l.getMetadata().setPublishTime(c.getMetadata().publishTime!)
-        l.getMetadata().setSignature(c.getMetadata().signature!)
+//        l.getMetadata().setPublishTime(c.getMetadata().publishTime!)
+//        l.getMetadata().setSignature(c.getMetadata().signature!)
         return l
     }
     
@@ -330,6 +330,7 @@ public class DIDStore: NSObject {
                 return nil
             }
             let identity = ids[0]
+            identity.setMetadata(try loadRootIdentityMetadata(identity.getId()))
             try metadata!.setDefaultRootIdentity(identity.getId())
             return identity
         }
@@ -426,7 +427,19 @@ public class DIDStore: NSObject {
     /// - Throws: DIDStoreError if an error occurred when accessing the store
     /// - Returns: an array of RootIdentity objects
     public func listRootIdentities() throws -> [RootIdentity] {
-        return try storage!.listRootIdentities()
+        //        return try storage!.listRootIdentities()
+        let ids = try storage!.listRootIdentities()
+        try ids.forEach{ id in
+            var metadata = try storage?.loadRootIdentityMetadata(id.getId())
+            if (metadata == nil) {
+            metadata = RootIdentityMetadata()
+            }
+            metadata!.setId(try id.getId())
+            metadata!.attachStore(self)
+            id.setMetadata(metadata!)
+        }
+
+        return ids
     }
     
     /// Check whether the this store has RootIdentity objects.
@@ -474,10 +487,10 @@ public class DIDStore: NSObject {
         if doc.store != self {
             let metadata = try loadDidMetadata(doc.subject)
             doc.getMetadata().merge(metadata)
-            try storage!.storeDidMetadata(doc.subject, doc.getMetadata())
             doc.getMetadata().attachStore(self)
         }
         
+        try storeDidMetadata(doc.subject, doc.getMetadata())
         for credential in doc.credentials() {
             try storeCredential(using: credential)
         }
@@ -690,9 +703,10 @@ public class DIDStore: NSObject {
         if credential.getMetadata().store != self {
             let metadata = try loadCredentialMetadata(credential.id!)
             credential.getMetadata().merge(metadata)
-            try storeCredentialMetadata(credential.getId()!, credential.getMetadata())
+            credential.getMetadata().attachStore(self)
         }
         
+        try storeCredentialMetadata(credential.id!, credential.metadata)
         cache.setValue(credential, for: Key.forCredential(credential.getId()!))
     }
     
@@ -1110,7 +1124,7 @@ public class DIDStore: NSObject {
         if h == nil {
             h = DIDStore.defaultConflictHandle
         }
-        let identities = try storage!.listRootIdentities()
+        let identities = try listRootIdentities()
         for identity in identities {
             try identity.synchronize(handle: h)
         }
@@ -1141,7 +1155,14 @@ public class DIDStore: NSObject {
                     }
                 }
 
-                try storage!.storeDid(finalDoc!)
+                localDoc!.getMetadata().attachStore(self)
+
+                let metadata = finalDoc?.getMetadata()
+                metadata!.setPublishTime(resolvedDoc!.getMetadata().publishTime!)
+                metadata!.setSignature(resolvedDoc?.proof.signature)
+                metadata!.attachStore(self)
+
+                try storeDid(using: finalDoc!)
             }
             
             let vcIds = try storage!.listCredentials(did)

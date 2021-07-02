@@ -35,7 +35,7 @@ public class AbstractMetadata: NSObject {
     static let USER_EXTRA_PREFIX = "UX-"
 
     var _props: [String: String] = [: ]
-    private var _store: DIDStore?
+    var _store: DIDStore?
     
     /// Constructs the AbstractMetadata and attach with the store.
     /// - Parameter store: the DIDStore
@@ -108,10 +108,14 @@ public class AbstractMetadata: NSObject {
     ///  of the specified property name, or false if this metadata not contains
     ///  the property name.
     /// - Parameter name: the property name to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Returns: the boolean value of the specified property name, or
     ///            false if this metadata not contains the property name
-    func getBoolean(_ name: String) -> Bool {
+    func getBoolean(_ name: String, _ defaultValue: Bool) -> Bool {
         let result = get(name)
+        guard let _ = result else {
+            return defaultValue
+        }
         guard result == "true" else {
             return false
         }
@@ -132,11 +136,12 @@ public class AbstractMetadata: NSObject {
     /// of the specified property name, or 0 if this metadata not contains
     /// the property name.
     /// - Parameter name: the property name to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Returns: the integer value of the specified property name, or
     ///         0 if this metadata not contains the property name
-    func getInteger(_ name: String) -> Int? {
+    func getInteger(_ name: String, _ defaultValue: Int?) -> Int? {
         let result = get(name)
-        return result == nil ? nil : Int(result!)
+        return result == nil ? defaultValue : Int(result!)
     }
     
     /// Type safe put method. Set the specified property name with with
@@ -153,11 +158,12 @@ public class AbstractMetadata: NSObject {
     /// of the specified property name, or {@code null}  if this metadata not
     /// contains the property name.
     /// - Parameter name: the property name to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Returns: the Date value of the specified property name, or
     ///         nil if this metadata not contains the property name
-    func getDate(_ name: String) -> Date? {
+    func getDate(_ name: String, _ defaultValue: Date?) -> Date? {
         let result = get(name)
-        return result == nil ? nil : DateFormatter.convertToUTCDateFromString(result!)
+        return result == nil ? defaultValue : DateFormatter.convertToUTCDateFromString(result!)
     }
     
     /// Removes the specified property name from this metadata object if present.
@@ -235,15 +241,16 @@ public class AbstractMetadata: NSObject {
     /// boolean value of the specified property name, or false if this metadata
     /// not contains the property name.
     /// - Parameter key: the property key to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Throws: throw an exception when the key is empty
     /// - Returns: the boolean value of the specified property name, or
     ///         false if this metadata not contains the property name
-    public func getExtraBoolean(_ key: String) throws -> Bool? {
+    public func getExtraBoolean(_ key: String, _ defaultValue: Bool) throws -> Bool? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
-        return getBoolean(USER_EXTRA_PREFIX + key)
+        return getBoolean(USER_EXTRA_PREFIX + key, defaultValue)
     }
     
     /// Type safe setter for user defined properties. Set the specified property
@@ -264,14 +271,15 @@ public class AbstractMetadata: NSObject {
     /// integer value of the specified property name, or false if this metadata
     /// not contains the property name.
     /// - Parameter key: the property name to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Returns: the integer value of the specified property name, or
     ///        nil if this metadata not contains the property name
-    public func getExtraInteger(_ key: String) throws -> Int? {
+    public func getExtraInteger(_ key: String, _ defaultValue: Int?) throws -> Int? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
-        return getInteger(USER_EXTRA_PREFIX + key)
+        return getInteger(USER_EXTRA_PREFIX + key, defaultValue)
     }
     
     /// Type safe setter for user defined properties. Set the specified property
@@ -292,14 +300,15 @@ public class AbstractMetadata: NSObject {
     /// date time value of the specified property name, or false if this metadata
     /// not contains the property name.
     /// - Parameter key: the property name to be get
+    /// - defaultValue: the default value to be use if the property not exists
     /// - Returns: the Date value of the specified property name, or
     ///         nil if this metadata not contains the property name
-    public func getExtraDate(_ key: String) throws -> Date? {
+    public func getExtraDate(_ key: String, _ defaultValue: Date?) throws -> Date? {
         guard key.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
-        return getDate(USER_EXTRA_PREFIX + key)
+        return getDate(USER_EXTRA_PREFIX + key, defaultValue)
     }
     
     /// Removes the specified user defined property name from this metadata
@@ -334,11 +343,17 @@ public class AbstractMetadata: NSObject {
                 }
             }
         }
+        if (store == nil && metadata.store != nil) {
+            _store = metadata.store
+        }
     }
     
-    public func clone() throws -> DIDMetadata {
-        // TODO:
-        return DIDMetadata()
+    public func clone() throws -> AbstractMetadata {
+        let metadata = AbstractMetadata()
+        metadata._store = store
+        metadata._props = properties
+
+        return metadata
     }
     
     /// Abstract method to save the modified metadata to the attached store if

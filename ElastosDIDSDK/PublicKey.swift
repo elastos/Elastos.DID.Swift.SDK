@@ -90,30 +90,6 @@ public class PublicKey: DIDObject {
         return Data(publicKeyBytes)
     }
 
-    /// Check if the key is an authentication key.
-    @objc public var isAuthenticationKey: Bool {
-        return authenticationKey!
-    }
-    
-    /// Set this PublicKey as an authentication key or not.
-    /// - Parameter newValue: true set this key as an authentication key;
-    ///           false remove this key from authentication keys
-    func setAuthenticationKey(_ newValue: Bool) {
-        self.authenticationKey = newValue
-    }
-
-    /// Check if the key is an authorization key.
-    @objc public var isAuthorizationKey: Bool {
-        return authorizationKey!
-    }
-    
-    /// Set this PublicKey as an authorization key or not.
-    /// - Parameter newValue: true set this key as an authorization key;
-    ///           false remove this key from authorization keys
-    func setAuthorizationKey(_ newValue: Bool) {
-        self.authorizationKey = newValue
-    }
-
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> PublicKey {
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options

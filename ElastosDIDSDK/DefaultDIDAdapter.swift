@@ -29,8 +29,8 @@ import Foundation
 /// createIdTransaction method to support publish capability.
 open class DefaultDIDAdapter: DIDAdapter {
     private let TAG = NSStringFromClass(DefaultDIDAdapter.self)
-    let MAINNET_RESOLVER = "http://api.elastos.io:20606"
-    let TESTNET_RESOLVER = "http://api.elastos.io:21606"
+    let MAINNET_RESOLVER = "https://api.elastos.io/eid"
+    let TESTNET_RESOLVER = "https://api-testnet.elastos.io/eid"
     private var resolver: String
     
     /// Create a DefaultDIDAdapter instance with given resolver endpoint.

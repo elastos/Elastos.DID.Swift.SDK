@@ -533,7 +533,7 @@ class DIDDoucumentTests: XCTestCase {
             let key2 = try DIDURL(user1.subject, "#key2")
             XCTAssertThrowsError(_ = try db.removePublicKey(with: key2)){ error in
                 switch error {
-                case DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError: break
+                case DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError: break
                 default:
                     XCTFail()
                 }

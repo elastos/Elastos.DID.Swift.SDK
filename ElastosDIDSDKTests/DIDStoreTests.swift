@@ -30,6 +30,45 @@ class DIDStoreTests: XCTestCase {
         return relPath
     }
     
+    func testSynchronizeStore() {
+        do {
+            let identity = try testData.getRootIdentity()
+
+            for i in 0...5 {
+                let alias = "my did " + i
+                let doc = try identity.newDid(storePassword)
+                doc.getMetadata().setAlias(alias)
+                XCTAssertTrue(try doc.isValid())
+
+                var resolved = try doc.subject.resolve()
+                XCTAssertNil(resolved)
+
+                try doc.publish(using: storePassword)
+                resolved = try doc.subject.resolve()
+                XCTAssertNotNil(resolved)
+            }
+
+            let store = testData.store
+            let dids = try store!.listDids()
+            //            Collections.sort(dids);
+            for did in dids {
+                let success = store!.deleteDid(did)
+                XCTAssertTrue(success)
+            }
+
+            let empty = try store!.listDids()
+            XCTAssertTrue(empty.isEmpty)
+
+            try store!.synchronize()
+            let syncedDids = try store!.listDids()
+            //            Collections.sort(syncedDids)
+            XCTAssertEqual(dids.count, syncedDids.count)
+            //            assertArrayEquals(dids.toArray(), syncedDids.toArray());
+        } catch {
+            XCTFail()
+        }
+    }
+
     func testLoadRootIdentityFromEmptyStore() {
         do {
             let file = getFile(".metadata")
