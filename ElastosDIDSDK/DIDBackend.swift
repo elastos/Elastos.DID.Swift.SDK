@@ -236,6 +236,9 @@ public class DIDBackend: NSObject {
         
         let requestJson = request.serialize(true)
         let re = try adapter.resolve(requestJson)
+        guard re.count > 0 else {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Unknown error, got nil result.")
+        }
         var response = ResolveResponse()
         switch request.method {
         case DIDResolveRequest.METHOD_NAME: do {
@@ -345,15 +348,21 @@ public class DIDBackend: NSObject {
         if try (tx == nil || !tx!.request.isValid()) {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, signature mismatch.")
         }
-        let doc = tx!.request.document
-        let metadata = DIDMetadata(doc!.subject)
-        metadata.setTransactionId(tx!.getTransactionId())
-        metadata.setSignature(doc!.proof.signature)
-        metadata.setPublishTime(tx!.getTimestamp())
-        if bio.status == DIDBiographyStatus.STATUS_DEACTIVATED {
-            metadata.setDeactivated(true)
+
+        // NOTICE: Make a copy from DIDBackend cache.
+        //         Avoid share same DIDDocument instance between DIDBackend
+        //         cache and DIDStore cache.
+        let doc = try tx!.request.document?.clone()
+        if let _ = doc {
+            let metadata = doc!.getMetadata()
+            metadata.setTransactionId(tx!.getTransactionId())
+            metadata.setSignature(doc!.proof.signature)
+            metadata.setPublishTime(tx!.getTimestamp())
+            if bio.status == DIDBiographyStatus.STATUS_DEACTIVATED {
+                metadata.setDeactivated(true)
+            }
+            doc!.setMetadata(metadata)
         }
-        doc?.setMetadata(metadata)
         
         return doc
     }

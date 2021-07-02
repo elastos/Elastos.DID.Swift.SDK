@@ -86,7 +86,7 @@ public class DIDMetadata: AbstractMetadata {
     /// Get the derived index only if the DID is derived from a root identity.
     /// - Returns: a derive index
     var index: Int? {
-        return getInteger(INDEX)
+        return getInteger(INDEX, -1)
     }
     
     /// Set the last transaction id of the DID that associated with
@@ -140,7 +140,7 @@ public class DIDMetadata: AbstractMetadata {
     /// object.
     /// - Returns: the published time
     public var publishTime: Date? {
-        return getDate(PUBLISHED)
+        return getDate(PUBLISHED, nil)
     }
     
     /// Set the deactivated status of the DID that associated with this
@@ -154,15 +154,18 @@ public class DIDMetadata: AbstractMetadata {
     /// object.
     /// true if DID is deactivated, otherwise false
     public var isDeactivated: Bool {
-        return getBoolean(DEACTIVATED)
+        return getBoolean(DEACTIVATED, false)
     }
     
     /// Returns a shallow copy of this instance: the property names and values
     /// themselves are not cloned.
     /// - Returns: a shallow copy of this object
     public override func clone() throws -> DIDMetadata {
-        // TODO:
-        return try super.clone()
+        let metaData = DIDMetadata()
+        metaData._store = store
+        metaData._props = properties
+        
+        return metaData
     }
     
     /// Save this metadata object to the attached store if this metadata

@@ -51,25 +51,26 @@ public class DIDDocument: NSObject {
     let CREATED = "created"
     let SIGNATURE_VALUE = "signatureValue"
 
-     var _subject: DID?
-     var _controllers: [DID] = [ ]
-     var _controllerDocs: [DID: DIDDocument] = [: ]
-     var _effectiveController: DID?
-     var _multisig: MultiSignature?
-     var publicKeyMap: EntryMap<PublicKey> = EntryMap()
-     var _defaultPublicKey: PublicKey?
-     var _publickeys: [PublicKey] = []
-     var _authentications: [PublicKeyReference] = []
-     var _authorizations: [PublicKeyReference] = []
-     var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
-     var _credentials: [VerifiableCredential] = []
-     var serviceMap: EntryMap<Service> = EntryMap()
-     var _services: [Service] = []
-     var _expires: Date?
-     var _proofsDic: [DID: DIDDocumentProof] = [: ]
-     var _proofs: [DIDDocumentProof] = [ ]
-     var _metadata: DIDMetadata?
-
+    var _subject: DID?
+    var _controllers: [DID] = [ ]
+    var _controllerDocs: [DID: DIDDocument] = [: ]
+    var _effectiveController: DID?
+    var _multisig: MultiSignature?
+    var publicKeyMap: EntryMap<PublicKey> = EntryMap()
+    var _defaultPublicKey: PublicKey?
+    var _publickeys: [PublicKey] = []
+    var _authentications: [PublicKeyReference] = []
+    var _authorizations: [PublicKeyReference] = []
+    var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
+    var _credentials: [VerifiableCredential] = []
+    var serviceMap: EntryMap<Service> = EntryMap()
+    var _services: [Service] = []
+    var _expires: Date?
+    var _proofsDic: [DID: DIDDocumentProof] = [: ]
+    var _proofs: [DIDDocumentProof] = [ ]
+    var _metadata: DIDMetadata?
+    var _authenticationKeys: [DIDURL: PublicKey] = [: ]
+    var _authorizationKeys: [DIDURL: PublicKey] = [: ]
     private var _capacity: Int = 0
 
     class EntryMap<T: DIDObject> {
@@ -217,6 +218,8 @@ public class DIDDocument: NSObject {
         _multisig = doc._multisig
         publicKeyMap = doc.publicKeyMap
         _publickeys = doc._publickeys
+        _authenticationKeys = doc._authenticationKeys
+        _authorizationKeys = doc._authorizationKeys
         _authentications = doc._authentications
         _authorizations = doc._authorizations
         _defaultPublicKey = doc._defaultPublicKey
@@ -791,39 +794,18 @@ public class DIDDocument: NSObject {
             let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
             if (address == subject.methodSpecificId) {
                 _defaultPublicKey = publicKey
-                publicKey.setAuthenticationKey(true)
+                _authenticationKeys[publicKey.id] = publicKey
             }
         }
         
         return true
     }
 
-    func removePublicKey(_ id: DIDURL, _ force: Bool) throws -> Bool {
-        let key = try publicKey(ofId: id)
-        guard let _ = key else {
-            return false
-        }
-
-        // Can not remove default public key.
-        guard self.getDefaultPublicKey() != id else {
-            return false
-        }
-        if !force && key!.isAuthenticationKey || key!.isAuthorizationKey {
-            return false
-        }
-        
-        _ = publicKeyMap.remove(id)
-        _ = getMetadata().store!.deletePrivateKey(for: id)
-        return true
-    }
-    
     /// Get the numbers of the authentication keys.
     @objc
     public var authenticationKeyCount: Int {
-        var count = publicKeyMap.count() { value -> Bool in
-            return (value as PublicKey).isAuthenticationKey
-        }
         
+        var count = _authenticationKeys.count
         if hasController() {
             _controllerDocs.values.forEach({ doc in
                 count += doc.authenticationKeyCount
@@ -837,10 +819,8 @@ public class DIDDocument: NSObject {
     /// - Returns: an array of the authentication keys
     @objc
     public func authenticationKeys() -> Array<PublicKey> {
-        var pks = publicKeyMap.values() { value -> Bool in
-            return (value as PublicKey).isAuthenticationKey
-        }
-        
+        var pks: [PublicKey] = []
+        pks.append(contentsOf: _authenticationKeys.values)
         if hasController() {
             _controllerDocs.values.forEach{ doc in
                 pks.append(contentsOf: doc.authenticationKeys())
@@ -858,10 +838,7 @@ public class DIDDocument: NSObject {
         }
         
         var pks: [PublicKey] = []
-        for pk in publicKeyMap.values() {
-            if !pk.isAuthenticationKey {
-                continue
-            }
+        for pk in _authenticationKeys.values {
             if id != nil && pk.id != id {
                 continue
             }
@@ -933,8 +910,19 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: the key id
     /// - Returns: the matched authentication key object
     public func authenticationKey(ofId: DIDURL) throws -> PublicKey? {
-        let pk = try publicKey(ofId: ofId)
-        return (pk != nil && pk!.isAuthenticationKey) ? pk : nil
+        let id = try canonicalId(ofId)
+        let pk = _authenticationKeys[id]
+        if let _ = pk {
+            return pk
+        }
+        if hasController() {
+            let doc = _controllerDocs[id.did!]
+            if let _ = doc {
+                return try doc?.authenticationKey(ofId: id)
+            }
+        }
+
+        return nil
     }
 
     /// Get authentication key with specified key id.
@@ -1006,7 +994,7 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAuthenticationKey(true)
+        _authenticationKeys[key!.getId()!] = key
         return true
     }
 
@@ -1021,34 +1009,44 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAuthenticationKey(false)
+        _authenticationKeys.removeValue(forKey: key!.getId()!)
         return true
     }
 
     /// Get the numbers of the authorization keys.
     @objc
     public var authorizationKeyCount: Int {
-        return publicKeyMap.count() { value -> Bool in
-            return (value as PublicKey).isAuthorizationKey
-        }
+        return _authorizationKeys.count
     }
 
     /// Get all the authorization keys.
     /// - Returns: an array of authorization keys
     @objc
     public func authorizationKeys() -> Array<PublicKey> {
-        return publicKeyMap.values() { value -> Bool in
-            return (value as PublicKey).isAuthorizationKey
+        var keys: [PublicKey] = []
+            _authorizationKeys.values.forEach { pk in
+            keys.append(pk)
         }
+        return keys
     }
 
     private func selectAuthorizationKeys(_ byId: DIDURL?, _ andType: String?) throws -> Array<PublicKey> {
         try checkArgument(byId != nil || andType != nil, "Invalid select args")
 
         let id = byId != nil ? try canonicalId(byId!) : nil
-        return  publicKeyMap.select(id, andType) { value -> Bool in
-            return (value as PublicKey).isAuthorizationKey
+        var pks: [PublicKey] = []
+        for pk in authorizationKeys() {
+            if (id != nil && pk.getId() != id) {
+                continue
+            }
+
+            if (andType != nil && pk.getType() != andType) {
+                continue
+            }
+            pks.append(pk)
         }
+
+        return pks
     }
     
     /// Select the authorization keys by the specified key id or key type.
@@ -1103,8 +1101,7 @@ public class DIDDocument: NSObject {
     /// - Parameter ofId: the key id
     /// - Returns: the PublicKey object
     public func authorizationKey(ofId: DIDURL) throws -> PublicKey? {
-        let pk = try publicKey(ofId: ofId)
-        return pk != nil && pk!.isAuthorizationKey ? pk! : nil
+        return _authorizationKeys[ofId]
     }
 
     /// Get the specific authorization key.
@@ -1169,7 +1166,7 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAuthorizationKey(true)
+        _authorizationKeys[key!.getId()!] = key
         return true
     }
 
@@ -1184,21 +1181,21 @@ public class DIDDocument: NSObject {
             return false
         }
 
-        key!.setAuthorizationKey(false)
+        _authorizationKeys.removeValue(forKey: key!.getId()!)
         return true
     }
 
     /// Get the numbers of the credentials.
     @objc
     public var credentialCount: Int {
-        return credentialMap.count() { value -> Bool in return true }
+        return _credentials.count
     }
 
     /// Get all the credential.
     /// - Returns: an array of the credential objects
     @objc
     public func credentials() -> Array<VerifiableCredential> {
-        return credentialMap.values() { value -> Bool in return true }
+        return _credentials
     }
 
     private func selectCredentials(_ byId: DIDURL?, _ andType: String?) throws -> Array<VerifiableCredential>  {
@@ -1309,14 +1306,14 @@ public class DIDDocument: NSObject {
     /// Get the numbers of the services.
     @objc
     public var serviceCount: Int {
-        return serviceMap.count() { value -> Bool in return true }
+        return _services.count
     }
 
     /// Get all the services.
     /// - Returns: an array of the services
     @objc
     public func services() -> Array<Service> {
-        return serviceMap.values() { value -> Bool in return true }
+        return _services
     }
 
     private func selectServices(_ byId: DIDURL?, _ andType: String?) throws -> Array<Service>  {
@@ -1550,7 +1547,7 @@ public class DIDDocument: NSObject {
         
         if _authentications.count > 0 {
             var pk: PublicKey?
-            try _authentications.forEach({ keyRef in
+            try _authentications.forEach{ keyRef in
                 if keyRef.isVirtual {
                     if keyRef.id?.did == nil {
                         keyRef.id?.setDid(subject)
@@ -1594,8 +1591,8 @@ public class DIDDocument: NSObject {
                     }
                     pks.append(pk!)
                 }
-                pk?.setAuthenticationKey(true)
-            })
+                _authenticationKeys[pk!.getId()!] = pk
+            }
             
             try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
                 return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
@@ -1603,6 +1600,7 @@ public class DIDDocument: NSObject {
         }
         else {
             _authentications = [ ]
+            _authenticationKeys = [: ]
         }
         if _authorizations.count > 0 {
             var pk: PublicKey?
@@ -1654,7 +1652,7 @@ public class DIDDocument: NSObject {
                     }
                     pks.append(pk!)
                 }
-                pk?.setAuthorizationKey(true)
+                _authorizationKeys[pk!.getId()!] = pk
             }
             try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
                 return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
@@ -1662,6 +1660,7 @@ public class DIDDocument: NSObject {
         }
         else {
             _authorizations = [ ]
+            _authorizationKeys = [: ]
         }
         // for customized DID with controller, could be no public keys
         if pks.count({ _ -> Bool in return true }) > 0 {
@@ -1678,21 +1677,23 @@ public class DIDDocument: NSObject {
                 let address = DIDHDKey.toAddress(pk.publicKeyBytes)
                 if address == subject.methodSpecificId {
                     _defaultPublicKey = pk
-                    if !pk.isAuthenticationKey {
-                        pk.setAuthenticationKey(true)
+                    let value = _authenticationKeys[pk.getId()!]
+                    if value == nil {
                         if _authentications.isEmpty {
                             _authentications.append(PublicKeyReference(pk))
+                            _authenticationKeys = [: ]
                         }
-                        else {
-                            _authentications.append(PublicKeyReference(pk))
-                            try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
-                                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
-                            }
+
+                        _authentications.append(PublicKeyReference(pk))
+                        _authenticationKeys[pk.getId()!] = pk
+                        try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+                            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
                         }
                     }
                 }
             }
         }
+
         if _controllers.isEmpty && _defaultPublicKey == nil {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing default public key.")
         }
@@ -1954,6 +1955,8 @@ public class DIDDocument: NSObject {
         doc.publicKeyMap = publicKeyMap
         doc._defaultPublicKey = _defaultPublicKey
         doc.credentialMap = credentialMap
+        doc._authenticationKeys = _authenticationKeys
+        doc._authorizationKeys = _authorizationKeys
         doc.serviceMap = serviceMap
         doc._expires = _expires
         doc._proofsDic = _proofsDic
@@ -2778,7 +2781,7 @@ public class DIDDocument: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
         }
         Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
-        if try isGenuine() == false {
+        guard try isGenuine() else {
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
@@ -2795,7 +2798,7 @@ public class DIDDocument: NSObject {
         
         var signK: DIDURL? = signKey
         var lastTxid: String?
-        var reolvedSignautre: String = ""
+        var resolvedSignature: String = ""
         let resolvedDoc = try subject.resolve(true)
         if resolvedDoc != nil {
             guard !resolvedDoc!.isDeactivated else {
@@ -2803,7 +2806,7 @@ public class DIDDocument: NSObject {
                 Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
             }
-            reolvedSignautre = resolvedDoc!.proof.signature
+            resolvedSignature = resolvedDoc!.proof.signature
             if !force {
                 let localPrevSignature = getMetadata().previousSignature
                 let localSignature = getMetadata().signature
@@ -2813,13 +2816,13 @@ public class DIDDocument: NSObject {
                 }
                 else if (localPrevSignature == nil || localSignature == nil) {
                     let ls = localPrevSignature != nil ? localPrevSignature : localSignature
-                    guard ls == reolvedSignautre else {
+                    guard ls == resolvedSignature else {
                         Log.e(DIDDocument.TAG, "Current copy not based on the lastest on-chain copy, signature mismatch.")
                         throw DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError(subject.toString())
                     }
                 }
                 else {
-                    if localSignature != reolvedSignautre && localPrevSignature != reolvedSignautre {
+                    if localSignature != resolvedSignature && localPrevSignature != resolvedSignature {
                         Log.e(DIDDocument.TAG, "Current copy not based on the lastest on-chain copy, signature mismatch.")
                         throw DIDError.UncheckedError.IllegalStateError.DIDNotUpToDateError(subject.toString())
                     }
@@ -2846,7 +2849,10 @@ public class DIDDocument: NSObject {
             try DIDBackend.sharedInstance().updateDid(self, lastTxid!, signK!, storePassword, adapter)
         }
         
-        getMetadata().setPreviousSignature(reolvedSignautre)
+
+        if resolvedSignature != "" {
+            getMetadata().setPreviousSignature(resolvedSignature)
+        }
         getMetadata().setSignature(proof.signature)
     }
     
@@ -3112,6 +3118,7 @@ public class DIDDocument: NSObject {
         else {
             doc!.getMetadata().attachStore(store!)
         }
+        doc!._effectiveController = _effectiveController
         if sigK == nil {
             sigK = doc!.defaultPublicKeyId()
         }
@@ -4037,5 +4044,31 @@ extension DIDDocument {
     @objc
     public override var description: String {
         return toString()
+    }
+
+    public func clone() throws -> DIDDocument {
+        let doc = DIDDocument(subject)
+
+        doc._controllers = _controllers
+        doc._controllerDocs = _controllerDocs
+        doc._effectiveController = _effectiveController
+        doc._multisig = _multisig
+        doc.publicKeyMap = publicKeyMap
+        doc._publickeys = _publickeys
+        doc._authenticationKeys = _authenticationKeys
+        doc._authentications = _authentications
+        doc._authorizationKeys = _authorizationKeys
+        doc._authorizations = _authorizations
+        doc._defaultPublicKey = _defaultPublicKey
+        doc._credentials = _credentials
+        doc._credentials = _credentials
+        doc._services = _services
+        doc._services = _services
+        doc._expires = _expires
+        doc._proofsDic = _proofsDic
+        doc._proofs = _proofs
+        doc._metadata = try getMetadata().clone()
+
+        return doc
     }
 }

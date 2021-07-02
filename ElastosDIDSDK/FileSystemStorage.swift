@@ -156,11 +156,11 @@ public class FileSystemStorage: DIDStorage {
         else {
             path = id.toString()
         }
-        return path.replacingOccurrences(of: ";", with: ".").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "?", with: "-")
+        return path.replacingOccurrences(of: ";", with: "+").replacingOccurrences(of: "/", with: "~").replacingOccurrences(of: "?", with: "!")
     }
     
     private class func toDIDURL(_ did: DID, _ path: String) throws -> DIDURL {
-       let p = path.replacingOccurrences(of: ".", with: ";").replacingOccurrences(of: "_", with: "/").replacingOccurrences(of: "-", with: "?")
+       let p = path.replacingOccurrences(of: "+", with: ";").replacingOccurrences(of: "~", with: "/").replacingOccurrences(of: "!", with: "?")
         return try DIDURL(did, p)
     }
     

@@ -116,7 +116,7 @@ public class DIDDocumentBuilder: NSObject {
             let address = DIDHDKey.toAddress(key.publicKeyBytes)
             if try (address == getSubject().methodSpecificId) {
                 document?._defaultPublicKey = key
-                key.setAuthenticationKey(true)
+                document?._authenticationKeys[key.getId()!] = key
             }
         }
         invalidateProof()
@@ -158,7 +158,8 @@ public class DIDDocumentBuilder: NSObject {
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        let key = try document!.publicKey(ofId: id)
+        let key = document!.publicKeyMap.get(forKey: id) { value -> Bool in return true }
+
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
@@ -170,12 +171,17 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(id.toString() + "is default key")
         }
         if !force {
-           if key!.isAuthenticationKey || key!.isAuthorizationKey {
+            let keyValue1 = document?._authenticationKeys[key!.getId()!]
+            let keyValue2 = document?._authorizationKeys[key!.getId()!]
+
+            if keyValue1 != nil || keyValue2 != nil {
                 throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(id.toString())
             }
         }
         
         if document!.publicKeyMap.remove(id) {
+            document!._authenticationKeys.removeValue(forKey: id)
+            document!._authorizationKeys.removeValue(forKey: id)
             // TODO: should delete the loosed private key when store the document
             if (document!.getMetadata().attachedStore) {
                 _ = document!.getMetadata().store?.deletePrivateKey(for: id)
@@ -242,8 +248,10 @@ public class DIDDocumentBuilder: NSObject {
         guard try key!.controller == getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(id.toString())
         }
-        if (!key!.isAuthenticationKey) {
-            key!.setAuthenticationKey(true)
+        let keyVaule = document!._authenticationKeys[id]
+        print(document?._authenticationKeys)
+        if keyVaule == nil {
+            document!._authenticationKeys[key!.getId()!] = key
             invalidateProof()
         }
         
@@ -283,7 +291,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let key = PublicKey(id, try getSubject(), keyBase58)
-        key.setAuthenticationKey(true)
+        document?._authenticationKeys[key.getId()!] = key
         guard document!.appendPublicKey(key) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(keyBase58)' already exist.")
         }
@@ -329,7 +337,8 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let key = document!.publicKeyMap.get(forKey: try canonicalId(id)!) { value -> Bool in return true }
-        guard let _ = key, key!.isAuthenticationKey else {
+        let value = try document!._authenticationKeys[canonicalId(id)!]
+        guard let _ = key, let _ = value else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
@@ -339,9 +348,11 @@ public class DIDDocumentBuilder: NSObject {
                 "Cannot remove the default PublicKey from authentication.")
         }
 
-        if (key!.isAuthenticationKey) {
-            key!.setAuthenticationKey(false)
+        if (document!._authenticationKeys.removeValue(forKey: id) != nil) {
             invalidateProof()
+        }
+        else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
         return self
@@ -383,9 +394,10 @@ public class DIDDocumentBuilder: NSObject {
         guard try key!.controller != getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(id.toString())
         }
-        
-        if !key!.isAuthorizationKey {
-            key?.setAuthorizationKey(true)
+
+        let value = try document!._authorizationKeys[canonicalId(id)!]
+        if value == nil {
+            document!._authorizationKeys[key!.getId()!] = key
             invalidateProof()
         }
 
@@ -428,7 +440,7 @@ public class DIDDocumentBuilder: NSObject {
         try checkArgument(Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES, "Invalied keyBase58")
 
         let key = PublicKey(id, controller, keyBase58)
-        key.setAuthorizationKey(true)
+        document!._authorizationKeys[key.getId()!] = key
         _ = document!.appendPublicKey(key)
         invalidateProof()
 
@@ -511,7 +523,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
-        pk.setAuthorizationKey(true)
+        document?._authorizationKeys[pk.getId()!] = pk
         _ = document!.appendPublicKey(pk)
         invalidateProof()
         
@@ -1377,16 +1389,19 @@ public class DIDDocumentBuilder: NSObject {
         
         document!._publickeys = document!.publicKeyMap.values({ pk -> Bool in return true })
         
-        for pk in document!._publickeys {
-            if (pk.isAuthenticationKey) {
+        for pk in document!._authenticationKeys.values {
                 document!._authentications.append(PublicKeyReference(pk))
-            }
-            
-            if (pk.isAuthorizationKey) {
-                document!._authorizations.append(PublicKeyReference(pk))
-            }
         }
         
+        for pk in document!._authorizationKeys.values {
+            document!._authorizations.append(PublicKeyReference(pk))
+        }
+        try document!._authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+        }
+        try document!._authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+        }
         document?._credentials = document!.credentialMap.values({ (vc) -> Bool in return true })
         document!._services = document!.serviceMap.values({ (vc) -> Bool in return true })
         

@@ -79,7 +79,7 @@ public class CredentialMetadata: AbstractMetadata {
     /// object.
     /// - Returns: the published time
     public func getPublishTime() -> Date? {
-       return getDate(PUBLISHED)
+       return getDate(PUBLISHED, nil)
     }
     
     /// Set the revocation status of the credential that associated with this
@@ -93,15 +93,18 @@ public class CredentialMetadata: AbstractMetadata {
     /// object.
     /// - Returns: true if credential is revoked, otherwise false
     public func isRevoked() -> Bool {
-       return getBoolean(REVOKED)
+       return getBoolean(REVOKED, false)
     }
     
     /// Returns a shallow copy of this instance: the property names and values
     /// themselves are not cloned.
     /// - Returns: a shallow copy of this object
-    public override func clone() throws -> DIDMetadata {
-        //TODO:
-        return try super.clone()
+    public override func clone() throws -> CredentialMetadata {
+        let metaData = CredentialMetadata()
+        metaData._store = store
+        metaData._props = properties
+
+        return metaData
     }
     
     /// Save this metadata object to the attached store if this metadata

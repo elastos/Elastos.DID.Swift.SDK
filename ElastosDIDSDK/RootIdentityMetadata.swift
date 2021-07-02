@@ -85,4 +85,15 @@ public class RootIdentityMetadata: AbstractMetadata {
         
         return metadata
     }
+
+    /// Returns a shallow copy of this instance: the property names and values
+    /// themselves are not cloned.
+    /// - Returns: a shallow copy of this object
+    public override func clone() throws -> RootIdentityMetadata {
+        let metaData = RootIdentityMetadata()
+        metaData._store = store
+        metaData._props = properties
+        
+        return metaData
+    }
 }
