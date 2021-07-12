@@ -49,9 +49,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -87,9 +87,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertTrue(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -127,9 +127,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(vc.getExpirationDate)
             
             XCTAssertFalse(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -159,9 +159,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -192,9 +192,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(try vc.getExpirationDate())
             
             XCTAssertFalse(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -224,9 +224,9 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertNotNil(vc.getExpirationDate)
             
             XCTAssertTrue(vc.isSelfProclaimed)
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -273,9 +273,9 @@ class VerifiableCredentialTest: XCTestCase {
             
             let credential = try cd.getCredential(did, vc)
             
-            XCTAssertFalse(credential.isExpired)
+            XCTAssertFalse(try credential.isExpired())
             XCTAssertTrue(try credential.isGenuine())
-            XCTAssertTrue(credential.isValid)
+            XCTAssertTrue(try credential.isValid())
             
             XCTAssertEqual(normalizedJson, normalized.toString(true))
             XCTAssertEqual(normalizedJson, compact.toString(true))
@@ -950,7 +950,7 @@ class VerifiableCredentialTest: XCTestCase {
                 signKey = try doc!.controllers()[index].resolve()?.defaultPublicKeyId()
             }
             
-            var key: DIDURL? = signKey
+            let key: DIDURL? = signKey
             
             XCTAssertThrowsError(_ = try credential.declare(key!, storePassword)) { error in
                 switch error {

@@ -277,7 +277,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual("MyProfile", vc!.getMetadata().getAlias())
             XCTAssertEqual(user.subject, vc!.subject!.did)
             XCTAssertEqual(id, vc!.getId())
-            XCTAssertTrue(vc!.isValid)
+            XCTAssertTrue(try vc!.isValid())
 
             // try with full id string
             vc = try store!.loadCredential(byId: id.toString())
@@ -285,7 +285,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual("MyProfile", vc?.getMetadata().getAlias())
             XCTAssertEqual(user.subject, vc?.subject?.did)
             XCTAssertEqual(id, vc?.id)
-            XCTAssertTrue(vc!.isValid)
+            XCTAssertTrue(try vc!.isValid())
 
             id = try DIDURL(user.subject, "#twitter")
             vc = try store!.loadCredential(byId: id.toString())
@@ -293,7 +293,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual("Twitter", vc!.getMetadata().getAlias())
             XCTAssertEqual(user.subject, vc?.subject?.did)
             XCTAssertEqual(id, vc?.id)
-            XCTAssertTrue(vc!.isValid)
+            XCTAssertTrue(try vc!.isValid())
 
             vc = try store!.loadCredential(byId: DIDURL(user.subject, "#notExist"))
             XCTAssertNil(vc)

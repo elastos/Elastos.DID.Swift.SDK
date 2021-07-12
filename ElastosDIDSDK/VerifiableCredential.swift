@@ -274,87 +274,45 @@ public class VerifiableCredential: DIDObject {
     public var isSelfProclaimed: Bool {
         return issuer == subject?.did
     }
-
-    private func traceCheck(_ rule: Int) throws -> Bool {
-        var controllerDoc: DIDDocument?
-        do {
-            controllerDoc = try issuer!.resolve()
-        } catch {
-            controllerDoc = nil
-        }
-
-        guard let _ = controllerDoc else {
-            return false
-        }
-
-        switch rule {
-        case RULE_EXPIRE:
-            if controllerDoc!.isExpired {
-                return true
-            }
-        case RULE_GENUINE:
-            if try !controllerDoc!.isGenuine() {
-                return false
-            }
-        case RULE_VALID:
-            if try !controllerDoc!.isValid() {
-                return false
-            }
-        default:
-            break
-        }
-
-        if !isSelfProclaimed {
-            let issuerDoc: DIDDocument?
-            do {
-                issuerDoc = try issuer!.resolve()
-            } catch {
-                issuerDoc = nil
-            }
-            guard let _ = issuerDoc else {
-                return false
-            }
-
-            switch rule {
-            case RULE_EXPIRE:
-                if issuerDoc!.isExpired {
-                    return true
-                }
-            case RULE_GENUINE:
-                if try !issuerDoc!.isGenuine() {
-                    return false
-                }
-            case RULE_VALID:
-                if try !issuerDoc!.isValid() {
-                    return false
-                }
-            default:
-                break
-            }
-        }
-
-        return rule != RULE_EXPIRE
-    }
     
-    private func checkExpired() throws -> Bool {
+    private func checkExpired() -> Bool {
         return _expirationDate != nil ? DateFormatter.isExipired(_expirationDate!) : false
     }
 
     /// Check if this credential object is expired or not.
     /// whether the credential object is expired
-    @objc
-    public var isExpired: Bool {
-        do {
-            return try traceCheck(RULE_EXPIRE) ? true : checkExpired()
-        } catch {
-            return false
+    public func isExpired() throws -> Bool {
+        //        do {
+        //            return try traceCheck(RULE_EXPIRE) ? true : checkExpired()
+        //        } catch {
+        //            return false
+        //        }
+        
+        if (_expirationDate != nil) {
+            if checkExpired() {
+                return true
+            }
         }
+        
+        let controllerDoc = try subject?.did.resolve()
+        if (controllerDoc != nil && controllerDoc!.isExpired) {
+            return true
+        }
+        
+        if (!isSelfProclaimed) {
+            let issuerDoc = try issuer?.resolve()
+            if (issuerDoc != nil && issuerDoc!.isExpired) {
+                return true
+            }
+        }
+        
+        return false
     }
 
     /// Check if this credential object is expired or not in asynchronous mode.
     /// - Returns: Issuance always occurs before any other actions involving a credential.
     public func isExpiredAsync() -> Promise<Bool> {
-        return DispatchQueue.global().async(.promise){ [self] in isExpired }
+        return DispatchQueue.global().async(.promise){ [self] in try isExpired() }
     }
 
     /// Credential is expired or not asynchronous.
@@ -362,7 +320,14 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isExpiredAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            DispatchQueue.global().async{ resolver(isExpired) }
+            DispatchQueue.global().async{
+                do {
+                    resolver(try isExpired())
+                }
+                catch {
+                    resolver(error)
+                }
+            }
         })
     }
 
@@ -370,22 +335,55 @@ public class VerifiableCredential: DIDObject {
     /// Issuance always occurs before any other actions involving a credential.
     /// return: whether the credential object is genuine
     public func isGenuine() throws -> Bool {
+        return try isGenuine(nil)
+    }
+    
+    /// Check whether this credential object is genuine or not.
+    /// Issuance always occurs before any other actions involving a credential.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// return: whether the credential object is genuine
+    public func isGenuine(listener: VerificationEventListener) throws -> Bool {
+        return try isGenuine(listener)
+    }
+    
+    /// Check whether this credential object is genuine or not.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// Issuance always occurs before any other actions involving a credential.
+    /// return: whether the credential object is genuine
+    func isGenuine(_ listener: VerificationEventListener?) throws -> Bool {
+    
         guard id?.did == subject?.did else {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): invalid id '\(String(describing: id))', should under the scope of '\(String(describing: subject?.did))'")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+
             return false
         }
         let issuerDoc = try issuer?.resolve()
         guard let _ = issuerDoc else {
+            //throw new DIDNotFoundException(issuer.toString());
+            listener?.failed(context: self, args: "VC \(String(describing: id)): Can not resolve the document for issuer '\(String(describing: issuer))'")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+            
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(issuer?.toString())
         }
-        guard try issuerDoc!.isGenuine() else {
+        guard try issuerDoc!.isGenuine(listener) else {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): issuer '\(String(describing: issuer))' is not genuine")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+
             return false
         }
         // Credential should signed by any authentication key.
         guard try issuerDoc!.containsAuthenticationKey(forId: proof!.verificationMethod) else {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): key '\(String(describing: proof?.verificationMethod))' for proof is not an authencation key of '\(String(describing: proof?.verificationMethod.did))'")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+
             return false
         }
         // Unsupported public key type
         guard proof?.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): key type '\(String(describing: proof?.type))' for proof is not supported")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+
             return false
         }
         let vc = try VerifiableCredential(self, false)
@@ -394,14 +392,28 @@ public class VerifiableCredential: DIDObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("credential is nil")
         }
         guard try issuerDoc!.verify(withId: proof!.verificationMethod, using: proof!.signature, onto: data) else {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): proof is invalid, signature mismatch")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+
             return false
         }
         if !isSelfProclaimed {
             let controllerDoc = try subject?.did.resolve()
-            if try controllerDoc != nil && !controllerDoc!.isGenuine() {
+            if controllerDoc == nil {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): can not resolve the holder's document")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+                
+                return false
+            }
+            
+            if (try !controllerDoc!.isGenuine(listener)) {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is not genuine")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
+                
                 return false
             }
         }
+        listener?.succeeded(context: self, args: "VC \(String(describing: id)): is genuine")
         
         return true
     }
@@ -412,6 +424,13 @@ public class VerifiableCredential: DIDObject {
     public func isGenuineAsync() -> Promise<Bool> {
         return DispatchQueue.global().async(.promise){ [self] in try isGenuine() }
     }
+    
+    /// Credential is genuine or not asynchronous.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: flase if not genuine, true if genuine.
+    public func isGenuineAsync(listener: VerificationEventListener) -> Promise<Bool> {
+        return DispatchQueue.global().async(.promise){ [self] in try isGenuine(listener) }
+    }
 
     /// Credential is genuine or not asynchronous.
     /// Issuance always occurs before any other actions involving a credential.
@@ -419,28 +438,134 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isGenuineAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            DispatchQueue.global().async{ resolver(isGenuine) }
+            DispatchQueue.global().async{
+                do {
+                    resolver(try isGenuine())
+                }
+                catch {
+                    resolver(error)
+                }
+            }
         })
     }
 
+    /// Credential is genuine or not asynchronous.
+    /// Issuance always occurs before any other actions involving a credential.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// flase if not genuine, true if genuine.
+    @objc (isGenuineWithListenerAsyncUsingObjectC:)
+    public func isGenuineAsyncUsingObjectC(listener: VerificationEventListener) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            DispatchQueue.global().async{
+                do {
+                    resolver(try isGenuine(listener))
+                }
+                catch {
+                    resolver(error)
+                }
+            }
+        })
+    }
+    
     /// Credential is expired or not.
     /// Issuance always occurs before any other actions involving a credential.
-    @objc
-    public var isValid: Bool {
-        do {
-            if try !traceCheck(RULE_VALID) {
+    public func isValid() throws -> Bool {
+        return try isValid(nil)
+    }
+    
+    /// Credential is expired or not.
+    /// Issuance always occurs before any other actions involving a credential.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: whether the credential object is valid
+    public func isValid(listener: VerificationEventListener) throws -> Bool {
+        return try isValid(listener)
+    }
+    
+    /// Credential is expired or not.
+    /// Issuance always occurs before any other actions involving a credential.
+    func isValid(_ listener: VerificationEventListener?) throws -> Bool {
+        if (_expirationDate != nil) {
+            if checkExpired() == true {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is expired")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+                
                 return false
             }
-            return try !checkExpired() && isGenuine()
-        } catch {
+        }
+        
+        let issuerDoc = try issuer?.resolve()
+        if (issuerDoc == nil) {
+            //throw new DIDNotFoundException(issuer.toString());
+            listener?.failed(context: self, args: "VC \(String(describing: id)): can not resolve the document for issuer '\(String(describing: issuer))'")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+
             return false
         }
-    }
+        
+        if (try !issuerDoc!.isValid(listener)) {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): issuer '\(String(describing: issuer))' is invalid")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
 
+            return false
+        }
+        
+        // Credential should signed by any authentication key.
+        if (try !issuerDoc!.containsAuthenticationKey(forId: proof!.verificationMethod)) {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): key '\(String(describing: proof?.verificationMethod))' for proof is not an authencation key of '\(String(describing: proof?.verificationMethod.did))'")
+            listener?.failed(context: self, args: "VC \(String(describing: subject)): is invalid")
+
+            return false
+        }
+        
+        // Unsupported public key type;
+        if proof?.type != Constants.DEFAULT_PUBLICKEY_TYPE {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): key type '\(String(describing: proof?.type))' for proof is not supported")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+
+            return false
+        }
+        
+        let vc = try VerifiableCredential(self, false)
+        let json = vc.toString(true)
+        if try !issuerDoc!.verify(withId: proof!.verificationMethod, using: proof!.signature, onto: json.data(using: .utf8)!) {
+            listener?.failed(context: self, args: "VC \(String(describing: id)): proof is invalid, signature mismatch")
+            listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+            
+            return false
+        }
+
+        if !isSelfProclaimed {
+            let controllerDoc = try subject?.did.resolve()
+            if (controllerDoc == nil) {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): can not resolve the holder's document")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+
+                return false
+            }
+
+            if (try !controllerDoc!.isValid(listener)) {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is invalid")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+
+                return false
+            }
+        }
+        listener?.succeeded(context: self, args: "VC \(String(describing: id)): is valid")
+
+        return true
+    }
+    
     /// Credential is expired or not asynchronous.
     /// - Returns: flase if not genuine, true if genuine.
     public func isValidAsync() -> Promise<Bool> {
-       return DispatchQueue.global().async(.promise){ [self] in isValid }
+       return DispatchQueue.global().async(.promise){ [self] in try isValid() }
+    }
+    
+    /// Credential is expired or not asynchronous.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: flase if not genuine, true if genuine.
+    public func isValidAsync(listener: VerificationEventListener) -> Promise<Bool> {
+       return DispatchQueue.global().async(.promise){ [self] in try isValid(listener) }
     }
 
     /// Credential is expired or not asynchronous.
@@ -448,7 +573,31 @@ public class VerifiableCredential: DIDObject {
     @objc
     public func isValidAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            DispatchQueue.global().async{ resolver(isValid) }
+            DispatchQueue.global().async{
+                do {
+                    resolver(try isValid())
+                }
+                catch {
+                    resolver(error)
+                }
+            }
+        })
+    }
+    
+    /// Credential is expired or not asynchronous.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: flase if not genuine, true if genuine.
+    @objc (isValidWithListenerAsyncUsingObjectC:)
+    public func isValidAsyncUsingObjectC(listener: VerificationEventListener) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            DispatchQueue.global().async{
+                do {
+                    resolver(try isValid(listener))
+                }
+                catch {
+                    resolver(error)
+                }
+            }
         })
     }
     
@@ -505,7 +654,7 @@ public class VerifiableCredential: DIDObject {
             Log.e(TAG, "Publish failed because the credential is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.CredentialNotGenuineError(id?.toString())
         }
-        guard !isExpired else {
+        guard try !isExpired() else {
             Log.e(TAG, "Publish failed because the credential is expired.")
             throw DIDError.UncheckedError.IllegalStateError.CredentialRevokedError(id?.toString())
         }

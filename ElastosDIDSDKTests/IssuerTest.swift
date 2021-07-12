@@ -116,9 +116,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
 
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -156,9 +156,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("issuer@example.com", vc.subject!.properties()["email"] as? String)
 
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -201,9 +201,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
 
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -246,9 +246,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
 
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -287,9 +287,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("issuer@example.com", vc.subject!.properties()["email"] as? String)
 
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }
@@ -325,9 +325,9 @@ class IssuerTest: XCTestCase {
             XCTAssertEqual(9.5, vc.subject!.getProperties()!.get(forKey: "doubleValue")!.asNumber() as? Double)
             XCTAssertNotNil(vc.subject?.properties())
             
-            XCTAssertFalse(vc.isExpired)
+            XCTAssertFalse(try vc.isExpired())
             XCTAssertTrue(try vc.isGenuine())
-            XCTAssertTrue(vc.isValid)
+            XCTAssertTrue(try vc.isValid())
         } catch {
             XCTFail()
         }

@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-import UIKit
+import Foundation
 
 /// A filter for DIDs.
 /// Instances of this interface may be passed to the listDids(DIDFilter)
