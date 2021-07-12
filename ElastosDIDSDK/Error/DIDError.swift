@@ -58,6 +58,9 @@ public enum DIDError: Error {
             case AlreadySignedError(_ des: String? = nil)
             case AlreadySealedError(_ des: String? = nil)
             case UnknownInternalError(_ des: String? = nil)
+            /// Constructs a DIDControllersChangedException with null as its error
+            /// detail message.
+            case DIDControllersChangedError(_ des: String? = nil)
         }
         
         public enum UnsupportedOperationError {
