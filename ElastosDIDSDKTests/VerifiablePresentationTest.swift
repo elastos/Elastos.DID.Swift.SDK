@@ -41,8 +41,12 @@ class VerifiablePresentationTest: XCTestCase {
             _ = try cd.getDocument("issuer")
             let user = try cd.getDocument("user1");
             let vp = try cd.getPresentation("user1", "nonempty");
-            
-            XCTAssertNil(vp.id)
+            if version == 1 {
+                XCTAssertNil(vp.id)
+            }
+            else {
+                XCTAssertNotNil(vp.id)
+            }
             XCTAssertEqual(1, vp.types.count)
             XCTAssertEqual("VerifiablePresentation", vp.types[0])
             XCTAssertEqual(user.subject, vp.holder)
@@ -86,7 +90,12 @@ class VerifiablePresentationTest: XCTestCase {
             let user = try cd.getDocument("user1")
             let vp = try cd.getPresentation("user1", "empty")
 
-           XCTAssertNil(vp.id)
+            if version == 1 {
+                XCTAssertNil(vp.id)
+            }
+            else {
+                XCTAssertNotNil(vp.id)
+            }
            XCTAssertEqual(1, vp.types.count)
             XCTAssertEqual(Constants.DEFAULT_PRESENTATION_TYPE, vp.types[0])
             XCTAssertEqual(user.subject, vp.holder)
