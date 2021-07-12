@@ -27,7 +27,7 @@ public class CredentialBiography: ResolveResult{
     private let STATUS = "status"
     private let TRANSACTION = "transaction"
 
-    private var _id: DIDURL
+    private var _id: DIDURL?
     private var _status: CredentialBiographyStatus
     private var _txs: [CredentialTransaction] = [ ]
 
@@ -36,12 +36,20 @@ public class CredentialBiography: ResolveResult{
         self._status = status
     }
     
+    init(_ status: CredentialBiographyStatus) {
+        self._status = status
+    }
+    
     init(_ id: DIDURL) {
         self._id = id
         self._status = CredentialBiographyStatus.STATUS_VALID
     }
     
-    public var id: DIDURL {
+    override init() {
+        self._status = CredentialBiographyStatus.STATUS_VALID
+    }
+    
+    public var id: DIDURL? {
         return _id
     }
     
@@ -75,6 +83,9 @@ public class CredentialBiography: ResolveResult{
     
     override func sanitize() throws {
         if (status != CredentialBiographyStatus.STATUS_NOT_FOUND) {
+            guard let _ = id else {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedResolveResultError("Missing id")
+            }
             guard  _txs.count != 0 else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedResolveResultError("Missing transaction")
             }
@@ -101,7 +112,9 @@ public class CredentialBiography: ResolveResult{
     
     public func serialize(_ generator: JsonGenerator) {
         generator.writeStartObject()
-        generator.writeStringField(ID, id.toString())
+        if let _ = id {
+            generator.writeStringField(ID, id!.toString())
+        }
         generator.writeNumberField(STATUS, status.rawValue)
         if count > 0 {
             generator.writeFieldName(TRANSACTION)
@@ -115,7 +128,7 @@ public class CredentialBiography: ResolveResult{
     }
 
     public class func deserialize(_ content: [String: Any]) throws -> CredentialBiography {
-        let id = content["id"] as! String
+        let id = content["id"] as? String
         let status = CredentialBiographyStatus(rawValue: content["status"] as! Int)
         let txs = content["transaction"] as? [[String: Any]]
         var _txs: [CredentialTransaction] = []
@@ -125,7 +138,13 @@ public class CredentialBiography: ResolveResult{
                 _txs.append(didtx)
             }
         }
-        let bio = CredentialBiography(try DIDURL(id), status!)
+        if let _ = id {
+            let bio = CredentialBiography(try DIDURL(id!), status!)
+            bio._txs = _txs
+            
+            return bio
+        }
+        let bio = CredentialBiography(status!)
         bio._txs = _txs
         
         return bio
