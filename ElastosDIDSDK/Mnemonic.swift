@@ -63,14 +63,22 @@ public class Mnemonic: NSObject {
     
     /// Check mnemonic.
     /// - Parameters:
-    ///   - language: The language for DID.
-    ///   support language string: “chinese_simplified”, “chinese_traditional”, “czech”, “english”, “french”, “italian”, “japanese”, “korean”, “spanish”.
     ///   - mnemonic: mnemonic string.
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
-    public static func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
+    public static func checkIsValid(_ mnemonic: String) throws -> Bool {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic.")
-        try checkArgument(!language.isEmpty, "Invalid password..")
+        let language = try getLanguage(mnemonic)
+        return language.withCString { (clang) in
+            return mnemonic.withCString { (cmnemonic) in
+                return HDKey_MnemonicIsValid(cmnemonic, clang)
+            }
+        }
+    }
+    
+    static func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
+        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic.")
+        try checkArgument(!language.isEmpty, "Invalid language.")
 
         return language.withCString { (clang) in
             return mnemonic.withCString { (cmnemonic) in
@@ -87,9 +95,9 @@ public class Mnemonic: NSObject {
     /// - Throws: mnemonic or language is empty.
     /// - Returns: true, if mnemonic is valid. or else, return false.
     @objc
-    public static func isValid(_ language: String, _ mnemonic: String, error: NSErrorPointer) -> Bool {
+    public static func checkIsValid(_ mnemonic: String, error: NSErrorPointer) -> Bool {
         do {
-            return try isValid(language, mnemonic)
+            return try checkIsValid(mnemonic)
         }  catch let aError as NSError {
             error?.pointee = aError
             return false
