@@ -202,32 +202,65 @@ public class VerifiablePresentation: NSObject {
     }
 
     /// Check whether the presentation is genuine or not.
+    /// - Throws: DIDResolveError if error occurs when resolving the DIDs
+    /// - Returns: whether the credential object is genuine
     public func isGenuine() throws -> Bool {
+        return try isGenuine(nil)
+    }
+    
+    /// Check whether the presentation is genuine or not.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Throws: DIDResolveError if error occurs when resolving the DIDs
+    /// - Returns: whether the credential object is genuine
+    public func isGenuine(listener: VerificationEventListener) throws -> Bool {
+        return try isGenuine(listener)
+    }
+    
+    /// Check whether the presentation is genuine or not.
+    func isGenuine(_ listener: VerificationEventListener?) throws -> Bool {
         let holderDoc = try holder!.resolve()
 
         guard let _ = holderDoc else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): can not resolve the holder's document")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+            
             return false
         }
         
         // Check the integrity of signer's document.
-        guard try holderDoc!.isGenuine() else {
+        guard try holderDoc!.isGenuine(listener) else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): holder's document is not genuine")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+            
             return false
         }
         // Unsupported public key type
         guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): key type '\(proof.type)' for proof is not supported")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+            
             return false
         }
         // Credential should be signed by authenticationKey.
         guard try holderDoc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): Key '\(proof.verificationMethod)' for proof is not an authencation key of '\(String(describing: proof.verificationMethod.did))'")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+            
             return false
         }
 
         // All credentials should be owned by signer
         for credential in _verifiableCredentials.values {
             guard credential.subject!.did == holder else {
+                listener?.failed(context: self, args: "VP \(String(describing: id)): credential '\(String(describing: credential.id))' not owned by the holder '\(String(describing: holder))'")
+                listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+                
                 return false
             }
-            guard try credential.isGenuine() else {
+            guard try credential.isGenuine(listener) else {
+                listener?.failed(context: self, args: "VP \(String(describing: id)): credential '\(String(describing: credential.id))' is not genuine")
+                listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+                
                 return false
             }
         }
@@ -241,7 +274,16 @@ public class VerifiablePresentation: NSObject {
             data.append(d)
         }
 
-        return (try? holderDoc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
+        let result = (try? holderDoc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
+        
+        if (result) {
+            listener?.succeeded(context: self, args: "VP \(String(describing: id)): is genuine")
+        } else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): proof is invalid, signature mismatch")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+        }
+        
+        return result
     }
 
     /// Check whether the presentation is genuine or not in asynchronous mode.
@@ -250,44 +292,103 @@ public class VerifiablePresentation: NSObject {
         return Promise<Bool> { $0.fulfill(try isGenuine()) }
     }
 
+    /// Check whether the presentation is genuine or not in asynchronous mode.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: flase if not genuine, true if genuine.
+    public func isGenuineAsync(listener: VerificationEventListener) -> Promise<Bool> {
+        return Promise<Bool> { $0.fulfill(try isGenuine(listener)) }
+    }
 
     /// Check whether the presentation is genuine or not in asynchronous mode with Object-C
     /// - Returns: flase if not genuine, true if genuine.
     @objc
     public func isGenuineAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            resolver(isGenuine)
+            do {
+                resolver(try isGenuine())
+            }
+            catch {
+                resolver(error)
+            }
         })
     }
 
+    /// Check whether the presentation is genuine or not in asynchronous mode with Object-C
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: flase if not genuine, true if genuine.
+    @objc (isGenuineWithListenerAsyncUsingObjectC:)
+    public func isGenuineAsyncUsingObjectC(listener: VerificationEventListener) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            do {
+                resolver(try isGenuine(listener))
+            }
+            catch {
+                resolver(error)
+            }
+        })
+    }
+    
     /// Check whether the presentation is valid or not.
+    /// - Throws: DIDResolveError if error occurs when resolve the DID
+    /// - Returns: whether the credential object is valid
     public func isValid() throws -> Bool {
+        return try isValid(nil)
+    }
+    
+    /// Check whether the presentation is valid or not.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Throws: DIDResolveError if error occurs when resolve the DID
+    /// - Returns: whether the credential object is valid
+    public func isValid(listener: VerificationEventListener) throws -> Bool {
+        return try isValid(listener)
+    }
+    
+    /// Check whether the presentation is valid or not.
+    func isValid(_ listener: VerificationEventListener?) throws -> Bool {
         let doc: DIDDocument?
         do {
             doc = try holder!.resolve()
         } catch {
             doc = nil
         }
-
+        if doc == nil {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): can not resolve the holder's document")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+        }
         // Check the validity of signer's document.
-        guard try doc!.isValid() else {
+        guard try doc!.isValid(listener) else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): holder's document is invalid")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+            
             return false
         }
         // Unsupported public key type.
         guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): Key type '\(proof.type)' for proof is not supported")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+            
             return false
         }
         // Credential should be signed by authenticationKey.
         guard try doc!.containsAuthenticationKey(forId: proof.verificationMethod) else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): Key '\(proof.verificationMethod)' for proof is not an authencation key of '\(String(describing: proof.verificationMethod.did))'")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+            
             return false
         }
 
         // All credentials should be owned by signer.
         for credential in self._verifiableCredentials.values {
             guard credential.subject!.did == holder else {
+                listener?.failed(context: self, args: "VP \(String(describing: id)): credential '\(String(describing: credential.id))' not owned by the holder '\(String(describing: holder))'")
+                listener?.failed(context: self, args: "VP \(String(describing: id)): is not genuine")
+                
                 return false
             }
-            guard credential.isValid else {
+            guard try credential.isValid(listener) else {
+                listener?.failed(context: self, args: "VP \(String(describing: id)): credential '\(String(describing: credential.id))' is invalid")
+                listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+                
                 return false
             }
         }
@@ -301,7 +402,16 @@ public class VerifiablePresentation: NSObject {
             data.append(d)
         }
 
-        return (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
+        let result = (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
+        
+        if (result) {
+            listener?.succeeded(context: self, args: "VP \(String(describing: id)): is valid")
+        } else {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): proof is invalid, signature mismatch")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+        }
+        
+        return result
     }
 
     /// Check whether the credential is valid in asynchronous mode.
@@ -310,12 +420,38 @@ public class VerifiablePresentation: NSObject {
         return Promise<Bool> { $0.fulfill(try isValid()) }
     }
 
+    /// Check whether the credential is valid in asynchronous mode.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: Returns: flase if not valid, true if valid.
+    public func isValidAsync(listener: VerificationEventListener) -> Promise<Bool> {
+        return Promise<Bool> { $0.fulfill(try isValid(listener)) }
+    }
+    
     /// Check whether the credential is valid in asynchronous mode with Object-C
     /// - Returns: flase if not valid, true if valid.
     @objc
     public func isValidAsyncUsingObjectC() -> AnyPromise {
         return AnyPromise(__resolverBlock: { [self] resolver in
-            resolver(isValid)
+            do {
+                resolver(try isValid())
+            }
+            catch {
+                resolver(error)
+            }
+        })
+    }
+    
+    /// Check whether the credential is valid in asynchronous mode with Object-C
+    /// - Returns: flase if not valid, true if valid.
+    @objc (isValidWithListenerAsyncUsingObjectC:)
+    public func isValidAsyncUsingObjectC(listener: VerificationEventListener) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { [self] resolver in
+            do {
+                resolver(try isValid(listener))
+            }
+            catch {
+                resolver(error)
+            }
         })
     }
 

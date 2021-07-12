@@ -126,75 +126,134 @@ public class TransferTicket: NSObject {
         return doc
     }
     
-      /// Check whether the ticket is genuine or not.
+    /// Check whether the ticket is genuine or not.
     /// - Returns: true is the ticket is genuine else false
     public func isGenuine() throws -> Bool {
+        return try isGenuine(nil)
+    }
+    
+    /// Check whether the ticket is genuine or not.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: true is the ticket is genuine else false
+    public func isGenuine(listener: VerificationEventListener) throws -> Bool {
+        return try isGenuine(listener)
+    }
+    
+    /// Check whether the ticket is genuine or not.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: true is the ticket is genuine else false
+    func isGenuine(_ listener: VerificationEventListener?) throws -> Bool {
         if doc == nil {
+            listener?.failed(context: self, args: "Ticket \(subject): can not resolve the owner document")
+            listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+            
             return false
         }
-        guard try doc!.isGenuine() else {
+        guard try doc!.isGenuine(listener) else {
+            listener?.failed(context: self, args: "Ticket \(subject): the owner document is not genuine")
+            listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+            
             return false
         }
         let tt = TransferTicket(self, false)
         // Proofs count should match with multisig
         if ((doc!.controllerCount() > 1 && proofs.count != doc!.multiSignature?.m) ||
                 (doc!.controllerCount() <= 1 && proofs.count != 1)) {
-            
+            listener?.failed(context: self, args: "Ticket \(subject): proof size not matched with multisig, \(String(describing: doc?.multiSignature?.m)) expected, actual is \(proofs.count)")
+            listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+
             return false
         }
 
         let json = tt.serialize()
         let digest = EcdsaSigner.sha256Digest([json.data(using: .utf8)!])
 
-        var checkedControllers: [DID] = []
         for proof in _proofs {
             guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+                listener?.failed(context: self, args: "Ticket \(subject): key type '\(proof.type)' for proof is not supported")
+                listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+
                 return false
             }
             let controllerDoc = doc!.controllerDocument(proof.verificationMethod.did!)
             if controllerDoc == nil {
+                listener?.failed(context: self, args: "Ticket \(subject): can not resolve the document for controller '\(String(describing: proof.verificationMethod.did))' to verify the proof")
+                listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+
                 return false
             }
             
-            guard try controllerDoc!.isValid() else {
+            guard try controllerDoc!.isValid(listener) else {
+                listener?.failed(context: self, args: "Ticket \(subject): controller '\(String(describing: proof.verificationMethod.did))' is invalid, failed to verify the proof")
+                listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+
                 return false
             }
-            // if already checked this controller
-            if (checkedControllers.contains(proof.verificationMethod.did!)){
-                return false
-            }
+
             guard proof.verificationMethod == controllerDoc?.defaultPublicKeyId() else {
+                listener?.failed(context: self, args: "Ticket \(subject): key '\(proof.verificationMethod)' for proof is not default key of '\(String(describing: proof.verificationMethod.did))'")
+                listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+
                 return false
             }
             
             guard try doc!.verifyDigest(withId: proof.verificationMethod, using: proof.signature, for: digest) else {
+                listener?.failed(context: self, args: "Ticket \(subject): proof '\(proof.verificationMethod)' is invalid, signature mismatch")
+                listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
+                
                 return false
             }
-
-            checkedControllers.append(proof.verificationMethod.did!)
         }
+        listener?.succeeded(context: self, args: "Ticket \(subject): is genuine")
+
         return true
     }
     
     /// Check whether the ticket is genuine and valid to use.
     /// - Returns: true is the ticket is valid else false
     public func isValid() throws -> Bool {
+        return try isValid(nil)
+    }
+    
+    /// Check whether the ticket is genuine and valid to use.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: true is the ticket is valid else false
+    public func isValid(listener: VerificationEventListener) throws -> Bool {
+        return try isValid(listener)
+    }
+    
+    /// Check whether the ticket is genuine and valid to use.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// - Returns: true is the ticket is valid else false
+    func isValid(_ listener: VerificationEventListener?) throws -> Bool {
         let doc = try document()
         if doc == nil {
+            listener?.failed(context: self, args: "Ticket \(subject): can not resolve the owners document")
+            listener?.failed(context: self, args: "Ticket \(subject): is not valid")
+
             return false
         }
         
-        guard try doc!.isValid() else {
+        guard try doc!.isValid(listener) else {
+            listener?.failed(context: self, args: "Ticket \(subject): the owners document is not valid")
+            listener?.failed(context: self, args: "Ticket \(subject): is not valid")
+
             return false
         }
-        guard try isGenuine() else {
+        guard try isGenuine(listener) else {
+            listener?.failed(context: self, args: "Ticket \(subject): is not valid")
+
             return false
         }
         
         guard txid == doc!.getMetadata().transactionId else {
+            listener?.failed(context: self, args: "Ticket \(subject): the transaction id already out date")
+            listener?.failed(context: self, args: "Ticket \(subject): is not valid")
+
             return false
         }
-        
+        listener?.succeeded(context: self, args: "Ticket \(subject): is valid")
+
         return true
     }
     

@@ -1868,9 +1868,25 @@ public class DIDDocument: NSObject {
     /// Check is this DIDDocument is genuine.
     /// true if genuine, false otherwise
     public func isGenuine() throws -> Bool {
+        return try isGenuine(nil)
+    }
+    
+    /// Check is this DIDDocument is genuine.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// true if genuine, false otherwise
+    public func isGenuine(listener: VerificationEventListener) throws -> Bool {
+        return try isGenuine(listener)
+    }
+    
+    /// Check is this DIDDocument is genuine.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// true if genuine, false otherwise
+    func isGenuine(_ listener: VerificationEventListener?) throws -> Bool {
         // Proofs count should match with multisig
         let expectedProofs = _multisig == nil ? 1 : _multisig!.m
         if _proofsDic.count != expectedProofs {
+            listener?.failed(context: self, args: "\(subject): proof size not matched with multisig, \(String(describing: multiSignature?.m)) expected, actual is \(_proofsDic.count)")
+            listener?.failed(context: self, args: "\(subject): is not genuine")
             return false
         }
         let doc = DIDDocument(self, false)
@@ -1884,35 +1900,64 @@ public class DIDDocument: NSObject {
             let proof = self.proof
             // Unsupported public key type;
             guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+                listener?.failed(context: self, args: "\(subject): key type '\(proof.type)' for proof is not supported")
+                listener?.failed(context: self, args: "\(subject): is not genuine")
                 return false
             }
             
             guard proof.creator == defaultPublicKeyId() else {
+                listener?.failed(context: self, args: "\(subject): key '\(String(describing: proof.creator))' for proof is not default key")
+                listener?.failed(context: self, args: "\(subject): is not genuine")
                 return false
             }
             let result = try verifyDigest(withId: proof.creator!, using: proof.signature, for: digest)
+            if (result) {
+                listener?.succeeded(context: self, args: "\(subject): is genuine")
+            } else {
+                listener?.failed(context: self, args: "\(subject): can not verify the signature")
+                listener?.failed(context: self, args: "\(subject): is not genuine")
+            }
+            
             return result
         }
         else {
             for proof in _proofs {
                 // Unsupported public key type;
                 guard proof.type == Constants.DEFAULT_PUBLICKEY_TYPE else {
+                    listener?.failed(context: self, args: "\(subject): key type '\(proof.type)' for proof is not supported")
+                    listener?.failed(context: self, args: "\(subject): is not genuine")
+                    
                     return false
                 }
                 let controllerDoc = controllerDocument(proof.creator!.did!)
                 guard controllerDoc != nil else {
+                    listener?.failed(context: self, args: "\(subject): can not resolve the document for controller '\(String(describing: proof.creator?.did))' to verify the proof")
+                    listener?.failed(context: self, args: "\(subject): is not genuine")
+                    
                     return false
                 }
                 guard try controllerDoc!.isGenuine() else {
+                    listener?.failed(context: self, args: "\(subject): controller '\(String(describing: proof.creator?.did))' is not genuine, failed to verify the proof")
+                    listener?.failed(context: self, args: "\(subject): is not genuine")
+                    
                     return false
                 }
                 guard proof.creator == controllerDoc!.defaultPublicKeyId() else {
+                    listener?.failed(context: self, args: "\(subject): key '\(String(describing: proof.creator))' for proof is not default key of '\(String(describing: proof.creator?.did))'")
+                    listener?.failed(context: self, args: "\(subject): is not genuine")
+                    
                     return false
                 }
                 guard try controllerDoc!.verifyDigest(withId: proof.creator!, using: proof.signature, for: digest) else {
+                    listener?.failed(context: self, args: "\(subject): proof '\(String(describing: proof.creator))' is invalid, signature mismatch")
+                    listener?.failed(context: self, args: "\(subject): is not genuine")
+                    
                     return false
                 }
             }
+            
+            listener?.succeeded(context: self, args: "\(subject): is genuine")
+            
             return true
         }
     }
@@ -1931,16 +1976,55 @@ public class DIDDocument: NSObject {
     /// Check if this DIDDocument is valid.
     /// true if valid, false otherwise
     public func isValid() throws -> Bool {
-        if try isDeactivated || isExpired || !isGenuine() {
+        return try isValid(nil)
+    }
+    
+    /// Check if this DIDDocument is valid.
+    /// - Parameter listener: the listener for the verification events and messages
+    /// true if valid, false otherwise
+    public func isValid(listener: VerificationEventListener) throws -> Bool {
+        return try isValid(listener)
+    }
+    
+    /// Check if this DIDDocument is valid.
+    /// true if valid, false otherwise
+    func isValid(_ listener: VerificationEventListener?) throws -> Bool {
+        if (isDeactivated) {
+            listener?.failed(context: self, args: "\(subject): is deactivated")
+            listener?.failed(context: self, args: "\(subject): is invalid")
             return false
         }
+        
+        if (isExpired) {
+            listener?.failed(context: self, args: "\(subject): is expired")
+            listener?.failed(context: self, args: "\(subject): is invalid")
+            
+            return false
+        }
+        
+        if (try !isGenuine(listener)) {
+            listener?.failed(context: self, args: "\(subject): is invalid")
+            return false
+        }
+        
         if hasController() {
             for doc in _controllerDocs.values {
-                if try doc.isDeactivated || !doc.isGenuine() {
+                if (doc.isDeactivated) {
+                    listener?.failed(context: self, args: "\(subject): controller \(doc.subject)' is deactivated")
+                    listener?.failed(context: self, args: "\(subject): is invalid")
+                    
+                    return false
+                }
+                
+                if try !doc.isGenuine(listener) {
+                    listener?.failed(context: self, args: "\(subject): controller '\(doc.subject)' is not genuine")
+                    listener?.failed(context: self, args: "\(subject): is invalid")
+                    
                     return false
                 }
             }
         }
+        listener?.succeeded(context: self, args: "\(subject): is valid")
         
         return true
     }

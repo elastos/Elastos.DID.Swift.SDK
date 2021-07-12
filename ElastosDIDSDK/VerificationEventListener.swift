@@ -22,13 +22,26 @@
 
 import Foundation
 
-/// A filter for DIDURLs.
-/// Instances of this interface may be passed to the
-/// listCredentials(CredentialFilter) method of the DIDStore class.
-public protocol CredentialFilter {
+public class VerificationEventListener: NSObject {
     
-    /// Tests whether or not the specified id should be included in a id list.
-    /// - Parameter id: the DIDURL to be tested
-    /// - Return true if and only if DIDURL should be included
-    func accept(_ id: DIDURL) -> Bool
+    func done(context: NSObject, succeeded: Bool, message: String) {}
+    
+    func succeeded(context: NSObject, args: String...) {
+        var message = ""
+        args.forEach { msg in
+            message.append(msg)
+            message.append(" ")
+        }
+        done(context: context, succeeded: true, message: message)
+    }
+    
+    func failed(context: NSObject, args: String...) {
+        var message = ""
+        args.forEach { msg in
+            message.append(msg)
+            message.append(" ")
+        }
+        done(context: context, succeeded: false, message: message)
+    }
 }
+

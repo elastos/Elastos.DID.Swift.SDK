@@ -281,6 +281,7 @@
 		11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9C623545A5700453218 /* DIDStoreTests.swift */; };
 		11D6254B269C1FEB0017E19D /* DIDFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254A269C1FEB0017E19D /* DIDFilter.swift */; };
 		11D6254F269C1FFA0017E19D /* CredentialFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254E269C1FFA0017E19D /* CredentialFilter.swift */; };
+		11D62553269C29910017E19D /* VerificationEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D62552269C29910017E19D /* VerificationEventListener.swift */; };
 		11D8DBD22438CB8300E8E787 /* DIDTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */; };
 		11E09CBC23A8DB5A009B6A8D /* IssuerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */; };
 		11E09CBE23A8E033009B6A8D /* RootIdentityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBD23A8E033009B6A8D /* RootIdentityTest.swift */; };
@@ -656,6 +657,7 @@
 		11D4B9C623545A5700453218 /* DIDStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDStoreTests.swift; sourceTree = "<group>"; };
 		11D6254A269C1FEB0017E19D /* DIDFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDFilter.swift; sourceTree = "<group>"; };
 		11D6254E269C1FFA0017E19D /* CredentialFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialFilter.swift; sourceTree = "<group>"; };
+		11D62552269C29910017E19D /* VerificationEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationEventListener.swift; sourceTree = "<group>"; };
 		11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransaction.swift; sourceTree = "<group>"; };
 		11DA06DD238B7B750066CC86 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = ElastosDIDSDKTests/spvadapter/lib/libspvsdk.a; sourceTree = "<group>"; };
 		11DA06DE238B7B750066CC86 /* libcjson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcjson.a; path = ElastosDIDSDKTests/spvadapter/lib/libcjson.a; sourceTree = "<group>"; };
@@ -1246,6 +1248,7 @@
 				A31ACDFF23F199AE008EC032 /* FileSystemStorage.swift */,
 				11D6254A269C1FEB0017E19D /* DIDFilter.swift */,
 				11D6254E269C1FFA0017E19D /* CredentialFilter.swift */,
+				11D62552269C29910017E19D /* VerificationEventListener.swift */,
 				11F262AD23260CF40009C103 /* ElastosDIDSDK.h */,
 				11F262AE23260CF40009C103 /* Info.plist */,
 			);
@@ -1742,6 +1745,7 @@
 				11D1F794257F3A5400BC5A54 /* PredicateTransition.swift in Sources */,
 				11C3ECF02477807300DF1B4F /* NoneAlgorithm.swift in Sources */,
 				11D1F72D257F3A5400BC5A54 /* ParseTreePatternMatcher.swift in Sources */,
+				11D62553269C29910017E19D /* VerificationEventListener.swift in Sources */,
 				A31ACE5F23F19A4E008EC032 /* DIDStoreMetadata.swift in Sources */,
 				A31ACE6B23F19A66008EC032 /* IDChainRequestOperation.swift in Sources */,
 				A31ACE6A23F19A66008EC032 /* ResolveResult.swift in Sources */,
