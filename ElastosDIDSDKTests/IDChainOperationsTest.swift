@@ -878,6 +878,23 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertEqual(5, restoredDids.count)
             
             _ = IDChainOperationsTest.dids
+            //create a credential for testing lazy private key
+            let did = restoredDids[0]
+            let issuer = try VerifiableCredentialIssuer(did, cleanStore)
+            
+            let props = ["name": "John", "gender": "Male"]
+            let cb = issuer.editingVerifiableCredentialFor(did: did)
+            let vc = try cb.withId("#selfCredential")
+                .withTypes("BasicProfileCredential")
+                .withProperties(props)
+                .sealed(using: storePassword)
+            let result = vc.subject!.getPropertyAsString(ofName: "name")
+            print(result)
+            XCTAssertEqual("John", result)
+            
+            let originalDids = IDChainOperationsTest.dids
+            
+            XCTAssertEqual(originalDids[0], restoredDids[0])
         } catch {
             XCTFail()
         }

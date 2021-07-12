@@ -969,13 +969,16 @@ public class DIDStore: NSObject {
     /// - Returns: the original private key
     func loadPrivateKey(_ id: DIDURL, _ storePassword: String) throws -> Data? {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+
         let encryptedKey = try loadPrivateKey(id)
-        guard encryptedKey != DIDStore.DID_LAZY_PRIVATEKEY else {
+        if (encryptedKey == nil || encryptedKey!.isEmpty) {
+            return nil
+        } else if (encryptedKey == DIDStore.DID_LAZY_PRIVATEKEY) {
             // fail-back to lazy private key generation
             return try RootIdentity.lazyCreateDidPrivateKey(id, self, storePassword)
+        } else {
+            return try decrypt(encryptedKey!, storePassword)
         }
-        
-        return try decrypt(encryptedKey!, storePassword)
     }
     
     /// Check if this store contains the specific private key.
@@ -983,7 +986,8 @@ public class DIDStore: NSObject {
     ///   - id: the key id
     /// - Returns: true if this store contains the specific key, false otherwise
     public func containsPrivateKey(for id: DIDURL) throws -> Bool {
-        return try loadPrivateKey(id) != nil
+        let privatekey = try loadPrivateKey(id)
+        return privatekey != nil && !privatekey!.isEmpty
     }
     
     /// Check if this store contains the specific private key.
