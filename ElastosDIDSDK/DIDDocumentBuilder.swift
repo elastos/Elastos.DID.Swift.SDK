@@ -495,7 +495,7 @@ public class DIDDocumentBuilder: NSObject {
         return try appendAuthorizationKey(DIDURL(getSubject(), id), controller, keyBase58)
     }
                  
-    private func authorizationDid(_ id: DIDURL,
+    private func authorizeDID(_ id: DIDURL,
                                   _ controller: DID,
                                   _ key: DIDURL?) throws -> DIDDocumentBuilder {
         try checkNotSealed()
@@ -540,11 +540,11 @@ public class DIDDocumentBuilder: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
-    public func authorizationDid(with id: DIDURL,
+    public func authorizeDID(with id: DIDURL,
                               controller: DID,
                                      key: DIDURL) throws -> DIDDocumentBuilder {
 
-        return try authorizationDid(id, controller, key)
+        return try authorizeDID(id, controller, key)
     }
 
     /// Add Authorization key to Authentication array according to DID.
@@ -556,10 +556,10 @@ public class DIDDocumentBuilder: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
-    public func authorizationDid(with id: DIDURL,
+    public func authorizeDID(with id: DIDURL,
                               controller: DID) throws -> DIDDocumentBuilder {
 
-        return try authorizationDid(id, controller, nil)
+        return try authorizeDID(id, controller, nil)
     }
 
     /// Add Authorization key to Authentication array according to DID.
@@ -571,14 +571,14 @@ public class DIDDocumentBuilder: NSObject {
     ///   - key: An identifier of authorization key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(authorizationDid:controller:key:error:)
-    public func authorizationDid(with id: String,
+    @objc(authorizeDID:controller:key:error:)
+    public func authorizeDID(with id: String,
                               controller: String,
                                      key: String) throws -> DIDDocumentBuilder {
         let controllerId = try DID(controller)
         let usedKey:DIDURL = try DIDURL(controllerId, key)
 
-        return try authorizationDid(DIDURL(getSubject(), id), controllerId, usedKey)
+        return try authorizeDID(DIDURL(getSubject(), id), controllerId, usedKey)
     }
 
     /// Add Authorization key to Authentication array according to DID.
@@ -589,11 +589,11 @@ public class DIDDocumentBuilder: NSObject {
     ///   - controller: A controller property, identifies the controller of the corresponding private key.
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
-    @objc(authorizationDid:controller:error:)
-    public func authorizationDid(with id: String,
+    @objc(authorizeDID:controller:error:)
+    public func authorizeDID(with id: String,
                               controller: String) throws -> DIDDocumentBuilder {
 
-        return try authorizationDid(DIDURL(getSubject(), id), DID(controller), nil)
+        return try authorizeDID(DIDURL(getSubject(), id), DID(controller), nil)
     }
 
     private func removeAuthorizationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
