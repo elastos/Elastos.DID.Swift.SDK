@@ -222,6 +222,40 @@ public class RootIdentity: NSObject {
         return id!
     }
     
+    /// Get RootIdentity Id from mnemonic and an optional passphrase.
+    /// - Parameters:
+    ///   - mnemonic: the mnemonic string
+    ///   - passphrase: the extra passphrase to generate seed with the mnemonic
+    /// - Returns: the RootIdentity Id
+    public static func getId(mnemonic: String, passphrase: String = "") throws -> String {
+        try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
+        do {
+            try checkArgument(Mnemonic.checkIsValid(mnemonic), "Invalid mnemonic.")
+        } catch {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(error.localizedDescription)
+        }
+
+        let identity = try RootIdentity(mnemonic, passphrase)
+        let id = try identity.getId()
+        try identity.wipe()
+
+        return id
+    }
+    
+    /// Get a RootIdentity Id from a root extended private key.
+    /// - Parameter extentedPrivateKey: extentedPrivateKey the root extended private key
+    /// - Returns: the RootIdentity Id
+    public static func getId(with extentedPrivateKey: String) throws -> String {
+        try checkArgument(!extentedPrivateKey.isEmpty, "Invalid extended private key")
+        let rootPrivateKey = DIDHDKey.deserializeBase58(extentedPrivateKey)
+
+        let identity = try RootIdentity(rootPrivateKey)
+        let id = try identity.getId()
+        try identity.wipe()
+
+        return id
+    }
+
     /// Get the alias of this RootIdentity object.
     /// Set the alias for this RootIdentity object.
     public var alias: String? {
