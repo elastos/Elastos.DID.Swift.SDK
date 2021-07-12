@@ -2806,6 +2806,14 @@ public class DIDDocument: NSObject {
                 Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
             }
+            if (isCustomizedDid()) {
+                let orgControllers = resolvedDoc?.controllers()
+                let curControllers = controllers()
+
+                if curControllers != orgControllers {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDControllersChangedError()
+                }
+            }
             resolvedSignature = resolvedDoc!.proof.signature
             if !force {
                 let localPrevSignature = getMetadata().previousSignature
