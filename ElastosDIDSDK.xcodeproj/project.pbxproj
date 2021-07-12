@@ -279,6 +279,8 @@
 		11D1F7A3257F3A5400BC5A54 /* ParserRuleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1F70B257F3A5400BC5A54 /* ParserRuleContext.swift */; };
 		11D4B9B523535E7000453218 /* DIDDoucumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */; };
 		11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D4B9C623545A5700453218 /* DIDStoreTests.swift */; };
+		11D6254B269C1FEB0017E19D /* DIDFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254A269C1FEB0017E19D /* DIDFilter.swift */; };
+		11D6254F269C1FFA0017E19D /* CredentialFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254E269C1FFA0017E19D /* CredentialFilter.swift */; };
 		11D8DBD22438CB8300E8E787 /* DIDTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */; };
 		11E09CBC23A8DB5A009B6A8D /* IssuerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */; };
 		11E09CBE23A8E033009B6A8D /* RootIdentityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E09CBD23A8E033009B6A8D /* RootIdentityTest.swift */; };
@@ -652,6 +654,8 @@
 		11D3C06F23815E4300875E51 /* libcurl.la */ = {isa = PBXFileReference; lastKnownFileType = text; name = libcurl.la; path = Externals/libhdkey/libcurl.la; sourceTree = "<group>"; };
 		11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDDoucumentTests.swift; sourceTree = "<group>"; };
 		11D4B9C623545A5700453218 /* DIDStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDStoreTests.swift; sourceTree = "<group>"; };
+		11D6254A269C1FEB0017E19D /* DIDFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDFilter.swift; sourceTree = "<group>"; };
+		11D6254E269C1FFA0017E19D /* CredentialFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialFilter.swift; sourceTree = "<group>"; };
 		11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransaction.swift; sourceTree = "<group>"; };
 		11DA06DD238B7B750066CC86 /* libspvsdk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspvsdk.a; path = ElastosDIDSDKTests/spvadapter/lib/libspvsdk.a; sourceTree = "<group>"; };
 		11DA06DE238B7B750066CC86 /* libcjson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcjson.a; path = ElastosDIDSDKTests/spvadapter/lib/libcjson.a; sourceTree = "<group>"; };
@@ -1240,6 +1244,8 @@
 				11BE33D12608513A00DEBD00 /* RootIdentity.swift */,
 				A31ACDFB23F199AE008EC032 /* DIDStorage.swift */,
 				A31ACDFF23F199AE008EC032 /* FileSystemStorage.swift */,
+				11D6254A269C1FEB0017E19D /* DIDFilter.swift */,
+				11D6254E269C1FFA0017E19D /* CredentialFilter.swift */,
 				11F262AD23260CF40009C103 /* ElastosDIDSDK.h */,
 				11F262AE23260CF40009C103 /* Info.plist */,
 			);
@@ -1750,6 +1756,7 @@
 				11D1F716257F3A5400BC5A54 /* Stack.swift in Sources */,
 				119B29A32578ED210084B859 /* ECPrivateKey.swift in Sources */,
 				11D1F762257F3A5400BC5A54 /* ATNConfigSet.swift in Sources */,
+				11D6254F269C1FFA0017E19D /* CredentialFilter.swift in Sources */,
 				110AD2FF234E44C8006578D6 /* Base58.swift in Sources */,
 				11D1F732257F3A5400BC5A54 /* RuleNode.swift in Sources */,
 				11D1F73D257F3A5400BC5A54 /* VocabularySingle.swift in Sources */,
@@ -1842,6 +1849,7 @@
 				11D1F751257F3A5400BC5A54 /* ANTLRFileStream.swift in Sources */,
 				11D1F712257F3A5400BC5A54 /* StringExtension.swift in Sources */,
 				11D1F770257F3A5400BC5A54 /* ProfilingATNSimulator.swift in Sources */,
+				11D6254B269C1FEB0017E19D /* DIDFilter.swift in Sources */,
 				A31ACE0C23F199AE008EC032 /* Constants.swift in Sources */,
 				11D1F71C257F3A5400BC5A54 /* Utils.swift in Sources */,
 				119B29A02578ED210084B859 /* ECSignable.swift in Sources */,
