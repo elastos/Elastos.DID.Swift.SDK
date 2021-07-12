@@ -185,6 +185,8 @@ extension DIDError.UncheckedError.IllegalStateError: LocalizedError {
             return des
         case .UnknownInternalError(let des):
             return des
+        case .DIDControllersChangedError(let des):
+            return des
         }
     }
 }
