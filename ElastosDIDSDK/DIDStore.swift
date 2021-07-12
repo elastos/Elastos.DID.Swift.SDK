@@ -693,6 +693,24 @@ public class DIDStore: NSObject {
         return dids
     }
     
+    /// List all DIDs that satisfy the specified filter from this store.
+    /// - Parameter filter: a DID filter
+    /// - Throws: DIDStoreException if an error occurred when accessing the store
+    /// - Returns: an array of DIDs
+    public func listDids(_ filter: DIDFilter) throws -> [DID] {
+        let dids = try listDids()
+
+        var dest: [DID] = []
+
+            for did in dids {
+                if (filter.accept(did)) {
+                    dest.append(did)
+                }
+            }
+
+        return dest
+    }
+    
     /// Save the credential object to this store.
     /// - Parameter credential: a VerifiableCredential object
     /// - Throws:  DIDStoreError if an error occurred when accessing the store
@@ -908,6 +926,40 @@ public class DIDStore: NSObject {
         return try listCredentials(for: DID(did))
     }
     
+    /// List all credentials that owned the specific DID and satisfy the
+    /// specified filter from this store.
+    /// - Parameters:
+    ///   - did: the credential owner's DID
+    ///   - filter: a credential filter
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of DIDURL denoting the credentials
+    public func listCredentials(_ did: DID, _ filter: CredentialFilter)
+    throws -> [DIDURL] {
+        
+        let vcs = try listCredentials(for: did)
+        
+        var dest: [DIDURL] = []
+        for id in vcs {
+            if (filter.accept(id)) {
+                dest.append(id)
+            }
+        }
+        
+        return dest
+    }
+
+    /// List all credentials that owned the specific DID and satisfy the
+    /// specified filter from this store.
+    /// - Parameters:
+    ///   - did: the credential owner's DID
+    ///   - filter: a credential filter
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: an array of DIDURL denoting the credentials
+    public func listCredentials(_ did: String, _ filter: CredentialFilter)
+            throws -> [DIDURL] {
+        return try listCredentials(DID.valueOf(did)!, filter)
+    }
+
     /// Save the DID's lazy private key string to the store.
     /// - Parameter id: the private key id
     /// - Throws: if an error occurred when accessing the store
