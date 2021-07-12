@@ -216,6 +216,12 @@ public class DIDBackend: NSObject {
     public class func sharedInstance() -> DIDBackend {
             return instance!
     }
+
+    /// Check if the DIDBackend already initialized.
+    /// - Returns: the DIDBackend initialized or not
+    public class func isInitialized() -> Bool {
+        return instance != nil
+    }
     
     private func generateRequestId() -> String {
         var requestId = ""
