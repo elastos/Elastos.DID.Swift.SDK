@@ -4647,9 +4647,9 @@ class DIDDoucumentTests: XCTestCase {
 
             var target = try identity.newDid(storePassword)
             let db = try target.editing()
-            _ = try db.authorizationDid(with: "#recovery", controller: doc.subject.toString())
+            _ = try db.authorizeDID(with: "#recovery", controller: doc.subject.toString())
             target = try db.sealed(using: storePassword)
-            XCTAssertNotNil(target);
+            XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
             try store!.storeDid(using: target)
@@ -4658,7 +4658,7 @@ class DIDDoucumentTests: XCTestCase {
 
             resolved = try target.subject.resolve()
             XCTAssertNotNil(resolved);
-            XCTAssertEqual(target.toString(), resolved?.toString());
+            XCTAssertEqual(target.toString(), resolved?.toString())
 
             try doc.deactivate(with: target.subject, using: storePassword)
             target = try target.subject.resolve()!
