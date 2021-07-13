@@ -2896,6 +2896,13 @@ public class DIDDocument: NSObject {
                 if curControllers != orgControllers {
                     throw DIDError.UncheckedError.IllegalStateError.DIDControllersChangedError()
                 }
+                
+                let curMultisig = multiSignature == nil ? MultiSignature.ONE_OF_ONE : multiSignature
+                let orgMultisig = resolvedDoc?.multiSignature == nil ? MultiSignature.ONE_OF_ONE : resolvedDoc?.multiSignature
+
+                if curMultisig != orgMultisig {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDControllersChangedError()
+                }
             }
             resolvedSignature = resolvedDoc!.proof.signature
             if !force {
