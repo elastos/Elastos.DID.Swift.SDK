@@ -25,6 +25,8 @@ import Foundation
 /// MultiSignature is a digital signature scheme which allows a group of
 /// users to sign a single document.
 public class MultiSignature: NSObject {
+    static let ONE_OF_ONE = try? MultiSignature(1, 1)
+
     private var _m: Int
     private var _n: Int
     
@@ -70,9 +72,8 @@ public class MultiSignature: NSObject {
     }
     
     func apply(_ m: Int, _ n: Int) throws {
-        if (m <= 0 || n <= 1 || m > n) {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid multisig spec")
-        }
+        try checkArgument(n > 0, "Invalid multisig spec: n should > 1");
+        try checkArgument(m > 0 && m <= n,  "Invalid multisig spec: m should > 0 and <= n");
     }
     
     /// Get the m of requested signatures.
@@ -100,9 +101,6 @@ public class MultiSignature: NSObject {
 ///            equivalent to this object, false otherwise
 extension MultiSignature {
     public func equalsTo(_ other: MultiSignature) -> Bool {
-        if (self == other) {
-            return true
-        }
         return m == other.m && n == other.n
     }
 
