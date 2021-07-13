@@ -362,7 +362,7 @@ extension DIDURL {
         override func exitMethod(_ ctx: DIDURLParser.MethodContext) {
             let method = ctx.getText()
             if  method != Constants.METHOD {
-                print("Unknown method: \(method)")
+                Log.d(NSStringFromClass(Listener.self), "Unknown method: \(method)")
             }
             self.didURL?.did!.setMethod(Constants.METHOD)
         }

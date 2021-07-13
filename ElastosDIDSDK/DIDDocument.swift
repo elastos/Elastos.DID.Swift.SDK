@@ -1891,7 +1891,6 @@ public class DIDDocument: NSObject {
         }
         let doc = DIDDocument(self, false)
         let json = doc.toString(true)
-        print("json == \(json)")
         let jsonData = json.data(using: .utf8)
         let digest = sha256Digest([jsonData!])
         
