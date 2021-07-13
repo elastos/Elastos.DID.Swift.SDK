@@ -24,9 +24,6 @@ extension String {
             let firstWord = self[..<index]
             let lastWord = self[endIndex...]
             
-            print("lastWord == \(lastWord)")
-            print("firstWord == \(firstWord)")
-            
             return [String(firstWord), String(lastWord)]
         }
         

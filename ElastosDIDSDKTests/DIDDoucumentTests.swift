@@ -7,6 +7,8 @@ class DIDDoucumentTests: XCTestCase {
     var store: DIDStore?
     var simulatedIDChain: SimulatedIDChain = SimulatedIDChain()
     var adapter: SimulatedIDChainAdapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+    var debug = TestEventListener()
+    
     override func setUp() {
         testData = TestData()
         store = testData?.store!
@@ -38,7 +40,7 @@ class DIDDoucumentTests: XCTestCase {
         do {
             let doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             XCTAssertEqual(4, doc.publicKeyCount)
 
             // Count and list.
@@ -114,7 +116,7 @@ class DIDDoucumentTests: XCTestCase {
             
             let doc = try cd.getDocument("examplecorp")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(1, doc.publicKeyCount)
@@ -171,7 +173,7 @@ class DIDDoucumentTests: XCTestCase {
             let user3 = try cd.getDocument("user3")
             let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(7, doc.publicKeyCount)
@@ -266,7 +268,7 @@ class DIDDoucumentTests: XCTestCase {
             let user3 = try cd.getDocument("user3")
             let doc = try cd.getDocument("baz")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(5, doc.publicKeyCount)
@@ -354,7 +356,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing()
             
@@ -368,7 +370,7 @@ class DIDDoucumentTests: XCTestCase {
             
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check existence
             var pk = try doc.publicKey(ofId: "#test1")
@@ -401,7 +403,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user1)
 
@@ -416,7 +418,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check existence
             var pk = try doc.publicKey(ofId: "#test1")
@@ -450,7 +452,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing()
             
@@ -494,7 +496,7 @@ class DIDDoucumentTests: XCTestCase {
             
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check existence
             var pk = try doc.publicKey(ofId: "#recovery")
@@ -525,7 +527,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user2)
 
@@ -566,7 +568,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check existence
             var pk = try doc.publicKey(ofId: "#key2")
@@ -598,7 +600,7 @@ class DIDDoucumentTests: XCTestCase {
             
             let doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Count and list.
             XCTAssertEqual(3, doc.authenticationKeyCount)
@@ -665,7 +667,7 @@ class DIDDoucumentTests: XCTestCase {
             let issuer = try cd.getDocument("issuer")
             let doc = try cd.getDocument("examplecorp")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(1, doc.authenticationKeyCount)
@@ -719,7 +721,7 @@ class DIDDoucumentTests: XCTestCase {
             let user3 = try cd.getDocument("user3")
             let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(7, doc.authenticationKeyCount)
@@ -811,7 +813,7 @@ class DIDDoucumentTests: XCTestCase {
             let user3 = try cd.getDocument("user3")
             let doc = try cd.getDocument("baz")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(5, doc.authenticationKeyCount)
@@ -896,7 +898,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing()
             
@@ -941,7 +943,7 @@ class DIDDoucumentTests: XCTestCase {
             
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check existence
             var pk = try doc.authenticationKey(ofId: "#test1")
@@ -978,7 +980,7 @@ class DIDDoucumentTests: XCTestCase {
             let user3 = try cd.getDocument("user3")
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user1)
 
@@ -1036,7 +1038,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user3.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check existence
             var pk = try doc.authenticationKey(ofId: "#test1")
@@ -1078,7 +1080,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing()
             
@@ -1116,7 +1118,7 @@ class DIDDoucumentTests: XCTestCase {
             
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check existence
             var pk = try doc.authenticationKey(ofId: "#test1")
@@ -1150,7 +1152,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(7, doc.publicKeyCount)
             XCTAssertEqual(7, doc.authenticationKeyCount)
@@ -1186,7 +1188,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check existence
             var pk = try doc.authenticationKey(ofId: "#key2")
@@ -1225,7 +1227,7 @@ class DIDDoucumentTests: XCTestCase {
 
         let doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Count and list.
         XCTAssertEqual(1, doc.authorizationKeyCount)
@@ -1284,7 +1286,7 @@ class DIDDoucumentTests: XCTestCase {
 
             let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(0, doc.authorizationKeyCount)
@@ -1317,7 +1319,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -1368,7 +1370,7 @@ class DIDDoucumentTests: XCTestCase {
 
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         var pk = try doc.authorizationKey(ofId: "#test1")
         XCTAssertNotNil(pk)
@@ -1405,7 +1407,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let did = doc.subject
             let db = try doc.editing(user1)
@@ -1458,7 +1460,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             var pk = try doc.authorizationKey(ofId: "#test1")
             XCTAssertNil(pk)
@@ -1502,7 +1504,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -1531,7 +1533,7 @@ class DIDDoucumentTests: XCTestCase {
 
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Check existence
         var pk = try doc.authorizationKey(ofId: "#test1")
@@ -1578,7 +1580,7 @@ class DIDDoucumentTests: XCTestCase {
 
         let doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Count and list.
         XCTAssertEqual(2, doc.credentialCount)
@@ -1638,7 +1640,7 @@ class DIDDoucumentTests: XCTestCase {
 
             let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list.
             XCTAssertEqual(2, doc.credentialCount)
@@ -1710,7 +1712,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try cd.getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -1733,7 +1735,7 @@ class DIDDoucumentTests: XCTestCase {
 
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Check new added credential.
         vc = try doc.credential(ofId: "#passport")!
@@ -1762,7 +1764,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user1)
 
@@ -1795,7 +1797,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check new added credential.
             vc = try doc.credential(ofId: "#license")!
@@ -1834,7 +1836,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -1850,7 +1852,7 @@ class DIDDoucumentTests: XCTestCase {
 
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Check new added credential.
         var vc = try doc.credential(ofId: "#passport")
@@ -1886,7 +1888,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user2)
 
@@ -1903,7 +1905,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check new added credential.
             var vc = try doc.credential(ofId: "#testvc")
@@ -1951,7 +1953,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try cd.getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -1987,7 +1989,7 @@ class DIDDoucumentTests: XCTestCase {
 
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc);
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Check existence
         vc = try doc.credential(ofId: "#profile")
@@ -2013,7 +2015,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing(user1)
             
@@ -2043,7 +2045,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check existence
             var vc = try doc.credential(ofId: "#profile")
@@ -2080,7 +2082,7 @@ class DIDDoucumentTests: XCTestCase {
 
         let doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Count and list
         XCTAssertEqual(3, doc.serviceCount)
@@ -2157,7 +2159,7 @@ class DIDDoucumentTests: XCTestCase {
 
             let doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Count and list
             XCTAssertEqual(2, doc.serviceCount)
@@ -2231,7 +2233,7 @@ class DIDDoucumentTests: XCTestCase {
 
         var doc = try testData!.getCompatibleData(version).getDocument("user1")
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         let db = try doc.editing()
 
@@ -2253,7 +2255,7 @@ class DIDDoucumentTests: XCTestCase {
         
         doc = try db.sealed(using: storePassword)
         XCTAssertNotNil(doc)
-        XCTAssertTrue(try doc.isValid())
+        XCTAssertTrue(try doc.isValid(debug))
 
         // Check the final count
         XCTAssertEqual(5, doc.serviceCount)
@@ -2302,7 +2304,7 @@ class DIDDoucumentTests: XCTestCase {
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let db = try doc.editing()
             
@@ -2327,7 +2329,7 @@ class DIDDoucumentTests: XCTestCase {
             
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             // Check the final count
             XCTAssertEqual(6, doc.serviceCount)
@@ -2364,7 +2366,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user3)
 
@@ -2387,7 +2389,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check the final count
             XCTAssertEqual(4, doc.serviceCount)
@@ -2415,7 +2417,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user3)
 
@@ -2463,7 +2465,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             // Check the final count
             XCTAssertEqual(5, doc.serviceCount)
@@ -2504,7 +2506,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing()
 
@@ -2523,7 +2525,7 @@ class DIDDoucumentTests: XCTestCase {
 
             doc = try db.sealed(using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             var svc = try doc.service(ofId: "#openid")
             XCTAssertNil(svc)
@@ -2551,7 +2553,7 @@ class DIDDoucumentTests: XCTestCase {
 
             var doc = try cd.getDocument("foobar")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             let db = try doc.editing(user1)
 
@@ -2572,7 +2574,7 @@ class DIDDoucumentTests: XCTestCase {
             doc = try db.sealed(using: storePassword)
             doc = try user3.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             var svc = try doc.service(ofId: "#openid")
             XCTAssertNil(svc)
@@ -2631,16 +2633,16 @@ class DIDDoucumentTests: XCTestCase {
             let compactJson = try cd.getDocumentJson(did, "compact")
             let compact = try DIDDocument.convertToDIDDocument(fromJson: compactJson)
             XCTAssertNotNil(compact)
-            XCTAssertTrue(try compact.isValid())
+            XCTAssertTrue(try compact.isValid(debug))
             
             let normalizedJson = try cd.getDocumentJson(did, "normalized")
             let normalized = try DIDDocument.convertToDIDDocument(fromJson: normalizedJson)
             XCTAssertNotNil(normalized)
-            XCTAssertTrue(try normalized.isValid())
+            XCTAssertTrue(try normalized.isValid(debug))
             
             let doc = try cd.getDocument(did)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             let compactStr = compact.toString(true)
             let normalizedStr = normalized.toString(true)
@@ -2669,7 +2671,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
             let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             
             //            let data = byte[1024]
             _ = try DIDURL(doc.subject, "#primary")
@@ -2703,7 +2705,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
             let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             for i in 0...1000 {
                 let strKey = try doc.derive(index: i, storePassword: storePassword)
@@ -2723,7 +2725,7 @@ class DIDDoucumentTests: XCTestCase {
         do {
             let doc = try testData!.getCompatibleData(2).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             for i in 0...1000 {
                 let strKey = try doc.derive(index: i, storePassword: storePassword)
                 let key = DIDHDKey.deserializeBase58(strKey)
@@ -2746,7 +2748,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
             let doc = try identity.newDid(storePassword)
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             for i in 0...1000 {
                 let strKey = try doc.derive(identifier, i, storePassword);
@@ -2769,7 +2771,7 @@ class DIDDoucumentTests: XCTestCase {
 
             let doc = try testData!.getCompatibleData(2).getDocument("user1")
             XCTAssertNotNil(doc)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             for i in 0...100 {
                 let strKey = try doc.derive(identifier, i, storePassword)
@@ -2792,7 +2794,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -2805,12 +2807,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             let doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -2827,7 +2829,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -2848,10 +2850,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -2860,10 +2862,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -2872,13 +2874,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
 //            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
 //                switch error {
@@ -2888,7 +2890,7 @@ class DIDDoucumentTests: XCTestCase {
 //                }
 //            }
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid());
+            XCTAssertTrue(try doc.isValid(debug));
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -2911,7 +2913,7 @@ class DIDDoucumentTests: XCTestCase {
 //            XCTAssertEqual(doc.proof.signature,
 //                    resolved?.proof.signature)
 //
-//            XCTAssertTrue(try resolved!.isValid())
+//            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -2922,7 +2924,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -2970,7 +2972,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve();
             XCTAssertNil(resolved)
@@ -2983,12 +2985,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -3005,7 +3007,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             var db = try doc.editing()
@@ -3047,7 +3049,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -3056,10 +3058,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve();
@@ -3068,10 +3070,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -3080,13 +3082,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
             _ = doc
 //            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
@@ -3098,7 +3100,7 @@ class DIDDoucumentTests: XCTestCase {
 //            }
 
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -3117,7 +3119,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             var db = try doc.editing(ctrl2)
@@ -3162,7 +3164,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -3175,12 +3177,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -3197,11 +3199,11 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // create new controller
             let newController = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             resolved = try newController.subject.resolve()
             XCTAssertNil(resolved)
@@ -3214,16 +3216,16 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(newController.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // create the transfer ticket
             try doc.setEffectiveController(controller.subject)
             let ticket = try doc.createTransferTicket(to: newController.subject, using: storePassword)
-            XCTAssertTrue(try ticket.isValid())
+            XCTAssertTrue(try ticket.isValid(debug))
 
             // create new document for customized DID
             doc = try newController.newCustomizedDid(withId: did, true, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(newController.subject, doc.controller)
@@ -3238,7 +3240,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -3250,7 +3252,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -3263,12 +3265,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -3285,7 +3287,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing()
@@ -3304,7 +3306,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // create new controller
             let newController = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             resolved = try newController.subject.resolve()
             XCTAssertNil(resolved)
@@ -3317,15 +3319,15 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(newController.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // create the transfer ticket
             let ticket = try controller.createTransferTicket(withId: did, to: newController.subject, using: storePassword)
-            XCTAssertTrue(try ticket.isValid());
+            XCTAssertTrue(try ticket.isValid(debug));
 
             // create new document for customized DID
             doc = try newController.newCustomizedDid(withId: did, true, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(newController.subject, doc.controller)
@@ -3340,7 +3342,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -3373,7 +3375,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -3382,10 +3384,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -3394,10 +3396,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -3406,18 +3408,18 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
             _ = doc
         
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -3440,7 +3442,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // new controllers for the did
             let td = testData!.sharedInstantData()
@@ -3453,13 +3455,13 @@ class DIDDoucumentTests: XCTestCase {
             // transfer ticket
             var ticket = try ctrl1.createTransferTicket(withId: did, to: u1.subject, using: storePassword)
             ticket = try ctrl2.sign(with: ticket, using: storePassword)
-            XCTAssertTrue(try ticket.isValid())
+            XCTAssertTrue(try ticket.isValid(debug))
 
             try doc = u1.newCustomizedDid(withId: did, [u2.subject, u3.subject, u4.subject],
                         3, true, storePassword)
             try doc = u2.sign(with: doc, using: storePassword)
             try doc = u3.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(4, doc.controllerCount())
@@ -3475,7 +3477,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -3487,7 +3489,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -3496,10 +3498,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try  ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -3508,10 +3510,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -3520,12 +3522,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
 //            XCTAssertThrowsError(_ = try ctrl1.sign(using: storePassword, for: [doc.toString().data(using: .utf8)!])){ error in
 //                switch error {
@@ -3536,7 +3538,7 @@ class DIDDoucumentTests: XCTestCase {
 //            }
             
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -3559,7 +3561,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing(ctrl2)
@@ -3589,12 +3591,12 @@ class DIDDoucumentTests: XCTestCase {
             try doc.setEffectiveController(ctrl1.subject)
             var ticket = try doc.createTransferTicket(to: u1.subject, using: storePassword)
             ticket = try ctrl2.sign(with: ticket, using: storePassword)
-            XCTAssertTrue(try ticket.isValid())
+            XCTAssertTrue(try ticket.isValid(debug))
 
             doc = try u1.newCustomizedDid(withId: did, [u2.subject, u3.subject, u4.subject], 3, true, storePassword)
             doc = try u2.sign(with: doc, using: storePassword)
             doc = try u3.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(4, doc.controllerCount())
@@ -3610,7 +3612,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
             XCTFail()
         }
@@ -3621,7 +3623,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3671,7 +3673,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3722,7 +3724,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3759,7 +3761,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3794,7 +3796,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3843,7 +3845,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3895,7 +3897,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3928,7 +3930,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3962,7 +3964,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -3984,7 +3986,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -4021,7 +4023,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -4034,12 +4036,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -4056,7 +4058,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Deactivate
             try doc.deactivate(using: storePassword)
@@ -4073,7 +4075,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -4086,12 +4088,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -4108,7 +4110,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing()
@@ -4140,7 +4142,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -4153,12 +4155,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -4175,7 +4177,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Deactivate
             try controller.deactivate(with: did, using: storePassword)
@@ -4192,7 +4194,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let controller = try identity.newDid(storePassword)
-            XCTAssertTrue(try controller.isValid())
+            XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
             XCTAssertNil(resolved)
@@ -4205,12 +4207,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(controller.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(controller.subject, doc.controller)
@@ -4227,7 +4229,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing()
@@ -4259,7 +4261,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -4268,10 +4270,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -4280,10 +4282,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -4292,12 +4294,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
             
             XCTAssertThrowsError(_ = try ctrl1.sign(with: doc, using: storePassword)){ error in
                 switch error {
@@ -4308,7 +4310,7 @@ class DIDDoucumentTests: XCTestCase {
             }
 
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
@@ -4326,7 +4328,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                            resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Deactivate
             try doc.deactivate(with: ctrl1.defaultPublicKeyId()!, using: storePassword)
@@ -4343,7 +4345,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -4352,10 +4354,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -4364,10 +4366,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -4376,12 +4378,12 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
             XCTAssertThrowsError(_ = try ctrl1.sign(with: doc, using: storePassword)){ error in
                 switch error {
@@ -4392,7 +4394,7 @@ class DIDDoucumentTests: XCTestCase {
             }
 
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -4415,7 +4417,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing(ctrl2)
@@ -4448,7 +4450,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -4457,10 +4459,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -4469,10 +4471,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -4481,13 +4483,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
             _ = doc
 //            assertThrows(AlreadySignedException.class, () -> {
@@ -4495,7 +4497,7 @@ class DIDDoucumentTests: XCTestCase {
 //            });
 
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -4518,7 +4520,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Deactivate
             try ctrl1.deactivate(with: did, using: storePassword)
@@ -4535,7 +4537,7 @@ class DIDDoucumentTests: XCTestCase {
 
             // Create normal DID first
             let ctrl1 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl1.isValid())
+            XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
             var resolved = try ctrl1.subject.resolve()
@@ -4544,10 +4546,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl1.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             let ctrl2 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl2.isValid())
+            XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
             resolved = try ctrl2.subject.resolve()
@@ -4556,10 +4558,10 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl2.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
                let ctrl3 = try identity.newDid(storePassword)
-            XCTAssertTrue(try ctrl3.isValid())
+            XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
             resolved = try ctrl3.subject.resolve()
@@ -4568,13 +4570,13 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(ctrl3.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
             let did = try DID("did:elastos:helloworld3")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword);
-            XCTAssertFalse(try doc.isValid())
+            XCTAssertFalse(try doc.isValid(debug))
 
             _ = doc
 //            assertThrows(AlreadySignedException.class, () -> {
@@ -4582,7 +4584,7 @@ class DIDDoucumentTests: XCTestCase {
 //            });
 
             doc = try ctrl2.sign(with: doc, using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             XCTAssertEqual(did, doc.subject)
             XCTAssertEqual(3, doc.controllerCount())
@@ -4605,7 +4607,7 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(doc.proof.signature,
                     resolved?.proof.signature)
 
-            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertTrue(try resolved!.isValid(debug))
 
             // Update
             let db = try doc.editing(ctrl2)
@@ -4637,7 +4639,7 @@ class DIDDoucumentTests: XCTestCase {
             let identity = try testData!.getRootIdentity()
 
             var doc = try identity.newDid(storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
 
             try doc.publish(using: storePassword)
 
@@ -4682,7 +4684,7 @@ class DIDDoucumentTests: XCTestCase {
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
             doc = try db.sealed(using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
 
@@ -4730,7 +4732,7 @@ class DIDDoucumentTests: XCTestCase {
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
             doc = try db.sealed(using: storePassword)
-            XCTAssertTrue(try doc.isValid())
+            XCTAssertTrue(try doc.isValid(debug))
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
 

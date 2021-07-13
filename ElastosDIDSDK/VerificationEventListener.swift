@@ -22,11 +22,11 @@
 
 import Foundation
 
-public class VerificationEventListener: NSObject {
+open class VerificationEventListener: NSObject {
     
-    func done(context: NSObject, succeeded: Bool, message: String) {}
+    open func done(context: NSObject, succeeded: Bool, message: String) {}
     
-    func succeeded(context: NSObject, args: String...) {
+    open func succeeded(context: NSObject, args: String...) {
         var message = ""
         args.forEach { msg in
             message.append(msg)
@@ -35,7 +35,7 @@ public class VerificationEventListener: NSObject {
         done(context: context, succeeded: true, message: message)
     }
     
-    func failed(context: NSObject, args: String...) {
+    open func failed(context: NSObject, args: String...) {
         var message = ""
         args.forEach { msg in
             message.append(msg)

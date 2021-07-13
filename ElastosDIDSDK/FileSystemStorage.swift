@@ -977,7 +977,7 @@ public class FileSystemStorage: DIDStorage {
             }
             
             _ = try stageFile.deleteFile()
-            print("v1 update to v2 is ok.")
+            Log.d(TAG, "v1 update to v2 is ok.")
         }
     }
     

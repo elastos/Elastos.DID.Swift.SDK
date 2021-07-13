@@ -13,6 +13,6 @@ class SimulatedIDChainAdapter: DefaultDIDAdapter {
     
     override func createIdTransaction(_ payload: String, _ memo: String?) throws {
         let data = try performRequest(idtxEndpoint, payload)
-        print(data)
+        print("createIdTransaction: \(data)")
     }
 }

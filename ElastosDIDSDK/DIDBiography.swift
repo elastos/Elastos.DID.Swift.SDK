@@ -113,7 +113,6 @@ public class DIDBiography: ResolveResult {
     }
     
     public class func deserialize(_ json: [String: Any]) throws -> DIDBiography {
-        print(json)
         let did = json["did"] as! String
         let s = json["status"] as! Int
         let status = DIDBiographyStatus(rawValue: s)

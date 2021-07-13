@@ -249,7 +249,6 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(id.toString())
         }
         let keyVaule = document!._authenticationKeys[id]
-        print(document?._authenticationKeys)
         if keyVaule == nil {
             document!._authenticationKeys[key!.getId()!] = key
             invalidateProof()

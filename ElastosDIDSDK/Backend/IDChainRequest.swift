@@ -132,7 +132,6 @@ public class IDChainRequest: NSObject {
             inputs.append(data)
         }
         if let oper = operation, let data = oper.description.data(using: .utf8)  {
-            print("oper == \(oper.description)")
             inputs.append(data)
         }
         if let data = prevTxid?.data(using: .utf8)  {
