@@ -3676,8 +3676,17 @@ public class DIDDocument: NSObject {
         let array = arrayNode.asArray()
         
         if array == nil {
-            let value = arrayNode.get(forKey: "creator") != nil ? try DIDURL(arrayNode.get(forKey: "creator")!.asString()!) : nil
-            let p = try DIDDocumentProof.fromJson(arrayNode, value)
+            var refSginKey: DIDURL? = nil
+            if let creator = arrayNode.get(forKey: "creator") {
+                if creator.asString()!.hasPrefix("#") {
+                    refSginKey = try DIDURL(subject.toString() + creator.asString()!)
+                }
+                else {
+                    refSginKey = try DIDURL(creator.asString()!)
+                }
+            }
+            
+            let p = try DIDDocumentProof.fromJson(arrayNode, refSginKey)
             _proofs = [p]
             return
         }
@@ -3986,12 +3995,12 @@ public class DIDDocument: NSObject {
             if _proofs.count > 1 {
                 generator.writeStartArray()
                 _proofs.forEach { proof in
-                    proof.toJson(generator, normalized)
+                    proof.toJson(generator, subject, normalized)
                 }
                 generator.writeEndArray()
             }
             else {
-                self.proof.toJson(generator, normalized)
+                self.proof.toJson(generator, subject, normalized)
             }
         }
 

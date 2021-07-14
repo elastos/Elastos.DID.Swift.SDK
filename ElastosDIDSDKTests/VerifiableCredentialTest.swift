@@ -291,7 +291,64 @@ class VerifiableCredentialTest: XCTestCase {
             XCTFail()
         }
     }
+
+    func testGenuineAndValidWithListener1() {
+        GenuineAndValidWithListener(1, "user1", "twitter")
+    }
     
+    func testGenuineAndValidWithListener2() {
+        GenuineAndValidWithListener(1, "user1", "passport")
+    }
+    
+    func testGenuineAndValidWithListener3() {
+        GenuineAndValidWithListener(1, "user1", "json")
+    }
+    
+    func testGenuineAndValidWithListener4() {
+        GenuineAndValidWithListener(2, "user1", "twitter")
+    }
+    
+    func testGenuineAndValidWithListener5() {
+        GenuineAndValidWithListener(2, "user1", "passport")
+    }
+    
+    func testGenuineAndValidWithListener6() {
+        GenuineAndValidWithListener(2, "user1", "json")
+    }
+    
+    func testGenuineAndValidWithListener7() {
+        GenuineAndValidWithListener(2, "foobar", "license")
+    }
+    
+    func testGenuineAndValidWithListener8() {
+        GenuineAndValidWithListener(2, "foobar", "services")
+    }
+    
+    func testGenuineAndValidWithListener9() {
+        GenuineAndValidWithListener(2, "foo", "email")
+    }
+    
+    func GenuineAndValidWithListener(_ version: Int, _ did: String, _ vc: String) {
+        do {
+            let cd = try testData!.getCompatibleData(version)
+            try cd.loadAll()
+            
+            let listener = VerificationEventListener.getDefault("  ", "- ", "* ")
+            
+            let credential = try cd.getCredential(did, vc)
+            
+            XCTAssertTrue(try credential.isGenuine(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+            
+            XCTAssertTrue(try credential.isValid(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+        } catch {
+            XCTFail()
+        }
+    }
+
     func testDeclareCrendential1() {
         DeclareCrendential(1, "user1", "twitter")
     }

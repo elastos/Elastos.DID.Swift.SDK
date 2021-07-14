@@ -109,6 +109,7 @@ class VerifiablePresentationTest: XCTestCase {
         
         }
     }
+    
     func testParseAndSerializeNonempty1() {
         ParseAndSerializeNonempty(1, "user1", "empty")
     }
@@ -134,6 +135,7 @@ class VerifiablePresentationTest: XCTestCase {
     func testParseAndSerializeNonempty8() {
         ParseAndSerializeNonempty(2, "foobar", "optionalattrs")
     }
+    
     func ParseAndSerializeNonempty(_ version: Int, _ did: String, _ presentation: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -160,6 +162,56 @@ class VerifiablePresentationTest: XCTestCase {
         }
     }
     
+    func testGenuineAndValidWithListener() {
+        GenuineAndValidWithListener(1, "user1", "empty")
+    }
+    
+    func testGenuineAndValidWithListener2() {
+        GenuineAndValidWithListener(1, "user1", "nonempty")
+    }
+    func testGenuineAndValidWithListener3() {
+        GenuineAndValidWithListener(2, "user1", "empty")
+    }
+    func testGenuineAndValidWithListener4() {
+        GenuineAndValidWithListener(2, "user1", "nonempty")
+    }
+    func testGenuineAndValidWithListener5() {
+        GenuineAndValidWithListener(2, "user1", "optionalattrs")
+    }
+    func testGenuineAndValidWithListener6() {
+        GenuineAndValidWithListener(2, "foobar", "empty")
+    }
+    func testGenuineAndValidWithListener7() {
+        GenuineAndValidWithListener(2, "foobar", "nonempty")
+    }
+    func testGenuineAndValidWithListener8() {
+        GenuineAndValidWithListener(2, "foobar", "optionalattrs")
+    }
+    
+    func GenuineAndValidWithListener(_ version: Int, _ did: String, _ presentation: String) {
+        do {
+            let cd = try testData!.getCompatibleData(version)
+            // For integrity check
+            try cd.loadAll()
+            
+            let listener = VerificationEventListener.getDefault("  ", "- ", "* ")
+            
+            let vp = try cd.getPresentation(did, presentation)
+            
+            XCTAssertNotNil(vp)
+            
+            XCTAssertTrue(try vp.isGenuine(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+            
+            XCTAssertTrue(try vp.isValid(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+        } catch {
+            XCTFail()
+        }
+    }
+
     func testBuildNonempty() {
         do {
             let td = testData!.sharedInstantData()

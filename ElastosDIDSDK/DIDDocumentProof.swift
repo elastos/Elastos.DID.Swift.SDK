@@ -132,7 +132,7 @@ public class DIDDocumentProof: NSObject {
         return DIDDocumentProof(type, created, signature)
     }
 
-    func toJson(_ generator: JsonGenerator, _ normalized: Bool) {
+    func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool) {
         generator.writeStartObject()
 
         // type
@@ -148,7 +148,7 @@ public class DIDDocumentProof: NSObject {
         // creator
         if let _ = creator {
             generator.writeFieldName(Constants.CREATOR)
-            generator.writeString(self.creator!.toString())
+            generator.writeString(IDGetter(creator!, ref).value(normalized))
         }
 
         // signature
