@@ -399,14 +399,7 @@ public class VerifiableCredential: DIDObject {
         }
         if !isSelfProclaimed {
             let controllerDoc = try subject?.did.resolve()
-            if controllerDoc == nil {
-                listener?.failed(context: self, args: "VC \(String(describing: id)): can not resolve the holder's document")
-                listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
-                
-                return false
-            }
-            
-            if (try !controllerDoc!.isGenuine(listener)) {
+            if (try controllerDoc == nil && !controllerDoc!.isGenuine(listener)) {
                 listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is not genuine")
                 listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
                 
@@ -536,14 +529,7 @@ public class VerifiableCredential: DIDObject {
 
         if !isSelfProclaimed {
             let controllerDoc = try subject?.did.resolve()
-            if (controllerDoc == nil) {
-                listener?.failed(context: self, args: "VC \(String(describing: id)): can not resolve the holder's document")
-                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
-
-                return false
-            }
-
-            if (try !controllerDoc!.isValid(listener)) {
+            if (try controllerDoc == nil && !controllerDoc!.isValid(listener)) {
                 listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is invalid")
                 listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
 

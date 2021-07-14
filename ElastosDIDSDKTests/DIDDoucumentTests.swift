@@ -2606,22 +2606,42 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testParseAndSerializeDocument5() {
-        ParseAndSerializeDocument(2, "examplecorp")
+        ParseAndSerializeDocument(2, "issuer")
     }
     
     func testParseAndSerializeDocument6() {
-        ParseAndSerializeDocument(2, "foobar")
+        ParseAndSerializeDocument(2, "user1")
     }
     
     func testParseAndSerializeDocument7() {
-        ParseAndSerializeDocument(2, "foo")
+        ParseAndSerializeDocument(2, "user2")
     }
     
     func testParseAndSerializeDocument8() {
-        ParseAndSerializeDocument(2, "bar")
+        ParseAndSerializeDocument(2, "user3")
     }
     
     func testParseAndSerializeDocument9() {
+        ParseAndSerializeDocument(2, "user4")
+    }
+    
+    func testParseAndSerializeDocument10() {
+        ParseAndSerializeDocument(2, "examplecorp")
+    }
+    
+    func testParseAndSerializeDocument11() {
+        ParseAndSerializeDocument(2, "foobar")
+    }
+    
+    func testParseAndSerializeDocument12() {
+        ParseAndSerializeDocument(2, "foo")
+    }
+    
+    func testParseAndSerializeDocument13() {
+        ParseAndSerializeDocument(2, "bar")
+    }
+    
+    func testParseAndSerializeDocument14() {
         ParseAndSerializeDocument(2, "baz")
     }
     
@@ -2666,6 +2686,108 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testGenuineAndValidWithListener1() {
+        GenuineAndValidWithListener(1, "issuer")
+    }
+    
+    func testGenuineAndValidWithListener2() {
+        GenuineAndValidWithListener(1, "user1")
+    }
+    
+    func testGenuineAndValidWithListener3() {
+        GenuineAndValidWithListener(1, "user2")
+    }
+    
+    func testGenuineAndValidWithListener4() {
+        GenuineAndValidWithListener(1, "user3")
+    }
+    
+    func testGenuineAndValidWithListener5() {
+        GenuineAndValidWithListener(2, "issuer")
+    }
+    
+    func testGenuineAndValidWithListener6() {
+        GenuineAndValidWithListener(2, "user1")
+    }
+    
+    func testGenuineAndValidWithListener7() {
+        GenuineAndValidWithListener(2, "user2")
+    }
+    
+    func testGenuineAndValidWithListener8() {
+        GenuineAndValidWithListener(2, "user3")
+    }
+    
+    func testGenuineAndValidWithListener9() {
+        GenuineAndValidWithListener(2, "user4")
+    }
+    
+    func testGenuineAndValidWithListener10() {
+        GenuineAndValidWithListener(2, "examplecorp")
+    }
+    
+    func testGenuineAndValidWithListener11() {
+        GenuineAndValidWithListener(2, "foobar")
+    }
+    
+    func testGenuineAndValidWithListener12() {
+        GenuineAndValidWithListener(2, "foo")
+    }
+    
+    func testGenuineAndValidWithListener13() {
+        GenuineAndValidWithListener(2, "bar")
+    }
+    
+    func testGenuineAndValidWithListener14() {
+        GenuineAndValidWithListener(2, "baz")
+    }
+    
+    func GenuineAndValidWithListener(_ version: Int, _ did: String) {
+        do {
+            let cd = try testData!.getCompatibleData(version)
+            try cd.loadAll()
+
+            let listener = VerificationEventListener.getDefault("  ", "- ", "* ")
+
+            let compactJson = try cd.getDocumentJson(did, "compact")
+            let compact = try DIDDocument.convertToDIDDocument(fromJson: compactJson)
+            XCTAssertNotNil(compact)
+
+            XCTAssertTrue(try compact.isGenuine(listener))
+            XCTAssertTrue(listener.description.hasPrefix(" "))
+            listener.reset()
+
+            XCTAssertTrue(try compact.isValid(listener))
+            XCTAssertTrue(listener.description.hasPrefix(" "))
+            listener.reset()
+
+            let normalizedJson = try cd.getDocumentJson(did, "normalized")
+            let normalized = try DIDDocument.convertToDIDDocument(fromJson: normalizedJson)
+            XCTAssertNotNil(normalized)
+
+            XCTAssertTrue(try normalized.isGenuine(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+
+            XCTAssertTrue(try normalized.isValid(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+
+            let doc = try cd.getDocument(did)
+            XCTAssertNotNil(doc)
+
+            XCTAssertTrue(try doc.isGenuine(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+
+            XCTAssertTrue(try doc.isValid(listener))
+            XCTAssertTrue(listener.toString().hasPrefix(" "))
+            listener.reset()
+        } catch {
+            XCTFail()
+        }
+    }
+   
     func testSignAndVerify() {
         do {
             let identity = try testData!.getRootIdentity()

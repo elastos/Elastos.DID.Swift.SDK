@@ -23,10 +23,14 @@
 import Foundation
 
 open class VerificationEventListener: NSObject {
+
+    /// Reset current listener to the initial state.
+    /// After reset the listener, it should be safe to reuse.
+    open func reset() {}
     
     open func done(context: NSObject, succeeded: Bool, message: String) {}
     
-    open func succeeded(context: NSObject, args: String...) {
+    func succeeded(context: NSObject, args: String...) {
         var message = ""
         args.forEach { msg in
             message.append(msg)
@@ -35,7 +39,7 @@ open class VerificationEventListener: NSObject {
         done(context: context, succeeded: true, message: message)
     }
     
-    open func failed(context: NSObject, args: String...) {
+    func failed(context: NSObject, args: String...) {
         var message = ""
         args.forEach { msg in
             message.append(msg)
@@ -43,5 +47,80 @@ open class VerificationEventListener: NSObject {
         }
         done(context: context, succeeded: false, message: message)
     }
+    
+    /// Get the default VerificationEventListener implementation. The listener
+    /// will gather all messages and return a stringify result.
+    /// - Parameters:
+    ///   - ident: ident string for each message
+    ///   - succeededPrefix: prefix string for the succeeded messages
+    ///   - failedPrefix: prefix string for the failed messages
+    /// - Returns: the default VerificationEventListener instance
+    public static func getDefault(_ ident: String, _ succeededPrefix: String, _ failedPrefix: String) -> VerificationEventListener {
+        return DefaultVerificationEventListener(ident: ident, succeededPrefix: succeededPrefix, failedPrefix: failedPrefix)
+    }
+
+    /// Get the default VerificationEventListener implementation. The listener
+    /// will gather all messages and return a stringify result.
+    /// - Parameter ident: ident string for each message
+    /// - Returns: the default VerificationEventListener instance
+    public static func getDefault(_ ident: String) -> VerificationEventListener {
+        return DefaultVerificationEventListener(ident: ident)
+    }
+    
+    public func toString() -> String {
+        return description
+    }
 }
 
+public class DefaultVerificationEventListener: VerificationEventListener {
+    private let EMPTY = ""
+    
+    private var ident: String
+    private var succeededPrefix: String
+    private var failedPrefix: String
+    
+    private var records: [Record] = [ ]
+    
+    public init(ident: String = "", succeededPrefix: String = "", failedPrefix: String = "") {
+        self.ident = ident
+        self.succeededPrefix = succeededPrefix
+        self.failedPrefix = failedPrefix
+    }
+    
+    public override func done(context: NSObject, succeeded: Bool, message: String) {
+        records.append(Record(context, succeeded, message))
+    }
+    
+    public override func reset() {
+        records.removeAll()
+    }
+    
+    public override var description: String {
+        var str = ""
+        records.forEach { record in
+            str.append(ident)
+            str.append(" ")
+            str.append(record.succeeded ? succeededPrefix : failedPrefix)
+            str.append(" ")
+            str.append(record.message)
+            str.append("\n")
+        }
+        return str
+    }
+    
+    public override func toString() -> String {
+        return description
+    }
+}
+
+public class Record: NSObject {
+    var context: NSObject
+    var succeeded: Bool
+    var message:String
+    
+    public init(_ context: NSObject, _ succeeded: Bool, _ message: String) {
+        self.context = context
+        self.succeeded = succeeded
+        self.message = message
+    }
+}
