@@ -383,10 +383,7 @@ public class FileSystemStorage: DIDStorage {
             let file = try getDidMetadataFile(did, true)
 
             if metadata.isEmpty() {
-                let path = try fullPath(currentDataDir, did.methodSpecificId, Constants.META_FILE)
-                if try path.fileExists() {
-                    try FileManager.default.removeItem(atPath: path)
-                }
+               try FileManager.default.removeItem(atPath: file)
             } else {
                 try metadata.serialize(file)
             }
