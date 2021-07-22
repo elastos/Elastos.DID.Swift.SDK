@@ -4170,7 +4170,7 @@ extension DIDDocument {
         doc._credentials = _credentials
         doc._credentials = _credentials
         doc._services = _services
-        doc._services = _services
+        doc.serviceMap = serviceMap
         doc._expires = _expires
         doc._proofsDic = _proofsDic
         doc._proofs = _proofs
