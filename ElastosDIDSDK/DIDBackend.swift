@@ -306,8 +306,7 @@ public class DIDBackend: NSObject {
     ///   - force: ignore the local cache and resolve from the ID chain if true;
     ///                   try to use cache first if false.
     /// - Returns: the DIDDocument object
-    func
-    resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
+    func resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
         Log.d(TAG, "Resolving DID ", did.toString(), "...")
         if resolveHandle != nil {
             let doc = resolveHandle!(did)
@@ -562,7 +561,7 @@ public class DIDBackend: NSObject {
         if _adapter == nil {
             _adapter = self.adapter
         }
-        try _adapter!.createIdTransaction(payload, payload)
+        try _adapter!.createIdTransaction(payload, nil)
         Log.i(TAG, "ID transaction complete.")
     }
     
