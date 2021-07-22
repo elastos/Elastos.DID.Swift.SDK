@@ -42,10 +42,10 @@ public class DIDResolveResponse: ResolveResponse {
             return DIDResolveResponse(id, bio)
         }
         else {
-            let code = "\(String(describing: err!["code"]))"
+            let code = err!["code"]
             let message = "\(String(describing: err!["message"]))"
 
-            return DIDResolveResponse(id, try Int(value: code), message)
+            return DIDResolveResponse(id, code as! Int, message)
         }
     }
 }
