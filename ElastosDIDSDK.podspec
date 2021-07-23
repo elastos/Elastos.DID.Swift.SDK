@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = 'ElastosDIDSDK'
-  s.version      = '2.1.3'
+  s.version      = '2.1.4'
   s.summary      = 'Elastos Hive iOS SDK Distribution.'
   s.swift_version = '4.2'
   s.description  = 'Elastos hive ios sdk framework distribution.'
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.author       = { 'hive-dev' => 'support@elastos.org' }
   s.platform     = :ios, '11.0'
   s.ios.deployment_target = '11.0'
-  s.source = {:git => 'https://github.com/elastos/Elastos.DID.Swift.SDK.git', :tag => 'release-2.1.3'}
+  s.source = {:git => 'https://github.com/elastos/Elastos.DID.Swift.SDK.git', :tag => 'release-2.1.4'}
   s.source_files = 'ElastosDIDSDK/**/*.{h,m,swift}','Externals/Antlr4/**/**/*.{h,m,swift,interp,tokens,g4}','Externals/base58/*.{swift}','Externals/ByteBuffer/*.{swift}','Externals/CryptorECC/*.{swift}','Externals/HDKey/include/*.{h,swift}','Externals/SwiftJWT/*.{swift}'
   s.vendored_libraries = 'Externals/HDKey/lib/*.a'
   s.dependency 'PromiseKit','~> 6.9'
