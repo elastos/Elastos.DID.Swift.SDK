@@ -18,6 +18,39 @@ class VerifiableCredentialTest: XCTestCase {
         testData?.cleanup()
     }
     
+    func testTest() {
+        do {
+            let dStr = "{\"id\":\"#avatar\",\"type\":[\"BasicProfileCredential\",\"SelfProclaimedCredential\"],\"issuanceDate\":\"2021-07-23T02:06:35Z\",\"expirationDate\":\"2026-07-23T02:00:00Z\",\"credentialSubject\":{\"id\":\"did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq\",\"avatar\":{\"content-type\":\"image/png\",\"data\":\"hive://did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq@did:elastos:ig1nqyyJhwTctdLyDFbZomSbZSjyMN1uor/getMainIdentityAvatar1627005986596?params=[\\\"empty\\\":0]\",\"type\":\"elastoshive\"}},\"proof\":{\"verificationMethod\":\"#primary\",\"signature\":\"dU6H87DckCOxMNRv1daCyxpNP-jMSwaomPhp_tByB649t3Pmz1cFUf9i0Z7_TSzgfsA2I6dJFCKSDL69jqfjIQ\"}}"
+            let dic = ["id":"did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq#avatar","type":["BasicProfileCredential","SelfProclaimedCredential"],"issuer":"did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq","issuanceDate":"2021-07-23T02:06:35Z","expirationDate":"2026-07-23T02:00:00Z","credentialSubject":["id":"did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq","avatar":["content-type":"image/png","data":"hive://did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq@did:elastos:ig1nqyyJhwTctdLyDFbZomSbZSjyMN1uor/getMainIdentityAvatar1627005986596?params=[\"empty\":0]","type":"elastoshive"]],"proof":["type":"ECDSAsecp256r1","verificationMethod":"did:elastos:insTmxdDDuS9wHHfeYD1h5C2onEHh3D8Vq#primary","signature":"dU6H87DckCOxMNRv1daCyxpNP-jMSwaomPhp_tByB649t3Pmz1cFUf9i0Z7_TSzgfsA2I6dJFCKSDL69jqfjIQ"]] as [String : Any]
+            
+            let vc = try VerifiableCredential.fromJson(for: dic)
+            let vcStr = vc.toString()
+//            let vcStr2 = vcStr.quotedJsonStringKeys()
+            print("vcStr ===== \(vcStr)")
+            print("vcStr2 ===== \(vcStr)")
+
+            let dicConvert = vcStr.toDictionary()
+            print("dicConvert ===== \(dicConvert)")
+            
+            let dicConvert2 = dStr.toDictionary()
+            print("dicConvert2 ===== \(dicConvert2)")
+            
+//            let credentialSubject = dicConvert["credentialSubject"] as! [String: Any]
+//            let avatar = credentialSubject["avatar"]as! [String: Any]
+//            let dataStr = avatar["data"] as! String
+//            print("dataStr ===== \(dataStr)")
+//            print("dataStr ===== \(dataStr)")
+//
+            let credentialSubject2 = dicConvert2["credentialSubject"] as! [String: Any]
+            let avatar2 = credentialSubject2["avatar"]as! [String: Any]
+            let dataStr2 = avatar2["data"] as! String
+            print("dataStr ===== \(dataStr2)")
+            print("dataStr ===== \(dataStr2)")
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func testKycCredential1() {
         KycCredential(1)
     }

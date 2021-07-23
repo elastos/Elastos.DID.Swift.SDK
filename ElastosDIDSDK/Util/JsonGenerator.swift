@@ -207,7 +207,7 @@ public class JsonGenerator: NSObject {
 
         if !value.isEmpty {
             buffer.append(JsonGenerator.STRING_QUOTE_STARTED)
-            buffer.append(value)
+            buffer.append(value.replacingOccurrences(of: "\"", with: "\\\""))
             buffer.append(JsonGenerator.STRING_QUOTE_END)
         } else {
             buffer.append(JsonGenerator.STRING_QUOTE_STARTED)
