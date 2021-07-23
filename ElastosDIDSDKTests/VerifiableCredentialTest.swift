@@ -31,7 +31,7 @@ class VerifiableCredentialTest: XCTestCase {
 
             let dicConvert = vcStr.toDictionary()
             print("dicConvert ===== \(dicConvert)")
-            
+            XCTAssertTrue(dicConvert.count > 0)
             let dicConvert2 = dStr.toDictionary()
             print("dicConvert2 ===== \(dicConvert2)")
             

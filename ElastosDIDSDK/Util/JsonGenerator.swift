@@ -207,8 +207,22 @@ public class JsonGenerator: NSObject {
 
         if !value.isEmpty {
             buffer.append(JsonGenerator.STRING_QUOTE_STARTED)
-            buffer.append(value.replacingOccurrences(of: "\"", with: "\\\""))
+            if value.starts(with: "hive:") && value.contains("?") {
+                let index = value.firstIndex(of: "?")
+                let source = value.substring(from: index!)
+                let jsonEncoder = JSONEncoder()
+                let json = try? jsonEncoder.encode(source)
+                let target = String(data: json!, encoding: .utf8)!
+
+                let value1 = value.replacingOccurrences(of: source, with: target)
+                buffer.append(value1)
+            }
+            else {
+                buffer.append(value)
+            }
+//            buffer.append(value.replacingOccurrences(of: "\"", with: "\\\""))
             buffer.append(JsonGenerator.STRING_QUOTE_END)
+
         } else {
             buffer.append(JsonGenerator.STRING_QUOTE_STARTED)
             buffer.append(JsonGenerator.STRING_QUOTE_END)
