@@ -208,12 +208,13 @@ extension String {
             else {
                 try fileManager.removeItem(atPath: p)
             }
-            enumerator.removeObject(sub)
+//            enumerator.removeObject(sub)
+
         }
         
-        if enumerator.count == 0 {
+//        if enumerator.count == 0 {
             try fileManager.removeItem(atPath: self)
-        }
+//        }
     }
 }
 
@@ -250,6 +251,27 @@ extension String {
     
     func toUnsafeMutablePointerInt8() -> UnsafeMutablePointer<Int8>? {
         return strdup(self)
+    }
+    
+    func charAt(_ index: Int) -> String {
+        return String(prefix(index + 1).suffix(1))
+    }
+    
+    subscript (bounds: CountableClosedRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start...end])
+    }
+
+    subscript (bounds: CountableRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start..<end])
+    }
+    
+    func regionMatches(_ toffset: Int, _ other: String, _ ooffset: Int, _ count: Int) -> Bool {
+        let sub = String(self[toffset...ooffset])
+        return sub == other
     }
 }
 

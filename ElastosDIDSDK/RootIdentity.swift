@@ -334,7 +334,7 @@ public class RootIdentity: NSObject {
         guard let _ = identity else {
             return nil
         }
-        let key: DIDHDKey? = try store.derive(identity!, DIDHDKey.DID_DERIVE_PATH_PREFIX + (doc?.getMetadata().index)!, storePassword)
+        let key: DIDHDKey? = try store.derive(identity!, DIDHDKey.DID_DERIVE_PATH_PREFIX + "\((doc?.getMetadata().index)!)", storePassword)
         let pk = try doc?.publicKey(ofId: id)
         guard let _ = key else {
             throw DIDError.CheckedError.DIDStoreError.InvalidPublickeyError("Invalid public key: \(id)")
@@ -377,7 +377,7 @@ public class RootIdentity: NSObject {
         }
         Log.d(TAG, "Creating new DID ", did.toString(), " at index ", index)
         
-        let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + index, storePassword)
+        let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(index)", storePassword)
         
         let id = try DIDURL(did, "#primary")
         try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storePassword)
