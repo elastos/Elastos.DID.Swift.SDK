@@ -56,41 +56,44 @@ public class DIDURL: NSObject {
 
     private var _parameters: OrderedDictionary<String, String>?
     private var _path: String?
-    private var _queryParameters: OrderedDictionary<String, String>?
+    var _queryParameters: OrderedDictionary<String, String>?
     private var _metadata: CredentialMetadata?
-
+    
     ///  Constructs the DIDURl with the given value.
     /// - Parameters:
     ///   - baseRef: base the owner of DIDURL
     ///   - url: url the DIDURl string
     /// - Throws: If error occurs, throw error.
     @objc
-    public init(_ baseRef: DID, _ url: String) throws {
+    public init(_ context: DID, _ url: String) throws {
         super.init()
         try checkArgument(!url.isEmpty, "Invalid url")
-        var fragment = url
-        if url.hasPrefix("did:") {
-            do {
-                try ParserHelper.parse(url, false, DIDURL.Listener(self))
-            } catch {
-                Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
-            }
+        let parser = DIDURLParser(self)
+        try parser.parse(context, url)
+        
+//        var fragment = url
+//        if url.hasPrefix("did:") {
+//            do {
+//                try ParserHelper.parse(url, false, DIDURL.Listener(self))
+//            } catch {
+//                Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
+//                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
+//            }
+//
+//            guard did == baseRef else {
+//                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Mismatched arguments")
+//            }
+//            return
+//        }
 
-            guard did == baseRef else {
-                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Mismatched arguments")
-            }
-            return
-        }
-
-        if !url.hasPrefix("#") {
-            fragment = "#" + fragment
-        }
-        let starIndex = fragment.index(fragment.startIndex, offsetBy: 1)
-        let endIndex  = fragment.index(starIndex, offsetBy: fragment.count - 2)
-        fragment  = String(fragment[starIndex...endIndex])
-        self._did = baseRef
-        self._fragment = fragment
+//        if !url.hasPrefix("#") {
+//            fragment = "#" + fragment
+//        }
+//        let starIndex = fragment.index(fragment.startIndex, offsetBy: 1)
+//        let endIndex  = fragment.index(starIndex, offsetBy: fragment.count - 2)
+//        fragment  = String(fragment[starIndex...endIndex])
+//        self._did = baseRef
+//        self._fragment = fragment
     }
 
     /// Get DID URL from string.
@@ -99,13 +102,15 @@ public class DIDURL: NSObject {
     @objc
     public init(_ url: String) throws {
         super.init()
-        try checkArgument(!url.isEmpty, "Invalid url")
-        do {
-            try ParserHelper.parse(url, false, DIDURL.Listener(self))
-        } catch {
-            Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
-        }
+//        try checkArgument(!url.isEmpty, "Invalid url")
+//        do {
+//            try ParserHelper.parse(url, false, DIDURL.Listener(self))
+//        } catch {
+//            Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
+//            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
+//        }
+        let parser = DIDURLParser(self)
+        try parser.parse(url)
     }
     
     public init(_ baseRef: DID, _ url: DIDURL) throws {
@@ -343,87 +348,3 @@ extension DIDURL {
     }
 }
 
-// Parse Listener
-extension DIDURL {
-    class Listener: DIDURLBaseListener {
-        private var name: String?
-        private var value: String?
-        private var didURL: DIDURL?
-
-        init(_ didURL: DIDURL) {
-            self.didURL = didURL
-            super.init()
-        }
-
-        override func enterDid(_ ctx: DIDURLParser.DidContext) {
-            self.didURL?.setDid(DID())
-        }
-
-        override func exitMethod(_ ctx: DIDURLParser.MethodContext) {
-            let method = ctx.getText()
-            if  method != Constants.METHOD {
-                Log.d(NSStringFromClass(Listener.self), "Unknown method: \(method)")
-            }
-            self.didURL?.did!.setMethod(Constants.METHOD)
-        }
-
-        override func exitMethodSpecificString(
-                            _ ctx: DIDURLParser.MethodSpecificStringContext) {
-            self.didURL?.did!.setMethodSpecificId(ctx.getText())
-        }
-
-        override func enterParams(_ ctx: DIDURLParser.ParamsContext) {
-            self.didURL?._parameters = OrderedDictionary()
-        }
-
-        override func exitParamMethod(_ ctx: DIDURLParser.ParamMethodContext) {
-            let method = ctx.getText()
-            if  method != Constants.METHOD {
-                Log.e(DIDURL.TAG, "Unknown parameter method: \(method)")
-            }
-            self.didURL?.did!.setMethod(method)
-        }
-
-        override func exitParamQName(_ ctx: DIDURLParser.ParamQNameContext) {
-            self.name = ctx.getText()
-        }
-
-        override func exitParamValue(_ ctx: DIDURLParser.ParamValueContext) {
-            self.value = ctx.getText()
-        }
-
-        override func exitParam(_ ctx: DIDURLParser.ParamContext) {
-            let value = self.value ?? ""
-            self.didURL?.appendParameter(value, forKey: self.name!)
-            self.name = nil
-            self.value = nil
-        }
-
-        override func exitPath(_ ctx: DIDURLParser.PathContext) {
-            self.didURL?.setPath("/" + ctx.getText())
-        }
-
-        override func enterQuery(_ ctx: DIDURLParser.QueryContext) {
-            self.didURL?._queryParameters = OrderedDictionary()
-        }
-
-        override func exitQueryParamName(_ ctx: DIDURLParser.QueryParamNameContext) {
-            self.name = ctx.getText()
-        }
-
-        override func exitQueryParamValue(_ ctx: DIDURLParser.QueryParamValueContext) {
-            self.value = ctx.getText()
-        }
-
-        override func exitQueryParam(_ ctx: DIDURLParser.QueryParamContext) {
-            let value = self.value ?? ""
-            self.didURL?.appendQueryParameter(value, forKey: self.name!)
-            self.name = nil
-            self.value = nil
-        }
-
-        override func exitFrag(_ ctx: DIDURLParser.FragContext) {
-            self.didURL?.setFragment(ctx.getText())
-        }
-    }
-}

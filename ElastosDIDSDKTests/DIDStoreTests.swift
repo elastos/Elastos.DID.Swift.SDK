@@ -35,7 +35,7 @@ class DIDStoreTests: XCTestCase {
             let identity = try testData.getRootIdentity()
 
             for i in 0...5 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 XCTAssertTrue(try doc.isValid())
@@ -108,7 +108,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertTrue(try file.exists())
 
             for i in 0..<100 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 XCTAssertTrue(try doc.isValid())
@@ -149,7 +149,7 @@ class DIDStoreTests: XCTestCase {
             // Create test DIDs
             var dids: [DID] = []
             for i in 0...100 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 try doc.publish(using: storePassword)
@@ -405,7 +405,7 @@ class DIDStoreTests: XCTestCase {
             let identity = try testData.getRootIdentity()
 
             for i in 0..<10{
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 XCTAssertTrue(try doc.isValid())
@@ -446,7 +446,7 @@ class DIDStoreTests: XCTestCase {
             XCTAssertEqual(10, dids.count)
 
             for i in 0..<10 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let did = try identity.getDid(i)
                 let doc = try store!.loadDid(did)
                 XCTAssertNotNil(doc)
@@ -478,7 +478,7 @@ class DIDStoreTests: XCTestCase {
             let identity = try testData.getRootIdentity()
 
             for i in 0..<10 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 XCTAssertTrue(try doc.isValid())
@@ -634,7 +634,7 @@ class DIDStoreTests: XCTestCase {
             let identity = try store.loadRootIdentity()
             
             for i in 0..<10 {
-                let alias = "my did " + i
+                let alias = "my did \(i)"
                 let doc = try identity!.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 let issuer = try VerifiableCredentialIssuer(doc)
@@ -700,8 +700,8 @@ class DIDStoreTests: XCTestCase {
             var docs: [DIDDocument] = []
 
             for i in 0..<10{
-                TestData.deleteFile(storeRoot + i)
-                stores.insert(try DIDStore.open(atPath: storeRoot + i), at: i)
+                TestData.deleteFile(storeRoot + "\(i)")
+                stores.insert(try DIDStore.open(atPath: storeRoot + "\(i)"), at: i)
                 XCTAssertNotNil(stores[i])
                 let mnemonic = try Mnemonic.generate(Mnemonic.DID_ENGLISH)
                 _ = try RootIdentity.create(mnemonic, "", stores[i], storePassword)

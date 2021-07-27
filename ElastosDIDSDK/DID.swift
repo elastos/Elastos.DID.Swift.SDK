@@ -60,18 +60,27 @@ public class DID: NSObject {
     public init(_ did: String) throws {
         super.init()
         try checkArgument(!did.isEmpty, "did is empty")
-
-        do {
-            try ParserHelper.parse(did, true, DID.Listener(self))
-        } catch {
-            Log.e(DID.TAG, "Parsing did error: malformed did string \(did)")
-            let didError: DIDError? = error as? DIDError
-            var errmsg = "Parsing did error: malformed did string \(did)"
-            if didError != nil {
-                errmsg = didError!.localizedDescription
-            }
-            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError(errmsg)
-        }
+        let parser =  DIDParser(self)
+        try parser.parse(did)
+//        do {
+//            try ParserHelper.parse(did, true, DID.Listener(self))
+//        } catch {
+//            Log.e(DID.TAG, "Parsing did error: malformed did string \(did)")
+//            let didError: DIDError? = error as? DIDError
+//            var errmsg = "Parsing did error: malformed did string \(did)"
+//            if didError != nil {
+//                errmsg = didError!.localizedDescription
+//            }
+//            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError(errmsg)
+//        }
+    }
+    
+    init(_ did: String, _ start: Int, _ limit: Int) throws {
+        super.init()
+        try checkArgument(!did.isEmpty, "did is empty")
+        try checkArgument(start < limit, "Invalid offsets")
+        let parser = DIDParser(self)
+        try parser.parse(did, start, limit)
     }
     
     /// Create a DID object from the given string. The method will parse the
@@ -301,32 +310,6 @@ extension DID {
     @objc
     public override var hash: Int {
         return self.toString().hash
-    }
-}
-
-// Parse Listener
-extension DID {
-    private class Listener: DIDURLBaseListener {
-        private var did: DID
-
-        init(_ did: DID) {
-            self.did = did
-            super.init()
-        }
-
-        public override func exitMethod(_ ctx: DIDURLParser.MethodContext) {
-            let method = ctx.getText()
-            if (method != Constants.METHOD){
-                // can't throw , print...
-                Log.e(DID.TAG, "unsupported method: \(method)")
-            }
-            self.did._method = Constants.METHOD
-        }
-
-        public override func exitMethodSpecificString(
-                            _ ctx: DIDURLParser.MethodSpecificStringContext) {
-            self.did._methodSpecificId = ctx.getText()
-        }
     }
 }
 
