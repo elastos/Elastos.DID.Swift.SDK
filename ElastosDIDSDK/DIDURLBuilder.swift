@@ -71,12 +71,12 @@ public class DIDURLBuilder: NSObject {
         return self
     }
     
-    /// Sets a query parameter with given value.
+    /// Append a query parameter with given value.
     /// - Parameter:
     ///     - name: a query parameter name
     ///     - value: value: the parameter value
     /// - Returns: the builder instance for method chaining
-    public func setQueryParameter(_ name: String, _ value: String) throws -> DIDURLBuilder {
+    public func appendQueryParameter(_ name: String, _ value: String) throws -> DIDURLBuilder {
         try checkArgument(!name.isEmpty, "Invalid parameter name")
         url._queryParameters[name] = value
         

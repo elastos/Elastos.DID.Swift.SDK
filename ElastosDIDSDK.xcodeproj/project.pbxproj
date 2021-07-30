@@ -22,6 +22,135 @@
 
 /* Begin PBXBuildFile section */
 		0E568F5F89CD94B76CE6213E /* Pods_ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED7485A64A06C161BCD31D48 /* Pods_ElastosDIDSDK.framework */; };
+		1100DBB526B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1100DBAC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework */; };
+		1100DBBA26B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100DBB926B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift */; };
+		1100DBBC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 1100DBAE26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1100DBCC26B3921800AB1FB3 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29AC2578ED8D0084B859 /* ByteBuffer.swift */; };
+		1100DBD126B3921E00AB1FB3 /* ECPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29982578ED210084B859 /* ECPrivateKey.swift */; };
+		1100DBD226B3921E00AB1FB3 /* ECError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29972578ED210084B859 /* ECError.swift */; };
+		1100DBD326B3921E00AB1FB3 /* ECDecryptable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29992578ED210084B859 /* ECDecryptable.swift */; };
+		1100DBD426B3921E00AB1FB3 /* ECPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29942578ED210084B859 /* ECPublicKey.swift */; };
+		1100DBD526B3921E00AB1FB3 /* ECSignable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29952578ED210084B859 /* ECSignable.swift */; };
+		1100DBD626B3921E00AB1FB3 /* SSLPointerTricks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29962578ED210084B859 /* SSLPointerTricks.swift */; };
+		1100DBD726B3921E00AB1FB3 /* ASN1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299B2578ED210084B859 /* ASN1.swift */; };
+		1100DBD826B3921E00AB1FB3 /* Data+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299A2578ED210084B859 /* Data+Extensions.swift */; };
+		1100DBD926B3921E00AB1FB3 /* ECSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299C2578ED210084B859 /* ECSignature.swift */; };
+		1100DBDA26B3921E00AB1FB3 /* ECEncryptable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B299D2578ED210084B859 /* ECEncryptable.swift */; };
+		1100DBDB26B3921E00AB1FB3 /* EllipticCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29932578ED210084B859 /* EllipticCurve.swift */; };
+		1100DBE026B3922400AB1FB3 /* JWTSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD32477807300DF1B4F /* JWTSigner.swift */; };
+		1100DBE126B3922400AB1FB3 /* BlueECDSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD62477807300DF1B4F /* BlueECDSA.swift */; };
+		1100DBE226B3922400AB1FB3 /* NoneAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */; };
+		1100DBE326B3922400AB1FB3 /* BlueHMAC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDA2477807300DF1B4F /* BlueHMAC.swift */; };
+		1100DBE426B3922400AB1FB3 /* JWTVerifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD22477807300DF1B4F /* JWTVerifier.swift */; };
+		1100DBE526B3922400AB1FB3 /* ValidateClaimsResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD72477807300DF1B4F /* ValidateClaimsResult.swift */; };
+		1100DBE626B3922400AB1FB3 /* Data+Base64URLEncoded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD82477807300DF1B4F /* Data+Base64URLEncoded.swift */; };
+		1100DBE726B3922400AB1FB3 /* SignerAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDD2477807300DF1B4F /* SignerAlgorithm.swift */; };
+		1100DBE826B3922400AB1FB3 /* JWTEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD92477807300DF1B4F /* JWTEncoder.swift */; };
+		1100DBE926B3922400AB1FB3 /* JWTError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD52477807300DF1B4F /* JWTError.swift */; };
+		1100DBEA26B3922400AB1FB3 /* RSAKeyType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD02477807300DF1B4F /* RSAKeyType.swift */; };
+		1100DBEB26B3922400AB1FB3 /* BlueRSA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDB2477807300DF1B4F /* BlueRSA.swift */; };
+		1100DBEC26B3922400AB1FB3 /* VerifierAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDC2477807300DF1B4F /* VerifierAlgorithm.swift */; };
+		1100DBED26B3922400AB1FB3 /* JWTDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */; };
+		1100DBF226B3922900AB1FB3 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
+		1100DBF726B3923000AB1FB3 /* CHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A373D24404DA5005549CC /* CHDKey.swift */; };
+		1100DBF826B3923000AB1FB3 /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; };
+		1100DBF926B3923000AB1FB3 /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; };
+		1100DBFE26B3923600AB1FB3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD12477807300DF1B4F /* Header.swift */; };
+		1100DBFF26B3923600AB1FB3 /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
+		1100DC0026B3923600AB1FB3 /* JWT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD42477807300DF1B4F /* JWT.swift */; };
+		1100DC0126B3923600AB1FB3 /* JwtParserBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6524765D0F00DF1B4F /* JwtParserBuilder.swift */; };
+		1100DC0226B3923600AB1FB3 /* Claims.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECCF2477807300DF1B4F /* Claims.swift */; };
+		1100DC0726B3923A00AB1FB3 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33684622421F7EE0049126D /* Log.swift */; };
+		1100DC0826B3923A00AB1FB3 /* LogLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3368468242201D90049126D /* LogLevel.swift */; };
+		1100DC0D26B3924000AB1FB3 /* RegexHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1179520C241B3A7100A1C55B /* RegexHelper.swift */; };
+		1100DC0E26B3924000AB1FB3 /* LRUCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801AA240281B00087E074 /* LRUCache.swift */; };
+		1100DC0F26B3924000AB1FB3 /* DateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3323F19A22008EC032 /* DateHelper.swift */; };
+		1100DC1026B3924000AB1FB3 /* IDGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D732823FA758900B4CB3E /* IDGetter.swift */; };
+		1100DC1126B3924000AB1FB3 /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096E224193E200065228B /* OrderedDictionary.swift */; };
+		1100DC1226B3924000AB1FB3 /* DIDHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3023F19A22008EC032 /* DIDHDKey.swift */; };
+		1100DC1326B3924000AB1FB3 /* JsonSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE3123F19A22008EC032 /* JsonSerializer.swift */; };
+		1100DC1426B3924000AB1FB3 /* extension+FileSystemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81FE264E4BC400F6477F /* extension+FileSystemStorage.swift */; };
+		1100DC1526B3924000AB1FB3 /* extension+Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8206264E4C2500F6477F /* extension+Array.swift */; };
+		1100DC1626B3924000AB1FB3 /* JsonGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE2A23F19A22008EC032 /* JsonGenerator.swift */; };
+		1100DC1726B3924000AB1FB3 /* Extension+String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B62847264BA8BA00B20904 /* Extension+String.swift */; };
+		1100DC1826B3924000AB1FB3 /* extension+Dictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B8202264E4BF600F6477F /* extension+Dictionary.swift */; };
+		1100DC1926B3924000AB1FB3 /* Extension+Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33DD260984C600DEBD00 /* Extension+Data.swift */; };
+		1100DC1A26B3924000AB1FB3 /* extension+NSObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B81FA264E4B8600F6477F /* extension+NSObject.swift */; };
+		1100DC1B26B3924000AB1FB3 /* EcdsaSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116FA91C263491690021A46F /* EcdsaSigner.swift */; };
+		1100DC1C26B3924000AB1FB3 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE2F23F19A22008EC032 /* DateFormatter.swift */; };
+		1100DC1D26B3924000AB1FB3 /* Extension+Int.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE2B23F19A22008EC032 /* Extension+Int.swift */; };
+		1100DC1E26B3924000AB1FB3 /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096D5241930690065228B /* SHA256Helper.swift */; };
+		1100DC2326B3924500AB1FB3 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE2623F19A04008EC032 /* Errors.swift */; };
+		1100DC2426B3924500AB1FB3 /* DIDError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE2523F19A04008EC032 /* DIDError.swift */; };
+		1100DC2926B3924900AB1FB3 /* DIDStoreMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5C23F19A4E008EC032 /* DIDStoreMetadata.swift */; };
+		1100DC2A26B3924900AB1FB3 /* CredentialMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE5D23F19A4E008EC032 /* CredentialMetadata.swift */; };
+		1100DC2B26B3924900AB1FB3 /* RootIdentityMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D52608527100DEBD00 /* RootIdentityMetadata.swift */; };
+		1100DC2C26B3924900AB1FB3 /* DIDMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33BD260842CE00DEBD00 /* DIDMetadata.swift */; };
+		1100DC2D26B3924900AB1FB3 /* AbstractMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116F719F25F1D5F20041D983 /* AbstractMetadata.swift */; };
+		1100DC3226B3924F00AB1FB3 /* DIDResolveResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAA72612D611004145CB /* DIDResolveResponse.swift */; };
+		1100DC3326B3924F00AB1FB3 /* DIDBiography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAAF2612DA9B004145CB /* DIDBiography.swift */; };
+		1100DC3426B3924F00AB1FB3 /* CredentialResolveResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAB92612E051004145CB /* CredentialResolveResponse.swift */; };
+		1100DC3526B3924F00AB1FB3 /* SimulatedIDChainAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */; };
+		1100DC3626B3924F00AB1FB3 /* ResolveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA9B2612CC83004145CB /* ResolveRequest.swift */; };
+		1100DC3726B3924F00AB1FB3 /* DIDTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D8DBD12438CB8300E8E787 /* DIDTransaction.swift */; };
+		1100DC3826B3924F00AB1FB3 /* CredentialListResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAC12612E5FC004145CB /* CredentialListResponse.swift */; };
+		1100DC3926B3924F00AB1FB3 /* DIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33982604383700DEBD00 /* DIDRequest.swift */; };
+		1100DC3A26B3924F00AB1FB3 /* ResolveResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA952612C72B004145CB /* ResolveResponse.swift */; };
+		1100DC3B26B3924F00AB1FB3 /* CredentialRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A726045D8B00DEBD00 /* CredentialRequest.swift */; };
+		1100DC3C26B3924F00AB1FB3 /* CredentialResolveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACABD2612E112004145CB /* CredentialResolveRequest.swift */; };
+		1100DC3D26B3924F00AB1FB3 /* IDChainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */; };
+		1100DC3E26B3924F00AB1FB3 /* SimulatedIDChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1183E1D6261BFDA900F8CEF0 /* SimulatedIDChain.swift */; };
+		1100DC3F26B3924F00AB1FB3 /* CredentialListRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAC52612E66B004145CB /* CredentialListRequest.swift */; };
+		1100DC4026B3924F00AB1FB3 /* DIDBiographyStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6323F19A66008EC032 /* DIDBiographyStatus.swift */; };
+		1100DC4126B3924F00AB1FB3 /* ResolveResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6523F19A66008EC032 /* ResolveResult.swift */; };
+		1100DC4226B3924F00AB1FB3 /* CredentialBiography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA9026120D65004145CB /* CredentialBiography.swift */; };
+		1100DC4326B3924F00AB1FB3 /* DIDResolveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAAB2612D698004145CB /* DIDResolveRequest.swift */; };
+		1100DC4426B3924F00AB1FB3 /* CredentialList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAC92612E957004145CB /* CredentialList.swift */; };
+		1100DC4526B3924F00AB1FB3 /* IDChainRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6723F19A66008EC032 /* IDChainRequest.swift */; };
+		1100DC4626B3924F00AB1FB3 /* IDChainRequestOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6623F19A66008EC032 /* IDChainRequestOperation.swift */; };
+		1100DC4726B3924F00AB1FB3 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
+		1100DC4826B3924F00AB1FB3 /* CredentialTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACAB52612DF5F004145CB /* CredentialTransaction.swift */; };
+		1100DC4926B3924F00AB1FB3 /* IDTransactionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE6423F19A66008EC032 /* IDTransactionInfo.swift */; };
+		1100DC7D26B3925C00AB1FB3 /* DIDDocumentProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0023F199AE008EC032 /* DIDDocumentProof.swift */; };
+		1100DC7E26B3925C00AB1FB3 /* MultiSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11411CC125ECC4B00033F659 /* MultiSignature.swift */; };
+		1100DC7F26B3925C00AB1FB3 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDF823F199AD008EC032 /* PublicKey.swift */; };
+		1100DC8026B3925C00AB1FB3 /* DIDResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A224015EA30087E074 /* DIDResolver.swift */; };
+		1100DC8126B3925C00AB1FB3 /* VerifiableCredentialSubject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1923F199BA008EC032 /* VerifiableCredentialSubject.swift */; };
+		1100DC8226B3925C00AB1FB3 /* DID.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0523F199AE008EC032 /* DID.swift */; };
+		1100DC8326B3925C00AB1FB3 /* DefaultDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */; };
+		1100DC8426B3925C00AB1FB3 /* DIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0123F199AE008EC032 /* DIDAdapter.swift */; };
+		1100DC8526B3925C00AB1FB3 /* RootIdentityExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B628432648E38C00B20904 /* RootIdentityExport.swift */; };
+		1100DC8626B3925C00AB1FB3 /* Mnemonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1147721023F6976800C7C36F /* Mnemonic.swift */; };
+		1100DC8726B3925C00AB1FB3 /* VerifiablePresentationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1623F199BA008EC032 /* VerifiablePresentationBuilder.swift */; };
+		1100DC8826B3925C00AB1FB3 /* JsonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A8240277180087E074 /* JsonNode.swift */; };
+		1100DC8926B3925C00AB1FB3 /* DIDDocumentBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDF923F199AE008EC032 /* DIDDocumentBuilder.swift */; };
+		1100DC8A26B3925C00AB1FB3 /* DIDDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0223F199AE008EC032 /* DIDDocument.swift */; };
+		1100DC8B26B3925C00AB1FB3 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
+		1100DC8C26B3925C00AB1FB3 /* VerifiablePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1723F199BA008EC032 /* VerifiablePresentation.swift */; };
+		1100DC8D26B3925C00AB1FB3 /* RootIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33D12608513A00DEBD00 /* RootIdentity.swift */; };
+		1100DC8E26B3925C00AB1FB3 /* VerifiablePresentationProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1523F199BA008EC032 /* VerifiablePresentationProof.swift */; };
+		1100DC8F26B3925C00AB1FB3 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFA23F199AE008EC032 /* Service.swift */; };
+		1100DC9026B3925C00AB1FB3 /* PublicKeyReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33B72607796300DEBD00 /* PublicKeyReference.swift */; };
+		1100DC9126B3925C00AB1FB3 /* VerifiableCredentialBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1A23F199BA008EC032 /* VerifiableCredentialBuilder.swift */; };
+		1100DC9226B3925C00AB1FB3 /* VerifiableCredentialIssuer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1823F199BA008EC032 /* VerifiableCredentialIssuer.swift */; };
+		1100DC9326B3925C00AB1FB3 /* DIDParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115D4DDB26AE85530095D56C /* DIDParser.swift */; };
+		1100DC9426B3925C00AB1FB3 /* VerifiableCredentialProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1423F199BA008EC032 /* VerifiableCredentialProof.swift */; };
+		1100DC9526B3925C00AB1FB3 /* VerifiableCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE1B23F199BA008EC032 /* VerifiableCredential.swift */; };
+		1100DC9626B3925C00AB1FB3 /* DIDStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFB23F199AE008EC032 /* DIDStorage.swift */; };
+		1100DC9726B3925C00AB1FB3 /* DIDStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFD23F199AE008EC032 /* DIDStore.swift */; };
+		1100DC9826B3925C00AB1FB3 /* FileSystemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFF23F199AE008EC032 /* FileSystemStorage.swift */; };
+		1100DC9926B3925C00AB1FB3 /* VerificationEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D62552269C29910017E19D /* VerificationEventListener.swift */; };
+		1100DC9A26B3925C00AB1FB3 /* DIDExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B6283E26483A5A00B20904 /* DIDExport.swift */; };
+		1100DC9B26B3925C00AB1FB3 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFE23F199AE008EC032 /* Constants.swift */; };
+		1100DC9C26B3925C00AB1FB3 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
+		1100DC9D26B3925C00AB1FB3 /* DIDURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */; };
+		1100DC9E26B3925C00AB1FB3 /* DIDBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0423F199AE008EC032 /* DIDBackend.swift */; };
+		1100DC9F26B3925C00AB1FB3 /* CredentialFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254E269C1FFA0017E19D /* CredentialFilter.swift */; };
+		1100DCA026B3925C00AB1FB3 /* DIDObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACE0323F199AE008EC032 /* DIDObject.swift */; };
+		1100DCA126B3925C00AB1FB3 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
+		1100DCA226B3925C00AB1FB3 /* DIDURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31ACDFC23F199AE008EC032 /* DIDURL.swift */; };
+		1100DCA326B3925C00AB1FB3 /* DIDURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115D4E0B26AF9EB30095D56C /* DIDURLParser.swift */; };
+		1100DCA426B3925C00AB1FB3 /* DIDFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D6254A269C1FEB0017E19D /* DIDFilter.swift */; };
 		11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1C239D1B31008A4500 /* DIDURLTest.swift */; };
 		11054F1F239D2088008A4500 /* DIDTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11054F1E239D2088008A4500 /* DIDTest.swift */; };
 		110AD2FF234E44C8006578D6 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
@@ -178,6 +307,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1100DBB626B391FA00AB1FB3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11F262A123260CF30009C103 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1100DBAB26B391FA00AB1FB3;
+			remoteInfo = ElastosDIDSDK_macOS;
+		};
 		1155D94C2352FACE00DF8C9D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 11F262A123260CF30009C103 /* Project object */;
@@ -201,6 +337,16 @@
 
 /* Begin PBXFileReference section */
 		0681BAC6ED686527AFAFA123 /* Pods-ElastosDIDSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDKTests.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDKTests/Pods-ElastosDIDSDKTests.release.xcconfig"; sourceTree = "<group>"; };
+		1100DB8C26B391CF00AB1FB3 /* ElastosDIDSDK__macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK__macOS.h; sourceTree = "<group>"; };
+		1100DB8D26B391CF00AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1100DB9726B391D000AB1FB3 /* ElastosDIDSDK__macOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElastosDIDSDK__macOSTests.swift; sourceTree = "<group>"; };
+		1100DB9926B391D000AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1100DBAC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ElastosDIDSDK_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1100DBAE26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK_macOS.h; sourceTree = "<group>"; };
+		1100DBAF26B391FA00AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1100DBB426B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ElastosDIDSDK_macOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1100DBB926B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElastosDIDSDK_macOSTests.swift; sourceTree = "<group>"; };
+		1100DBBB26B391FA00AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		11054F1C239D1B31008A4500 /* DIDURLTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDURLTest.swift; sourceTree = "<group>"; };
 		11054F1E239D2088008A4500 /* DIDTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTest.swift; sourceTree = "<group>"; };
 		1109D08423275CFE00A03D56 /* Antlr4.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Antlr4.framework; sourceTree = "<group>"; };
@@ -416,6 +562,21 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1100DBA926B391FA00AB1FB3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1100DBB126B391FA00AB1FB3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1100DBB526B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1155D9432352FACE00DF8C9D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -440,6 +601,42 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1100DB8B26B391CF00AB1FB3 /* ElastosDIDSDK _macOS */ = {
+			isa = PBXGroup;
+			children = (
+				1100DB8C26B391CF00AB1FB3 /* ElastosDIDSDK__macOS.h */,
+				1100DB8D26B391CF00AB1FB3 /* Info.plist */,
+			);
+			path = "ElastosDIDSDK _macOS";
+			sourceTree = "<group>";
+		};
+		1100DB9626B391CF00AB1FB3 /* ElastosDIDSDK _macOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				1100DB9726B391D000AB1FB3 /* ElastosDIDSDK__macOSTests.swift */,
+				1100DB9926B391D000AB1FB3 /* Info.plist */,
+			);
+			path = "ElastosDIDSDK _macOSTests";
+			sourceTree = "<group>";
+		};
+		1100DBAD26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */ = {
+			isa = PBXGroup;
+			children = (
+				1100DBAE26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h */,
+				1100DBAF26B391FA00AB1FB3 /* Info.plist */,
+			);
+			path = ElastosDIDSDK_macOS;
+			sourceTree = "<group>";
+		};
+		1100DBB826B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				1100DBB926B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift */,
+				1100DBBB26B391FA00AB1FB3 /* Info.plist */,
+			);
+			path = ElastosDIDSDK_macOSTests;
+			sourceTree = "<group>";
+		};
 		1109D08723275DC600A03D56 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -644,6 +841,10 @@
 				11E3F791233D121900EF35C3 /* Externals */,
 				11F262AC23260CF40009C103 /* ElastosDIDSDK */,
 				1155D9472352FACE00DF8C9D /* ElastosDIDSDKTests */,
+				1100DB8B26B391CF00AB1FB3 /* ElastosDIDSDK _macOS */,
+				1100DB9626B391CF00AB1FB3 /* ElastosDIDSDK _macOSTests */,
+				1100DBAD26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */,
+				1100DBB826B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests */,
 				11F262AB23260CF40009C103 /* Products */,
 				1109D08723275DC600A03D56 /* Frameworks */,
 				4F3DEAD3C3197A829FB15D11 /* Pods */,
@@ -655,6 +856,8 @@
 			children = (
 				11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */,
 				1155D9462352FACE00DF8C9D /* ElastosDIDSDKTests.xctest */,
+				1100DBAC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework */,
+				1100DBB426B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -814,6 +1017,16 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		1100DBA726B391FA00AB1FB3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1100DBF826B3923000AB1FB3 /* HDkey.h in Headers */,
+				1100DBBC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h in Headers */,
+				1100DBF926B3923000AB1FB3 /* crypto.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		11DA0703238B80CB0066CC86 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -834,6 +1047,42 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		1100DBAB26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1100DBBD26B391FA00AB1FB3 /* Build configuration list for PBXNativeTarget "ElastosDIDSDK_macOS" */;
+			buildPhases = (
+				1100DBA726B391FA00AB1FB3 /* Headers */,
+				1100DBA826B391FA00AB1FB3 /* Sources */,
+				1100DBA926B391FA00AB1FB3 /* Frameworks */,
+				1100DBAA26B391FA00AB1FB3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ElastosDIDSDK_macOS;
+			productName = ElastosDIDSDK_macOS;
+			productReference = 1100DBAC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		1100DBB326B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1100DBC026B391FA00AB1FB3 /* Build configuration list for PBXNativeTarget "ElastosDIDSDK_macOSTests" */;
+			buildPhases = (
+				1100DBB026B391FA00AB1FB3 /* Sources */,
+				1100DBB126B391FA00AB1FB3 /* Frameworks */,
+				1100DBB226B391FA00AB1FB3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1100DBB726B391FA00AB1FB3 /* PBXTargetDependency */,
+			);
+			name = ElastosDIDSDK_macOSTests;
+			productName = ElastosDIDSDK_macOSTests;
+			productReference = 1100DBB426B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		1155D9452352FACE00DF8C9D /* ElastosDIDSDKTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1155D9542352FACE00DF8C9D /* Build configuration list for PBXNativeTarget "ElastosDIDSDKTests" */;
@@ -881,10 +1130,16 @@
 		11F262A123260CF30009C103 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1120;
+				LastSwiftUpdateCheck = 1200;
 				LastUpgradeCheck = 1030;
 				ORGANIZATIONNAME = elastos;
 				TargetAttributes = {
+					1100DBAB26B391FA00AB1FB3 = {
+						CreatedOnToolsVersion = 12.0;
+					};
+					1100DBB326B391FA00AB1FB3 = {
+						CreatedOnToolsVersion = 12.0;
+					};
 					1155D9452352FACE00DF8C9D = {
 						CreatedOnToolsVersion = 11.0;
 						LastSwiftMigration = 1120;
@@ -914,11 +1169,27 @@
 				11F262A923260CF40009C103 /* ElastosDIDSDK */,
 				1155D9452352FACE00DF8C9D /* ElastosDIDSDKTests */,
 				11F3A90724D927E2007ABB70 /* ElastosDIDSDKFramework */,
+				1100DBAB26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */,
+				1100DBB326B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		1100DBAA26B391FA00AB1FB3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1100DBB226B391FA00AB1FB3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1155D9442352FACE00DF8C9D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1018,6 +1289,145 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		1100DBA826B391FA00AB1FB3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1100DC9E26B3925C00AB1FB3 /* DIDBackend.swift in Sources */,
+				1100DC8126B3925C00AB1FB3 /* VerifiableCredentialSubject.swift in Sources */,
+				1100DC8426B3925C00AB1FB3 /* DIDAdapter.swift in Sources */,
+				1100DC2926B3924900AB1FB3 /* DIDStoreMetadata.swift in Sources */,
+				1100DBEB26B3922400AB1FB3 /* BlueRSA.swift in Sources */,
+				1100DC1D26B3924000AB1FB3 /* Extension+Int.swift in Sources */,
+				1100DBD526B3921E00AB1FB3 /* ECSignable.swift in Sources */,
+				1100DC9526B3925C00AB1FB3 /* VerifiableCredential.swift in Sources */,
+				1100DC8A26B3925C00AB1FB3 /* DIDDocument.swift in Sources */,
+				1100DBD126B3921E00AB1FB3 /* ECPrivateKey.swift in Sources */,
+				1100DC1826B3924000AB1FB3 /* extension+Dictionary.swift in Sources */,
+				1100DC4426B3924F00AB1FB3 /* CredentialList.swift in Sources */,
+				1100DC9C26B3925C00AB1FB3 /* TransferTicketProof.swift in Sources */,
+				1100DC8826B3925C00AB1FB3 /* JsonNode.swift in Sources */,
+				1100DC8526B3925C00AB1FB3 /* RootIdentityExport.swift in Sources */,
+				1100DC1C26B3924000AB1FB3 /* DateFormatter.swift in Sources */,
+				1100DC8B26B3925C00AB1FB3 /* TransferTicket.swift in Sources */,
+				1100DBE826B3922400AB1FB3 /* JWTEncoder.swift in Sources */,
+				1100DC1326B3924000AB1FB3 /* JsonSerializer.swift in Sources */,
+				1100DC4126B3924F00AB1FB3 /* ResolveResult.swift in Sources */,
+				1100DBD226B3921E00AB1FB3 /* ECError.swift in Sources */,
+				1100DC9626B3925C00AB1FB3 /* DIDStorage.swift in Sources */,
+				1100DBD626B3921E00AB1FB3 /* SSLPointerTricks.swift in Sources */,
+				1100DC0826B3923A00AB1FB3 /* LogLevel.swift in Sources */,
+				1100DBE226B3922400AB1FB3 /* NoneAlgorithm.swift in Sources */,
+				1100DCA426B3925C00AB1FB3 /* DIDFilter.swift in Sources */,
+				1100DC8026B3925C00AB1FB3 /* DIDResolver.swift in Sources */,
+				1100DC1726B3924000AB1FB3 /* Extension+String.swift in Sources */,
+				1100DC9A26B3925C00AB1FB3 /* DIDExport.swift in Sources */,
+				1100DC3A26B3924F00AB1FB3 /* ResolveResponse.swift in Sources */,
+				1100DC7D26B3925C00AB1FB3 /* DIDDocumentProof.swift in Sources */,
+				1100DC9326B3925C00AB1FB3 /* DIDParser.swift in Sources */,
+				1100DC2B26B3924900AB1FB3 /* RootIdentityMetadata.swift in Sources */,
+				1100DC9126B3925C00AB1FB3 /* VerifiableCredentialBuilder.swift in Sources */,
+				1100DBD326B3921E00AB1FB3 /* ECDecryptable.swift in Sources */,
+				1100DC8D26B3925C00AB1FB3 /* RootIdentity.swift in Sources */,
+				1100DC1626B3924000AB1FB3 /* JsonGenerator.swift in Sources */,
+				1100DC8C26B3925C00AB1FB3 /* VerifiablePresentation.swift in Sources */,
+				1100DBD726B3921E00AB1FB3 /* ASN1.swift in Sources */,
+				1100DC1226B3924000AB1FB3 /* DIDHDKey.swift in Sources */,
+				1100DBFE26B3923600AB1FB3 /* Header.swift in Sources */,
+				1100DBE326B3922400AB1FB3 /* BlueHMAC.swift in Sources */,
+				1100DBFF26B3923600AB1FB3 /* JwtBuilder.swift in Sources */,
+				1100DBF226B3922900AB1FB3 /* Base58.swift in Sources */,
+				1100DC3326B3924F00AB1FB3 /* DIDBiography.swift in Sources */,
+				1100DC3826B3924F00AB1FB3 /* CredentialListResponse.swift in Sources */,
+				1100DC3926B3924F00AB1FB3 /* DIDRequest.swift in Sources */,
+				1100DC9D26B3925C00AB1FB3 /* DIDURLBuilder.swift in Sources */,
+				1100DC0226B3923600AB1FB3 /* Claims.swift in Sources */,
+				1100DBE426B3922400AB1FB3 /* JWTVerifier.swift in Sources */,
+				1100DC1E26B3924000AB1FB3 /* SHA256Helper.swift in Sources */,
+				1100DC4226B3924F00AB1FB3 /* CredentialBiography.swift in Sources */,
+				1100DBE026B3922400AB1FB3 /* JWTSigner.swift in Sources */,
+				1100DBE726B3922400AB1FB3 /* SignerAlgorithm.swift in Sources */,
+				1100DC3F26B3924F00AB1FB3 /* CredentialListRequest.swift in Sources */,
+				1100DC8226B3925C00AB1FB3 /* DID.swift in Sources */,
+				1100DCA226B3925C00AB1FB3 /* DIDURL.swift in Sources */,
+				1100DC4726B3924F00AB1FB3 /* IDChainProof.swift in Sources */,
+				1100DC3526B3924F00AB1FB3 /* SimulatedIDChainAdapter.swift in Sources */,
+				1100DBDA26B3921E00AB1FB3 /* ECEncryptable.swift in Sources */,
+				1100DC9026B3925C00AB1FB3 /* PublicKeyReference.swift in Sources */,
+				1100DC9726B3925C00AB1FB3 /* DIDStore.swift in Sources */,
+				1100DBDB26B3921E00AB1FB3 /* EllipticCurve.swift in Sources */,
+				1100DC0F26B3924000AB1FB3 /* DateHelper.swift in Sources */,
+				1100DBE626B3922400AB1FB3 /* Data+Base64URLEncoded.swift in Sources */,
+				1100DC1126B3924000AB1FB3 /* OrderedDictionary.swift in Sources */,
+				1100DC1426B3924000AB1FB3 /* extension+FileSystemStorage.swift in Sources */,
+				1100DC3426B3924F00AB1FB3 /* CredentialResolveResponse.swift in Sources */,
+				1100DBED26B3922400AB1FB3 /* JWTDecoder.swift in Sources */,
+				1100DC0726B3923A00AB1FB3 /* Log.swift in Sources */,
+				1100DC9226B3925C00AB1FB3 /* VerifiableCredentialIssuer.swift in Sources */,
+				1100DC3726B3924F00AB1FB3 /* DIDTransaction.swift in Sources */,
+				1100DC3226B3924F00AB1FB3 /* DIDResolveResponse.swift in Sources */,
+				1100DC0E26B3924000AB1FB3 /* LRUCache.swift in Sources */,
+				1100DBD926B3921E00AB1FB3 /* ECSignature.swift in Sources */,
+				1100DBD426B3921E00AB1FB3 /* ECPublicKey.swift in Sources */,
+				1100DBE926B3922400AB1FB3 /* JWTError.swift in Sources */,
+				1100DBCC26B3921800AB1FB3 /* ByteBuffer.swift in Sources */,
+				1100DC4826B3924F00AB1FB3 /* CredentialTransaction.swift in Sources */,
+				1100DC0026B3923600AB1FB3 /* JWT.swift in Sources */,
+				1100DC9B26B3925C00AB1FB3 /* Constants.swift in Sources */,
+				1100DC3E26B3924F00AB1FB3 /* SimulatedIDChain.swift in Sources */,
+				1100DC1926B3924000AB1FB3 /* Extension+Data.swift in Sources */,
+				1100DC9826B3925C00AB1FB3 /* FileSystemStorage.swift in Sources */,
+				1100DC8326B3925C00AB1FB3 /* DefaultDIDAdapter.swift in Sources */,
+				1100DC2A26B3924900AB1FB3 /* CredentialMetadata.swift in Sources */,
+				1100DC3C26B3924F00AB1FB3 /* CredentialResolveRequest.swift in Sources */,
+				1100DBEC26B3922400AB1FB3 /* VerifierAlgorithm.swift in Sources */,
+				1100DBEA26B3922400AB1FB3 /* RSAKeyType.swift in Sources */,
+				1100DC2426B3924500AB1FB3 /* DIDError.swift in Sources */,
+				1100DCA326B3925C00AB1FB3 /* DIDURLParser.swift in Sources */,
+				1100DC3B26B3924F00AB1FB3 /* CredentialRequest.swift in Sources */,
+				1100DC3626B3924F00AB1FB3 /* ResolveRequest.swift in Sources */,
+				1100DC1B26B3924000AB1FB3 /* EcdsaSigner.swift in Sources */,
+				1100DC8626B3925C00AB1FB3 /* Mnemonic.swift in Sources */,
+				1100DC1526B3924000AB1FB3 /* extension+Array.swift in Sources */,
+				1100DC4626B3924F00AB1FB3 /* IDChainRequestOperation.swift in Sources */,
+				1100DC9F26B3925C00AB1FB3 /* CredentialFilter.swift in Sources */,
+				1100DC8F26B3925C00AB1FB3 /* Service.swift in Sources */,
+				1100DC4326B3924F00AB1FB3 /* DIDResolveRequest.swift in Sources */,
+				1100DC1026B3924000AB1FB3 /* IDGetter.swift in Sources */,
+				1100DC8E26B3925C00AB1FB3 /* VerifiablePresentationProof.swift in Sources */,
+				1100DC1A26B3924000AB1FB3 /* extension+NSObject.swift in Sources */,
+				1100DC0126B3923600AB1FB3 /* JwtParserBuilder.swift in Sources */,
+				1100DC8926B3925C00AB1FB3 /* DIDDocumentBuilder.swift in Sources */,
+				1100DBE126B3922400AB1FB3 /* BlueECDSA.swift in Sources */,
+				1100DC7E26B3925C00AB1FB3 /* MultiSignature.swift in Sources */,
+				1100DC9926B3925C00AB1FB3 /* VerificationEventListener.swift in Sources */,
+				1100DBF726B3923000AB1FB3 /* CHDKey.swift in Sources */,
+				1100DCA026B3925C00AB1FB3 /* DIDObject.swift in Sources */,
+				1100DC2D26B3924900AB1FB3 /* AbstractMetadata.swift in Sources */,
+				1100DC2326B3924500AB1FB3 /* Errors.swift in Sources */,
+				1100DC3D26B3924F00AB1FB3 /* IDChainHeader.swift in Sources */,
+				1100DC7F26B3925C00AB1FB3 /* PublicKey.swift in Sources */,
+				1100DCA126B3925C00AB1FB3 /* DIDTransactionAdapter.swift in Sources */,
+				1100DBE526B3922400AB1FB3 /* ValidateClaimsResult.swift in Sources */,
+				1100DC9426B3925C00AB1FB3 /* VerifiableCredentialProof.swift in Sources */,
+				1100DC0D26B3924000AB1FB3 /* RegexHelper.swift in Sources */,
+				1100DC8726B3925C00AB1FB3 /* VerifiablePresentationBuilder.swift in Sources */,
+				1100DC4026B3924F00AB1FB3 /* DIDBiographyStatus.swift in Sources */,
+				1100DC2C26B3924900AB1FB3 /* DIDMetadata.swift in Sources */,
+				1100DC4926B3924F00AB1FB3 /* IDTransactionInfo.swift in Sources */,
+				1100DC4526B3924F00AB1FB3 /* IDChainRequest.swift in Sources */,
+				1100DBD826B3921E00AB1FB3 /* Data+Extensions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1100DBB026B391FA00AB1FB3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1100DBBA26B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1155D9422352FACE00DF8C9D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1178,6 +1588,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1100DBB726B391FA00AB1FB3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1100DBAB26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */;
+			targetProxy = 1100DBB626B391FA00AB1FB3 /* PBXContainerItemProxy */;
+		};
 		1155D94D2352FACE00DF8C9D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 11F262A923260CF40009C103 /* ElastosDIDSDK */;
@@ -1186,6 +1601,104 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		1100DBBE26B391FA00AB1FB3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = ElastosDIDSDK_macOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOS";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1100DBBF26B391FA00AB1FB3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = ElastosDIDSDK_macOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOS";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1100DBC126B391FA00AB1FB3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				INFOPLIST_FILE = ElastosDIDSDK_macOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1100DBC226B391FA00AB1FB3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				INFOPLIST_FILE = ElastosDIDSDK_macOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		1155D94E2352FACE00DF8C9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C20B571ECD0C5AC2E67B4609 /* Pods-ElastosDIDSDKTests.debug.xcconfig */;
@@ -1498,6 +2011,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1100DBBD26B391FA00AB1FB3 /* Build configuration list for PBXNativeTarget "ElastosDIDSDK_macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1100DBBE26B391FA00AB1FB3 /* Debug */,
+				1100DBBF26B391FA00AB1FB3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1100DBC026B391FA00AB1FB3 /* Build configuration list for PBXNativeTarget "ElastosDIDSDK_macOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1100DBC126B391FA00AB1FB3 /* Debug */,
+				1100DBC226B391FA00AB1FB3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		1155D9542352FACE00DF8C9D /* Build configuration list for PBXNativeTarget "ElastosDIDSDKTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
