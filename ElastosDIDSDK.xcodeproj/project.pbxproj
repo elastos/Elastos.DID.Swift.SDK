@@ -101,6 +101,7 @@
 		11C3ECEF2477807300DF1B4F /* JWTDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */; };
 		11C3ECF02477807300DF1B4F /* NoneAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */; };
 		11C489692637F17B002C479E /* Web3Adapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C489682637F17B002C479E /* Web3Adapter.swift */; };
+		11C8FFE326B241C2002CA102 /* DIDURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */; };
 		11CACA9126120D65004145CB /* CredentialBiography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA9026120D65004145CB /* CredentialBiography.swift */; };
 		11CACA962612C72B004145CB /* ResolveResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA952612C72B004145CB /* ResolveResponse.swift */; };
 		11CACA9C2612CC83004145CB /* ResolveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CACA9B2612CC83004145CB /* ResolveRequest.swift */; };
@@ -301,6 +302,7 @@
 		11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWTDecoder.swift; sourceTree = "<group>"; };
 		11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoneAlgorithm.swift; sourceTree = "<group>"; };
 		11C489682637F17B002C479E /* Web3Adapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Web3Adapter.swift; sourceTree = "<group>"; };
+		11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDURLBuilder.swift; sourceTree = "<group>"; };
 		11CA74B1235E06B7006E66F7 /* Base64.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base64.swift; sourceTree = "<group>"; };
 		11CACA9026120D65004145CB /* CredentialBiography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBiography.swift; sourceTree = "<group>"; };
 		11CACA952612C72B004145CB /* ResolveResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolveResponse.swift; sourceTree = "<group>"; };
@@ -673,6 +675,7 @@
 				115D4DDB26AE85530095D56C /* DIDParser.swift */,
 				11411CC125ECC4B00033F659 /* MultiSignature.swift */,
 				A31ACDFC23F199AE008EC032 /* DIDURL.swift */,
+				11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */,
 				115D4E0B26AF9EB30095D56C /* DIDURLParser.swift */,
 				A31ACE0323F199AE008EC032 /* DIDObject.swift */,
 				A31ACDF823F199AD008EC032 /* PublicKey.swift */,
@@ -1082,6 +1085,7 @@
 				11C3ECEE2477807300DF1B4F /* SignerAlgorithm.swift in Sources */,
 				11C3ECE22477807300DF1B4F /* Header.swift in Sources */,
 				11C3ECE82477807300DF1B4F /* ValidateClaimsResult.swift in Sources */,
+				11C8FFE326B241C2002CA102 /* DIDURLBuilder.swift in Sources */,
 				11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */,
 				A31ACE0923F199AE008EC032 /* DIDStorage.swift in Sources */,
 				A31ACE2323F199BA008EC032 /* VerifiableCredential.swift in Sources */,

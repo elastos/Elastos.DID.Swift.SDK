@@ -54,10 +54,16 @@ public class DIDURL: NSObject {
     private var _did: DID?
     private var _fragment: String?
 
-    private var _parameters: OrderedDictionary<String, String>?
+    private var _parameters: OrderedDictionary<String, String> = OrderedDictionary()
     private var _path: String?
-    var _queryParameters: OrderedDictionary<String, String>?
+    var _queryParameters: OrderedDictionary<String, String> = OrderedDictionary()
     private var _metadata: CredentialMetadata?
+    var _queryString: String?
+    var repr: String = ""
+
+    override init() {
+        super.init()
+    }
     
     ///  Constructs the DIDURl with the given value.
     /// - Parameters:
@@ -70,30 +76,49 @@ public class DIDURL: NSObject {
         try checkArgument(!url.isEmpty, "Invalid url")
         let parser = DIDURLParser(self)
         try parser.parse(context, url)
-        
-//        var fragment = url
-//        if url.hasPrefix("did:") {
-//            do {
-//                try ParserHelper.parse(url, false, DIDURL.Listener(self))
-//            } catch {
-//                Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-//                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
-//            }
-//
-//            guard did == baseRef else {
-//                throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Mismatched arguments")
-//            }
-//            return
-//        }
+    }
+    
+    /// Constructs a DIDURL object with the given DID context and a DIDURL object.
+    /// - Parameters:
+    ///   - context: context a DID context of the DIDURL object, if the url is a relative DIDURL
+    ///   - url: url a DIDURL object
+    public init(_ context: DID, _ url: DIDURL) {
+        super.init()
+        self.setDid(context)
+        if (url.did != nil) {
+            self.setDid(url.did!)
+        }
+        self._path = url.path
+        self._parameters = url._parameters
+        self._queryParameters = url._queryParameters
+        self._queryString = url.queryString
+        self._fragment = url.fragment
+        self.repr = url.repr
+        self._metadata = url._metadata
+    }
 
-//        if !url.hasPrefix("#") {
-//            fragment = "#" + fragment
-//        }
-//        let starIndex = fragment.index(fragment.startIndex, offsetBy: 1)
-//        let endIndex  = fragment.index(starIndex, offsetBy: fragment.count - 2)
-//        fragment  = String(fragment[starIndex...endIndex])
-//        self._did = baseRef
-//        self._fragment = fragment
+    /// Constructs a DIDURL object with the given DID context and a DIDURL object.
+    /// - Parameter url: url a DIDURL object
+    public init(_ url: DIDURL) {
+        super.init()
+        if (url.did != nil) {
+            self.setDid(url.did!)
+        }
+        self._path = url.path
+        self._queryParameters = url._queryParameters
+        self._queryString = url.queryString
+        self._fragment = url.fragment
+        self._parameters = url._parameters
+        self.repr = url.repr
+        self._metadata = url._metadata
+    }
+    
+    /// Constructs a DIDURL object with the given DID context and a DIDURL object.
+    /// - Parameter context: context a DID context of the DIDURL object, if the url is a relative DIDURL
+    public init(_ context: DID) {
+        super.init()
+        self.setDid(context)
+        self._queryParameters = OrderedDictionary()
     }
 
     /// Get DID URL from string.
@@ -102,24 +127,8 @@ public class DIDURL: NSObject {
     @objc
     public init(_ url: String) throws {
         super.init()
-//        try checkArgument(!url.isEmpty, "Invalid url")
-//        do {
-//            try ParserHelper.parse(url, false, DIDURL.Listener(self))
-//        } catch {
-//            Log.e(DIDURL.TAG, "Parsing didurl error: malformed didurl string \(url)")
-//            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("malformed DIDURL \(url)")
-//        }
         let parser = DIDURLParser(self)
         try parser.parse(url)
-    }
-    
-    public init(_ baseRef: DID, _ url: DIDURL) throws {
-        _did = url._did == nil ? baseRef : url.did
-        _parameters = url._parameters
-        _path = url._path
-        _queryParameters = url._queryParameters
-        _fragment = url._fragment
-        _metadata = url._metadata
     }
 
     public class func valueOf(_ baseRef: DID, _ url: String) throws -> DIDURL? {
@@ -171,7 +180,7 @@ public class DIDURL: NSObject {
     /// - Returns: If no has, return value string.
     @objc
     public func parameter(ofKey: String) -> String? {
-        return _parameters?[ofKey]
+        return _parameters[ofKey]
     }
 
     /// Check is contains parameter
@@ -179,14 +188,11 @@ public class DIDURL: NSObject {
     /// - Returns: true if has value, or false.
     @objc
     public func containsParameter(forKey: String) -> Bool {
-        return _parameters?.keys.contains(forKey) ?? false
+        return _parameters.keys.contains(forKey)
     }
 
     func appendParameter(_ value: String?, forKey: String) {
-        if  self._parameters == nil {
-            self._parameters = OrderedDictionary()
-        }
-        self._parameters![forKey] = value
+        self._parameters[forKey] = value
     }
 
     /// Get DIDURL path.
@@ -202,8 +208,23 @@ public class DIDURL: NSObject {
     /// Query DIDURL parameters
     /// - Returns: DIDURL parameters string .
     @objc
-    public func queryParameters() -> String? {
-        return mapToString(_queryParameters, "&")
+    public func queryParameters() -> [String: String] {
+        var query: [String: String] = [: ]
+        _queryParameters.forEach { k, v in
+            query[k] = v
+        }
+        
+        return query
+    }
+    
+    public var queryString: String? {
+        self._queryString = mapToString(_queryParameters, "&")
+
+        return _queryString
+    }
+    
+    func setQueryString(_ newValue: String) {
+        self._queryString = newValue
     }
 
     /// Query DIDURL parameter by key.
@@ -211,7 +232,7 @@ public class DIDURL: NSObject {
     /// - Returns: if has value , return value string .
     @objc
     public func queryParameter(ofKey: String) -> String? {
-        return _queryParameters?[ofKey]
+        return _queryParameters[ofKey]
     }
 
     /// Check is contains query parameter .
@@ -219,7 +240,7 @@ public class DIDURL: NSObject {
     /// - Returns: true if has value, or false.
     @objc
     public func containsQueryParameter(forKey: String) -> Bool {
-        return _queryParameters?.keys.contains(forKey) ?? false
+        return _queryParameters.keys.contains(forKey)
     }
 
     /// Add key-value for parameters .
@@ -228,10 +249,7 @@ public class DIDURL: NSObject {
     ///   - forKey: The key string.
     @objc
     public func appendQueryParameter(_ value: String?, forKey: String) {
-        if  self._queryParameters == nil {
-            self._queryParameters = OrderedDictionary()
-        }
-        self._queryParameters![forKey] = value
+        self._queryParameters[forKey] = value
     }
 
     func setMetadata(_ metadata: CredentialMetadata) {
@@ -247,6 +265,29 @@ public class DIDURL: NSObject {
         }
         return self._metadata!
     }
+
+    /// Sets a query parameter with given value.
+    /// - Parameters:
+    ///   - name: a query parameter name
+    ///   - value: the parameter value
+    /// - Throws: the builder instance for method chaining
+    public func setQueryParameter(_ name: String, _ value: String) throws {
+        try checkArgument(!name.isEmpty, "Invalid parameter name")
+        
+        _queryParameters[name] = value
+    }
+    
+    func deepClone(_ readonly: Bool) -> DIDURL {
+        let result = DIDURL()
+        result.setDid(self.did!)
+        result.setPath(self.path!)
+        result._queryParameters = (self._queryParameters.count == 0 && readonly) ? OrderedDictionary() : _queryParameters
+        result.setQueryString(self.queryString!)
+        result._fragment = self.fragment
+        result.repr = self.repr
+
+        return result
+    }
 }
 
 extension DIDURL {
@@ -256,16 +297,12 @@ extension DIDURL {
         if did != nil && did != base {
             builder.append(did!.toString())
         }
-        if (parameters() != nil) {
-            builder.append(";")
-            builder.append(parameters()!)
-        }
         if !(path?.isEmpty ?? true) {
             builder.append(path!)
         }
-        if (queryParameters() != nil) {
+        if (_queryParameters.count > 0) {
             builder.append("?")
-            builder.append(queryParameters()!)
+            builder.append(queryString!)
         }
         if !(_fragment?.isEmpty ?? true) {
             builder.append("#")
@@ -278,17 +315,13 @@ extension DIDURL {
     func toString() -> String {
         var builder: String = ""
 
-        builder.append(did!.toString())
-        if (parameters() != nil) {
-            builder.append(";")
-            builder.append(parameters()!)
-        }
+        builder.append(did?.toString() ?? "")
         if !(path?.isEmpty ?? true) {
             builder.append(path!)
         }
-        if (queryParameters() != nil) {
+        if (queryString != nil && _queryParameters.count > 0) {
             builder.append("?")
-            builder.append(queryParameters()!)
+            builder.append(queryString!)
         }
 
         if !(_fragment?.isEmpty ?? true) {
@@ -301,7 +334,10 @@ extension DIDURL {
     /// Get id string from DID URL.
     @objc
     public override var description: String {
-        return toString()
+        if repr == "" {
+            repr = toString()
+        }
+        return repr
     }
 }
 

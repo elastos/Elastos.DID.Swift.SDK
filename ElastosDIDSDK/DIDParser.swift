@@ -32,7 +32,7 @@ class DIDParser: NSObject {
     }
     
     private func isTokenChar(_ ch: String, _ start: Bool) -> Bool {
-        if (ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z") {
+        if (ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z") || (ch >= "0" && ch <= "9") {
             return true
         }
         
@@ -47,7 +47,7 @@ class DIDParser: NSObject {
     private func scanNextPart(_ did: String, _ start: Int, _ limit: Int, _ delimiter: String) throws -> Int {
         var nextPart = limit
         var tokenStart = true
-        for i in start...limit {
+        for i in start..<limit {
             let ch = did.charAt(i)
             
             if String(ch) == delimiter {
@@ -91,7 +91,7 @@ class DIDParser: NSObject {
         var pos = s
         // did
         var nextPart = try scanNextPart(did, pos, l, ":")
-        let schema = did[pos...nextPart]
+        let schema = did[pos..<nextPart]
         if schema != SCHEMA {
             throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Invalid DID schema: \(schema) 'at \(pos)' ")
         }
@@ -101,9 +101,9 @@ class DIDParser: NSObject {
         if pos + 1 >= limit || did.charAt(pos) != ":" {
             throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Missing method and id string at: \(pos)")
         }
-        
-        nextPart = try scanNextPart(did, pos + 1, limit, ":")
-        let method = did[pos...nextPart]
+        pos = pos + 1
+        nextPart = try scanNextPart(did, pos, limit, ":")
+        let method = did[pos..<nextPart]
         if method != METHOD {
             throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Unknown DID method: '\(method) ', at: \(pos)")
         }
@@ -113,7 +113,8 @@ class DIDParser: NSObject {
         if pos + 1 >= limit || did.charAt(pos) != ":" {
             throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Missing id string at: \(pos + 1 > limit ? pos : pos + 1)")
         }
-        nextPart = try scanNextPart(did, pos + 1, limit, "0")
-        self.did.setMethodSpecificId(did[pos...nextPart])
+        pos = pos + 1
+        nextPart = try scanNextPart(did, pos, limit, "0")
+        self.did.setMethodSpecificId(did[pos..<nextPart])
     }
 }

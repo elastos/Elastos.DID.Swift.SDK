@@ -270,8 +270,11 @@ extension String {
     }
     
     func regionMatches(_ toffset: Int, _ other: String, _ ooffset: Int, _ count: Int) -> Bool {
-        let sub = String(self[toffset...ooffset])
-        return sub == other
+        let strA = self[toffset..<(toffset + count)]
+        let strB = other[ooffset..<(ooffset + count)]
+        return strA == strB
+//        let sub = String(self[toffset...ooffset])
+//        return sub == other
     }
 }
 
