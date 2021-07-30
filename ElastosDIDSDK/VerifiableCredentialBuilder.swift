@@ -58,7 +58,7 @@ public class VerifiableCredentialBuilder: NSObject {
         try checkArgument(id.did != nil || id.did != _target, "Invalid id")
         var _id = id
         if id.did == nil {
-            _id = try DIDURL(_target, id)
+            _id = DIDURL(_target, id)
         }
         
         _credential!.setId(_id)

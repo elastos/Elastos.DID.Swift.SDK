@@ -114,7 +114,8 @@ class DIDURLParser: NSObject {
     private func scanNextPart(_ url: String, _ start: Int, _ limit: Int, _ partSeps: String, _ tokenSeps: String?) throws -> Int {
         var nextPart = limit
         var tokenStart = true
-        for i in start...limit {
+        for ii in start..<limit {
+            var i = ii
             let ch = url.charAt(i)
             let c = Character.init(ch)
             if partSeps.index(of: c) != nil {
@@ -139,7 +140,8 @@ class DIDURLParser: NSObject {
                 if i + 2 >= limit {
                     throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("Invalid char at: \(i)")
                 }
-                var seq = url.charAt(i + 1)
+                i = i + 1
+                var seq = url.charAt(i)
                 if !isHexChar(seq) {
                     throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("Invalid hex char at: \(i)")
                 }
@@ -187,13 +189,13 @@ class DIDURLParser: NSObject {
         var pos: Int = start
         
         // DID
-        if pos < limit || url.regionMatches(pos, "did:", 0, 4) {
+        if pos < limit && url.regionMatches(pos, "did:", 0, 4) {
             nextPart = try scanNextPart(url, pos, limit, "/?#", ":")
             do {
                 let d = try DID(url, pos, nextPart)
                 self.didurl.setDid(d)
             } catch {
-                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Invalid did at: \(pos) error: \(error.localizedDescription)")
+                throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Invalid did at: \(pos)")
             }
             
             pos = nextPart
@@ -202,14 +204,14 @@ class DIDURLParser: NSObject {
         // path
         if pos < limit && url.charAt(pos) == "/" {
             nextPart = try scanNextPart(url, pos + 1, limit, "?#", "/")
-            self.didurl.setPath(url[pos...nextPart])
+            self.didurl.setPath(url[pos..<nextPart])
             pos = nextPart
         }
         
         // query
         if (pos < limit && url.charAt(pos) == "?") {
             nextPart = try scanNextPart(url, pos + 1, limit, "#", "&=")
-            let queryString = url[pos + 1...nextPart]
+            let queryString = url[pos + 1..<nextPart]
             pos = nextPart
             
             if (!queryString.isEmpty) {
@@ -220,8 +222,8 @@ class DIDURLParser: NSObject {
                     let parts = pair.split(separator: "=")
                     if (parts.count > 0 && !parts[0].isEmpty) {
                         let name = parts[0]
-                        let value = parts.count == 2 ? parts[1] : nil
-                        query[String(name)] = String(value!)
+                        let value = parts.count == 2 ? parts[1] : ""
+                        query[String(name)] = String(value)
                     }
                 }
                 
@@ -238,7 +240,7 @@ class DIDURLParser: NSObject {
                 pos = pos + 1
             }
             nextPart = try scanNextPart(url, pos, limit, "", nil)
-            let fragment = url[pos...nextPart]
+            let fragment = url[pos..<nextPart]
             if (!fragment.isEmpty) {
                 self.didurl.setFragment(fragment)
             }
