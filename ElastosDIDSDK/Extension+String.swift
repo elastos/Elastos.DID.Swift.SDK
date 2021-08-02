@@ -122,6 +122,17 @@ extension String {
         return try String(contentsOfFile: self, encoding: String.Encoding.utf8)
     }
     
+    func readIndexFromPath() throws -> Int {
+        let handle = FileHandle(forReadingAtPath: self)
+        defer {
+            handle!.closeFile()
+        }
+        let data = handle!.readDataToEndOfFile()
+        return data.withUnsafeBytes { (pointer: UnsafePointer<Int32>) -> Int in
+            return Int(pointer.pointee)
+        }
+    }
+    
     func create(forWrite: Bool) throws {
         if !FileManager.default.fileExists(atPath: self) && forWrite {
             let dirPath: String = self.dirname()
