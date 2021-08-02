@@ -807,7 +807,7 @@ public class FileSystemStorage: DIDStorage {
             throw DIDError.CheckedError.DIDStoreError.DIDStorageError("Invalid root identity folder")
         }
         // Root identity
-        path = try fullPath("private" + "key")
+        path = try fullPath("private" + "/" + "key")
         var privateKey: String?
         if try path.fileExists() {
             privateKey = try path.readTextFromPath()
@@ -833,7 +833,7 @@ public class FileSystemStorage: DIDStorage {
         path = try fullPath("private" + "/" + "index")
         var index = 0
         if try path.fileExists() {
-            index = try Int(value: path.readTextFromPath())
+            index = try path.readIndexFromPath()
         }
         let pk = DIDHDKey.deserializeBase58(publicKey!)
         id = try RootIdentity.getId(pk.serializePublicKey())
