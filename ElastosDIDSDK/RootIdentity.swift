@@ -384,6 +384,11 @@ public class RootIdentity: NSObject {
         let db = DIDDocumentBuilder(did, store!)
         _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
         doc = try db.sealed(using: storePassword)
+        
+        try doc?.getMetadata().setRootIdentityId(getId())
+        doc?.getMetadata().setIndex(index)
+        doc?.getMetadata().attachStore(store!)
+        
         try store?.storeDid(using: doc!)
         
         return doc!

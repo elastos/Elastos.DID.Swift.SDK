@@ -2030,20 +2030,21 @@ public class DIDDocument: NSObject {
     
     func copy() throws -> DIDDocument {
         let doc = DIDDocument(subject)
-        doc._controllers = _controllers
-        doc._controllerDocs = _controllerDocs
+        doc._controllers = _controllers.copy()
+        doc._controllerDocs = _controllerDocs.copy()
         if self._multisig != nil {
             doc._multisig = try MultiSignature(_multisig!)
         }
-        doc.publicKeyMap = publicKeyMap
+        doc.publicKeyMap = EntryMap(publicKeyMap)
+        
         doc._defaultPublicKey = _defaultPublicKey
-        doc.credentialMap = credentialMap
-        doc._authenticationKeys = _authenticationKeys
-        doc._authorizationKeys = _authorizationKeys
-        doc.serviceMap = serviceMap
+        doc.credentialMap = EntryMap(credentialMap)
+        doc._authenticationKeys = _authenticationKeys.copy()
+        doc._authorizationKeys = _authorizationKeys.copy()
+        doc.serviceMap = EntryMap(serviceMap)
         doc._expires = _expires
-        doc._proofsDic = _proofsDic
-        let metadata = getMetadata()
+        doc._proofsDic = _proofsDic.copy()
+        let metadata = try getMetadata().clone()
         doc.setMetadata(metadata)
         
         return doc
