@@ -163,7 +163,7 @@ public class DIDMetadata: AbstractMetadata {
     public override func clone() throws -> DIDMetadata {
         let metaData = DIDMetadata()
         metaData._store = store
-        metaData._props = properties
+        metaData._props = _props.copy()
         
         return metaData
     }

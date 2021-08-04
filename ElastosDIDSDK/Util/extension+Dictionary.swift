@@ -33,6 +33,14 @@ extension Dictionary {
         }
         return str
      }
+    
+    public func copy() -> Dictionary {
+        var copiedDictionary = Dictionary()
+        self.forEach { k, v in
+            copiedDictionary[k] = v
+        }
+        return copiedDictionary
+    }
 }
 
 extension Dictionary {

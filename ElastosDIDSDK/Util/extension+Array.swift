@@ -33,6 +33,14 @@ extension Array {
         }
         return str
      }
+    
+    public func copy() -> Array {
+        var copiedArray = Array()
+        self.forEach { element in
+            copiedArray.append(element)
+        }
+        return copiedArray
+    }
 }
 
 extension Array where Element == UInt8 {
