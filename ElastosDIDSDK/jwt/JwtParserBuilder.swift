@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-import UIKit
+import Foundation
 
 @objc(JwtParserBuilder)
 public class JwtParserBuilder: NSObject {
