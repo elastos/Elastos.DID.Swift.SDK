@@ -53,8 +53,8 @@
 		1100DBED26B3922400AB1FB3 /* JWTDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */; };
 		1100DBF226B3922900AB1FB3 /* Base58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AD2FE234E44C8006578D6 /* Base58.swift */; };
 		1100DBF726B3923000AB1FB3 /* CHDKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115A373D24404DA5005549CC /* CHDKey.swift */; };
-		1100DBF826B3923000AB1FB3 /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; };
-		1100DBF926B3923000AB1FB3 /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; };
+		1100DBF826B3923000AB1FB3 /* HDkey.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81B9264BCD5500F6477F /* HDkey.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1100DBF926B3923000AB1FB3 /* crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 110B81BA264BCD5500F6477F /* crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1100DBFE26B3923600AB1FB3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD12477807300DF1B4F /* Header.swift */; };
 		1100DBFF26B3923600AB1FB3 /* JwtBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3EC6424765D0F00DF1B4F /* JwtBuilder.swift */; };
 		1100DC0026B3923600AB1FB3 /* JWT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C3ECD42477807300DF1B4F /* JWT.swift */; };
@@ -194,6 +194,8 @@
 		119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
 		119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
 		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
+		11AF7A6526BB873700C24F90 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 117609EC26BB802F00CE61B8 /* libcrypto.a */; };
+		11AF7A6626BB873A00C24F90 /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 117609ED26BB802F00CE61B8 /* libhdkey.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		11B096DA241930690065228B /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096D5241930690065228B /* SHA256Helper.swift */; };
 		11B096E324193E200065228B /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096E224193E200065228B /* OrderedDictionary.swift */; };
 		11B342BA2616AC9600DC48FB /* DefaultDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */; };
@@ -388,6 +390,8 @@
 		11641BBA23B715CF0037016B /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
 		116F719F25F1D5F20041D983 /* AbstractMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbstractMetadata.swift; sourceTree = "<group>"; };
 		116FA91C263491690021A46F /* EcdsaSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EcdsaSigner.swift; path = Util/EcdsaSigner.swift; sourceTree = "<group>"; };
+		117609EC26BB802F00CE61B8 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = Externals/HDKey/macos/libcrypto.a; sourceTree = "<group>"; };
+		117609ED26BB802F00CE61B8 /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = Externals/HDKey/macos/libhdkey.a; sourceTree = "<group>"; };
 		1179520C241B3A7100A1C55B /* RegexHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegexHelper.swift; sourceTree = "<group>"; };
 		1183E1D6261BFDA900F8CEF0 /* SimulatedIDChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedIDChain.swift; sourceTree = "<group>"; };
 		1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatedIDChainAdapter.swift; sourceTree = "<group>"; };
@@ -570,6 +574,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11AF7A6626BB873A00C24F90 /* libhdkey.a in Frameworks */,
+				11AF7A6526BB873700C24F90 /* libcrypto.a in Frameworks */,
 				17B8A10BF55D8D81464E36AE /* Pods_ElastosDIDSDK_macOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -651,6 +657,8 @@
 				11F3A8FA24D7E312007ABB70 /* libcrypto.a */,
 				11A6B15A238FD77E00D3C1F1 /* libhdkey.a */,
 				11FB0A5F23F0FF0B001941CF /* libhdkey.a */,
+				117609EC26BB802F00CE61B8 /* libcrypto.a */,
+				117609ED26BB802F00CE61B8 /* libhdkey.a */,
 				1125B5912382351700D396B6 /* libboost_filesystem.a */,
 				11DA06E7238B7B760066CC86 /* libboost_filesystem.a */,
 				1125B58F2382351700D396B6 /* libboost_system.a */,
@@ -1030,8 +1038,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				1100DBF826B3923000AB1FB3 /* HDkey.h in Headers */,
-				1100DBBC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h in Headers */,
 				1100DBF926B3923000AB1FB3 /* crypto.h in Headers */,
+				1100DBBC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1644,6 +1652,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = ElastosDIDSDK_macOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1651,12 +1660,16 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Externals/HDKey/macos",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -1672,6 +1685,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = ElastosDIDSDK_macOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1679,12 +1693,16 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Externals/HDKey/macos",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.elastos.ElastosDIDSDK-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -1858,6 +1876,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1920,6 +1939,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CFLAGS = "-fembed-bitcode";
