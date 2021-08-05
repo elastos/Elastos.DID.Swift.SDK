@@ -340,10 +340,6 @@
 
 /* Begin PBXFileReference section */
 		0681BAC6ED686527AFAFA123 /* Pods-ElastosDIDSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDKTests.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDKTests/Pods-ElastosDIDSDKTests.release.xcconfig"; sourceTree = "<group>"; };
-		1100DB8C26B391CF00AB1FB3 /* ElastosDIDSDK__macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK__macOS.h; sourceTree = "<group>"; };
-		1100DB8D26B391CF00AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1100DB9726B391D000AB1FB3 /* ElastosDIDSDK__macOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElastosDIDSDK__macOSTests.swift; sourceTree = "<group>"; };
-		1100DB9926B391D000AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1100DBAC26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ElastosDIDSDK_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1100DBAE26B391FA00AB1FB3 /* ElastosDIDSDK_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ElastosDIDSDK_macOS.h; sourceTree = "<group>"; };
 		1100DBAF26B391FA00AB1FB3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -612,24 +608,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1100DB8B26B391CF00AB1FB3 /* ElastosDIDSDK _macOS */ = {
-			isa = PBXGroup;
-			children = (
-				1100DB8C26B391CF00AB1FB3 /* ElastosDIDSDK__macOS.h */,
-				1100DB8D26B391CF00AB1FB3 /* Info.plist */,
-			);
-			path = "ElastosDIDSDK _macOS";
-			sourceTree = "<group>";
-		};
-		1100DB9626B391CF00AB1FB3 /* ElastosDIDSDK _macOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				1100DB9726B391D000AB1FB3 /* ElastosDIDSDK__macOSTests.swift */,
-				1100DB9926B391D000AB1FB3 /* Info.plist */,
-			);
-			path = "ElastosDIDSDK _macOSTests";
-			sourceTree = "<group>";
-		};
 		1100DBAD26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -855,8 +833,6 @@
 				11E3F791233D121900EF35C3 /* Externals */,
 				11F262AC23260CF40009C103 /* ElastosDIDSDK */,
 				1155D9472352FACE00DF8C9D /* ElastosDIDSDKTests */,
-				1100DB8B26B391CF00AB1FB3 /* ElastosDIDSDK _macOS */,
-				1100DB9626B391CF00AB1FB3 /* ElastosDIDSDK _macOSTests */,
 				1100DBAD26B391FA00AB1FB3 /* ElastosDIDSDK_macOS */,
 				1100DBB826B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests */,
 				11F262AB23260CF40009C103 /* Products */,
