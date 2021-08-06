@@ -966,7 +966,7 @@ public class DIDStore: NSObject {
     func storeLazyPrivateKey(_ id: DIDURL) throws {
 
         try storage?.storePrivateKey(id, DIDStore.DID_LAZY_PRIVATEKEY)
-        cache.setValue(DIDStore.DID_LAZY_PRIVATEKEY as NSObject, for: Key.forDidPrivateKey(id))
+        cache.removeValue(for: Key.forDidPrivateKey(id))
     }
 
     /// Save the DID's private key to the store, the private key will be encrypt
@@ -1163,6 +1163,104 @@ public class DIDStore: NSObject {
         try metadata!.setFingerprint(calcFingerprint(newPassword))
         cache.clear()
     }
+    
+    /// Internal DID synchronize implementation.
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    ///   - rootIdentity: the related root identity or null if customized DID
+    ///   - index: the derive index
+    /// - Throws:  DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws:  DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
+    func synchronize(_ did: DID, _ handle: ConflictHandler?, _ rootIdentity: String?, _ index: Int) throws -> Bool {
+        Log.i(TAG, "Synchronize \(did.toString())/\((index >= 0 ? "\(index)" : "n/a"))...")
+        
+        let resolvedDoc = try did.resolve()
+        if (resolvedDoc == nil) {
+            Log.i(TAG, "Synchronize \((index >= 0 ? "\(index)" : "n/a"))/{}...not exists")
+            
+            return false
+        }
+        
+        let isCustomizedDid = resolvedDoc!.isCustomizedDid()
+        Log.d(TAG, "Synchronize \(did.toString())/\((index >= 0 ? "\(index)" : "n/a"))..exists, got the on-chain copy.")
+        var finalDoc = resolvedDoc
+        
+        let localDoc = try storage?.loadDid(did)
+        if (localDoc != nil) {
+            // Update metadata off-store, then store back
+            try localDoc!.setMetadata(storage!.loadDidMetadata(did)!)
+            localDoc!.getMetadata().detachStore()
+            
+            // localdoc == resolveddoc || localdoc not modified since last publish
+            if (localDoc?.signature == resolvedDoc?.signature ||
+                    (localDoc!.getMetadata().signature != nil &&
+                        localDoc?.proof.signature ==
+                        localDoc?.getMetadata().signature)) {
+                finalDoc?.getMetadata().merge(localDoc!.getMetadata())
+            } else {
+                Log.d(TAG, "\(did.toString()) on-chain copy conflict with local copy.")
+                
+                // Local copy was modified
+                finalDoc = handle?(resolvedDoc!, localDoc!)
+                if (finalDoc == nil || finalDoc?.subject != did) {
+                    localDoc?.getMetadata().attachStore(self)
+                    Log.e(TAG, "Conflict handle merge the DIDDocument error.")
+                    throw DIDError.CheckedError.DIDStoreError.DIDStoreError("deal with local modification error.")
+                } else {
+                    Log.d(TAG, "Conflict handle return the final copy.")
+                }
+            }
+        }
+        
+        let metadata = finalDoc!.getMetadata()
+        
+        metadata.setPublishTime(resolvedDoc!.getMetadata().publishTime!)
+        metadata.setSignature(resolvedDoc!.proof.signature)
+        if (resolvedDoc!.getMetadata().isDeactivated) {
+            metadata.setDeactivated(true)
+        }
+        
+        if (!isCustomizedDid && rootIdentity != nil) {
+            metadata.setRootIdentityId(rootIdentity!)
+            metadata.setIndex(index)
+        }
+        metadata.attachStore(self)
+        
+        if (localDoc != nil) {
+            localDoc!.getMetadata().attachStore(self)
+        }
+        // Invalidate current cached items
+        cache.removeValue(for: Key.forDidDocument(did))
+        cache.removeValue(for: Key.forDidMetadata(did))
+
+        try storage!.storeDid(finalDoc!)
+        try storage!.storeDidMetadata(did, metadata)
+        if (!isCustomizedDid && rootIdentity != nil) {
+            try storeLazyPrivateKey(finalDoc!.defaultPublicKeyId()!)
+        }
+        
+        let vcIds = try storage!.listCredentials(did)
+        for vcId in vcIds {
+            let localVc = try storage!.loadCredential(vcId)
+            
+            let resolvedVc = try VerifiableCredential.resolve(vcId, localVc!.issuer!)
+            if (resolvedVc == nil) {
+                continue
+            }
+            resolvedVc!.getMetadata().merge(localVc!.getMetadata())
+            
+            cache.removeValue(for: Key.forCredential(vcId))
+            cache.removeValue(for: Key.forCredentialMetadata(vcId))
+            
+            try storage!.storeCredential(resolvedVc!)
+            try storage!.storeCredentialMetadata(vcId, resolvedVc!.getMetadata())
+        }
+        
+        return true
+    }
 
     /// Synchronize all RootIdentities, DIDs and credentials in this store.
     ///
@@ -1175,61 +1273,17 @@ public class DIDStore: NSObject {
     ///                  between the chain copy and the local copy
     /// - Throws: DIDResolveError if an error occurred when resolving DIDs
     /// - Throws DIDStoreError if an error occurred when accessing the store
-    private func synchronize(_ conflictHandler: ConflictHandler?) throws {
-        var h = conflictHandler
-        if h == nil {
-            h = DIDStore.defaultConflictHandle
-        }
+    private func synchronize(_ conflictHandler: @escaping ConflictHandler) throws {
         let identities = try listRootIdentities()
         for identity in identities {
-            try identity.synchronize(handle: h)
+            try identity.synchronize(conflictHandler)
         }
+        
         let dids = try storage!.listDids()
         for did in dids {
-            let localDoc = try storage!.loadDid(did)
-            if localDoc != nil && localDoc!.isCustomizedDid() {
-                let resolvedDoc = try did.resolve()
-                if resolvedDoc == nil {
-                    continue
-                }
-                var finalDoc = resolvedDoc
-                localDoc!.getMetadata().detachStore()
-                if (localDoc!.signature == (resolvedDoc?.signature) ||
-                        (localDoc!.proof.signature == (
-                            localDoc!.getMetadata().signature))) {
-                    finalDoc?.getMetadata().merge(localDoc!.getMetadata())
-                } else {
-                    Log.d(TAG, did.toString(), " on-chain copy conflict with local copy.")
-
-                    // Local copy was modified
-                    finalDoc = h!(resolvedDoc!, localDoc!)
-                    if (finalDoc == nil || finalDoc!.subject != did) {
-                        Log.e(TAG, "Conflict handle merge the DIDDocument error.")
-                        throw DIDError.CheckedError.DIDStoreError.DIDStoreError("deal with local modification error.")
-                    } else {
-                        Log.d(TAG, "Conflict handle return the final copy.")
-                    }
-                }
-
-                localDoc!.getMetadata().attachStore(self)
-
-                let metadata = finalDoc?.getMetadata()
-                metadata!.setPublishTime(resolvedDoc!.getMetadata().publishTime!)
-                metadata!.setSignature(resolvedDoc?.proof.signature)
-                metadata!.attachStore(self)
-
-                try storeDid(using: finalDoc!)
-            }
-            
-            let vcIds = try storage!.listCredentials(did)
-            for vcId in vcIds {
-                let localVc = try storage!.loadCredential(vcId)
-                let resolvedVc = try VerifiableCredential.resolve(vcId, localVc!.issuer!)
-                if resolvedVc == nil {
-                    continue
-                }
-                resolvedVc!.getMetadata().merge(localVc!.getMetadata())
-                try storage!.storeCredential(resolvedVc!)
+            let doc = try storage!.loadDid(did)
+            if (doc!.isCustomizedDid()) {
+                _ = try synchronize(did, conflictHandler, nil, -1)
             }
         }
     }
@@ -1259,7 +1313,7 @@ public class DIDStore: NSObject {
     /// - Throws: DIDResolveError if an error occurred when resolving DIDs
     /// - Throws DIDStoreError if an error occurred when accessing the store
     public func synchronize() throws {
-        try synchronize(nil)
+        try synchronize(DIDStore.defaultConflictHandle)
     }
     
     /// Synchronize all RootIdentities, DIDs and credentials in
@@ -1291,7 +1345,7 @@ public class DIDStore: NSObject {
     /// - Throws DIDStoreError if an error occurred when accessing the store
     /// - Returns: a new Promise
     public func synchronizeAsync() -> Promise<Void> {
-        return DispatchQueue.global().async(.promise){ [self] in try synchronize(nil) }
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(DIDStore.defaultConflictHandle) }
     }
     
     private func synchronizeAsync_oc(_ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
@@ -1340,7 +1394,7 @@ public class DIDStore: NSObject {
 
         return AnyPromise(__resolverBlock: { [self] resolver in
             do {
-                try synchronize(nil)
+                try synchronize(DIDStore.defaultConflictHandle)
                 resolver(nil)
             } catch let error  {
                 resolver(error)
@@ -1348,6 +1402,119 @@ public class DIDStore: NSObject {
         })
     }
     
+    /// Synchronize specific DID in this store.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
+    public func synchronize(_ did: DID, _ handle: @escaping ConflictHandler) throws -> Bool {
+        let doc = try loadDid(did)
+        if (doc == nil) {
+            return false
+        }
+
+        var rootIdentity: String? = nil
+        var index = -1
+        if (!doc!.isCustomizedDid()) {
+            rootIdentity = doc!.getMetadata().rootIdentityId!
+            index = doc!.getMetadata().index!
+        }
+
+        return try synchronize(did, handle, rootIdentity, index)
+    }
+    
+    /// Synchronize specific DID in this store.
+    /// - Parameter did: the DID to be synchronize
+    /// - Throws: DIDResolveError if an error occurred when resolving DIDs
+    /// - Throws: DIDStoreError if an error occurred when accessing the store
+    /// - Returns: true if synchronized success, false if not synchronized
+    public func synchronize(_ did: DID) throws -> Bool {
+        return try synchronize(did, DIDStore.defaultConflictHandle)
+    }
+    
+    /// Synchronize specific DID in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    ///   - handle: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Returns: a new Promise
+    public func synchronizeAsync(_ did: DID, _ handle: @escaping ConflictHandler) -> Promise<Bool> {
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(did, handle) }
+    }
+    
+    /// Synchronize specific DID in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    ///   - conflictHandler: an application defined handle to process the conflict
+    ///             between the chain copy and the local copy
+    /// - Returns: a new Promise
+    @objc(synchornizeAsyncUsingObjectC:conflictHandler:)
+    public func synchornizeAsyncUsingObjectC(_ did: DID, _ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
+
+        return synchronizeAsync_oc(did, conflictHandler)
+    }
+    
+    private func synchronizeAsync_oc(_ did: DID, _ conflictHandler: @escaping ConflictHandler) -> AnyPromise {
+        return AnyPromise(__resolverBlock: { resolver in
+            do {
+                try resolver(self.synchronize(did, conflictHandler))
+            } catch let error  {
+                resolver(error)
+            }
+        })
+    }
+    
+    /// Synchronize specific DID in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    /// - Returns: a new Promise
+    public func synchronizeAsync(_ did: DID) -> Promise<Bool> {
+        return DispatchQueue.global().async(.promise){ [self] in try synchronize(did, DIDStore.defaultConflictHandle) }
+    }
+    
+    /// Synchronize specific DID in asynchronous mode.
+    ///
+    /// If the ConflictHandle is not set by the developers, this method will
+    /// use the default ConflictHandle implementation: if conflict between
+    /// the chain copy and the local copy, it will keep the local copy, but
+    /// update the local metadata with the chain copy.
+    ///
+    /// - Parameters:
+    ///   - did: the DID to be synchronize
+    /// - Returns: a new Promise
+    @objc(synchornizeAsyncUsingObjectCWithDid:)
+    public func synchornizeAsyncUsingObjectCWithDid(_ did: DID) -> AnyPromise {
+
+        return synchornizeAsyncUsingObjectC(did, DIDStore.defaultConflictHandle)
+    }
+
     private func exportDid(_ did: DID, _ password: String, _ storePassword: String) throws -> DIDExport {
         // All objects should load directly from storage,
         // avoid affects the cached objects.

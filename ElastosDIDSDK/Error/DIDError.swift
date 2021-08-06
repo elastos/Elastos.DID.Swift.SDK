@@ -61,6 +61,7 @@ public enum DIDError: Error {
             /// Constructs a DIDControllersChangedException with null as its error
             /// detail message.
             case DIDControllersChangedError(_ des: String? = nil)
+            case IllegalStateError(_ des: String? = nil)
         }
         
         public enum UnsupportedOperationError {
@@ -186,6 +187,8 @@ extension DIDError.UncheckedError.IllegalStateError: LocalizedError {
         case .UnknownInternalError(let des):
             return des
         case .DIDControllersChangedError(let des):
+            return des
+        case .IllegalStateError(let des):
             return des
         }
     }
