@@ -115,20 +115,39 @@ public class CredentialMetadata: AbstractMetadata {
         }
     }
     
-    class func parse(_ path: String) throws -> CredentialMetadata {
+    class func deserialize(id: DIDURL, path: String) throws -> CredentialMetadata {
         let data: Data = try path.forReading()
         let dic: [String: String] = try data.dataToDictionary()
         let metadata = CredentialMetadata()
         metadata._props = dic
+        metadata.id = id
         
         return metadata
     }
     
-    class func deserialize(_ content: String) throws -> CredentialMetadata {
+    class func deserialize(id: DIDURL, content: String) throws -> CredentialMetadata {
         let dic = content.toStringDictionary()
         let metadata = CredentialMetadata()
         metadata._props = dic
-        
+        metadata.id = id
+
+        return metadata
+    }
+    
+    class func deserialize(path: String) throws -> CredentialMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary()
+        let metadata = CredentialMetadata()
+        metadata._props = dic
+
+        return metadata
+    }
+
+    class func deserialize(content: String) throws -> CredentialMetadata {
+        let dic = content.toStringDictionary()
+        let metadata = CredentialMetadata()
+        metadata._props = dic
+
         return metadata
     }
 }

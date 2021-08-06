@@ -298,7 +298,7 @@ class DIDExportCredential: NSObject {
         let metadata = content["metadata"] as? [String: Any]
         
         if metadata != nil && metadata!.toJsonString() != "{}"  {
-            return try DIDExportCredential(VerifiableCredential.fromJson(for: document), CredentialMetadata.deserialize(metadata!.toJsonString()!))
+            return try DIDExportCredential(VerifiableCredential.fromJson(for: document), CredentialMetadata.deserialize(content: metadata!.toJsonString()!))
         }
         
         return try DIDExportCredential(VerifiableCredential.fromJson(for: document), nil)
