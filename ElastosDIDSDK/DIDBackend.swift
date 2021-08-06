@@ -213,8 +213,12 @@ public class DIDBackend: NSObject {
     /// Get the previous initialized DIDBackend instance.
     /// - Returns: the DIDBackend instance
     @objc
-    public class func sharedInstance() -> DIDBackend {
-            return instance!
+    public class func sharedInstance() throws -> DIDBackend {
+        if (instance == nil) {
+            throw DIDError.UncheckedError.IllegalStateError.IllegalStateError("DIDBackend not initialized.")
+        }
+        
+        return instance!
     }
 
     /// Check if the DIDBackend already initialized.

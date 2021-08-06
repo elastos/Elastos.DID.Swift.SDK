@@ -266,7 +266,7 @@ public class FileSystemStorage: DIDStorage {
             let file = try getRootIdentityFile(id, METADATA, false)
             var metadata: RootIdentityMetadata?
             if try file.fileExists() {
-                metadata = try RootIdentityMetadata.parse(file)
+                metadata = try RootIdentityMetadata.parse(id: id, path: file)
             }
 
             return metadata
@@ -396,7 +396,7 @@ public class FileSystemStorage: DIDStorage {
         let file = try getDidMetadataFile(did, false)
         var metadata: DIDMetadata?
         if try file.exists() {
-            metadata = try DIDMetadata.parse(file)
+            metadata = try DIDMetadata.deserialize(did: did, path: file)
         }
         
         return metadata
@@ -488,7 +488,7 @@ public class FileSystemStorage: DIDStorage {
         if try !file.fileExists() {
             return nil
         }
-        return try CredentialMetadata.parse(file)
+        return try CredentialMetadata.deserialize(id: id, path: file)
     }
 
     func storeCredential(_ credential: VerifiableCredential) throws {

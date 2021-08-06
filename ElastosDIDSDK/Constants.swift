@@ -29,7 +29,6 @@ class Constants {
     /// The deprecated default PublicKey type
     static let _DEFAULT_PUBLICKEY_TYPE = "secp256r1"
 
-    
     // DID method
     static let METHOD = "elastos"
 

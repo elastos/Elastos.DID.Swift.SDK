@@ -85,6 +85,16 @@ public class RootIdentityMetadata: AbstractMetadata {
         
         return metadata
     }
+    
+    class func parse(id: String, path: String) throws -> RootIdentityMetadata {
+        let data: Data = try path.forReading()
+        let dic: [String: String] = try data.dataToDictionary()
+        let metadata = RootIdentityMetadata()
+        metadata._props = dic
+        metadata.id = id
+
+        return metadata
+    }
 
     /// Returns a shallow copy of this instance: the property names and values
     /// themselves are not cloned.

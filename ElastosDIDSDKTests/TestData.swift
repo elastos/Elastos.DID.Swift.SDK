@@ -29,7 +29,7 @@ class TestData {
         if store != nil {
             store!.close()
         }
-        DIDBackend.sharedInstance().clearCache()
+        try? DIDBackend.sharedInstance().clearCache()
     }
     
     func reset() {

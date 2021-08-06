@@ -34,7 +34,7 @@ public class DIDMetadata: AbstractMetadata {
     private let PUBLISHED = "published"
     private let DEACTIVATED = "deactivated"
     
-    private var did: DID?
+    var did: DID?
     
     /// Default constructor.
     override init() {
@@ -164,6 +164,7 @@ public class DIDMetadata: AbstractMetadata {
         let metaData = DIDMetadata()
         metaData._store = store
         metaData._props = _props.copy()
+        metaData.did = did
         
         return metaData
     }
@@ -188,11 +189,20 @@ public class DIDMetadata: AbstractMetadata {
         return metadata
     }
     
-    class func parse(_ path: String) throws -> DIDMetadata {
+    class func deserialize(did: DID, content: String) throws -> DIDMetadata {
+        let dic = content.toStringDictionary()
+        let metadata = DIDMetadata()
+        metadata._props = dic
+        metadata.did = did
+        return metadata
+    }
+    
+    class func deserialize(did: DID, path: String) throws -> DIDMetadata {
         let data: Data = try path.forReading()
         let dic: [String: String] = try data.dataToDictionary()
         let metadata = DIDMetadata()
         metadata._props = dic
+        metadata.did = did
         
         return metadata
     }
