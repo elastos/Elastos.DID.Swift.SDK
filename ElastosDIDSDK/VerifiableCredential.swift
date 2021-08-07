@@ -128,12 +128,14 @@ public class VerifiableCredential: DIDObject {
 
     func appendType(_ type: String) {
         self._types.append(type)
+        _types = _types.sorted()
     }
 
     func setType(_ newTypes: [String]) {
         for type in newTypes {
             self._types.append(type)
         }
+        _types = _types.sorted()
     }
 
     /// Get the issuer of this credential.
@@ -250,7 +252,7 @@ public class VerifiableCredential: DIDObject {
         guard let _ = proof else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential proof")
         }
-        
+        _types = _types.sorted()
         if issuer == nil {
             _issuer = subject!.did
         }
@@ -282,12 +284,6 @@ public class VerifiableCredential: DIDObject {
     /// Check if this credential object is expired or not.
     /// whether the credential object is expired
     public func isExpired() throws -> Bool {
-        //        do {
-        //            return try traceCheck(RULE_EXPIRE) ? true : checkExpired()
-        //        } catch {
-        //            return false
-        //        }
-        
         if (_expirationDate != nil) {
             if checkExpired() {
                 return true
@@ -2155,5 +2151,12 @@ extension VerifiableCredential {
     @objc
     public override var description: String {
         return toString()
+    }
+    
+    public func compareTo(_ key: VerifiableCredential) throws -> ComparisonResult {
+        try checkArgument(self.getId() != nil || key.getId() != nil, "id is nil")
+        let result = self.getId()!.compareTo(key.getId()!)
+        
+        return result
     }
 }
