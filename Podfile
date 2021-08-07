@@ -8,8 +8,8 @@ def import_pods
   pod 'Swifter'
   pod 'Alamofire'
   pod 'Telegraph'
-  
-  pod 'web3swift'
+ # pod 'CryptoSwift', '~> 1.4.1'
+
 end
 
 target :ElastosDIDSDK do
@@ -19,6 +19,8 @@ target :ElastosDIDSDK do
   target 'ElastosDIDSDKTests' do
     inherit! :search_paths
     import_pods
+    pod 'web3swift', '~> 2.3.0'
+
   end
 end
 

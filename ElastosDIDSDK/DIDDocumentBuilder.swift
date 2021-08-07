@@ -103,7 +103,7 @@ public class DIDDocumentBuilder: NSObject {
     }
     
     private func appendPublicKey(_ key: PublicKey) throws {
-        for pk in document!.publicKeyMap.values({ value -> Bool in return true }) {
+        for pk in document!.publicKeyMap.values {
             if pk.getId() == key.getId() {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()?.toString()))' already exist.")
             }
@@ -158,7 +158,7 @@ public class DIDDocumentBuilder: NSObject {
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        let key = document!.publicKeyMap.get(forKey: id) { value -> Bool in return true }
+        let key = document!.publicKeyMap[id]
 
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -179,7 +179,7 @@ public class DIDDocumentBuilder: NSObject {
             }
         }
         
-        if document!.publicKeyMap.remove(id) {
+        if (document!.publicKeyMap.removeValue(forKey: id) != nil) {
             document!._authenticationKeys.removeValue(forKey: id)
             document!._authorizationKeys.removeValue(forKey: id)
             // TODO: should delete the loosed private key when store the document
@@ -335,7 +335,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        let key = document!.publicKeyMap.get(forKey: try canonicalId(id)!) { value -> Bool in return true }
+        let key = document!.publicKeyMap[try canonicalId(id)!]
         let value = try document!._authenticationKeys[canonicalId(id)!]
         guard let _ = key, let _ = value else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -1024,9 +1024,7 @@ public class DIDDocumentBuilder: NSObject {
             svc = try Service(canonicalId(id)!, type, endpoint)
         }
             
-        if document!.serviceMap.get(forKey: svc.id, { _ -> Bool in
-            return true
-        }) != nil {
+        if document!.serviceMap[svc.id] != nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
         }
         _ = document!.appendService(svc)
@@ -1385,8 +1383,10 @@ public class DIDDocumentBuilder: NSObject {
         try document?._controllers.sort { (didA, didB) -> Bool in
             return try didA.compareTo(didB) == ComparisonResult.orderedAscending
         }
-        
-        document!._publickeys = document!.publicKeyMap.values({ pk -> Bool in return true })
+        document!._publickeys.removeAll()
+        document!.publicKeyMap.values.forEach { pk in
+            document!._publickeys.append(pk)
+        }
         
         for pk in document!._authenticationKeys.values {
                 document!._authentications.append(PublicKeyReference(pk))
@@ -1401,9 +1401,16 @@ public class DIDDocumentBuilder: NSObject {
         try document!._authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
             return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
         }
-        document?._credentials = document!.credentialMap.values({ (vc) -> Bool in return true })
-        document!._services = document!.serviceMap.values({ (vc) -> Bool in return true })
         
+        document!._credentials.removeAll()
+        document!.credentialMap.values.forEach { vc in
+            document!._credentials.append(vc)
+        }
+        
+        document!._services.removeAll()
+        document!.serviceMap.values.forEach { service in
+            document!._services.append(service)
+        }
         
         if (document!._proofsDic.isEmpty) {
             if (document?._expires == nil) {

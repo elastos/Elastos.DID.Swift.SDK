@@ -56,152 +56,29 @@ public class DIDDocument: NSObject {
     var _controllerDocs: [DID: DIDDocument] = [: ]
     var _effectiveController: DID?
     var _multisig: MultiSignature?
-    var publicKeyMap: EntryMap<PublicKey> = EntryMap()
     var _defaultPublicKey: PublicKey?
     var _publickeys: [PublicKey] = []
     var _authentications: [PublicKeyReference] = []
     var _authorizations: [PublicKeyReference] = []
-    var credentialMap: EntryMap<VerifiableCredential> = EntryMap()
     var _credentials: [VerifiableCredential] = []
-    var serviceMap: EntryMap<Service> = EntryMap()
     var _services: [Service] = []
     var _expires: Date?
-    var _proofsDic: [DID: DIDDocumentProof] = [: ]
     var _proofs: [DIDDocumentProof] = [ ]
     var _metadata: DIDMetadata?
+    
+    //    var publicKeyMap: EntryMap<PublicKey> = EntryMap()
+    var publicKeyMap: [DIDURL: PublicKey] = [: ]
+    var credentialMap: [DIDURL: VerifiableCredential] = [: ]
+    var serviceMap: [DIDURL: Service] = [: ]
+    var _proofsDic: [DID: DIDDocumentProof] = [: ]
     var _authenticationKeys: [DIDURL: PublicKey] = [: ]
     var _authorizationKeys: [DIDURL: PublicKey] = [: ]
     private var _capacity: Int = 0
 
-    class EntryMap<T: DIDObject> {
-        private var map: Dictionary<DIDURL, T>?
-
-        init() {}
-
-        init(_ source: EntryMap) {
-            guard source.map != nil else {
-                return
-            }
-            map = Dictionary<DIDURL, T>()
-            for (id, value) in source.map! {
-                map![id] = value
-            }
-        }
-
-        func count(_ fulfill: (T) -> Bool) -> Int {
-            var total: Int = 0
-            
-            guard map?.count ?? 0 > 0 else {
-                return 0
-            }
-
-            for value in map!.values {
-                if fulfill(value) {
-                    total += 1
-                }
-            }
-            return total
-        }
-
-        func get(forKey: DIDURL, _ fulfill: (T) -> Bool) -> T? {
-            let value = map?[forKey]
-
-            guard let _ = value else {
-                return nil
-            }
-            guard fulfill(value!) else {
-                return nil
-            }
-
-            return value!
-        }
-
-        func values() -> Array<T> {
-            return values { _ -> Bool in return true }
-        }
-        
-        func values(_ fulfill: (T) -> Bool) -> Array<T> {
-            var result = Array<T>()
-            var preKeys = Array<DIDURL>()
-
-            guard let _ = map else {
-                return result
-            }
-
-            for (key, value) in map! {
-                if fulfill(value) {
-                    preKeys.append(key)
-                }
-            }
-
-            let sortedKeys = preKeys.sorted { (d1, d2) -> Bool in
-                let compareResult = d1.toString().compare(d2.toString())
-                return compareResult == ComparisonResult.orderedAscending
-            }
-
-            for key in sortedKeys {
-                result.append(map![key]!)
-            }
-
-            return result
-        }
-
-        func select(_ id: DIDURL?, _ type: String?, _ filter: (T) -> Bool) -> Array<T> {
-            var result = Array<T>()
-
-            guard id != nil || type != nil else {
-                return result
-            }
-            if map?.isEmpty ?? true {
-                return result
-            }
-
-            for value in map!.values {
-                if id != nil && value.getId() != id! {
-                    continue
-                }
-
-                if type != nil {
-                    // Credential' type is a list.
-                    if value is VerifiableCredential {
-                        let credential = value as! VerifiableCredential
-                        if !credential.getTypes().contains(type!) {
-                            continue
-                        }
-                    } else {
-                        if value.getType() != type! {
-                            continue
-                        }
-                    }
-                }
-                if filter(value) {
-                    result.append(value)
-                }
-            }
-
-            return result
-        }
-
-        func append(_ value: T) {
-            if map == nil {
-                map = Dictionary<DIDURL, T>()
-            }
-
-            map![value.getId()!] = value
-        }
-
-        func remove(_ key: DIDURL) -> Bool {
-            return map?.removeValue(forKey: key) != nil
-        }
-    }
-    
     override init() { }
 
     init(_ subject: DID) {
         self._subject = subject
-        publicKeyMap = EntryMap<PublicKey>()
-        credentialMap = EntryMap<VerifiableCredential>()
-        serviceMap = EntryMap<Service>()
     }
 
     /// Copy constructor.
@@ -209,9 +86,6 @@ public class DIDDocument: NSObject {
     ///   - doc: the document be copied
     ///   - withProof: copy with the proof or not
     init(_ doc: DIDDocument, _ withProof: Bool) {
-        publicKeyMap = EntryMap<PublicKey>()
-        credentialMap = EntryMap<VerifiableCredential>()
-        serviceMap = EntryMap<Service>()
         _subject = doc.subject
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
@@ -348,7 +222,7 @@ public class DIDDocument: NSObject {
     @objc
     public var publicKeyCount: Int {
         
-        var count = self.publicKeyMap.count() { value -> Bool in return true }
+        var count = self.publicKeyMap.count
         if hasController() {
             _controllerDocs.values.forEach({ document in
                 count += document.authenticationKeyCount
@@ -361,7 +235,10 @@ public class DIDDocument: NSObject {
     /// - Returns: a array of PublicKey object
     @objc
     public func publicKeys() -> Array<PublicKey> {
-        var pks = self.publicKeyMap.values() { value -> Bool in return true }
+        var pks: [PublicKey] = []
+        self.publicKeyMap.values.forEach { pk in
+            pks.append(pk)
+        }
         if hasController() {
             _controllerDocs.values.forEach({ doc in
                 pks.append(contentsOf: doc.authenticationKeys())
@@ -378,7 +255,8 @@ public class DIDDocument: NSObject {
         }
         
         var pks: [PublicKey] = []
-        for pk in publicKeyMap.values() {
+        
+        for pk in publicKeyMap.values {
             if (id != nil && pk.id != id) {
                 continue
             }
@@ -449,7 +327,7 @@ public class DIDDocument: NSObject {
     //    @objc
     public func publicKey(ofId: DIDURL) throws -> PublicKey? {
         let id = try canonicalId(ofId)
-        var pk = self.publicKeyMap.get(forKey: id) { value -> Bool in return true }
+        var pk = self.publicKeyMap[id]
         if pk == nil && hasController() {
             let doc = controllerDocument(id.did!)
             if doc != nil {
@@ -788,7 +666,7 @@ public class DIDDocument: NSObject {
                 return false
             }
         }
-        publicKeyMap.append(publicKey)
+        publicKeyMap[publicKey.id] = publicKey
         
         if (defaultPublicKey() == nil) {
             let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
@@ -1027,6 +905,9 @@ public class DIDDocument: NSObject {
             _authorizationKeys.values.forEach { pk in
             keys.append(pk)
         }
+        try? keys.sort { (publicKeyA, publicKeyB) -> Bool in
+            return try publicKeyA.compareTo(publicKeyB) == ComparisonResult.orderedAscending
+        }
         return keys
     }
 
@@ -1199,8 +1080,22 @@ public class DIDDocument: NSObject {
     }
 
     private func selectCredentials(_ byId: DIDURL?, _ andType: String?) throws -> Array<VerifiableCredential>  {
-        let id = byId != nil ? try canonicalId(byId!) : nil
-        return credentialMap.select(id, andType) { value -> Bool in return true }
+        try checkArgument((byId != nil || andType != nil), "Invalid select args")
+        let id: DIDURL? = byId != nil ? try canonicalId(byId!) : nil
+        
+        var vcs: [VerifiableCredential] = []
+        for vc in credentialMap.values {
+            if (id != nil && vc.getId() != id) {
+                continue
+            }
+            if andType != nil && !vc.getTypes().contains(andType!) {
+                continue
+            }
+            
+            vcs.append(vc)
+        }
+        
+        return vcs
     }
     
     /// Select the credentials by the specified id or type.
@@ -1256,7 +1151,7 @@ public class DIDDocument: NSObject {
     /// - Returns: the credential object
     @objc
     public func credential(ofId: DIDURL) -> VerifiableCredential? {
-        return credentialMap.get(forKey: ofId) { value -> Bool in return true }
+        return credentialMap[ofId]
     }
 
     /// Get the specific credential.
@@ -1286,19 +1181,19 @@ public class DIDDocument: NSObject {
         guard vc.subject?.did == subject else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
         }
-        guard credentialMap.get(forKey: vc.getId()!, { _ -> Bool in return true }) == nil else {
+        guard credentialMap[vc.getId()!] == nil else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
         }
-        credentialMap.append(vc)
+        credentialMap[vc.getId()!] = vc
         _credentials.append(vc)
     }
 
     func removeCredential(_ id: DIDURL) throws {
-        guard credentialMap.count({ _ -> Bool in return true }) > 0 else {
+        guard credentialMap.count > 0 else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        guard credentialMap.remove(try canonicalId(id)) else {
+        guard (credentialMap.removeValue(forKey: try canonicalId(id)) != nil) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
     }
@@ -1317,12 +1212,25 @@ public class DIDDocument: NSObject {
     }
 
     private func selectServices(_ byId: DIDURL?, _ andType: String?) throws -> Array<Service>  {
-        var svc: [Service] = serviceMap.select(byId, andType) { value -> Bool in return true }
-        // TODO:
-        try svc.sort { (svcA, svcB) -> Bool in
-            return try svcA.compareTo(svcB) == ComparisonResult.orderedAscending
+        try checkArgument(byId != nil || andType != nil, "Invalid select args")
+        
+        let id: DIDURL? = byId != nil ? try canonicalId(byId!) : nil
+        
+        var svcs: [Service] = [ ]
+        for svc in serviceMap.values {
+            if (id != nil && svc.getId() != id) {
+                continue
+            }
+            
+            if andType != nil && svc.getType() != andType {
+                continue
+            }
+            svcs.append(svc)
         }
-        return svc
+        try svcs.sort { (serviceA, serviceB) -> Bool in
+            return try serviceA.compareTo(serviceB) == ComparisonResult.orderedAscending
+        }
+        return svcs
     }
     
     /// Select the services by the specified id or type.
@@ -1379,7 +1287,7 @@ public class DIDDocument: NSObject {
     /// - Returns: the service object
     @objc
     public func service(ofId: DIDURL) -> Service? {
-        return serviceMap.get(forKey: ofId) { value -> Bool in return true }
+        return serviceMap[ofId]
     }
 
     /// Get the specific service.
@@ -1403,13 +1311,13 @@ public class DIDDocument: NSObject {
     }
 
     func appendService(_ service: Service) -> Bool {
-        serviceMap.append(service)
+        serviceMap[service.getId()!] = service
         _services.append(service)
         return true
     }
 
     func removeService(_ id: DIDURL) -> Bool {
-        return serviceMap.remove(id)
+        return (serviceMap.removeValue(forKey: id) != nil)
     }
 
     /// Get expire time of this DIDDocument.
@@ -1516,7 +1424,7 @@ public class DIDDocument: NSObject {
     }
     
     func sanitizePublickKey() throws {
-        let pks = EntryMap<PublicKey>()
+        var pks: [DIDURL: PublicKey] = [: ]
         if  _publickeys.count > 0 {
             try _publickeys.forEach { pk in
                 if pk.getId()?.did == nil {
@@ -1527,9 +1435,7 @@ public class DIDDocument: NSObject {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key id: \(String(describing: pk.getId()))")
                     }
                 }
-                guard pks.get(forKey: pk.getId()!, { vault -> Bool in
-                    return true
-                }) == nil else {
+                guard pks[pk.getId()!] == nil else {
                     throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk.getId()))")
                 }
                 guard !pk.publicKeyBase58.isEmpty else {
@@ -1541,7 +1447,7 @@ public class DIDDocument: NSObject {
                 if pk.controller == nil {
                     pk.setController(subject)
                 }
-                pks.append(pk)
+                pks[pk.getId()!] = pk
             }
         }
         
@@ -1557,9 +1463,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = pks.get(forKey: keyRef.id!, { (vault) -> Bool in
-                        return true
-                    })
+                    pk = pks[keyRef.id!]
                     guard pk != nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
@@ -1575,9 +1479,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard pks.get(forKey: pk!.getId()!, { vaule -> Bool in
-                        return true
-                    })  == nil else {
+                    guard pks[pk!.getId()!] == nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 != nil || !pk!.publicKeyBase58.isEmpty else {
@@ -1589,7 +1491,7 @@ public class DIDDocument: NSObject {
                     if pk?.controller == nil {
                         pk?.setController(subject)
                     }
-                    pks.append(pk!)
+                    pks[pk!.getId()!] = pk!
                 }
                 _authenticationKeys[pk!.getId()!] = pk
             }
@@ -1615,9 +1517,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    pk = pks.get(forKey: keyRef.id!, { vaule -> Bool in
-                        return true
-                    })
+                    pk = pks[keyRef.id!]
                     guard pk != nil else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Not exists publicKey reference: \(String(describing: keyRef.id))")
                     }
@@ -1633,9 +1533,7 @@ public class DIDDocument: NSObject {
                             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid publicKey id: \(String(describing: keyRef.id))")
                         }
                     }
-                    guard (pks.get(forKey: pk!.getId()!, { vaule -> Bool in
-                        return true
-                    }) == nil) else {
+                    guard (pks[pk!.getId()!] == nil) else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
                     guard pk?.publicKeyBase58 == nil || pk!.publicKeyBase58.isEmpty else {
@@ -1650,7 +1548,7 @@ public class DIDDocument: NSObject {
                     if pk!.controller == subject {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Authorization key with wrong controller: \(String(describing: pk?.getId()))")
                     }
-                    pks.append(pk!)
+                    pks[pk!.getId()!] = pk!
                 }
                 _authorizationKeys[pk!.getId()!] = pk
             }
@@ -1663,16 +1561,23 @@ public class DIDDocument: NSObject {
             _authorizationKeys = [: ]
         }
         // for customized DID with controller, could be no public keys
-        if pks.count({ _ -> Bool in return true }) > 0 {
+        if pks.count > 0 {
             self.publicKeyMap = pks
-            self._publickeys = pks.values{ _ -> Bool in return true }
+            self._publickeys.removeAll()
+            pks.values.forEach { pk in
+                self._publickeys.append(pk)
+            }
         }
         else {
-            self.publicKeyMap = EntryMap<PublicKey>()
+            self.publicKeyMap = [: ]
             self._publickeys = [ ]
         }
+        try _publickeys.sort { (publicKeyA, publicKeyB) -> Bool in
+            return try publicKeyA.compareTo(publicKeyB) == ComparisonResult.orderedAscending
+        }
+        
         // Find default key
-        for pk in publicKeyMap.values({ vaule -> Bool in return true }) {
+        for pk in publicKeyMap.values {
             if pk.controller == subject {
                 let address = DIDHDKey.toAddress(pk.publicKeyBytes)
                 if address == subject.methodSpecificId {
@@ -1702,11 +1607,11 @@ public class DIDDocument: NSObject {
     private func sanitizeCredential() throws {
         if _credentials.isEmpty {
             _credentials = [ ]
-            credentialMap = EntryMap<VerifiableCredential>()
+            credentialMap = [: ]
             return
         }
         
-        let vcs = EntryMap<VerifiableCredential>()
+        var vcs: [DIDURL: VerifiableCredential] = [: ]
          try _credentials.forEach { vc in
             guard let _ = vc.getId() else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing credential id.")
@@ -1720,7 +1625,7 @@ public class DIDDocument: NSObject {
                 }
             }
             
-            guard vcs.get(forKey: vc.getId()!, { vaule -> Bool in return true }) == nil else {
+            guard vcs[vc.getId()!] == nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Credential already exists: \(String(describing: vc.getId()))")
             }
             if vc.subject?.did == nil {
@@ -1733,17 +1638,29 @@ public class DIDDocument: NSObject {
             catch {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid credential: \(String(describing: vc.getId()))")
             }
-            vcs.append(vc)
+            vcs[vc.getId()!] = vc
         }
+                
         self.credentialMap = vcs
-        self._credentials = credentialMap.values({ vaule -> Bool in return true })
+        _credentials.removeAll()
+        credentialMap.values.forEach { vc in
+            _credentials.append(vc)
+        }
+        
+        try _credentials.sort { (vcA, vcB) -> Bool in
+            return try vcA.compareTo(vcB) == ComparisonResult.orderedAscending
+        }
+        
+        try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+        }
     }
     
     private func sanitizeService() throws {
         if _services.isEmpty {
             return
         }
-        let svcs = EntryMap<Service>()
+        var svcs: [DIDURL: Service] = [: ]
         try _services.forEach { svc in
             if svc.getId()?.did == nil {
                 svc.getId()!.setDid(subject)
@@ -1759,13 +1676,16 @@ public class DIDDocument: NSObject {
             guard !svc.endpoint.isEmpty else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing service endpoint.")
             }
-            guard svcs.get(forKey: svc.getId()!, { value -> Bool in return true }) == nil else {
+            guard svcs[svc.getId()!] == nil else {
                 throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Service already exists: \(String(describing: svc.getId()))")
             }
-            svcs.append(svc)
+            svcs[svc.getId()!] = svc
         }
         self.serviceMap = svcs
-        self._services = svcs.values({ vaule -> Bool in return true })
+        _services.removeAll()
+        svcs.values.forEach { service in
+            _services.append(service)
+        }
         try _services.sort { (serviceA, serviceB) -> Bool in
             return try serviceA.compareTo(serviceB) == ComparisonResult.orderedAscending
         }
@@ -2035,13 +1955,13 @@ public class DIDDocument: NSObject {
         if self._multisig != nil {
             doc._multisig = try MultiSignature(_multisig!)
         }
-        doc.publicKeyMap = EntryMap(publicKeyMap)
+        doc.publicKeyMap = publicKeyMap.copy()
         
         doc._defaultPublicKey = _defaultPublicKey
-        doc.credentialMap = EntryMap(credentialMap)
+        doc.credentialMap = credentialMap.copy()
         doc._authenticationKeys = _authenticationKeys.copy()
         doc._authorizationKeys = _authorizationKeys.copy()
-        doc.serviceMap = EntryMap(serviceMap)
+        doc.serviceMap = serviceMap.copy()
         doc._expires = _expires
         doc._proofsDic = _proofsDic.copy()
         let metadata = try getMetadata().clone()
@@ -2866,6 +2786,7 @@ public class DIDDocument: NSObject {
         }
         Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
         guard try isGenuine() else {
+           _ =  try isGenuine()
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
@@ -3888,6 +3809,7 @@ public class DIDDocument: NSObject {
      *   - signatureValue
      */
     private func toJson(_ generator: JsonGenerator, _ normalized: Bool, _ forSign: Bool) throws {
+        try sort()
         generator.writeStartObject()
 
         // subject
@@ -4006,6 +3928,35 @@ public class DIDDocument: NSObject {
         }
 
         generator.writeEndObject()
+    }
+    
+    private func sort() throws {
+        try _controllers.sort { (didA, didB) -> Bool in
+            return try didA.compareTo(didB) == ComparisonResult.orderedAscending
+        }
+        try _publickeys.sort { (publicKeyA, publicKeyB) -> Bool in
+            return try publicKeyA.compareTo(publicKeyB) == ComparisonResult.orderedAscending
+        }
+        try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+        }
+        try _credentials.sort { (vcA, vcB) -> Bool in
+            return try vcA.compareTo(vcB) == ComparisonResult.orderedAscending
+        }
+        try _services.sort { (serviceA, serviceB) -> Bool in
+            return try serviceA.compareTo(serviceB) == ComparisonResult.orderedAscending
+        }
+        _proofs.sort { (proofA, proofB) -> Bool in
+
+            let compareResult = DateFormatter.convertToUTCStringFromDate(proofA.createdDate)
+                .compare(DateFormatter.convertToUTCStringFromDate(proofB.createdDate))
+            if compareResult == ComparisonResult.orderedSame {
+
+                return proofA.creator!.compareTo(proofB.creator!) == ComparisonResult.orderedAscending
+            } else {
+                return compareResult == ComparisonResult.orderedDescending
+            }
+        }
     }
 
     func toJson(_ generator: JsonGenerator, _ normalized: Bool) throws {
