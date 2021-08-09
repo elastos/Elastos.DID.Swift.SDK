@@ -39,11 +39,8 @@ extension DateFormatter {
     }
     
     class func convertToUTCStringFromDate(_ dateToConvert: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        formatter.timeZone = TimeZone(identifier: "UTC")
-//        formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
-        return formatter.string(from: dateToConvert)
+        //yyyy-MM-dd'T'HH:mm:ss'Z'
+        return ISO8601DateFormatter.string(from: dateToConvert, timeZone: TimeZone(identifier: "UTC")!, formatOptions: .withInternetDateTime)
     }
     
     class func currentDate()-> Date {
