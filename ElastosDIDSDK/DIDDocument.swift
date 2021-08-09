@@ -67,9 +67,9 @@ public class DIDDocument: NSObject {
     var _metadata: DIDMetadata?
     
     //    var publicKeyMap: EntryMap<PublicKey> = EntryMap()
-    var publicKeyMap: [DIDURL: PublicKey] = [: ]
-    var credentialMap: [DIDURL: VerifiableCredential] = [: ]
-    var serviceMap: [DIDURL: Service] = [: ]
+    var _publicKeyDic: [DIDURL: PublicKey] = [: ]
+    var _credentialDic: [DIDURL: VerifiableCredential] = [: ]
+    var _serviceDic: [DIDURL: Service] = [: ]
     var _proofsDic: [DID: DIDDocumentProof] = [: ]
     var _authenticationKeys: [DIDURL: PublicKey] = [: ]
     var _authorizationKeys: [DIDURL: PublicKey] = [: ]
@@ -89,17 +89,18 @@ public class DIDDocument: NSObject {
         _subject = doc.subject
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
+        _effectiveController = doc.effectiveController
         _multisig = doc._multisig
-        publicKeyMap = doc.publicKeyMap
-        _publickeys = doc._publickeys
+        _publicKeyDic = doc._publicKeyDic
         _authenticationKeys = doc._authenticationKeys
         _authorizationKeys = doc._authorizationKeys
+        _publickeys = doc._publickeys
         _authentications = doc._authentications
         _authorizations = doc._authorizations
         _defaultPublicKey = doc._defaultPublicKey
-        credentialMap = doc.credentialMap
+        _credentialDic = doc._credentialDic
         _credentials = doc._credentials
-        serviceMap = doc.serviceMap
+        _serviceDic = doc._serviceDic
         _services = doc._services
         _expires = doc._expires
         if withProof {
@@ -222,7 +223,7 @@ public class DIDDocument: NSObject {
     @objc
     public var publicKeyCount: Int {
         
-        var count = self.publicKeyMap.count
+        var count = self._publicKeyDic.count
         if hasController() {
             _controllerDocs.values.forEach({ document in
                 count += document.authenticationKeyCount
@@ -236,7 +237,7 @@ public class DIDDocument: NSObject {
     @objc
     public func publicKeys() -> Array<PublicKey> {
         var pks: [PublicKey] = []
-        self.publicKeyMap.values.forEach { pk in
+        self._publicKeyDic.values.forEach { pk in
             pks.append(pk)
         }
         if hasController() {
@@ -256,7 +257,7 @@ public class DIDDocument: NSObject {
         
         var pks: [PublicKey] = []
         
-        for pk in publicKeyMap.values {
+        for pk in _publicKeyDic.values {
             if (id != nil && pk.id != id) {
                 continue
             }
@@ -327,7 +328,7 @@ public class DIDDocument: NSObject {
     //    @objc
     public func publicKey(ofId: DIDURL) throws -> PublicKey? {
         let id = try canonicalId(ofId)
-        var pk = self.publicKeyMap[id]
+        var pk = self._publicKeyDic[id]
         if pk == nil && hasController() {
             let doc = controllerDocument(id.did!)
             if doc != nil {
@@ -666,7 +667,7 @@ public class DIDDocument: NSObject {
                 return false
             }
         }
-        publicKeyMap[publicKey.id] = publicKey
+        _publicKeyDic[publicKey.id] = publicKey
         
         if (defaultPublicKey() == nil) {
             let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
@@ -1084,7 +1085,7 @@ public class DIDDocument: NSObject {
         let id: DIDURL? = byId != nil ? try canonicalId(byId!) : nil
         
         var vcs: [VerifiableCredential] = []
-        for vc in credentialMap.values {
+        for vc in _credentialDic.values {
             if (id != nil && vc.getId() != id) {
                 continue
             }
@@ -1151,7 +1152,7 @@ public class DIDDocument: NSObject {
     /// - Returns: the credential object
     @objc
     public func credential(ofId: DIDURL) -> VerifiableCredential? {
-        return credentialMap[ofId]
+        return _credentialDic[ofId]
     }
 
     /// Get the specific credential.
@@ -1181,19 +1182,19 @@ public class DIDDocument: NSObject {
         guard vc.subject?.did == subject else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
         }
-        guard credentialMap[vc.getId()!] == nil else {
+        guard _credentialDic[vc.getId()!] == nil else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
         }
-        credentialMap[vc.getId()!] = vc
+        _credentialDic[vc.getId()!] = vc
         _credentials.append(vc)
     }
 
     func removeCredential(_ id: DIDURL) throws {
-        guard credentialMap.count > 0 else {
+        guard _credentialDic.count > 0 else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        guard (credentialMap.removeValue(forKey: try canonicalId(id)) != nil) else {
+        guard (_credentialDic.removeValue(forKey: try canonicalId(id)) != nil) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
     }
@@ -1217,7 +1218,7 @@ public class DIDDocument: NSObject {
         let id: DIDURL? = byId != nil ? try canonicalId(byId!) : nil
         
         var svcs: [Service] = [ ]
-        for svc in serviceMap.values {
+        for svc in _serviceDic.values {
             if (id != nil && svc.getId() != id) {
                 continue
             }
@@ -1287,7 +1288,7 @@ public class DIDDocument: NSObject {
     /// - Returns: the service object
     @objc
     public func service(ofId: DIDURL) -> Service? {
-        return serviceMap[ofId]
+        return _serviceDic[ofId]
     }
 
     /// Get the specific service.
@@ -1311,13 +1312,13 @@ public class DIDDocument: NSObject {
     }
 
     func appendService(_ service: Service) -> Bool {
-        serviceMap[service.getId()!] = service
+        _serviceDic[service.getId()!] = service
         _services.append(service)
         return true
     }
 
     func removeService(_ id: DIDURL) -> Bool {
-        return (serviceMap.removeValue(forKey: id) != nil)
+        return (_serviceDic.removeValue(forKey: id) != nil)
     }
 
     /// Get expire time of this DIDDocument.
@@ -1562,14 +1563,14 @@ public class DIDDocument: NSObject {
         }
         // for customized DID with controller, could be no public keys
         if pks.count > 0 {
-            self.publicKeyMap = pks
+            self._publicKeyDic = pks
             self._publickeys.removeAll()
             pks.values.forEach { pk in
                 self._publickeys.append(pk)
             }
         }
         else {
-            self.publicKeyMap = [: ]
+            self._publicKeyDic = [: ]
             self._publickeys = [ ]
         }
         try _publickeys.sort { (publicKeyA, publicKeyB) -> Bool in
@@ -1577,7 +1578,7 @@ public class DIDDocument: NSObject {
         }
         
         // Find default key
-        for pk in publicKeyMap.values {
+        for pk in _publicKeyDic.values {
             if pk.controller == subject {
                 let address = DIDHDKey.toAddress(pk.publicKeyBytes)
                 if address == subject.methodSpecificId {
@@ -1607,7 +1608,7 @@ public class DIDDocument: NSObject {
     private func sanitizeCredential() throws {
         if _credentials.isEmpty {
             _credentials = [ ]
-            credentialMap = [: ]
+            _credentialDic = [: ]
             return
         }
         
@@ -1641,9 +1642,9 @@ public class DIDDocument: NSObject {
             vcs[vc.getId()!] = vc
         }
                 
-        self.credentialMap = vcs
+        self._credentialDic = vcs
         _credentials.removeAll()
-        credentialMap.values.forEach { vc in
+        _credentialDic.values.forEach { vc in
             _credentials.append(vc)
         }
         
@@ -1681,7 +1682,7 @@ public class DIDDocument: NSObject {
             }
             svcs[svc.getId()!] = svc
         }
-        self.serviceMap = svcs
+        self._serviceDic = svcs
         _services.removeAll()
         svcs.values.forEach { service in
             _services.append(service)
@@ -1955,13 +1956,13 @@ public class DIDDocument: NSObject {
         if self._multisig != nil {
             doc._multisig = try MultiSignature(_multisig!)
         }
-        doc.publicKeyMap = publicKeyMap.copy()
+        doc._publicKeyDic = _publicKeyDic.copy()
         
         doc._defaultPublicKey = _defaultPublicKey
-        doc.credentialMap = credentialMap.copy()
+        doc._credentialDic = _credentialDic.copy()
         doc._authenticationKeys = _authenticationKeys.copy()
         doc._authorizationKeys = _authorizationKeys.copy()
-        doc.serviceMap = serviceMap.copy()
+        doc._serviceDic = _serviceDic.copy()
         doc._expires = _expires
         doc._proofsDic = _proofsDic.copy()
         let metadata = try getMetadata().clone()
@@ -4112,7 +4113,7 @@ extension DIDDocument {
         doc._controllerDocs = _controllerDocs
         doc._effectiveController = _effectiveController
         doc._multisig = _multisig
-        doc.publicKeyMap = publicKeyMap
+        doc._publicKeyDic = _publicKeyDic
         doc._publickeys = _publickeys
         doc._authenticationKeys = _authenticationKeys
         doc._authentications = _authentications
@@ -4122,7 +4123,7 @@ extension DIDDocument {
         doc._credentials = _credentials
         doc._credentials = _credentials
         doc._services = _services
-        doc.serviceMap = serviceMap
+        doc._serviceDic = _serviceDic
         doc._expires = _expires
         doc._proofsDic = _proofsDic
         doc._proofs = _proofs
