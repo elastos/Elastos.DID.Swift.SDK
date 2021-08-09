@@ -103,7 +103,7 @@ public class DIDDocumentBuilder: NSObject {
     }
     
     private func appendPublicKey(_ key: PublicKey) throws {
-        for pk in document!.publicKeyMap.values {
+        for pk in document!._publicKeyDic.values {
             if pk.getId() == key.getId() {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()?.toString()))' already exist.")
             }
@@ -158,7 +158,7 @@ public class DIDDocumentBuilder: NSObject {
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        let key = document!.publicKeyMap[id]
+        let key = document!._publicKeyDic[id]
 
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -179,7 +179,7 @@ public class DIDDocumentBuilder: NSObject {
             }
         }
         
-        if (document!.publicKeyMap.removeValue(forKey: id) != nil) {
+        if (document!._publicKeyDic.removeValue(forKey: id) != nil) {
             document!._authenticationKeys.removeValue(forKey: id)
             document!._authorizationKeys.removeValue(forKey: id)
             // TODO: should delete the loosed private key when store the document
@@ -335,7 +335,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        let key = document!.publicKeyMap[try canonicalId(id)!]
+        let key = document!._publicKeyDic[try canonicalId(id)!]
         let value = try document!._authenticationKeys[canonicalId(id)!]
         guard let _ = key, let _ = value else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -1024,7 +1024,7 @@ public class DIDDocumentBuilder: NSObject {
             svc = try Service(canonicalId(id)!, type, endpoint)
         }
             
-        if document!.serviceMap[svc.id] != nil {
+        if document!._serviceDic[svc.id] != nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
         }
         _ = document!.appendService(svc)
@@ -1384,7 +1384,7 @@ public class DIDDocumentBuilder: NSObject {
             return try didA.compareTo(didB) == ComparisonResult.orderedAscending
         }
         document!._publickeys.removeAll()
-        document!.publicKeyMap.values.forEach { pk in
+        document!._publicKeyDic.values.forEach { pk in
             document!._publickeys.append(pk)
         }
         
@@ -1403,12 +1403,12 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         document!._credentials.removeAll()
-        document!.credentialMap.values.forEach { vc in
+        document!._credentialDic.values.forEach { vc in
             document!._credentials.append(vc)
         }
         
         document!._services.removeAll()
-        document!.serviceMap.values.forEach { service in
+        document!._serviceDic.values.forEach { service in
             document!._services.append(service)
         }
         
