@@ -130,7 +130,7 @@ public class DIDDocument: NSObject {
             return id
         }
         
-        return try DIDURL(subject, id)
+        return DIDURL(subject, id)
     }
     
     public func isCustomizedDid() -> Bool {
@@ -235,7 +235,7 @@ public class DIDDocument: NSObject {
     /// Get all the public keys.
     /// - Returns: a array of PublicKey object
     @objc
-    public func publicKeys() -> Array<PublicKey> {
+    public func publicKeys() -> [PublicKey] {
         var pks: [PublicKey] = []
         self._publicKeyDic.values.forEach { pk in
             pks.append(pk)
@@ -248,13 +248,9 @@ public class DIDDocument: NSObject {
         return pks
     }
 
-    private func selectPublicKeys(_ byId: DIDURL?, _ andType: String?) throws -> Array<PublicKey> {
+    private func selectPublicKeys(_ byId: DIDURL?, _ andType: String?) throws -> [PublicKey] {
         try checkArgument(byId != nil || andType != nil, "Invalid select args")
-        var id: DIDURL? = nil
-        if let _ = byId {
-            id = try canonicalId(byId!)
-        }
-        
+        let id: DIDURL? = byId != nil ? try canonicalId(byId!) : nil
         var pks: [PublicKey] = []
         
         for pk in _publicKeyDic.values {
@@ -283,7 +279,7 @@ public class DIDDocument: NSObject {
     ///   - andType: the type string
     /// - Returns: an array of the matched public keys
     @objc
-    public func selectPublicKeys(byId: DIDURL, andType: String) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byId: DIDURL, andType: String) throws -> [PublicKey] {
         return try selectPublicKeys(byId, andType)
     }
 
@@ -294,7 +290,7 @@ public class DIDDocument: NSObject {
     /// - Throws: If an error occurred, throw error
     /// - Returns: an array of the matched public keys
     @objc (selectPublicKeysbyIdString:andType:error:)
-    public func selectPublicKeys(byId: String, andType: String) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byId: String, andType: String) throws -> [PublicKey] {
         return try selectPublicKeys(byId: try DIDURL(subject, byId), andType: andType)
     }
     
@@ -302,7 +298,7 @@ public class DIDDocument: NSObject {
     /// - Parameter byId: the key id
     /// - Throws: If an error occurred, throw error
     /// - Returns: an array of the matched public keys
-    public func selectPublicKeys(byId: DIDURL) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byId: DIDURL) throws -> [PublicKey] {
         return try selectPublicKeys(byId, nil)
     }
     
@@ -310,7 +306,7 @@ public class DIDDocument: NSObject {
     /// - Parameter byId: the key id
     /// - Throws: If an error occurred, throw error
     /// - Returns: an array of the matched public keys
-    public func selectPublicKeys(byId: String) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byId: String) throws -> [PublicKey] {
         return try selectPublicKeys(byId: try DIDURL(subject, byId))
     }
 
@@ -318,7 +314,7 @@ public class DIDDocument: NSObject {
     /// - Parameter byType: The type of public key to be selected.
     /// - Returns: an array of the matched public keys
     @objc
-    public func selectPublicKeys(byType: String) throws -> Array<PublicKey> {
+    public func selectPublicKeys(byType: String) throws -> [PublicKey] {
         return try selectPublicKeys(nil, byType)
     }
 
@@ -408,13 +404,9 @@ public class DIDDocument: NSObject {
     /// Check if the specified private key exists.
     /// - Parameter forId: the key id string
     /// - Returns: the key exists or not
-    @objc(containsPrivateKey:)
-    public func containsPrivateKey(forId: String) -> Bool {
-        do {
-            return try containsPrivateKey(forId: canonicalId(forId)!)
-        } catch {
-            return false
-        }
+    //    @objc(containsPrivateKey:)
+    public func containsPrivateKey(forId: String) throws -> Bool {
+        return try containsPrivateKey(forId: canonicalId(forId)!)
     }
 
     private func getDefaultPublicKey() -> DIDURL? {
@@ -660,26 +652,6 @@ public class DIDDocument: NSObject {
         return try JwtParserBuilder().build()
     }
 
-    func appendPublicKey(_ publicKey: PublicKey) -> Bool {
-        for key in publicKeys() {
-            if  key.getId() == publicKey.getId() ||
-                key.publicKeyBase58 == publicKey.publicKeyBase58 {
-                return false
-            }
-        }
-        _publicKeyDic[publicKey.id] = publicKey
-        
-        if (defaultPublicKey() == nil) {
-            let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
-            if (address == subject.methodSpecificId) {
-                _defaultPublicKey = publicKey
-                _authenticationKeys[publicKey.id] = publicKey
-            }
-        }
-        
-        return true
-    }
-
     /// Get the numbers of the authentication keys.
     @objc
     public var authenticationKeyCount: Int {
@@ -697,7 +669,7 @@ public class DIDDocument: NSObject {
     /// Get all the authentication keys.
     /// - Returns: an array of the authentication keys
     @objc
-    public func authenticationKeys() -> Array<PublicKey> {
+    public func authenticationKeys() -> [PublicKey] {
         var pks: [PublicKey] = []
         pks.append(contentsOf: _authenticationKeys.values)
         if hasController() {
@@ -877,21 +849,6 @@ public class DIDDocument: NSObject {
         return true
     }
 
-    func removeAuthenticationKey(_ id: DIDURL) throws -> Bool {
-        let key = try publicKey(ofId: id)
-        guard let _ = key else {
-            return false
-        }
-
-        // Can not remove default publicKey.
-        guard getDefaultPublicKey() != id else {
-            return false
-        }
-
-        _authenticationKeys.removeValue(forKey: key!.getId()!)
-        return true
-    }
-
     /// Get the numbers of the authorization keys.
     @objc
     public var authorizationKeyCount: Int {
@@ -1037,36 +994,6 @@ public class DIDDocument: NSObject {
         return try authorizationKey(ofId: forId) != nil
     }
 
-    func appendAuthorizationKey(_ id: DIDURL) throws -> Bool {
-        let key = try publicKey(ofId: id)
-        guard let _ = key else {
-            return false
-        }
-
-        // Make sure that controller should be current DID subject.
-        guard key!.controller != self.subject else {
-            return false
-        }
-
-        _authorizationKeys[key!.getId()!] = key
-        return true
-    }
-
-    func removeAuthorizationKey(_ id: DIDURL) throws -> Bool {
-        let key = try publicKey(ofId: id)
-        guard let _ = key else {
-            return false
-        }
-
-        // Can not remove default publicKey.
-        guard getDefaultPublicKey() != id else {
-            return false
-        }
-
-        _authorizationKeys.removeValue(forKey: key!.getId()!)
-        return true
-    }
-
     /// Get the numbers of the credentials.
     @objc
     public var credentialCount: Int {
@@ -1174,28 +1101,6 @@ public class DIDDocument: NSObject {
         } catch let aError as NSError {
             error?.pointee = aError
             return nil
-        }
-    }
-    
-    func appendCredential(_ vc: VerifiableCredential) throws {
-        // Check the credential belongs to current DID.
-        guard vc.subject?.did == subject else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
-        }
-        guard _credentialDic[vc.getId()!] == nil else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
-        }
-        _credentialDic[vc.getId()!] = vc
-        _credentials.append(vc)
-    }
-
-    func removeCredential(_ id: DIDURL) throws {
-        guard _credentialDic.count > 0 else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
-        }
-
-        guard (_credentialDic.removeValue(forKey: try canonicalId(id)) != nil) else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
     }
 
@@ -1311,14 +1216,42 @@ public class DIDDocument: NSObject {
         }
     }
 
-    func appendService(_ service: Service) -> Bool {
+    private func appendService(_ service: Service) -> Bool {
         _serviceDic[service.getId()!] = service
         _services.append(service)
         return true
     }
-
-    func removeService(_ id: DIDURL) -> Bool {
-        return (_serviceDic.removeValue(forKey: id) != nil)
+    
+    private func appendPublicKey(_ publicKey: PublicKey) -> Bool {
+        for key in publicKeys() {
+            if  key.getId() == publicKey.getId() ||
+                    key.publicKeyBase58 == publicKey.publicKeyBase58 {
+                return false
+            }
+        }
+        _publicKeyDic[publicKey.id] = publicKey
+        
+        if (defaultPublicKey() == nil) {
+            let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
+            if (address == subject.methodSpecificId) {
+                _defaultPublicKey = publicKey
+                _authenticationKeys[publicKey.id] = publicKey
+            }
+        }
+        
+        return true
+    }
+    
+    private func appendCredential(_ vc: VerifiableCredential) throws {
+        // Check the credential belongs to current DID.
+        guard vc.subject?.did == subject else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
+        }
+        guard _credentialDic[vc.getId()!] == nil else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
+        }
+        _credentialDic[vc.getId()!] = vc
+        _credentials.append(vc)
     }
 
     /// Get expire time of this DIDDocument.
