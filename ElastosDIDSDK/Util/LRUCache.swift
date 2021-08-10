@@ -67,7 +67,6 @@ final class LRUCache<Key: Hashable, Value> {
 
     func setValue(_ value: Value, for key: Key) {
         lock.acquireWriteLock {
-            
             let payload = CachePayload(key: key, value: value)
             
             if let node = self.nodesDict[key] {
@@ -147,9 +146,17 @@ final class LRUCache<Key: Hashable, Value> {
             guard let node = nodesDict[key] else {
                 return
             }
-            list.removeNode(node)
+//            list.removeNode(node)
             nodesDict.removeValue(forKey: key)
         }
+    }
+    
+    func removeValueWithoutLock(for key: Key) {
+        guard let node = nodesDict[key] else {
+            return
+        }
+        list.removeNode(node)
+        nodesDict.removeValue(forKey: key)
     }
 }
 
