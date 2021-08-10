@@ -69,6 +69,9 @@ public class DIDDocumentBuilder: NSObject {
     }
     
     private func canonicalId(_ id: DIDURL) throws -> DIDURL? {
+        if id.did != nil {
+            return id
+        }
         return try DIDURL(getSubject(), id)
     }
 
@@ -77,33 +80,8 @@ public class DIDDocumentBuilder: NSObject {
         return document!.subject
     }
 
-    /// Add public key to DID Document.
-    /// Each public key has an identifier (id) of its own, a type, and a controller,
-    /// as well as other properties publicKeyBase58 depend on which depend on what type of key it is.
-    /// - Parameters:
-    ///   - id: An identifier of public key.
-    ///   - controller: A controller property, identifies the controller of the corresponding private key.
-    ///   - keyBase58: Key propertie depend on key type.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: DIDDocumentBuilder instance.
-    @objc
-    public func appendPublicKey(_ id: DIDURL,
-                                _ controller: DID,
-                                _ keyBase58: String) throws -> DIDDocumentBuilder {
-        try checkNotSealed()
-        try checkArgument(Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES, "Invalid keyBase58")
-
-        let publicKey = PublicKey(id, controller, keyBase58)
-        guard document!.appendPublicKey(publicKey) else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid publicKey")
-        }
-
-        invalidateProof()
-        return self
-    }
-    
     private func appendPublicKey(_ key: PublicKey) throws {
-        for pk in document!._publicKeyDic.values {
+        try document?._publicKeyDic.values.forEach{ pk in
             if pk.getId() == key.getId() {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()?.toString()))' already exist.")
             }
@@ -111,6 +89,7 @@ public class DIDDocumentBuilder: NSObject {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(key.publicKeyBase58)' already exist.")
             }
         }
+        document?._publicKeyDic[key.getId()!] = key
         
         if document?.defaultPublicKey() == nil {
             let address = DIDHDKey.toAddress(key.publicKeyBytes)
@@ -121,40 +100,128 @@ public class DIDDocumentBuilder: NSObject {
         }
         invalidateProof()
     }
-
-    /// Add public key to DID Document.
-    /// Each public key has an identifier (id) of its own, a type, and a controller,
-    /// as well as other properties publicKeyBase58 depend on which depend on what type of key it is.
+    
+    /// Add PublicKey to did document builder.
     /// - Parameters:
-    ///   - id: An identifier of public key.
-    ///   - controller: A controller property, identifies the controller of the corresponding private key.
-    ///   - keyBase58: Key propertie depend on key type.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: DIDDocumentBuilder instance.
-    @objc
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - controller: the owner of public key
+    ///   - pk: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    private func appendPublicKey(id: DIDURL, type: String?, controller: DID?, pk: String) throws -> DIDDocumentBuilder {
+        try checkNotSealed()
+        try checkArgument(id.did == nil || id.did == getSubject(), "Invalid publicKey id")
+        try checkArgument(!pk.isEmpty, "Invalid publicKey")
+        let ctr = try controller != nil ? controller : getSubject()
+
+        if type == nil {
+            try appendPublicKey(PublicKey(canonicalId(id)!, ctr!, pk))
+            
+            return self
+        }
+        try appendPublicKey(PublicKey(canonicalId(id)!, type!, ctr!, pk))
+        
+        return self
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - controller: the owner of public key
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
     public func appendPublicKey(with id: DIDURL,
-                             controller: String,
-                              keyBase58: String) throws -> DIDDocumentBuilder {
-        return try appendPublicKey(id, DID(controller), keyBase58)
+                             type: String,
+                             controller: DID,
+                             keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: id, type: type, controller: controller, pk: keyBase58)
     }
-
-    /// Add public key to DID Document.
-    /// Each public key has an identifier (id) of its own, a type, and a controller,
-    /// as well as other properties publicKeyBase58 depend on which depend on what type of key it is.
+    
+    /// Add PublicKey to did document builder.
     /// - Parameters:
-    ///   - id: An identifier of public key.
-    ///   - controller: A controller property, identifies the controller of the corresponding private key.
-    ///   - keyBase58: Key propertie depend on key type.
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: DIDDocumentBuilder instance.
-    @objc(appendPublicKey:controller:keyBase58:error:)
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - controller: the owner of public key
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
     public func appendPublicKey(with id: String,
+                             type: String,
                              controller: String,
-                              keyBase58: String) throws -> DIDDocumentBuilder {
-
-        return try appendPublicKey(DIDURL(getSubject(), id), DID(controller), keyBase58)
+                             keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: canonicalId(id)!, type: type, controller: DID.valueOf(controller), pk: keyBase58)
     }
-
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - controller: the owner of public key
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(_ id: DIDURL,
+                                _ controller: DID,
+                                _ keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: id, type: nil, controller: controller, pk: keyBase58)
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - controller: the owner of public key
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(with id: DIDURL,
+                                controller: String,
+                                keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: id, type: nil, controller: DID.valueOf(controller), pk: keyBase58)
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - controller: the owner of public key
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(with id: String,
+                                controller: String,
+                                keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: canonicalId(id)!, type: nil, controller: DID.valueOf(controller), pk: keyBase58)
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(with id: DIDURL,
+                                type: String,
+                                keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: id, type: type, controller: nil, pk: keyBase58)
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(with id: DIDURL,
+                                keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: id, type: nil, controller: nil, pk: keyBase58)
+    }
+    
+    /// Add PublicKey to did document builder.
+    /// - Parameters:
+    ///   - id: the key id
+    ///   - type: the key type
+    ///   - keyBase58: the base58 encoded public key
+    /// - Returns: the Builder instance for method chaining
+    public func appendPublicKey(with id: String,
+                                 keyBase58: String) throws -> DIDDocumentBuilder {
+        return try appendPublicKey(id: canonicalId(id)!, type: nil, controller: nil, pk: keyBase58)
+    }
+    
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
         try checkNotSealed()
@@ -284,18 +351,13 @@ public class DIDDocumentBuilder: NSObject {
     private func appendAuthenticationKey(_ id: DIDURL,
                                          _ keyBase58: String) throws -> DIDDocumentBuilder {
         try checkNotSealed()
+        try checkArgument(id.did == nil || id.did == getSubject(), "Invalid publicKey id")
+        try checkArgument(!keyBase58.isEmpty, "Invalid publicKey")
 
-        guard Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError()
-        }
+        let key = try PublicKey(canonicalId(id)!, getSubject(), keyBase58)
+        try appendPublicKey(key)
+        document!._authenticationKeys[key.getId()!] = key
 
-        let key = PublicKey(id, try getSubject(), keyBase58)
-        document?._authenticationKeys[key.getId()!] = key
-        guard document!.appendPublicKey(key) else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(keyBase58)' already exist.")
-        }
-        invalidateProof()
-        
         return self
     }
 
@@ -326,12 +388,12 @@ public class DIDDocumentBuilder: NSObject {
     @objc(appendAuthenticationKey:keyBase58:error:)
     public func appendAuthenticationKey(with id: String,
                                       keyBase58: String) throws -> DIDDocumentBuilder {
-        return try appendAuthenticationKey(DIDURL(getSubject(), id), keyBase58)
+        return try appendAuthenticationKey(canonicalId(id)!, keyBase58)
     }
 
     private func removeAuthenticationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        if document!.publicKeys().isEmpty {
+        if document!._publicKeyDic.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
@@ -342,7 +404,7 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         // Can not remove default public key
-        if (document!.defaultPublicKey() != nil && document!.defaultPublicKey()!.getId() == id ) {
+        if (document!._defaultPublicKey != nil && document!._defaultPublicKey!.getId() == id ) {
             throw DIDError.UncheckedError.UnsupportedOperationError.DIDObjectHasReferenceError(
                 "Cannot remove the default PublicKey from authentication.")
         }
@@ -381,11 +443,11 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(id.toString())
         }
         
-        guard !document!.publicKeys().isEmpty else {
+        guard !document!._publicKeyDic.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
-        let key = try document!.publicKey(ofId: id)
+        let key = document!._publicKeyDic[id]
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
@@ -436,13 +498,21 @@ public class DIDDocumentBuilder: NSObject {
                                        _ controller: DID,
                                        _ keyBase58: String) throws -> DIDDocumentBuilder {
         try checkNotSealed()
+        try checkArgument(id.did == nil || id.did == getSubject(), "Invalid publicKey id")
+        try checkArgument(!keyBase58.isEmpty, "Invalid publicKey")
         try checkArgument(Base58.bytesFromBase58(keyBase58).count == DIDHDKey.DID_PUBLICKEY_BYTES, "Invalied keyBase58")
 
-        let key = PublicKey(id, controller, keyBase58)
+        if document!.isCustomizedDid() {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(try getSubject().toString())
+        }
+        // Can not authorize to self
+        if try controller == getSubject() {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError("Key's controller is self.")
+        }
+        let key = try PublicKey(canonicalId(id)!, controller, keyBase58)
+        try appendPublicKey(key)
         document!._authorizationKeys[key.getId()!] = key
-        _ = document!.appendPublicKey(key)
-        invalidateProof()
-
+        
         return self
     }
 
@@ -504,28 +574,36 @@ public class DIDDocumentBuilder: NSObject {
         if document!.isCustomizedDid() {
             throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(try getSubject().toString())
         }
-        let controllerDoc: DIDDocument?
-        controllerDoc = try controller.resolve()
-        guard let _ = controllerDoc else {
+        let controllerDoc: DIDDocument? = try controller.resolve()
+        if (controllerDoc == nil) {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(id.toString())
         }
-
-        var usedKey: DIDURL? = key
-        if  usedKey == nil {
-            usedKey = controllerDoc!.defaultPublicKeyId()
+        guard !controllerDoc!.isDeactivated else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(controller.toString())
         }
-
-        // Check the key should be a authentication key
-        let targetKey = try controllerDoc!.authenticationKey(ofId: usedKey!)
-        guard let _ = targetKey else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(usedKey!.toString())
+        guard !controllerDoc!.isExpired else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDExpiredError(controller.toString())
         }
-
-        let pk = PublicKey(id, targetKey!.getType()!, controller, targetKey!.publicKeyBase58)
-        document?._authorizationKeys[pk.getId()!] = pk
-        _ = document!.appendPublicKey(pk)
-        invalidateProof()
         
+        guard try controllerDoc!.isGenuine() else {
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(controller.toString())
+        }
+        guard !controllerDoc!.isCustomizedDid() else {
+            throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(controller.toString())
+        }
+        
+        let _key = key != nil ? key : controllerDoc!.defaultPublicKeyId()
+        
+        // Check the key should be a authentication key.
+        let targetPk = try controllerDoc!.authenticationKey(ofId: _key!)
+        if (targetPk == nil) {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(_key!.toString())
+        }
+        
+        let pk = PublicKey(try canonicalId(id)!, targetPk!.getType()!, controller, targetPk!.publicKeyBase58)
+        try appendPublicKey(pk)
+        document!._authorizationKeys[pk.getId()!] = pk
+
         return self
     }
 
@@ -598,10 +676,22 @@ public class DIDDocumentBuilder: NSObject {
     private func removeAuthorizationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         
-        guard try document!.removeAuthorizationKey(id) else {
+        if document?._publicKeyDic == nil || document!._publicKeyDic.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
-        invalidateProof()
+        
+        let _id = try canonicalId(id)!
+        let key = document?._publicKeyDic[_id]
+        if key == nil {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(_id.toString())
+        }
+        
+        if document!._authorizationKeys.removeValue(forKey: _id) != nil {
+            invalidateProof()
+        }
+        else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(_id.toString())
+        }
         
         return self
     }
@@ -631,9 +721,19 @@ public class DIDDocumentBuilder: NSObject {
     @objc
     public func appendCredential(with credential: VerifiableCredential) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        try document!.appendCredential(credential)
-        invalidateProof()
         
+        //         Check the credential belongs to current DID.
+        // Check the credential belongs to current DID.
+        guard try credential.subject?.did == getSubject() else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(credential.subject?.did.toString())
+        }
+        guard document!._credentialDic[credential.getId()!] == nil else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(credential.subject?.did.toString())
+        }
+        document!._credentialDic[credential.getId()!] = credential
+        document!._credentials.append(credential)
+        invalidateProof()
+
         return self
     }
 
@@ -668,8 +768,7 @@ public class DIDDocumentBuilder: NSObject {
             .withProperties(subject)
             .withExpirationDate(realExpires)
             .sealed(using: storePassword)
-        try document!.appendCredential(credential)
-        invalidateProof()
+        _ = try appendCredential(with: credential)
         
         return self
     }
@@ -982,8 +1081,15 @@ public class DIDDocumentBuilder: NSObject {
 
     private func removeCredential(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
+    
+        guard document!._credentialDic.count > 0 else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
+        }
+
+        guard (document!._credentialDic.removeValue(forKey: try canonicalId(id)!) != nil) else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
+        }
         
-        try document!.removeCredential(id)
         invalidateProof()
         
         return self
@@ -1027,7 +1133,8 @@ public class DIDDocumentBuilder: NSObject {
         if document!._serviceDic[svc.id] != nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
         }
-        _ = document!.appendService(svc)
+        document!._serviceDic[svc.getId()!] = svc
+        document!._services.append(svc)
         invalidateProof()
 
         return self
@@ -1091,12 +1198,16 @@ public class DIDDocumentBuilder: NSObject {
 
     private func removeService(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        
-        guard document!.removeService(id) else {
+        if document!._serviceDic.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
-
-        invalidateProof()
+        
+        if (document!._serviceDic.removeValue(forKey: try canonicalId(id)!) != nil) {
+            invalidateProof()
+        }
+        else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
+        }
         
         return self
     }
@@ -1127,6 +1238,8 @@ public class DIDDocumentBuilder: NSObject {
         try checkNotSealed()
         
         document!.setExpirationDate(DateFormatter.maxExpirationDate())
+        invalidateProof()
+        
         return self
     }
 
@@ -1144,6 +1257,8 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         document!.setExpirationDate(expiresDate)
+        invalidateProof()
+        
         return self
     }
 
@@ -1243,12 +1358,11 @@ public class DIDDocumentBuilder: NSObject {
         guard controller != controllerDoc?.subject else {
             throw DIDError.UncheckedError.UnsupportedOperationError.CanNotRemoveEffectiveControllerError(controller.toString())
         }
+        
         if document != nil && document!._controllers.contains(controller) {
             invalidateProof()
         }
-        document?._controllers = document!._controllers.filter { c -> Bool in
-            !c.isEqual(controller)
-        }
+        document?._controllers = document!._controllers.filter { $0 != controller}
         
         document?._controllerDocs.removeValue(forKey: controller)
         
