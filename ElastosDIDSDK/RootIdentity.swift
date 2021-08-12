@@ -369,12 +369,22 @@ public class RootIdentity: NSObject {
             }
         }
         
-        doc = try did.resolve()
-        if doc != nil  {
-            guard !doc!.isDeactivated else {
-                throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+        do {
+            doc = try did.resolve()
+            if doc != nil  {
+                guard !doc!.isDeactivated else {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+                }
+                if !overwrite {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError("DID already published.")
+                }
+            }
+        } catch {
+            if (!overwrite) {
+                throw error
             }
         }
+
         Log.d(TAG, "Creating new DID ", did.toString(), " at index ", index)
         
         let key = try store!.derive(getId(), DIDHDKey.DID_DERIVE_PATH_PREFIX + "\(index)", storePassword)
@@ -456,54 +466,10 @@ public class RootIdentity: NSObject {
     /// - Returns: true if synchronized success, false if not synchronized
     private func synchronize(index: Int, _ handle: ConflictHandler?) throws -> Bool {
         try checkArgument(index >= 0, "Invalid index")
-        var h = handle
-        if h == nil {
-            h = DIDStore.defaultConflictHandle
-        }
+        let h = handle != nil ? handle : DIDStore.defaultConflictHandle
         let did = try getDid(index)
-        Log.i(TAG, "Synchronize ", did.toString(), "/", index, "...")
-        let resolvedDoc = try did.resolve(true)
-        if resolvedDoc == nil {
-            Log.i(TAG, "Synchronize ", did.toString(), "/", index, "...not exists")
-            return false
-        }
-        Log.d(TAG, "Synchronize ", did.toString(), "/", index, "... exists, got the on-chain copy.")
-        var finalDoc = resolvedDoc
-        let localDoc = try store!.loadDid(did)
-        if localDoc != nil {
-            // Update metadata off-store, then store back
-            localDoc?.getMetadata().detachStore()
-            
-            if localDoc?.signature == resolvedDoc?.signature || localDoc?.getMetadata().signature != nil && localDoc?.proof.signature == localDoc?.getMetadata().signature {
-                finalDoc?.getMetadata().merge(localDoc!.getMetadata())
-            }
-            else {
-                Log.d(TAG, did.toString(), " on-chain copy conflict with local copy.")
-                // Local copy was modified
-                finalDoc = h!(resolvedDoc!, localDoc!) // TODO: handle.merge(resolvedDoc, localDoc)
-                guard finalDoc != nil, finalDoc!.subject == did else {
-                    Log.i(TAG, "Conflict handle merge the DIDDocument error.")
-                    throw DIDError.CheckedError.DIDStoreError.ConflictMergeError("deal with local modification error.")
-                }
-            }
-        }
-        let metadata = finalDoc!.getMetadata()
-
-        metadata.setPublishTime((resolvedDoc?.getMetadata().publishTime)!)
-        metadata.setSignature(resolvedDoc?.proof.signature)
-
-        metadata.setRootIdentityId(try getId())
-        metadata.setIndex(index)
-        metadata.attachStore(store!)
-
-        if (localDoc != nil) {
-            localDoc!.getMetadata().attachStore(store!)
-        }
-        try store!.storeDid(using: finalDoc!)
         
-        try store!.storeLazyPrivateKey(finalDoc!.defaultPublicKeyId()!)
-
-        return true
+        return try store!.synchronize(did, h, getId(), index)
     }
     
     /// Synchronize the specific DID from ID chain.
