@@ -202,6 +202,7 @@
 		11B6284026483A5A00B20904 /* DIDExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B6283E26483A5A00B20904 /* DIDExport.swift */; };
 		11B628442648E38C00B20904 /* RootIdentityExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B628432648E38C00B20904 /* RootIdentityExport.swift */; };
 		11B62848264BA8BA00B20904 /* Extension+String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B62847264BA8BA00B20904 /* Extension+String.swift */; };
+		11BA5E9726C61BE4005CE483 /* LocalResolveHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */; };
 		11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33982604383700DEBD00 /* DIDRequest.swift */; };
 		11BE33A026043BBB00DEBD00 /* IDChainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */; };
 		11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
@@ -419,6 +420,7 @@
 		11B6283E26483A5A00B20904 /* DIDExport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDExport.swift; sourceTree = "<group>"; };
 		11B628432648E38C00B20904 /* RootIdentityExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityExport.swift; sourceTree = "<group>"; };
 		11B62847264BA8BA00B20904 /* Extension+String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+String.swift"; sourceTree = "<group>"; };
+		11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalResolveHandle.swift; sourceTree = "<group>"; };
 		11BE33982604383700DEBD00 /* DIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDRequest.swift; sourceTree = "<group>"; };
 		11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainHeader.swift; sourceTree = "<group>"; };
 		11BE33A32604403100DEBD00 /* IDChainProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainProof.swift; sourceTree = "<group>"; };
@@ -857,7 +859,7 @@
 			children = (
 				114A73C22490A4FB00262228 /* jwt */,
 				A336846A242205820049126D /* Log */,
-				A31ACE2923F19A10008EC032 /* Utils */,
+				A31ACE2923F19A10008EC032 /* Util */,
 				A31ACE2423F199F7008EC032 /* Error */,
 				A31ACE5B23F19A3F008EC032 /* Meta */,
 				A31ACE6223F19A58008EC032 /* Backend */,
@@ -892,6 +894,7 @@
 				11B342B92616AC9600DC48FB /* DefaultDIDAdapter.swift */,
 				A31801A224015EA30087E074 /* DIDResolver.swift */,
 				A31ACE0423F199AE008EC032 /* DIDBackend.swift */,
+				11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */,
 				A31ACDFD23F199AE008EC032 /* DIDStore.swift */,
 				11B6283E26483A5A00B20904 /* DIDExport.swift */,
 				11B628432648E38C00B20904 /* RootIdentityExport.swift */,
@@ -929,7 +932,7 @@
 			name = Error;
 			sourceTree = "<group>";
 		};
-		A31ACE2923F19A10008EC032 /* Utils */ = {
+		A31ACE2923F19A10008EC032 /* Util */ = {
 			isa = PBXGroup;
 			children = (
 				1179520C241B3A7100A1C55B /* RegexHelper.swift */,
@@ -951,7 +954,7 @@
 				110B8206264E4C2500F6477F /* extension+Array.swift */,
 				116FA91C263491690021A46F /* EcdsaSigner.swift */,
 			);
-			name = Utils;
+			name = Util;
 			sourceTree = "<group>";
 		};
 		A31ACE5B23F19A3F008EC032 /* Meta */ = {
@@ -1489,6 +1492,7 @@
 				A31ACE0D23F199AE008EC032 /* FileSystemStorage.swift in Sources */,
 				A31ACE0A23F199AE008EC032 /* DIDURL.swift in Sources */,
 				119B299F2578ED210084B859 /* ECPublicKey.swift in Sources */,
+				11BA5E9726C61BE4005CE483 /* LocalResolveHandle.swift in Sources */,
 				A31ACE1323F199AE008EC032 /* DID.swift in Sources */,
 				110B8203264E4BF600F6477F /* extension+Dictionary.swift in Sources */,
 				11BE33DE260984C600DEBD00 /* Extension+Data.swift in Sources */,
