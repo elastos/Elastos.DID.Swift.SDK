@@ -383,6 +383,68 @@ public class DIDBackend: NSObject {
         return try resolveDid(did, false)
     }
     
+    // TODO: to be remove in the future
+    public func resolveUntrustedDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
+        Log.d(TAG, "Resolving untrusted DID \(did.toString())...")
+        if (resolveHandle != nil) {
+            let doc = resolveHandle!(did)
+            if (doc != nil) {
+                return doc!
+            }
+        }
+        
+        let bio = try resolveDidBiography(did, false, force)
+        
+        var tx: DIDTransaction? = nil
+        switch (bio.status) {
+        case .STATUS_VALID:
+            tx = bio.getTransaction(0)
+            break
+            
+        case .STATUS_DEACTIVATED:
+            if (bio.count != 2) {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong transaction count.")
+                
+            }
+            tx = bio.getTransaction(0)
+            if (tx?.request.operation != IDChainRequestOperation.DEACTIVATE) {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, wrong status.")
+                
+            }
+            let doc = bio.getTransaction(1).request.document
+            if (doc == nil) {
+                throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid DID biography, invalid trancations.")
+            }
+            
+            tx = bio.getTransaction(1)
+            break
+            
+        case .STATUS_NOT_FOUND:
+            return nil
+        default:
+            return nil
+        }
+        
+        if (tx?.request.operation != IDChainRequestOperation.CREATE &&
+                tx?.request.operation != IDChainRequestOperation.UPDATE &&
+                tx?.request.operation != IDChainRequestOperation.TRANSFER) {
+            throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Invalid ID transaction, unknown operation.")
+        }
+        
+        // NOTICE: Make a copy from DIDBackend cache.
+        //            Avoid share same DIDDocument instance between DIDBackend
+        //         cache and DIDStore cache.
+        let doc = try tx?.request.document!.clone()
+        let metadata = doc?.getMetadata()
+        metadata?.setTransactionId(tx!.getTransactionId())
+        metadata?.setSignature(doc?.proof.signature)
+        metadata?.setPublishTime(tx!.timestamp)
+        if (bio.status == DIDBiographyStatus.STATUS_DEACTIVATED) {
+            metadata?.setDeactivated(true)
+        }
+        return doc
+    }
+
     private func resolveCredentialBiography(_ id: DIDURL, _ issuer: DID?, _ force: Bool) throws -> CredentialBiography {
         Log.i(TAG, "Resolving credential ", id, ", issuer=\(String(describing: issuer))")
         let request = CredentialResolveRequest(generateRequestId())

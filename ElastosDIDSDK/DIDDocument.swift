@@ -2706,6 +2706,67 @@ public class DIDDocument: NSObject {
         return try publishAsync(ticket, nil, storePassword, nil)
     }
     
+    // TODO: to be remove in the future
+    public func publishUntrusted(_ signKey: DIDURL?, _ storepass: String, _ adapter: DIDTransactionAdapter?) throws {
+        try checkArgument(!storepass.isEmpty, "Invalid storepass")
+        try checkIsPrimitive()
+        try checkAttachedStore()
+        
+        if (signKey == nil && defaultPublicKeyId() == nil) {
+            throw DIDError.UncheckedError.IllegalStateError.NoEffectiveControllerError(subject.toString())
+        }
+        
+        Log.i(DIDDocument.TAG, "Publishing untrusted DID ", subject, "...")
+        
+        if (try !isGenuine()) {
+            Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
+        }
+        
+        if (isDeactivated) {
+            Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
+        }
+        
+        if (isExpired) {
+            Log.e(DIDDocument.TAG, "Publish failed because document is expired.")
+            throw DIDError.UncheckedError.IllegalStateError.DIDExpiredError(subject.toString())
+        }
+        
+        var lastTxid: String? = nil
+        var resolvedSignature: String? = nil
+        let _signKey = signKey != nil ? signKey : defaultPublicKeyId()
+        let resolvedDoc = try DIDBackend.sharedInstance().resolveUntrustedDid(subject, true)
+        if (resolvedDoc != nil) {
+            if (resolvedDoc!.isDeactivated) {
+                getMetadata().setDeactivated(true)
+                
+                Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
+                throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
+            }
+            
+            resolvedSignature = resolvedDoc?.proof.signature
+            lastTxid = resolvedDoc?.getMetadata().transactionId
+        }
+        
+        guard try authenticationKey(ofId: _signKey!) != nil else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(_signKey?.toString())
+        }
+        
+        if (lastTxid == nil || lastTxid!.isEmpty) {
+            Log.i(DIDDocument.TAG, "Try to publish[create] ", subject, "...")
+            try DIDBackend.sharedInstance().createDid(self, _signKey!, storepass, adapter)
+        } else {
+            Log.i(DIDDocument.TAG, "Try to publish[update] ", subject, "...")
+            try DIDBackend.sharedInstance().updateDid(self, lastTxid!, _signKey!, storepass, adapter)
+        }
+        
+        if (resolvedSignature != nil ) {
+            getMetadata().setPreviousSignature(resolvedSignature!)
+        }
+        getMetadata().setSignature(proof.signature)
+    }
+    
     /// Publish DID Document to the ID chain.
     /// - Parameters:
     ///   - signKey: the key to sign
