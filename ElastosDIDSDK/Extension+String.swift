@@ -281,6 +281,9 @@ extension String {
     }
     
     func regionMatches(_ toffset: Int, _ other: String, _ ooffset: Int, _ count: Int) -> Bool {
+        if self.count < other.count {
+            return false
+        }
         let strA = self[toffset..<(toffset + count)]
         let strB = other[ooffset..<(ooffset + count)]
         return strA == strB
