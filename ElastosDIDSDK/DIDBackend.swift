@@ -1,24 +1,24 @@
 /*
-* Copyright (c) 2020 Elastos Foundation
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+ * Copyright (c) 2020 Elastos Foundation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 import Foundation
 
@@ -39,7 +39,8 @@ public class DIDBackend: NSObject {
     private static let TAG = NSStringFromClass(DIDBackend.self)
     private var _adapter: DIDAdapter
     public typealias ResolveHandle = (_ did: DID) -> DIDDocument?
-    private var resolveHandle: ResolveHandle?
+//    private var resolveHandle: ResolveHandle?
+    private var resolveHandle: LocalResolveHandle?
     private static var instance: DIDBackend?
     private var cache: LRUCache<ResolveRequest, ResolveResult>
     
@@ -241,6 +242,10 @@ public class DIDBackend: NSObject {
         return _adapter
     }
     
+    public func setResolveHandle(_ handle: LocalResolveHandle) {
+        resolveHandle = handle
+    }
+
     private func resolve(_ request: ResolveRequest) throws -> ResolveResult{
         Log.d(TAG, "Resolving request ", request, "...")
         
@@ -313,7 +318,7 @@ public class DIDBackend: NSObject {
     func resolveDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
         Log.d(TAG, "Resolving DID ", did.toString(), "...")
         if resolveHandle != nil {
-            let doc = resolveHandle!(did)
+            let doc = try resolveHandle!.resolve(did)
             guard doc == nil else {
                 return doc
             }
@@ -387,7 +392,7 @@ public class DIDBackend: NSObject {
     public func resolveUntrustedDid(_ did: DID, _ force: Bool) throws -> DIDDocument? {
         Log.d(TAG, "Resolving untrusted DID \(did.toString())...")
         if (resolveHandle != nil) {
-            let doc = resolveHandle!(did)
+            let doc = try resolveHandle!.resolve(did)
             if (doc != nil) {
                 return doc!
             }
