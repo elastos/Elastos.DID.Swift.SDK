@@ -199,6 +199,32 @@ public class VerifiablePresentation: NSObject {
         guard proof.verificationMethod.did != nil else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Invalid verification method")
         }
+        
+        if (proof == nil) {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation proof")
+        }
+        
+        if (holder == nil) {
+            if (id != nil && id?.did == nil) {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Invalid presentation id")
+            }
+            if (proof.verificationMethod.did == nil) {
+                throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Invalid verification method")
+            }
+        } else {
+            if (id != nil && id?.did == nil) {
+                id!.setDid(holder!)
+            }
+            
+            if (proof.verificationMethod.did == nil) {
+                proof.verificationMethod.setDid(holder!)
+            }
+        }
+        _types = _types.sorted()
+        _credentialsArray.removeAll()
+        _verifiableCredentials.values.forEach{ vc in
+            _credentialsArray.append(vc)
+        }
     }
 
     /// Check whether the presentation is genuine or not.
