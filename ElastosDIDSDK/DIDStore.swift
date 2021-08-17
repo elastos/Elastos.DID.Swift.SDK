@@ -1824,7 +1824,7 @@ public class DIDStore: NSObject {
         }
         let dids = try listDids()
         for did in dids {
-            let didstr = did.methodSpecificId
+            let didstr = "did-" + did.methodSpecificId
             let edid = try exportDid(did, password, storePassword).serialize(true).toDictionary()
             arrayDids.append([didstr: edid])
         }
@@ -1889,9 +1889,12 @@ public class DIDStore: NSObject {
                 try importRootIdentity(re, password, storePassword)
             }
             // ids
-            else {
+            else if element.hasPrefix("did-"){
                 let de = try DIDExport.deserialize(dic)
                 try importDid(de, password, storePassword)
+            }
+            else {
+                Log.w(TAG, "Skip unknow export entry: ", element)
             }
         }
         
