@@ -176,7 +176,7 @@ public class VerifiablePresentationBuilder: NSObject {
             let t = presentation!._types.sorted()
             presentation!._types = t
         }
-
+        presentation!.setCreatedDate(DateFormatter.currentDate())
         var data: [Data] = []
         data.append(presentation!.toJson(true))
         if let realm = _realm {
