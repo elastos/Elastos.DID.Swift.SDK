@@ -1215,45 +1215,7 @@ public class DIDDocument: NSObject {
             return nil
         }
     }
-
-    private func appendService(_ service: Service) -> Bool {
-        _serviceDic[service.getId()!] = service
-        _services.append(service)
-        return true
-    }
     
-    private func appendPublicKey(_ publicKey: PublicKey) -> Bool {
-        for key in publicKeys() {
-            if  key.getId() == publicKey.getId() ||
-                    key.publicKeyBase58 == publicKey.publicKeyBase58 {
-                return false
-            }
-        }
-        _publicKeyDic[publicKey.id] = publicKey
-        
-        if (defaultPublicKey() == nil) {
-            let address = DIDHDKey.toAddress(publicKey.publicKeyBytes)
-            if (address == subject.methodSpecificId) {
-                _defaultPublicKey = publicKey
-                _authenticationKeys[publicKey.id] = publicKey
-            }
-        }
-        
-        return true
-    }
-    
-    private func appendCredential(_ vc: VerifiableCredential) throws {
-        // Check the credential belongs to current DID.
-        guard vc.subject?.did == subject else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(vc.subject?.did.toString())
-        }
-        guard _credentialDic[vc.getId()!] == nil else {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(vc.subject?.did.toString())
-        }
-        _credentialDic[vc.getId()!] = vc
-        _credentials.append(vc)
-    }
-
     /// Get expire time of this DIDDocument.
     @objc
     public var expirationDate: Date? {
@@ -1429,10 +1391,6 @@ public class DIDDocument: NSObject {
                 }
                 _authenticationKeys[pk!.getId()!] = pk
             }
-            
-            try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
-                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
-            }
         }
         else {
             _authentications = [ ]
@@ -1470,7 +1428,7 @@ public class DIDDocument: NSObject {
                     guard (pks[pk!.getId()!] == nil) else {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Public key already exists: \(String(describing: pk?.getId()))")
                     }
-                    guard pk?.publicKeyBase58 == nil || pk!.publicKeyBase58.isEmpty else {
+                    if pk?.publicKeyBase58 == nil || pk!.publicKeyBase58.isEmpty {
                         throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Invalid public key base58 value.")
                     }
                     if pk?.getType() == nil {
@@ -1519,7 +1477,6 @@ public class DIDDocument: NSObject {
                     let value = _authenticationKeys[pk.getId()!]
                     if value == nil {
                         if _authentications.isEmpty {
-                            _authentications.append(PublicKeyReference(pk))
                             _authenticationKeys = [: ]
                         }
 
@@ -1532,7 +1489,6 @@ public class DIDDocument: NSObject {
                 }
             }
         }
-
         if _controllers.isEmpty && _defaultPublicKey == nil {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Missing default public key.")
         }
@@ -3536,29 +3492,10 @@ public class DIDDocument: NSObject {
             try parseAuthenticationKeys(node!)
         }
 
-        //authentication
-        // Add default public key to authentication keys if need.
-        node = doc.get(forKey: Constants.AUTHENTICATION)
-        let array: [JsonNode] = node?.asArray() ?? []
-        for authentication in array {
-            var auth = authentication.asString()
-            
-            for pk in self._publickeys {
-                if auth!.hasPrefix("#") {
-                    auth = subject.toString() + auth!
-                }
-                let didURL = try DIDURL(auth!)
-                if pk.getId() == didURL {
-                    let rf = PublicKeyReference(didURL, pk)
-                    self._authentications.append(rf)
-                }
-            }
-        }
-
         //authorization
         node = doc.get(forKey: Constants.AUTHORIZATION)
         if let _ = node {
-            try parseAuthorizationKeys(node!, self.publicKeys())
+            try parseAuthorizationKeys(node!)
         }
 
         //verifiableCredential
@@ -3639,7 +3576,6 @@ public class DIDDocument: NSObject {
         try checkArgument(array != nil || !array!.isEmpty, "invalid publicKeys, should not be empty.")
         for node in array! {
             let pk = try PublicKey.fromJson(node, self.subject)
-            _ = appendPublicKey(pk)
             _publickeys.append(pk)
         }
     }
@@ -3654,6 +3590,8 @@ public class DIDDocument: NSObject {
             var pk: PublicKey
             if let _ = node.asDictionary() {
                 pk =  try PublicKey.fromJson(node, self.subject)
+                let rf = PublicKeyReference(pk.id, pk)
+                self._authentications.append(rf)
             }
             else {
                 let serializer = JsonSerializer(node)
@@ -3661,31 +3599,32 @@ public class DIDDocument: NSObject {
                 options = JsonSerializer.Options()
                     .withRef(subject)
                 let didUrl = try serializer.getDIDURL(options)
-                pk = try publicKey(ofId: didUrl!)!
+                let rf = PublicKeyReference(didUrl!)
+                self._authentications.append(rf)
             }
-            _ = try appendAuthenticationKey(pk.getId()!)
         }
     }
 
-    private func parseAuthorizationKeys(_ arrayNode: JsonNode, _ publicKeys: [PublicKey]) throws {
+    private func parseAuthorizationKeys(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
         guard array?.count ?? 0 > 0 else {
             return
         }
 
         for node in array! {
-            // ADD
-            var key = node.toString()
-            var _: PublicKey?
-            for pk in publicKeys {
+            var pk: PublicKey
+            if let _ = node.asDictionary() {
+                pk =  try PublicKey.fromJson(node, self.subject)
+                let rf = PublicKeyReference(pk.id, pk)
+                self._authorizations.append(rf)
+            } else {
+                var key = node.toString()
                 if key.hasPrefix("#") {
                     key = subject.toString() + key
                 }
                 let didURL = try DIDURL(key)
-                if pk.getId() == didURL {
-                    let rf = PublicKeyReference(didURL, pk)
-                    self._authorizations.append(rf)
-                }
+                let rf = PublicKeyReference(didURL)
+                self._authorizations.append(rf)
             }
         }
     }
@@ -3697,7 +3636,7 @@ public class DIDDocument: NSObject {
         }
 
         for node in array! {
-            try appendCredential(try VerifiableCredential.fromJson(node, self.subject))
+            _credentials.append(try VerifiableCredential.fromJson(node, self.subject))
         }
     }
 
@@ -3708,7 +3647,7 @@ public class DIDDocument: NSObject {
         }
         
         for node in array! {
-            _ = appendService(try Service.fromJson(node, self.subject))
+            _services.append(try Service.fromJson(node, self.subject))
         }
     }
 
