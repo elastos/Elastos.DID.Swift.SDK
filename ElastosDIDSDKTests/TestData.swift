@@ -289,6 +289,14 @@ public class CompatibleData {
         return str
     }
     
+    func getTransferTicketFile(_ name: String) -> String {
+        if (version == 1) {
+            return ""
+        }
+        
+        return dataPath + "/" + name + ".tt.json"
+    }
+    
     func getPresentationFile(_ did: String, _ vp: String, _ type: String?) -> String {
         var str = dataPath
         str.append(did)
@@ -300,6 +308,25 @@ public class CompatibleData {
         str.append(".json")
 
         return str
+    }
+    
+    func getTransferTicket(_ did: String) throws -> TransferTicket{
+        if (version == 1) {
+            throw TestError.failue("Not exists")
+        }
+        
+        let key = "res:tt:" + did
+        if data.keys.contains(key) {
+            return data[key] as! TransferTicket
+        }
+        // load the presentation
+        var text = try loadText(getTransferTicketFile(did))
+        text = text.replacingOccurrences(of: "\n", with: "")
+        text = text.replacingOccurrences(of: " ", with: "")
+        let transferTicket = try TransferTicket.deserialize(text)
+        data[key] = transferTicket
+        
+        return transferTicket
     }
     
     public func loadText(_ path: String) throws -> String {

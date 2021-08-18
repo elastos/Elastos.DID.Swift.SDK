@@ -143,7 +143,7 @@ public class TransferTicket: NSObject {
     /// - Parameter listener: the listener for the verification events and messages
     /// - Returns: true is the ticket is genuine else false
     func isGenuine(_ listener: VerificationEventListener?) throws -> Bool {
-        if doc == nil {
+        if try document() == nil {
             listener?.failed(context: self, args: "Ticket \(subject): can not resolve the owner document")
             listener?.failed(context: self, args: "Ticket \(subject): is not genuine")
             
@@ -390,23 +390,23 @@ public class TransferTicket: NSObject {
     /// - Parameter content: the string JSON content for building the object
     /// - Returns: the TransferTicket object
     public class func deserialize(_ content: String) throws -> TransferTicket {
-        let capacity = content.count * 3
-        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
-        let cp = content.toUnsafePointerInt8()
-        let c = b64_url_decode(buffer, cp)
-        buffer[c] = 0
-        let jsonStr: String = String(cString: buffer)
-        let json = jsonStr.toDictionary()
+        let json = content.toDictionary()
         let id = json["id"] as? String
         let to = json["to"] as? String
         let txid = json["txid"] as? String
         let proofs = json["proof"] as? [[String: Any]] ?? [ ]
+        let proof = json["proof"] as? [String: Any] ?? [: ]
         var ps: [TransferTicketProof] = [ ]
         if proofs.count > 0 {
             for pf in proofs {
                 let tf = try TransferTicketProof.deserialize(pf)
                 ps.append(tf)
             }
+        }
+
+        if !proof.isEmpty {
+            let tf = try TransferTicketProof.deserialize(proof)
+            ps.append(tf)
         }
 
         var transferTicket: TransferTicket?
@@ -417,5 +417,16 @@ public class TransferTicket: NSObject {
         
         try transferTicket?.sanitize()
         return transferTicket!
+    }
+    
+    public class func deserialize(withBase64url content: String) throws -> TransferTicket {
+        let capacity = content.count * 3
+        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let cp = content.toUnsafePointerInt8()
+        let c = b64_url_decode(buffer, cp)
+        buffer[c] = 0
+        let json: String = String(cString: buffer)
+        
+        return try deserialize(json)
     }
 }

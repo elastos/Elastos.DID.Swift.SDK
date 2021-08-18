@@ -134,7 +134,7 @@ public class IDChainHeader: NSObject {
         let ticket = content.get(forKey: "ticket")
         var transferTicket: TransferTicket?
         if let _ = ticket {
-            transferTicket = try! TransferTicket.deserialize(ticket!.toString())
+            transferTicket = try! TransferTicket.deserialize(withBase64url: ticket!.toString())
         }
         
         let op = IDChainRequestOperation.valueOf(operation!)
