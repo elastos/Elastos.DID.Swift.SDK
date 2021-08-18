@@ -853,5 +853,173 @@ class DIDStoreTests: XCTestCase {
             XCTFail()
         }
     }
+    /*
+    func testImportCompatible() {
+        do {
+            _ = try testData.getRootIdentity()
+            
+//            let url = "/v2/testdata/store-export"
+            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/testdata/store-export"
+            let exportFile =  path
+            
+            TestData.deleteFile(tempDir)
+//            try create(tempDir, forWrite: true)
+            let restoreDir = tempDir + "/imported-store"
+            TestData.deleteFile(restoreDir)
+            print("restoreDir == \(restoreDir)")
+            let store2 = try DIDStore.open(atPath: restoreDir)
+            try store2.importStore(from: exportFile, using: "password", storePassword: storePassword)
+            
+            // Root identity
+            let ids = try store2.listRootIdentities()
+            XCTAssertEqual(1, ids.count)
+            XCTAssertEqual("d2f3c0f07eda4e5130cbdc59962426b1", try ids[0].getId())
+            XCTAssertEqual(5, ids[0].index)
+
+            // DIDs
+            let dids = try store2.listDids()
+            XCTAssertEqual(10, dids.count)
+            
+            // DID: User1
+            var did = try DID("did:elastos:iXcRhYB38gMt1phi5JXJMjeXL2TL8cg58y")
+            XCTAssertTrue(dids.contains(did))
+            var doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual("User1", doc?.getMetadata().getAlias())
+            try doc!.publish(using: storePassword)
+            
+            var names = ["email", "json", "passport", "profile", "twitter"]
+            
+            var vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(names.count, vcIds.count)
+            for id in vcIds {
+                let vc = try store2.loadCredential(byId: id)
+                XCTAssertNotNil(vc)
+                names = names.filter { $0 != vc?.getId()?.fragment}
+            }
+            XCTAssertEqual(0, names.count)
+            
+            // DID: User2
+            did = try DID("did:elastos:idwuEMccSpsTH4ZqrhuHqg6y8XMVQAsY5g");
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual("User2", doc!.getMetadata().getAlias())
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(1, vcIds.count)
+            XCTAssertEqual("profile", vcIds[0].fragment)
+            var vc = try store2.loadCredential(byId: vcIds[0])
+            XCTAssertNotNil(vc)
+            
+            // DID: User3
+            did = try DID("did:elastos:igXiyCJEUjGJV1DMsMa4EbWunQqVg97GcS");
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual("User3", doc!.getMetadata().getAlias())
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(0, vcIds.count)
+            
+            // DID: User4
+            did = try DID("did:elastos:igHbSCez6H3gTuVPzwNZRrdj92GCJ6hD5d")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual("User4", doc!.getMetadata().getAlias())
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(0, vcIds.count)
+            
+            // DID: Issuer
+            did = try DID("did:elastos:imUUPBfrZ1yZx6nWXe6LNN59VeX2E6PPKj")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual("Issuer", doc!.getMetadata().getAlias())
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(1, vcIds.count)
+            XCTAssertEqual("profile", vcIds[0].fragment)
+            vc = try store2.loadCredential(byId: vcIds[0])
+            XCTAssertNotNil(vc)
+            
+            // DID: Example
+            did = try DID("did:elastos:example")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(1, vcIds.count)
+            XCTAssertEqual("profile", vcIds[0].fragment)
+            vc = try store2.loadCredential(byId: vcIds[0])
+            XCTAssertNotNil(vc)
+            
+            // DID: Foo
+            did = try DID("did:elastos:foo")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            try doc!.setEffectiveController(try DID("did:elastos:iXcRhYB38gMt1phi5JXJMjeXL2TL8cg58y"))
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(1, vcIds.count)
+            XCTAssertEqual("email", vcIds[0].fragment)
+            vc = try store2.loadCredential(byId: vcIds[0])
+            XCTAssertNotNil(vc)
+            
+            // DID: FooBar
+            did = try DID("did:elastos:foobar")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            try doc?.setEffectiveController(try DID("did:elastos:iXcRhYB38gMt1phi5JXJMjeXL2TL8cg58y"))
+            try doc!.publish(using: storePassword)
+            
+            names = ["email", "license", "profile", "services"]
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(names.count, vcIds.count)
+            for id in vcIds {
+                vc = try store2.loadCredential(byId: id)
+                XCTAssertNotNil(vc)
+                names = names.filter { $0 != vc?.getId()?.fragment}
+            }
+            XCTAssertEqual(0, names.count)
+            
+            // DID: Bar
+            did = try DID("did:elastos:bar")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            try doc!.setEffectiveController(try DID("did:elastos:iXcRhYB38gMt1phi5JXJMjeXL2TL8cg58y"))
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(0, vcIds.count)
+            
+            // DID: Baz
+            did = try DID("did:elastos:baz")
+            XCTAssertTrue(dids.contains(did))
+            doc = try store2.loadDid(did)
+            XCTAssertNotNil(doc)
+            try doc!.setEffectiveController(try DID("did:elastos:iXcRhYB38gMt1phi5JXJMjeXL2TL8cg58y"))
+            try doc!.publish(using: storePassword)
+            
+            vcIds = try store2.listCredentials(for: did)
+            XCTAssertEqual(0, vcIds.count)
+        } catch {
+            XCTFail()
+        }
+    }
+ */
 }
 

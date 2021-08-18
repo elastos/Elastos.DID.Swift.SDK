@@ -52,7 +52,7 @@ public class PublicKeyReference: NSObject {
      }
      
      public var isVirtual: Bool {
-         return _key != nil
+         return _key == nil
      }
      
      func update(_ key: PublicKey) throws {

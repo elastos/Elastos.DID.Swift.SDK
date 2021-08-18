@@ -537,7 +537,7 @@ public class VerifiablePresentation: NSObject {
         }
 
         for node in arrayNode! {
-            _credentialsArray.append(try VerifiableCredential.fromJson(node, nil))
+            _credentialsArray.append(try VerifiableCredential.fromJson(node, _holder))
         }
 
         let subNode = node.get(forKey: Constants.PROOF)
@@ -545,7 +545,7 @@ public class VerifiablePresentation: NSObject {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("missing presentation proof")
         }
 
-        let proof = try VerifiablePresentationProof.fromJson(subNode!, nil)
+        let proof = try VerifiablePresentationProof.fromJson(subNode!, _holder)
         setProof(proof)
         
         try sanitize()
