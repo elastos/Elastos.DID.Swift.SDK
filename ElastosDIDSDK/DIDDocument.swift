@@ -3819,12 +3819,6 @@ public class DIDDocument: NSObject {
                 else {
                     value = "#" + ((pubKey.id != nil ? pubKey.id!.fragment! : pubKey.publicKey!.id.fragment)!)
                 }
-//                if normalized || pubKey.id?.did != self.subject {
-//                    value = pubKey.id!.toString()
-//                }
-//                else {
-//                    value = "#" + pubKey.id!.fragment!
-//                }
                 generator.writeString(value)
             }
             generator.writeEndArray()
