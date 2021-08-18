@@ -261,11 +261,14 @@ class DIDExportDocument: NSObject {
         let document = content["content"] as! [String: Any]
         let metadata = content["metadata"] as? [String: Any]
 
+        let doc = DIDDocument()
+        try doc.parse(withoutSanitize: JsonNode(document))
         if let _ = metadata {
-            return try DIDExportDocument(DIDDocument.convertToDIDDocument(fromDictionary: document), DIDMetadata.deserialize(metadata!.toJsonString()!))
+            let meta = try DIDMetadata.deserialize(metadata!.toJsonString()!)
+            return DIDExportDocument(doc, meta)
         }
         
-        return try DIDExportDocument(DIDDocument.convertToDIDDocument(fromDictionary: content), nil)
+        return try DIDExportDocument(doc, nil)
     }
 }
 

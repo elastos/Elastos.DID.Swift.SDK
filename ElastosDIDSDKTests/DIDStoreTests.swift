@@ -853,17 +853,14 @@ class DIDStoreTests: XCTestCase {
             XCTFail()
         }
     }
-    /*
+    
     func testImportCompatible() {
         do {
             _ = try testData.getRootIdentity()
-            
-//            let url = "/v2/testdata/store-export"
             let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/testdata/store-export"
             let exportFile =  path
             
             TestData.deleteFile(tempDir)
-//            try create(tempDir, forWrite: true)
             let restoreDir = tempDir + "/imported-store"
             TestData.deleteFile(restoreDir)
             print("restoreDir == \(restoreDir)")
@@ -1020,6 +1017,5 @@ class DIDStoreTests: XCTestCase {
             XCTFail()
         }
     }
- */
 }
 

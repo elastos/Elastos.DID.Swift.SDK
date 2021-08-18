@@ -1631,8 +1631,11 @@ public class DIDStore: NSObject {
         // Save
         Log.d(TAG, "Importing document...")
         let doc = de._document!.content
+        let metadata = de._document!.metadata
         try storage!.storeDid(doc)
-        try storage!.storeDidMetadata(doc.subject, doc.getMetadata())
+        if let _ = metadata {
+            try storage!.storeDidMetadata(doc.subject, metadata!)
+        }
         
         let vcs = de.credentials
         for vc in vcs {
