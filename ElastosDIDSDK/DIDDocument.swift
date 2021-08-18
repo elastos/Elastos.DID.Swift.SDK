@@ -1284,13 +1284,13 @@ public class DIDDocument: NSObject {
         }
         _controllerDocs = [: ]
         do {
-           try _controllers.forEach({ did in
-            let doc = try did.resolve()
-            guard doc != nil else {
-                throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve controller: \(did)")
+            try _controllers.forEach{ did in
+                let doc = try did.resolve()
+                guard doc != nil else {
+                    throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve controller: \(did)")
+                }
+                _controllerDocs[did] = doc
             }
-            _controllerDocs[did] = doc
-            })
         } catch {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedDocumentError("Can not resolve the controller's DID")
         }
@@ -1443,9 +1443,6 @@ public class DIDDocument: NSObject {
                     pks[pk!.getId()!] = pk!
                 }
                 _authorizationKeys[pk!.getId()!] = pk
-            }
-            try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
-                return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
             }
         }
         else {
@@ -3457,6 +3454,11 @@ public class DIDDocument: NSObject {
     }
     
     private func parse(_ doc: JsonNode) throws {
+        try parse(withoutSanitize: doc)
+        try sanitize()
+    }
+    
+    func parse(withoutSanitize doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options
 
@@ -3521,8 +3523,6 @@ public class DIDDocument: NSObject {
         node = doc.get(forKey: Constants.PROOF)
         try checkArgument(node != nil, "missing document proof")
         try parseProof(node!)
-    
-        try sanitize()
     }
     
     private func parseProof(_ arrayNode: JsonNode) throws {
@@ -3807,17 +3807,24 @@ public class DIDDocument: NSObject {
             generator.writeEndArray()
         }
 
-        if self.authorizationKeyCount > 0 {
+        if self._authorizations.count > 0 {
             generator.writeFieldName(Constants.AUTHORIZATION)
             generator.writeStartArray()
 
-            for pubKey in authorizationKeys() {
-                var value: String
-                if normalized || pubKey.getId()?.did != self.subject {
-                    value = pubKey.getId()!.toString()
-                } else {
-                    value = "#" + pubKey.getId()!.fragment!
+            for pubKey in _authorizations {
+                var value: String = ""
+                if normalized || (pubKey.id?.did != subject || pubKey.publicKey?.id.did != subject) {
+                    value = pubKey.id?.toString() != nil ? pubKey.id!.toString() : pubKey.publicKey!.id.toString()
                 }
+                else {
+                    value = "#" + ((pubKey.id != nil ? pubKey.id!.fragment! : pubKey.publicKey!.id.fragment)!)
+                }
+//                if normalized || pubKey.id?.did != self.subject {
+//                    value = pubKey.id!.toString()
+//                }
+//                else {
+//                    value = "#" + pubKey.id!.fragment!
+//                }
                 generator.writeString(value)
             }
             generator.writeEndArray()
@@ -3872,6 +3879,9 @@ public class DIDDocument: NSObject {
             return try publicKeyA.compareTo(publicKeyB) == ComparisonResult.orderedAscending
         }
         try _authentications.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
+            return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
+        }
+        try _authorizations.sort { (publicKeyReferenceA, publicKeyReferenceB) -> Bool in
             return try publicKeyReferenceA.compareTo(publicKeyReferenceB) == ComparisonResult.orderedAscending
         }
         try _credentials.sort { (vcA, vcB) -> Bool in
