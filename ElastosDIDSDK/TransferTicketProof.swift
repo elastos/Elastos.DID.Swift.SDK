@@ -48,6 +48,22 @@ public class TransferTicketProof: NSObject {
         super.init()
     }
     
+    init(_ method: DIDURL, _ created: Date, _ signature: String) {
+        self._type = Constants.DEFAULT_PUBLICKEY_TYPE
+        self._created = created
+        self._verificationMethod = method
+        self._signature = signature
+        super.init()
+    }
+    
+    init(_ type: String, _ method: DIDURL, _ signature: String) {
+        self._type = type
+        self._created = DateFormatter.currentDate()
+        self._verificationMethod = method
+        self._signature = signature
+        super.init()
+    }
+    
     init(_ method: DIDURL, _ signature: String) {
         self._type = Constants.DEFAULT_PUBLICKEY_TYPE
         self._verificationMethod = method
@@ -96,13 +112,24 @@ public class TransferTicketProof: NSObject {
     /// - Parameter content: the string JSON content for building the object
     /// - Returns: the TransferTicket object
     public class func deserialize(_ content: [String: Any]) throws -> TransferTicketProof {
-        let type = content[TYPE] as! String
-        let created = DateFormatter.convertToUTCDateFromString(content[CREATED] as! String)
+        let type = content[TYPE] as? String
+        let dateStr = content[CREATED] as? String
         let signature = content[SIGNATURE] as! String
         let verificationMethod = try DIDURL(content[VERIFICATION_METHOD] as! String)
-        let tf = TransferTicketProof(type, verificationMethod, created!, signature)
+        if type != nil && dateStr != nil {
+            let created = DateFormatter.convertToUTCDateFromString(dateStr!)
+            return TransferTicketProof(type!, verificationMethod, created!, signature)
+        }
         
-       return tf
+        if type == nil && dateStr == nil {
+            return TransferTicketProof(verificationMethod,  signature)
+        }
+        
+        if type == nil && dateStr != nil {
+            let created = DateFormatter.convertToUTCDateFromString(dateStr!)
+            return TransferTicketProof(verificationMethod, created!, signature)
+        }
+        return TransferTicketProof(type!, verificationMethod, signature)
     }
 
     public func compareTo(_ proof: TransferTicketProof) -> Int {
