@@ -1394,7 +1394,7 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(5, doc.authorizationKeyCount)
     }
     
-    func testAddAuthorizationKeyWithCid() {
+    func testAddAuthorizationKeyWithCidError() {
         do {
             let cd = try testData!.getCompatibleData(2)
             _ = try testData!.getRootIdentity()

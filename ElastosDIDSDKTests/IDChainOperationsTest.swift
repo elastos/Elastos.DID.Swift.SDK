@@ -18,7 +18,6 @@ class IDChainOperationsTest: XCTestCase {
         print(self.store as Any)
         identity = try! IDChainOperationsTest.testData.getRootIdentity()
         mnemonic = IDChainOperationsTest.testData.mnemonic
-//        waitForWalletAvaliable()
     }
     
     override func tearDown() {
@@ -38,7 +37,55 @@ class IDChainOperationsTest: XCTestCase {
             Thread.sleep(forTimeInterval: 20)
         }
     }
+    
+    /*
+     mnemonic = carry season material labor popular patient radio orient aerobic shed cash alcohol
+     passphrase = pwd
+     did = iqwLG4NchEeMyFsbfQ3tyLrLwnYbCKA2wS
+     
+     mnemonic = extend verb milk code angle inform reform noble will grass arrow smoke
+     did = igMPopmKyBTgJKaqRGmSiR3TusC7X2MPwa
+     */
 
+    func testmnemonic() {
+        do {
+            
+            mnemonic = "carry season material labor popular patient radio orient aerobic shed cash alcohol"
+            let identity = try RootIdentity.create(mnemonic, "pwd", true, store!, storePassword)
+            let did = try DID("did:elastos:iqwLG4NchEeMyFsbfQ3tyLrLwnYbCKA2wS")
+            let doc = try did.resolve()
+            let doc1 = try! DIDBackend.sharedInstance().resolveUntrustedDid(did, true)
+//            try doc?.publishUntrusted(nil, "pwd", nil)
+            print(doc)
+        } catch {
+            print(error)
+        }
+    }
+    
+    func testDID() {
+        do {
+            var doc = try identity!.newDid(storePassword)
+            let db = try doc.editing()
+            var json = "{\"twitter\":\"@foobar\"}"
+//            _ = try db.appendCredential(with: "#twitter", json: json, using: storePassword)
+            _ = try db.appendCredential(with: "#twitter", types: ["twitter", "SelfProclaimedCredential", "TestCredential"], json: json, using: storePassword)
+            json = "{\"facebook\":\"@facebook123\"}"
+//            _ = try db.appendCredential(with: "#facebook", json: json, using: storePassword)
+            _ = try db.appendCredential(with: "#facebook", types: ["facebook", "SelfProclaimedCredential"], json: json, using: storePassword)
+            json = "{\"email\":\"@email123\"}"
+//            _ = try db.appendCredential(with: "#email", json: json, using: storePassword)
+            _ = try db.appendCredential(with: "#email", types: ["email", "test", "FooBar"], json: json, using: storePassword)
+            json = "{\"QQ\":\"@4887000\"}"
+//            _ = try db.appendCredential(with: "#QQ", json: json, using: storePassword)
+            _ = try db.appendCredential(with: "#QQ", types: ["test", "QQ", "SelfProclaimedCredential"], json: json, using: storePassword)
+
+            doc = try db.sealed(using: storePassword)
+            print(doc)
+        } catch {
+            print(error)
+        }
+    }
+    
     func test_00CreateAndResolve() {
         do {
             // Create new DID and publish to ID sidechain.
