@@ -559,7 +559,7 @@ class InstantData {
             let vc = try cb.withId("#profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             let db = try doc.editing()
             _ = try db.appendCredential(with: vc)
@@ -579,7 +579,7 @@ class InstantData {
             id = try DIDURL(doc.subject, "#recovery")
             _ = try db.appendAuthorizationKey(id, DID("did:elastos:\(key.getAddress())"), key.getPublicKeyBase58())
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(using: storePassword)
             
@@ -651,7 +651,7 @@ class InstantData {
             let vcProfile = try cb.withId("#profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(prop)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
             cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
@@ -663,11 +663,11 @@ class InstantData {
                     .withTypes("BasicProfileCredential",
                             "InternetAccountCredential", "EmailCredential")
                     .withProperties(prop)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             _ = try db.appendCredential(with: vcProfile)
             _ = try db.appendCredential(with: vcEmail)
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(using: storePassword)
 
@@ -691,7 +691,7 @@ class InstantData {
             let vcPassport = try cb.withId(id)
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             vcPassport.getMetadata().setAlias("Passport")
             try testData.store!.storeCredential(using: vcPassport)
             
@@ -715,7 +715,7 @@ class InstantData {
             let vcTwitter = try cb.withId(id)
                 .withTypes("InternetAccountCredential", "TwitterCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             vcTwitter.getMetadata().setAlias("Twitter")
             try testData.store!.storeCredential(using: vcTwitter)
             
@@ -739,7 +739,7 @@ class InstantData {
             let vcJson = try cb.withId(id)
                     .withTypes("TestCredential", "JsonCredential")
                     .withProperties(jsonProps)
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
             vcJson.getMetadata().setAlias("json")
             try testData.store!.storeCredential(using: vcJson)
 
@@ -765,7 +765,7 @@ class InstantData {
             let vc = try cb.withId(id)
                 .withTypes("JobPositionCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
             
             vcUser1JobPosition = vc
@@ -788,7 +788,7 @@ class InstantData {
                                  getUser1JobPositionCredential())
                     .withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
 
             vpUser1Nonempty = vp
         }
@@ -804,7 +804,7 @@ class InstantData {
             
             let vp = try pb.withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             vpUser1Empty = vp
         }
@@ -822,7 +822,7 @@ class InstantData {
             let props = ["name": "John", "gender": "Male", "nation": "Singapore", "language": "English", "email": "john@example.com", "twitter": "@john"]
 
             _ = try db.appendCredential(with: "#profile", subject: props, using: storePassword)
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(using: storePassword)
 
@@ -871,7 +871,7 @@ class InstantData {
             let vc = try cb.withId("#profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             let db = try doc.editing()
             _ = try db.appendCredential(with: vc)
@@ -886,7 +886,7 @@ class InstantData {
             id = try DIDURL(doc.subject, "#testKey")
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(using: storePassword)
             
@@ -939,7 +939,7 @@ class InstantData {
             let vcProfile = try cb.withId("#profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(pr)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
             cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
@@ -951,11 +951,11 @@ class InstantData {
                 .withTypes("BasicProfileCredential",
                            "InternetAccountCredential", "EmailCredential")
                 .withProperties(pr)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             _ = try db.appendCredential(with: vcProfile)
             _ = try db.appendCredential(with: vcEmail)
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try idUser3!.sign(with: doc, using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(with: signKey!, using: storePassword)
@@ -980,7 +980,7 @@ class InstantData {
             let vc = try cb.withId(id)
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
             
             vcFooBarServices = vc
@@ -1008,7 +1008,7 @@ class InstantData {
             let vc = try cb.withId(id)
                 .withTypes("LicenseCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
             
             vcFooBarLicense = vc
@@ -1030,7 +1030,7 @@ class InstantData {
                 .withCredentials(getFooBarLicenseCredential())
                 .withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             vpFooBarNonempty = vp
         }
@@ -1046,7 +1046,7 @@ class InstantData {
 
             let vp = try pb.withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
 
             vpFooBarEmpty = vp
         }
@@ -1105,7 +1105,7 @@ class InstantData {
             let vc = try cb.withId(id)
                 .withTypes("InternetAccountCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
             
             vcFooEmail = vc

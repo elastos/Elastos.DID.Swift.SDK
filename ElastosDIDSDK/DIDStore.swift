@@ -1558,7 +1558,7 @@ public class DIDStore: NSObject {
             }
         }
         
-        return try de.sealed(using: password)
+        return try de.seal(using: password)
     }
     
     /// Export the specific DID with all DID objects that related with this DID,
@@ -1715,7 +1715,7 @@ public class DIDStore: NSObject {
             rie.setDefault()
         }
 
-        return try rie.sealed(using: password)
+        return try rie.seal(using: password)
     }
     
     /// Export the specific RootIdentity, include: mnemonic, private key,

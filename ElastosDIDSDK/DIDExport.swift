@@ -109,7 +109,7 @@ public class DIDExport: NSObject {
         return fingerprint
     }
     
-    public func sealed(using exportpass: String) throws -> DIDExport {
+    public func seal(using exportpass: String) throws -> DIDExport {
         self.created = DateFormatter.currentDate()
         self.fingerprint = try calculateFingerprint(exportpass)
         

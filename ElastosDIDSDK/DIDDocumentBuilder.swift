@@ -767,7 +767,7 @@ public class DIDDocumentBuilder: NSObject {
             .withTypes(realTypes)
             .withProperties(subject)
             .withExpirationDate(realExpires)
-            .sealed(using: storePassword)
+            .seal(using: storePassword)
         _ = try appendCredential(with: credential)
         
         return self
@@ -938,7 +938,7 @@ public class DIDDocumentBuilder: NSObject {
             .withTypes(realTypes)
             .withProperties(json)
             .withExpirationDate(realExpires)
-            .sealed(using: storePassword)
+            .seal(using: storePassword)
         _ = try appendCredential(with: credential)
         
         return self
@@ -1267,7 +1267,7 @@ public class DIDDocumentBuilder: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: A handle to DIDDocument
     @objc
-    public func sealed(using storePassword: String) throws -> DIDDocument {
+    public func seal(using storePassword: String) throws -> DIDDocument {
         try checkNotSealed()
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         

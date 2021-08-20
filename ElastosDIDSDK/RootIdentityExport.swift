@@ -111,7 +111,7 @@ public class RootIdentityExport: NSObject {
         return fingerprint
     }
     
-    public func sealed(using exportpass: String) throws -> RootIdentityExport {
+    public func seal(using exportpass: String) throws -> RootIdentityExport {
         self._created = DateFormatter.currentDate()
         self._fingerprint = try calculateFingerprint(exportpass)
         
