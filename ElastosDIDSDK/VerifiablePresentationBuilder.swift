@@ -165,7 +165,7 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: the new presentation object
     @objc
-    public func sealed(using storePassword: String) throws -> VerifiablePresentation {
+    public func seal(using storePassword: String) throws -> VerifiablePresentation {
         try checkNotSealed()
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(_realm != nil && _nonce != nil, "Missing realm and nonce")

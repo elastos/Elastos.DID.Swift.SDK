@@ -368,7 +368,7 @@ class DIDDoucumentTests: XCTestCase {
             key = try TestData.generateKeypair()
             _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             
@@ -415,7 +415,7 @@ class DIDDoucumentTests: XCTestCase {
             key = try TestData.generateKeypair();
             _ = try db.appendPublicKey(with: "#test2", controller: doc.subject.toString(), keyBase58: key.getPublicKeyBase58())
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -494,7 +494,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             
@@ -565,7 +565,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -941,7 +941,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             
@@ -1035,7 +1035,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user3.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -1116,7 +1116,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             
@@ -1185,7 +1185,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -1368,7 +1368,7 @@ class DIDDoucumentTests: XCTestCase {
             }
         }
 
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc)
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -1457,7 +1457,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -1531,7 +1531,7 @@ class DIDDoucumentTests: XCTestCase {
             }
         }
 
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc)
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -1733,7 +1733,7 @@ class DIDDoucumentTests: XCTestCase {
             }
         }
 
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc)
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -1794,7 +1794,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -1850,7 +1850,7 @@ class DIDDoucumentTests: XCTestCase {
         json = "{\"twitter\":\"@john\"}";
         _ = try db.appendCredential(with: "#twitter", json: json, using: storePassword)
 
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc)
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -1902,7 +1902,7 @@ class DIDDoucumentTests: XCTestCase {
             json = "{\"twitter\":\"@foobar\"}"
             _ = try db.appendCredential(with: "#twitter", json: json, using: storePassword)
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -1987,7 +1987,7 @@ class DIDDoucumentTests: XCTestCase {
             }
         }
 
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc);
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -2042,7 +2042,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user2.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -2253,7 +2253,7 @@ class DIDDoucumentTests: XCTestCase {
             }
         }
         
-        doc = try db.sealed(using: storePassword)
+        doc = try db.seal(using: storePassword)
         XCTAssertNotNil(doc)
         XCTAssertTrue(try doc.isValid(debug))
 
@@ -2327,7 +2327,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
             
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             
@@ -2386,7 +2386,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -2462,7 +2462,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user1.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -2523,7 +2523,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
 
@@ -2571,7 +2571,7 @@ class DIDDoucumentTests: XCTestCase {
                 }
             }
 
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try user3.sign(with: doc, using: storePassword)
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
@@ -3058,7 +3058,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3073,7 +3073,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3135,7 +3135,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3150,7 +3150,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3247,7 +3247,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing(ctrl2)
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try ctrl1.sign(with: doc, using: storePassword)
             try store!.storeDid(using: doc)
 
@@ -3264,7 +3264,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing(ctrl3)
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try ctrl2.sign(with: doc, using: storePassword)
             try store!.storeDid(using: doc)
 
@@ -3415,7 +3415,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3689,7 +3689,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing(ctrl2)
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try ctrl1.sign(with: doc, using: storePassword)
             try store!.storeDid(using: doc)
 
@@ -3757,7 +3757,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3775,7 +3775,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3807,7 +3807,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3824,7 +3824,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3861,7 +3861,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3898,7 +3898,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3930,7 +3930,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair();
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3947,7 +3947,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3979,7 +3979,7 @@ class DIDDoucumentTests: XCTestCase {
             var db = try doc.editing()
             var key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -3996,7 +3996,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try doc.editing()
             key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(3, doc.publicKeyCount)
             XCTAssertEqual(3, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4032,7 +4032,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4066,7 +4066,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair();
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4120,7 +4120,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4238,7 +4238,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4357,7 +4357,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing()
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertEqual(2, doc.publicKeyCount)
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4545,7 +4545,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing(ctrl2)
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             doc = try ctrl1.sign(with: doc, using: storePassword)
             try store!.storeDid(using: doc)
 
@@ -4735,7 +4735,7 @@ class DIDDoucumentTests: XCTestCase {
             let db = try doc.editing(ctrl2)
             let key = try TestData.generateKeypair()
             _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
-            doc = try db.sealed(using: storePassword);
+            doc = try db.seal(using: storePassword);
             doc = try ctrl1.sign(with: doc, using: storePassword)
             try store!.storeDid(using: doc)
 
@@ -4772,7 +4772,7 @@ class DIDDoucumentTests: XCTestCase {
             var target = try identity.newDid(storePassword)
             let db = try target.editing()
             _ = try db.authorizeDID(with: "#recovery", controller: doc.subject.toString())
-            target = try db.sealed(using: storePassword)
+            target = try db.seal(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
@@ -4805,7 +4805,7 @@ class DIDDoucumentTests: XCTestCase {
             let id = try DIDURL(doc.subject, "#key-2")
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertTrue(try doc.isValid(debug))
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4820,7 +4820,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try target.editing()
             _ = try db.appendAuthorizationKey(with: "#recovery", controller: doc.subject.toString(),
                                       keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePassword)
+            target = try db.seal(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)
@@ -4853,7 +4853,7 @@ class DIDDoucumentTests: XCTestCase {
             let id = try  DIDURL(doc.subject, "#key-2")
             _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
             try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             XCTAssertTrue(try doc.isValid(debug))
             XCTAssertEqual(2, doc.authenticationKeyCount)
             try store!.storeDid(using: doc)
@@ -4868,7 +4868,7 @@ class DIDDoucumentTests: XCTestCase {
             db = try target.editing()
             _ = try db.appendAuthorizationKey(with: "#recovery", controller: doc.subject.toString(),
                                       keyBase58: key.getPublicKeyBase58())
-            target = try db.sealed(using: storePassword)
+            target = try db.seal(using: storePassword)
             XCTAssertNotNil(target)
             XCTAssertEqual(1, target.authorizationKeyCount)
             XCTAssertEqual(doc.subject, target.authorizationKeys()[0].controller)

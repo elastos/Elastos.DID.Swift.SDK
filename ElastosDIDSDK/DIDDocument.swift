@@ -2304,7 +2304,7 @@ public class DIDDocument: NSObject {
         }
         _ = try db.setMultiSignature(multisig)
         do {
-            doc = try db.sealed(using: storePassword)
+            doc = try db.seal(using: storePassword)
             try store!.storeDid(using: doc!)
             return doc!
         } catch {
@@ -2468,7 +2468,7 @@ public class DIDDocument: NSObject {
         }
         let builder = try doc.editing(self)
         do {
-            return try builder.sealed(using: storePassword)
+            return try builder.seal(using: storePassword)
         } catch {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(subject.toString())
         }

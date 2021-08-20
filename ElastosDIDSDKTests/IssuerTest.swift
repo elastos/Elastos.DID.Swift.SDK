@@ -96,7 +96,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(testDoc!.subject, "#testCredential")
 
@@ -138,7 +138,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(issuerDoc!.subject, "#myCredential")
 
@@ -181,7 +181,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(testDoc.subject, "#testCredential")
 
@@ -226,7 +226,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(testDoc!.subject, "#testCredential")
 
@@ -268,7 +268,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(issuerDoc!.subject, "#myCredential")
 
@@ -305,7 +305,7 @@ class IssuerTest: XCTestCase {
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
 
             let vcId = try DIDURL(issuerDoc!.subject, "#myCredential")
 

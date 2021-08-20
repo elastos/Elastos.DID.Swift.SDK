@@ -222,7 +222,7 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Throws: if an error occurred, throw error.
     /// - Returns: the sealed credential object
     @objc
-    public func sealed(using storePassword: String) throws -> VerifiableCredential {
+    public func seal(using storePassword: String) throws -> VerifiableCredential {
         try checkNotSealed()
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         guard _credential!.checkIntegrity() else {

@@ -642,7 +642,7 @@ class DIDStoreTests: XCTestCase {
                 let vc = try cb.withId("#cred-1")
                     .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                     .withProperties(props)
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
                 
                 try store.storeCredential(using: vc)
             }

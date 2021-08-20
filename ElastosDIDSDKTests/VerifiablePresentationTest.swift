@@ -222,7 +222,7 @@ class VerifiablePresentationTest: XCTestCase {
                 .withCredentials(try doc.credential(ofId: "#profile")!, doc.credential(ofId: "#email")!, td.getUser1TwitterCredential(), td.getUser1PassportCredential())
                 .withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             XCTAssertNotNil(vp)
 
@@ -264,7 +264,7 @@ class VerifiablePresentationTest: XCTestCase {
                 .withCredentials(try doc.credential(ofId: "#profile")!, doc.credential(ofId: "#email")!, td.getUser1TwitterCredential(), td.getUser1PassportCredential())
                 .withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
-                .sealed(using: storePassword)
+                .seal(using: storePassword)
             
             XCTAssertNotNil(vp)
 
@@ -303,7 +303,7 @@ class VerifiablePresentationTest: XCTestCase {
             let vp = try pb
                     .withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
 
             XCTAssertNotNil(vp)
 
@@ -332,7 +332,7 @@ class VerifiablePresentationTest: XCTestCase {
                     .withTypes("HelloWorld", "FooBar", "Baz")
                     .withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
-                    .sealed(using: storePassword)
+                    .seal(using: storePassword)
 
             XCTAssertNotNil(vp)
 
