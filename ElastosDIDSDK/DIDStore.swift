@@ -1549,6 +1549,9 @@ public class DIDStore: NSObject {
         if (try storage!.containsPrivateKeys(did)) {
             let pks = doc!.publicKeys()
             for pk in pks {
+                if pk.controller != did {
+                    continue
+                }
                 let id = pk.getId()
                 let key = try storage!.loadPrivateKey(id!)
                 if key != "" {
