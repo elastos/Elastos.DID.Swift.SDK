@@ -297,3 +297,17 @@ extension Character {
         return String(self).unicodeScalars.filter{$0.isASCII}.first?.value
     }
 }
+
+extension String{
+    static func changeToInt(num: String) -> Int {
+        let str = num.uppercased()
+        var sum = 0
+        for i in str.utf8 {
+            sum = sum * 16 + Int(i) - 48 // 0-9 从48开始
+            if i >= 65 {                 // A-Z 从65开始，但有初始值10，所以应该是减去55
+                sum -= 7
+            }
+        }
+        return sum
+    }
+}

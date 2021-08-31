@@ -29,23 +29,85 @@ import Foundation
 /// createIdTransaction method to support publish capability.
 open class DefaultDIDAdapter: DIDAdapter {
     private let TAG = NSStringFromClass(DefaultDIDAdapter.self)
-    let MAINNET_RESOLVER = "https://api.elastos.io/eid"
-    let TESTNET_RESOLVER = "https://api-testnet.elastos.io/eid"
-    private var resolver: String
+    let MAINNET_RESOLVERS = ["https://api.elastos.io/eid", "https://api.trinity-tech.cn/eid"]
+    let TESTNET_RESOLVERS = ["https://api-testnet.elastos.io/eid", "https://api-testnet.trinity-tech.cn/eid"]
+    private var resolver: String!
+    private var endpoints: [String]?
     
     /// Create a DefaultDIDAdapter instance with given resolver endpoint.
     /// - Parameter resolver: the resolver url string
-    public init(_ resolver: String) {
+    public init(resolver: String) {
+        var resolver = resolver
         switch resolver.lowercased() {
         case "mainnet":
-            self.resolver = MAINNET_RESOLVER
+            resolver = MAINNET_RESOLVERS[0]
+            endpoints = MAINNET_RESOLVERS
             break
         case "testnet":
-            self.resolver = TESTNET_RESOLVER
+            resolver = TESTNET_RESOLVERS[0]
+            endpoints = TESTNET_RESOLVERS
             break
         default:
-            self.resolver = resolver
             break
+        }
+        
+        if (endpoints != nil) {
+            checkNetwork(endpoints!)
+        }
+    }
+
+    /// Create a DefaultDIDAdapter instance with given resolver endpoint.
+    /// - Parameter resolver: resolver the resolver URL object
+    public init(_ resolver: String) {
+        self.resolver = resolver
+    }
+    
+    private func checkEndpoint(_ endpoint: String) throws -> CheckResult {
+        Log.i(TAG, "Checking the resolver ", endpoint.description)
+        let id = DateFormatter.getTimeStamp(Date())
+        let json = ["id": id, "jsonrpc": "2.0", "method": "eth_blockNumber"] as [String : Any]
+        do {
+            let body = json.toJsonString()
+            let start: Int = DateFormatter.getTimeStamp(Date())
+            let resultData = try performRequest(endpoint, body!)
+            let result: [String: Any] = try resultData.dataToDictionary()
+            let latency = DateFormatter.getTimeStamp(Date()) - start
+            let resultId = result["id"] as! Int
+            if resultId != id {
+                throw DIDError.NetWorkError("Invalid JSON RPC id.")
+            }
+            
+            var n = result["result"] as! String
+            if (n.hasPrefix("0x")) {
+                n = n[2..<n.count]
+            }
+            let blockNumber = String.changeToInt(num: n)
+            
+            Log.i(TAG, "Checking the resolver ", "\(endpoint)", "...latency: ", "\(latency)", "lastBlock: ", "\(n)")
+            return CheckResult(endpoint, latency, blockNumber)
+        } catch {
+            Log.i(TAG, "Checking the resolver ", "\(endpoint)", "...error")
+            
+            return CheckResult(endpoint)
+        }
+    }
+    
+    private func checkNetwork(_ endpoints: [String]) {
+        var results: [CheckResult] = [ ]
+        endpoints.forEach { endPoint in
+            do {
+                let result = try checkEndpoint(endPoint)
+                results.append(result)
+            }
+            catch {
+            }
+        }
+        if (results.count > 0) {
+            let best = results[0]
+            if (best.available()) {
+                self.resolver = best.endpoint
+                Log.i(TAG, "Update resolver to ", resolver.description)
+            }
         }
     }
     
@@ -103,5 +165,47 @@ open class DefaultDIDAdapter: DIDAdapter {
     open func createIdTransaction(_ payload: String, _ memo: String?) throws {
      
         throw DIDError.CheckedError.DIDBackendError.UnsupportedOperationError("Not implemented")
+    }
+}
+
+class CheckResult: NSObject {
+    private static let MAX_DIFF = 10
+
+    public var endpoint: String
+    public var latency: Int
+    public var lastBlock: Int?
+
+    public init(_ endpoint: String, _ latency: Int, _ lastBlock: Int) {
+        self.endpoint = endpoint
+        self.latency = latency
+        self.lastBlock = lastBlock
+    }
+
+    public init(_ endpoint: String) {
+        self.endpoint = endpoint
+        self.latency = -1
+    }
+
+    public func compareTo(_ o: CheckResult) -> Int {
+        if (o.latency < 0 && self.latency < 0) {
+            return 0
+        }
+        if (o.latency < 0 || self.latency < 0) {
+            return self.latency < 0 ? 1 : -1
+        }
+        let diff = (o.lastBlock != nil ? o.lastBlock! : 0) - (self.lastBlock != nil ? self.lastBlock! : 0)
+        
+        if abs(diff) > (CheckResult.MAX_DIFF) {
+            return diff.signum()
+        }
+        if (self.latency == o.latency) {
+            return diff.signum()
+        } else {
+            return self.latency - o.latency
+        }
+    }
+
+    public func available() -> Bool {
+        return self.latency >= 0
     }
 }

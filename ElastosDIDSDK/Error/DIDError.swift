@@ -23,6 +23,7 @@
 import Foundation
 
 public enum DIDError: Error {
+    case NetWorkError(_ des: String? = nil)
     public enum UncheckedError {
         public enum IllegalArgumentErrors {
             case MalformedDIDError(_ des: String? = nil)
@@ -288,3 +289,13 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveErrors: LocalizedError
         }
     }
 }
+
+extension DIDError {
+    public var errorDescription: String? {
+        switch self {
+        case .NetWorkError(let des):
+            return des
+        }
+    }
+}
+
