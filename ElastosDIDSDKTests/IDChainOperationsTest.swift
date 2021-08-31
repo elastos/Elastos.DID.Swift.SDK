@@ -34,7 +34,7 @@ class IDChainOperationsTest: XCTestCase {
             else {
                 print(".")
             }
-            Thread.sleep(forTimeInterval: 20)
+            Thread.sleep(forTimeInterval: 60)
         }
     }
     
