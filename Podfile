@@ -8,6 +8,7 @@ def import_pods
   pod 'Swifter'
   pod 'Alamofire'
   pod 'Telegraph'
+  pod 'SSZipArchive'
  # pod 'CryptoSwift', '~> 1.4.1'
 
 end

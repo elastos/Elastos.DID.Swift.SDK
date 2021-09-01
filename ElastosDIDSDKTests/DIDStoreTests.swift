@@ -835,14 +835,14 @@ class DIDStoreTests: XCTestCase {
             vc = try testData.sharedInstantData().getUser1PassportCredential()
             vc!.getMetadata().setAlias("Passport")
 
-            let exportFile = tempDir + "/storeexport"
+            let exportFile = tempDir + "/store-export"
             TestData.deleteFile(exportFile)
             try store!.exportStore(to: exportFile, using: "password", storePassword: storePassword)
 
             let restoreDir = tempDir + "/restore"
             TestData.deleteFile(restoreDir)
             let store2 = try DIDStore.open(atPath: restoreDir)
-            try store2.importStore(from: exportFile, using: "password", storePassword: storePassword)
+            try store2.importStore(from: exportFile + ".zip", using: "password", storePassword: storePassword)
 
             let storeDir = storeRoot
 
@@ -857,7 +857,7 @@ class DIDStoreTests: XCTestCase {
     func testImportCompatible() {
         do {
             _ = try testData.getRootIdentity()
-            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/testdata/store-export"
+            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/testdata/store-export.zip"
             let exportFile =  path
             
             TestData.deleteFile(tempDir)

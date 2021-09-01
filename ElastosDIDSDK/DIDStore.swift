@@ -22,6 +22,7 @@
 
 import Foundation
 import PromiseKit
+import SSZipArchive
 
 public typealias ConflictHandler = (_ chainCopy: DIDDocument, _ localCopy: DIDDocument) -> DIDDocument
 
@@ -1846,16 +1847,20 @@ public class DIDStore: NSObject {
     ///   - password: the password to encrypt the private keys in the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
-    public func exportStore(to path: String,
+    public func exportStore(to zipPath: String,
                  using password: String,
                   storePassword: String) throws {
+        var zipPath = zipPath
+        if zipPath.hasSuffix(".zip") {
+            zipPath = zipPath[0..<zipPath.count - 4]
+        }
         let exportDic = try exportStore(password, storePassword)
         let roots = exportDic["rootIdentity"] as! [[String: Any]]
         let ids = exportDic["ids"] as! [[String: Any]]
         
         for root in roots {
             let key = root.keys.first
-            let path = path + "/" + key!
+            let path = zipPath + "/" + key!
             try path.create(forWrite: true)
             let value = root[key!] as! [String: Any]
             try value.toJsonString()?.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
@@ -1863,16 +1868,27 @@ public class DIDStore: NSObject {
         
         for id in ids {
             let key = id.keys.first
-            let path = path + "/" + key!
+            let path = zipPath + "/" + key!
             FileManager.default.createFile(atPath: path, contents: nil, attributes: nil)
             let value = id[key!] as! [String: Any]
             try value.toJsonString()?.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
         }
+        let zip = zipPath + ".zip"
+        SSZipArchive.createZipFile(atPath: zip, withContentsOfDirectory: zipPath, keepParentDirectory: true)
+        try zipPath.deleteDir()
     }
     
-    private func importStore(from path: String,
+    private func importStore(from zipPath: String,
                              _ password: String,
                              _ storePassword: String) throws {
+        var path = zipPath
+        var dirname = zipPath
+        if zipPath.hasSuffix(".zip") {
+            path = zipPath[0..<zipPath.count - 4]
+            dirname = zipPath.dirname()
+            dirname = dirname[0..<dirname.count - 1]
+        }
+        SSZipArchive.unzipFile(atPath: zipPath, toDestination: dirname)
         let fingerprint = metadata?.fingerprint
         let currentFingerprint = try calcFingerprint(storePassword)
         
@@ -1915,10 +1931,10 @@ public class DIDStore: NSObject {
     ///   - password: the password for the exported data
     ///   - storePassword: the password for this store
     /// - Throws: If error occurs, throw error.
-    public func importStore(from path: String,
+    public func importStore(from zipPath: String,
                             using password: String,
                             storePassword: String) throws {
-        try importStore(from: path, password, storePassword)
+        try importStore(from: zipPath, password, storePassword)
     }
  
     private func writeData(data: Data, outputStream: OutputStream, maxLengthPerWrite: Int) {
