@@ -4058,7 +4058,7 @@ extension DIDDocument {
         doc._authorizations = _authorizations
         doc._defaultPublicKey = _defaultPublicKey
         doc._credentials = _credentials
-        doc._credentials = _credentials
+        doc._credentialDic = _credentialDic
         doc._services = _services
         doc._serviceDic = _serviceDic
         doc._expires = _expires
