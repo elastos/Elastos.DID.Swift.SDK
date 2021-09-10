@@ -81,7 +81,7 @@ public class DIDDocumentBuilder: NSObject {
     }
 
     private func appendPublicKey(_ key: PublicKey) throws {
-        try document?._publicKeyDic.values.forEach{ pk in
+        try document?._publicKeyDict.values.forEach{ pk in
             if pk.getId() == key.getId() {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey id '\(String(describing: key.getId()?.toString()))' already exist.")
             }
@@ -89,7 +89,7 @@ public class DIDDocumentBuilder: NSObject {
                 throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("PublicKey '\(key.publicKeyBase58)' already exist.")
             }
         }
-        document?._publicKeyDic[key.getId()!] = key
+        document?._publicKeyDict[key.getId()!] = key
         
         if document?.defaultPublicKey() == nil {
             let address = DIDHDKey.toAddress(key.publicKeyBytes)
@@ -225,7 +225,7 @@ public class DIDDocumentBuilder: NSObject {
     private func removePublicKey(_ id: DIDURL,
                                  _ force: Bool) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        let key = document!._publicKeyDic[id]
+        let key = document!._publicKeyDict[id]
 
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -246,7 +246,7 @@ public class DIDDocumentBuilder: NSObject {
             }
         }
         
-        if (document!._publicKeyDic.removeValue(forKey: id) != nil) {
+        if (document!._publicKeyDict.removeValue(forKey: id) != nil) {
             document!._authenticationKeys.removeValue(forKey: id)
             document!._authorizationKeys.removeValue(forKey: id)
             // TODO: should delete the loosed private key when store the document
@@ -393,11 +393,11 @@ public class DIDDocumentBuilder: NSObject {
 
     private func removeAuthenticationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        if document!._publicKeyDic.isEmpty {
+        if document!._publicKeyDict.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        let key = document!._publicKeyDic[try canonicalId(id)!]
+        let key = document!._publicKeyDict[try canonicalId(id)!]
         let value = try document!._authenticationKeys[canonicalId(id)!]
         guard let _ = key, let _ = value else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
@@ -443,11 +443,11 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NotPrimitiveDIDError(id.toString())
         }
         
-        guard !document!._publicKeyDic.isEmpty else {
+        guard !document!._publicKeyDict.isEmpty else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
-        let key = document!._publicKeyDic[id]
+        let key = document!._publicKeyDict[id]
         guard let _ = key else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
@@ -676,12 +676,12 @@ public class DIDDocumentBuilder: NSObject {
     private func removeAuthorizationKey(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         
-        if document?._publicKeyDic == nil || document!._publicKeyDic.isEmpty {
+        if document?._publicKeyDict == nil || document!._publicKeyDict.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
         let _id = try canonicalId(id)!
-        let key = document?._publicKeyDic[_id]
+        let key = document?._publicKeyDict[_id]
         if key == nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(_id.toString())
         }
@@ -727,10 +727,10 @@ public class DIDDocumentBuilder: NSObject {
         guard try credential.subject?.did == getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(credential.subject?.did.toString())
         }
-        guard document!._credentialDic[credential.getId()!] == nil else {
+        guard document!._credentialDict[credential.getId()!] == nil else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(credential.subject?.did.toString())
         }
-        document!._credentialDic[credential.getId()!] = credential
+        document!._credentialDict[credential.getId()!] = credential
         document!._credentials.append(credential)
         invalidateProof()
 
@@ -1082,11 +1082,11 @@ public class DIDDocumentBuilder: NSObject {
     private func removeCredential(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
     
-        guard document!._credentialDic.count > 0 else {
+        guard document!._credentialDict.count > 0 else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
 
-        guard (document!._credentialDic.removeValue(forKey: try canonicalId(id)!) != nil) else {
+        guard (document!._credentialDict.removeValue(forKey: try canonicalId(id)!) != nil) else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
@@ -1130,10 +1130,10 @@ public class DIDDocumentBuilder: NSObject {
             svc = try Service(canonicalId(id)!, type, endpoint)
         }
             
-        if document!._serviceDic[svc.id] != nil {
+        if document!._serviceDict[svc.id] != nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError("Service '\(svc.id)' already exist.")
         }
-        document!._serviceDic[svc.getId()!] = svc
+        document!._serviceDict[svc.getId()!] = svc
         document!._services.append(svc)
         invalidateProof()
 
@@ -1198,11 +1198,11 @@ public class DIDDocumentBuilder: NSObject {
 
     private func removeService(_ id: DIDURL) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        if document!._serviceDic.isEmpty {
+        if document!._serviceDict.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError(id.toString())
         }
         
-        if (document!._serviceDic.removeValue(forKey: try canonicalId(id)!) != nil) {
+        if (document!._serviceDict.removeValue(forKey: try canonicalId(id)!) != nil) {
             invalidateProof()
         }
         else {
@@ -1275,7 +1275,7 @@ public class DIDDocumentBuilder: NSObject {
         let signerDoc = document!.isCustomizedDid() ? controllerDoc : document
         let signKey = signerDoc?.defaultPublicKeyId()
         
-        if (document!._proofsDic.contains(where: { (k, v) -> Bool in
+        if (document!._proofsDict.contains(where: { (k, v) -> Bool in
             k == signerDoc?.subject
         })) {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySignedError(signerDoc?.subject.toString())
@@ -1283,8 +1283,8 @@ public class DIDDocumentBuilder: NSObject {
         let json = document?.toString(true)
         let sig = try document?.sign(withId: signKey!, using: storePassword, for: [json!.data(using: .utf8)!])
         let proof = DIDDocumentProof(signKey!, sig!)
-        document!._proofsDic[proof.creator!.did!] = proof
-        let values = document!._proofsDic.values
+        document!._proofsDict[proof.creator!.did!] = proof
+        let values = document!._proofsDict.values
         values.forEach { df in
             document!._proofs.append(df)
         }
@@ -1407,8 +1407,8 @@ public class DIDDocumentBuilder: NSObject {
     }
 
     private func invalidateProof() {
-        if !document!._proofsDic.isEmpty{
-            document!._proofsDic.removeAll()
+        if !document!._proofsDict.isEmpty{
+            document!._proofsDict.removeAll()
         }
     }
     
@@ -1459,11 +1459,11 @@ public class DIDDocumentBuilder: NSObject {
     /// - Returns: the DID Document Builder
     public func removeProof(_ controller: DID) throws -> DIDDocumentBuilder {
         try checkNotSealed()
-        if document!._proofsDic.count == 0  {
+        if document!._proofsDict.count == 0  {
             return self
         }
         
-        if document!._proofsDic.removeValue(forKey: controller) == nil {
+        if document!._proofsDict.removeValue(forKey: controller) == nil {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectNotExistError("No proof signed by: \(controller)")
         }
         return self
@@ -1491,14 +1491,14 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         let sigs = document!._multisig == nil ? 1 : document!._multisig!.m
-        if (document!._proofsDic.count > 0 && document!._proofsDic.count == sigs) {
+        if (document!._proofsDict.count > 0 && document!._proofsDict.count == sigs) {
             throw DIDError.UncheckedError.IllegalStateError.AlreadySealedError(try getSubject().toString())
         }
         try document?._controllers.sort { (didA, didB) -> Bool in
             return try didA.compareTo(didB) == ComparisonResult.orderedAscending
         }
         document!._publickeys.removeAll()
-        document!._publicKeyDic.values.forEach { pk in
+        document!._publicKeyDict.values.forEach { pk in
             document!._publickeys.append(pk)
         }
         
@@ -1517,16 +1517,16 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         document!._credentials.removeAll()
-        document!._credentialDic.values.forEach { vc in
+        document!._credentialDict.values.forEach { vc in
             document!._credentials.append(vc)
         }
         
         document!._services.removeAll()
-        document!._serviceDic.values.forEach { service in
+        document!._serviceDict.values.forEach { service in
             document!._services.append(service)
         }
         
-        if (document!._proofsDic.isEmpty) {
+        if (document!._proofsDict.isEmpty) {
             if (document?._expires == nil) {
                _ = try setDefaultExpires()
             }
