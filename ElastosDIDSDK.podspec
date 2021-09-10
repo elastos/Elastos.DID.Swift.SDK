@@ -28,6 +28,7 @@ Pod::Spec.new do |s|
   s.dependency 'BlueCryptor', '~> 1.0'
   s.dependency 'ReadWriteLock', '~> 1.0'
   s.dependency 'Swifter'
+  s.dependency 'SSZipArchive'
 
   s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
   s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
