@@ -1229,7 +1229,7 @@ public class DIDStore: NSObject {
             metadata.setIndex(index)
         }
         metadata.attachStore(self)
-        
+        finalDoc?.setMetadata(metadata)
         if (localDoc != nil) {
             localDoc!.getMetadata().attachStore(self)
         }
@@ -1239,6 +1239,9 @@ public class DIDStore: NSObject {
 
         try storage!.storeDid(finalDoc!)
         try storage!.storeDidMetadata(did, metadata)
+        for credential in finalDoc!.credentials() {
+            try storeCredential(using: credential)
+        }
         if (!isCustomizedDid && rootIdentity != nil) {
             try storeLazyPrivateKey(finalDoc!.defaultPublicKeyId()!)
         }
