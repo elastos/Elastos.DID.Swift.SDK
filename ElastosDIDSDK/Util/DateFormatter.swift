@@ -32,8 +32,9 @@ extension DateFormatter {
         }
         let formatter = Foundation.DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
-        let date: Date  = formatter.date(from: dateStr) ?? Date()
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        let date: Date  = formatter.date(from: dateStr) ?? DateFormatter.currentDate()
 
         return date
     }
