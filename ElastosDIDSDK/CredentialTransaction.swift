@@ -57,7 +57,7 @@ public class CredentialTransaction: IDTransactionInfo {
     
     public class func deserialize(_ json: [String: Any]) throws -> CredentialTransaction {
         let txid = json[Constants.TXID] as! String
-        let timestamp = json[Constants.TXID] as! String
+        let timestamp = json[Constants.TIMESTAMP] as! String
         let op = json[Constants.OPERATION]
         let request = try CredentialRequest.deserialize(JsonNode(op as Any))
         return CredentialTransaction(txid, DateFormatter.convertToUTCDateFromString(timestamp)!, request as! CredentialRequest)

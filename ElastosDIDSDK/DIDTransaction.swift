@@ -58,7 +58,7 @@ public class DIDTransaction: IDTransactionInfo {
     
     public class func deserialize(_ json: [String: Any]) throws -> DIDTransaction {
         let txid = json[Constants.TXID] as! String
-        let timestamp = json[Constants.TXID] as! String
+        let timestamp = json[Constants.TIMESTAMP] as! String
         let op = json[Constants.OPERATION]
         let request = try DIDRequest.deserialize(JsonNode(op as Any))
         return DIDTransaction(txid, DateFormatter.convertToUTCDateFromString(timestamp)!, request)
