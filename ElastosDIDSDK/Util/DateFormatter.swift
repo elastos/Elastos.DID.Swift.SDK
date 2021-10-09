@@ -58,7 +58,7 @@ extension DateFormatter {
         comps?.minute = 0
         comps?.second = 0
         comps?.nanosecond = 0
-        let realDate = calendar.date(byAdding: comps!, to: current) ?? Date()
+        let realDate = calendar.date(byAdding: comps!, to: current) ?? DateFormatter.currentDate()
         
         return realDate
     }
@@ -76,9 +76,9 @@ extension DateFormatter {
         comps?.minute = 0
         comps?.second = 0
         comps?.nanosecond = 0
-        let realDate = calendar.date(byAdding: comps!, to: date) ?? Date()
+        let realDate = calendar.date(byAdding: comps!, to: date) ?? DateFormatter.currentDate()
         let hour = calendar.component(.hour, from: realDate)
-        let useDate = calendar.date(bySettingHour: hour, minute: 00, second: 00, of: realDate) ?? Date()
+        let useDate = calendar.date(bySettingHour: hour, minute: 00, second: 00, of: realDate) ?? DateFormatter.currentDate()
 
         return useDate
     }
@@ -135,17 +135,17 @@ extension DateFormatter {
         comps?.minute = 0
         comps?.second = 0
         comps?.nanosecond = 0
-        let realDate = calendar.date(byAdding: comps!, to: date) ?? Date()
+        let realDate = calendar.date(byAdding: comps!, to: date) ?? DateFormatter.currentDate()
         let hour = calendar.component(.hour, from: realDate)
         let minute = calendar.component(.minute, from: realDate)
         let second = calendar.component(.second, from: realDate)
 
-        let useDate = calendar.date(bySettingHour: hour, minute: minute, second: second, of: realDate) ?? Date()
+        let useDate = calendar.date(bySettingHour: hour, minute: minute, second: second, of: realDate) ?? DateFormatter.currentDate()
 
         return useDate
     }
 
     class func maxExpirationDate() -> Date {
-        return maxExpirationDate(Date())
+        return maxExpirationDate(DateFormatter.currentDate())
     }
 }
