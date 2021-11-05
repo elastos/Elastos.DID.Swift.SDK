@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1119F92C27348C4400518B1D /* UsageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92B27348C4400518B1D /* UsageViewController.swift */; };
+		1119F92E27348D1F00518B1D /* UsageListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92D27348D1F00518B1D /* UsageListCell.swift */; };
+		1119F9302734956F00518B1D /* UserInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92F2734956F00518B1D /* UserInfo.swift */; };
 		116951282730D809003204CA /* AssistDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951272730D809003204CA /* AssistDIDAdapter.swift */; };
 		1169512A2730E09D003204CA /* AssistDIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951292730E09D003204CA /* AssistDIDRequest.swift */; };
 		1169512C2730E3AA003204CA /* CreatePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1169512B2730E3AA003204CA /* CreatePresentation.swift */; };
@@ -44,6 +47,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1119F92727348AD900518B1D /* DIDExample-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DIDExample-Bridging-Header.h"; sourceTree = "<group>"; };
+		1119F92B27348C4400518B1D /* UsageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageViewController.swift; sourceTree = "<group>"; };
+		1119F92D27348D1F00518B1D /* UsageListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageListCell.swift; sourceTree = "<group>"; };
+		1119F92F2734956F00518B1D /* UserInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfo.swift; sourceTree = "<group>"; };
 		116951272730D809003204CA /* AssistDIDAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDAdapter.swift; sourceTree = "<group>"; };
 		116951292730E09D003204CA /* AssistDIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDRequest.swift; sourceTree = "<group>"; };
 		1169512B2730E3AA003204CA /* CreatePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePresentation.swift; sourceTree = "<group>"; };
@@ -64,9 +71,10 @@
 		11B72DFE272A3C4400D9A32B /* DIDExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DIDExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		11B72E02272A3C4400D9A32B /* DIDExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDExampleUITests.swift; sourceTree = "<group>"; };
 		11B72E04272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDExampleUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		9C1C57B4A68957078F4880D1 /* Pods-DIDExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.release.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.release.xcconfig"; sourceTree = "<group>"; };
+		11C49B232733FCDC00B86E08 /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.debug.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.debug.xcconfig"; sourceTree = "<group>"; };
+		98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.release.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.release.xcconfig"; sourceTree = "<group>"; };
 		B7092A009077FAC9D5C05C16 /* libPods-DIDExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DIDExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F4C31353DB467BA862B53F39 /* Pods-DIDExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.debug.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,8 +110,9 @@
 				11B72DF7272A3C4400D9A32B /* DIDExampleTests */,
 				11B72E01272A3C4400D9A32B /* DIDExampleUITests */,
 				11B72DDF272A3C4200D9A32B /* Products */,
-				555FEBB61C031E92FFC2E8B9 /* Pods */,
 				775CEBB4C83AFDF65497C367 /* Frameworks */,
+				C601075A4E72DD7F3DDC4A5B /* Pods */,
+				1119F92727348AD900518B1D /* DIDExample-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -128,6 +137,9 @@
 				11839BE02733871B00972C0A /* ParseJWT.swift */,
 				11839BE22733873700972C0A /* PresentationInJWT.swift */,
 				11B72DE5272A3C4200D9A32B /* ViewController.swift */,
+				1119F92B27348C4400518B1D /* UsageViewController.swift */,
+				1119F92D27348D1F00518B1D /* UsageListCell.swift */,
+				1119F92F2734956F00518B1D /* UserInfo.swift */,
 				11B72DE7272A3C4200D9A32B /* Main.storyboard */,
 				11B72DE1272A3C4200D9A32B /* AppDelegate.swift */,
 				11B72DE3272A3C4200D9A32B /* SceneDelegate.swift */,
@@ -155,21 +167,22 @@
 			path = DIDExampleUITests;
 			sourceTree = "<group>";
 		};
-		555FEBB61C031E92FFC2E8B9 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				F4C31353DB467BA862B53F39 /* Pods-DIDExample.debug.xcconfig */,
-				9C1C57B4A68957078F4880D1 /* Pods-DIDExample.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		775CEBB4C83AFDF65497C367 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				11C49B232733FCDC00B86E08 /* ElastosDIDSDK.framework */,
 				B7092A009077FAC9D5C05C16 /* libPods-DIDExample.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C601075A4E72DD7F3DDC4A5B /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */,
+				98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,6 +254,7 @@
 				TargetAttributes = {
 					11B72DDD272A3C4200D9A32B = {
 						CreatedOnToolsVersion = 13.1;
+						LastSwiftMigration = 1310;
 					};
 					11B72DF3272A3C4400D9A32B = {
 						CreatedOnToolsVersion = 13.1;
@@ -332,9 +346,12 @@
 				1169512E2731195F003204CA /* InitializeDID.swift in Sources */,
 				11839BE12733871B00972C0A /* ParseJWT.swift in Sources */,
 				1169512A2730E09D003204CA /* AssistDIDRequest.swift in Sources */,
+				1119F92E27348D1F00518B1D /* UsageListCell.swift in Sources */,
 				11B72DE6272A3C4200D9A32B /* ViewController.swift in Sources */,
 				11839BE32733873700972C0A /* PresentationInJWT.swift in Sources */,
 				11B72DE2272A3C4200D9A32B /* AppDelegate.swift in Sources */,
+				1119F92C27348C4400518B1D /* UsageViewController.swift in Sources */,
+				1119F9302734956F00518B1D /* UserInfo.swift in Sources */,
 				11839BDF273383B500972C0A /* IssueCredential.swift in Sources */,
 				1169512C2730E3AA003204CA /* CreatePresentation.swift in Sources */,
 				116951282730D809003204CA /* AssistDIDAdapter.swift in Sources */,
@@ -512,13 +529,14 @@
 		};
 		11B72E09272A3C4400D9A32B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F4C31353DB467BA862B53F39 /* Pods-DIDExample.debug.xcconfig */;
+			baseConfigurationReference = 2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				DEVELOPMENT_TEAM = T4LVNDN76A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DIDExample/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -534,6 +552,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.elastos.DIDExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "DIDExample-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -541,13 +561,14 @@
 		};
 		11B72E0A272A3C4400D9A32B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9C1C57B4A68957078F4880D1 /* Pods-DIDExample.release.xcconfig */;
+			baseConfigurationReference = 98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LFU7T9UYL5;
+				DEVELOPMENT_TEAM = T4LVNDN76A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DIDExample/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -563,6 +584,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.elastos.DIDExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "DIDExample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

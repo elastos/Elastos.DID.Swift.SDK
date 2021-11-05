@@ -326,6 +326,27 @@
 			remoteGlobalIDString = 11F262A923260CF40009C103;
 			remoteInfo = ElastosDIDSDK;
 		};
+		11C49B1D2733FCB500B86E08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B72DDE272A3C4200D9A32B;
+			remoteInfo = DIDExample;
+		};
+		11C49B1F2733FCB500B86E08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B72DF4272A3C4400D9A32B;
+			remoteInfo = DIDExampleTests;
+		};
+		11C49B212733FCB500B86E08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11B72DFE272A3C4400D9A32B;
+			remoteInfo = DIDExampleUITests;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -453,6 +474,7 @@
 		11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWTDecoder.swift; sourceTree = "<group>"; };
 		11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoneAlgorithm.swift; sourceTree = "<group>"; };
 		11C489682637F17B002C479E /* Web3Adapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Web3Adapter.swift; sourceTree = "<group>"; };
+		11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DIDExample.xcodeproj; path = DIDExample/DIDExample.xcodeproj; sourceTree = "<group>"; };
 		11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDURLBuilder.swift; sourceTree = "<group>"; };
 		11CA74B1235E06B7006E66F7 /* Base64.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base64.swift; sourceTree = "<group>"; };
 		11CACA9026120D65004145CB /* CredentialBiography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBiography.swift; sourceTree = "<group>"; };
@@ -820,6 +842,16 @@
 			path = SwiftJWT;
 			sourceTree = "<group>";
 		};
+		11C49B182733FCB500B86E08 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				11C49B1E2733FCB500B86E08 /* DIDExample.app */,
+				11C49B202733FCB500B86E08 /* DIDExampleTests.xctest */,
+				11C49B222733FCB500B86E08 /* DIDExampleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		11E3F791233D121900EF35C3 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
@@ -835,6 +867,7 @@
 		11F262A023260CF30009C103 = {
 			isa = PBXGroup;
 			children = (
+				11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */,
 				11E3F791233D121900EF35C3 /* Externals */,
 				11F262AC23260CF40009C103 /* ElastosDIDSDK */,
 				1155D9472352FACE00DF8C9D /* ElastosDIDSDKTests */,
@@ -1163,6 +1196,12 @@
 			mainGroup = 11F262A023260CF30009C103;
 			productRefGroup = 11F262AB23260CF40009C103 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 11C49B182733FCB500B86E08 /* Products */;
+					ProjectRef = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				11F262A923260CF40009C103 /* ElastosDIDSDK */,
@@ -1173,6 +1212,30 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		11C49B1E2733FCB500B86E08 /* DIDExample.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = DIDExample.app;
+			remoteRef = 11C49B1D2733FCB500B86E08 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		11C49B202733FCB500B86E08 /* DIDExampleTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = DIDExampleTests.xctest;
+			remoteRef = 11C49B1F2733FCB500B86E08 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		11C49B222733FCB500B86E08 /* DIDExampleUITests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = DIDExampleUITests.xctest;
+			remoteRef = 11C49B212733FCB500B86E08 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1100DBAA26B391FA00AB1FB3 /* Resources */ = {

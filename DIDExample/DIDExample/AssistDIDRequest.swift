@@ -6,15 +6,15 @@ class AssistDIDRequest {
     //    "did"
     var did: DID!
     //    "memo"
-    var memo: String!
+    var memo: String?
     //    "requestFrom"
     var agent: String!
     //    "didRequest"
     var request: DIDRequest!
     
-    init(_ payload: String, _ memo: String) {
+    init(_ payload: String, _ memo: String?) {
         do {
-            self.request = try DIDRequest.deserialize(content: payload) as! DIDRequest
+            self.request = try DIDRequest.deserialize(payload)
             self.did = request.did!
             self.memo = memo
             self.agent = "DID command line utils"
@@ -26,7 +26,9 @@ class AssistDIDRequest {
     func serialize(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeStringField("did", did.description)
-        generator.writeStringField("memo", memo)
+        if memo != nil && memo != "" {
+            generator.writeStringField("memo", memo!)
+        }
         generator.writeStringField("requestFrom", agent)
         generator.writeFieldName("didRequest")
         request.serialize(generator)
