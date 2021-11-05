@@ -16,7 +16,7 @@ class AssistDIDAdapter: DefaultDIDAdapter {
         default:
             assistRpcEndpoint = TESTNET_RPC_ENDPOINT
         }
-        super.init(network)
+        super.init(resolver: network)
     }
     
     override func createIdTransaction(_ payload: String, _ memo: String?) throws {
@@ -24,7 +24,7 @@ class AssistDIDAdapter: DefaultDIDAdapter {
         if payload.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("Invalid payload parameter")
         }
-        let requestString = AssistDIDRequest(payload, memo!).description()
+        let requestString = AssistDIDRequest(payload, memo).description()
         let url = URL(string: assistRpcEndpoint + "/didtx/create")
         var request = URLRequest.init(url: url!, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
         request.httpMethod = "POST"

@@ -1,9 +1,9 @@
 import UIKit
 import ElastosDIDSDK
 
-class CreatePresentation {
+class CreatePresentation: NSObject {
     
-    init() {
+    override init() {
         do {
             // Initializa the DID backend globally.
             try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
@@ -57,6 +57,7 @@ public class PresentationEntity: NSObject {
     func initPrivateIdentity() throws {
         
         let storePath = "\(NSHomeDirectory())/Library/Caches/data/didCache/" + name + ".store"
+        print("storePath: \(storePath)")
         store = try DIDStore.open(atPath: storePath)
         
         // Check the store whether contains the root private identity.

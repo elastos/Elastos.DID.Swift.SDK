@@ -21,3 +21,6 @@ Externals/Antlr4/build/XCBuildData/BuildDescriptionCacheIndex-0fa6bc5b1a4916e640
 Externals/Antlr4/build/XCBuildData/build.db
 Externals/Antlr4/build/XCBuildData/716ff6a5fe3031bba9832d2a48486d56-manifest.xcbuild
 Externals/Antlr4/build/XCBuildData/716ff6a5fe3031bba9832d2a48486d56-desc.xcbuild
+DIDExample/Podfile.lock
+DIDExample/Products
+DIDExample/DIDExample.xcworkspace

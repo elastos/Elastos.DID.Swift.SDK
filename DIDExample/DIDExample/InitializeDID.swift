@@ -8,6 +8,19 @@ class InitializeDID: NSObject {
 
     var store: DIDStore!
     
+    override init() {
+        do {
+            super.init()
+            // Initializa the DID backend globally.
+            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
+
+            try initPrivateIdentity()
+            try initDid()
+        } catch {
+           print("InitializeDID error: \(error)")
+        }
+    }
+    
     func initPrivateIdentity() throws {
         let storePath = "\(NSHomeDirectory())/Library/Caches/data/didCache/" + "exampleStore"
         store = try DIDStore.open(atPath: storePath)
