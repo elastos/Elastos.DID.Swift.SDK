@@ -395,7 +395,7 @@ public class VerifiableCredential: DIDObject {
         }
         if !isSelfProclaimed {
             let controllerDoc = try subject?.did.resolve()
-            if (try controllerDoc == nil && !controllerDoc!.isGenuine(listener)) {
+            if (try controllerDoc != nil && !controllerDoc!.isGenuine(listener)) {
                 listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is not genuine")
                 listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
                 
