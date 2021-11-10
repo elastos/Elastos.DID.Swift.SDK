@@ -291,6 +291,20 @@ public class DIDRequest: IDChainRequest {
         return request
     }
     
+    public class func deserialize(_ content: String) throws -> DIDRequest {
+        let dict = content.toDictionary()
+        let header = IDChainHeader.parse(JsonNode(dict["header"]))
+        let payload: String = dict["payload"] as! String
+        let proof = try IDChainProof.parse(JsonNode(dict["proof"]))
+        let request = DIDRequest()
+        request.setHeader(header)
+        request.setProof(proof)
+        request.setPayload(payload)
+        try request.sanitize()
+        
+        return request
+    }
+    
     public override func serialize(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeFieldName(HEADER)
