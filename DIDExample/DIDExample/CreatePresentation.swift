@@ -6,8 +6,8 @@ class CreatePresentation: NSObject {
     override init() {
         do {
             // Initializa the DID backend globally.
-            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
-            
+//            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet")) mainnet
+            try DIDBackend.initialize(AssistDIDAdapter(network: "mainnet")) 
             let university = University(name: "Elastos")
             let student = try Student("John Smith", "Male", "johnsmith@example.org")
             

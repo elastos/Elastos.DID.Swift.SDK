@@ -264,7 +264,6 @@
 		11F262AF23260CF40009C103 /* ElastosDIDSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F262AD23260CF40009C103 /* ElastosDIDSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		11F3A8FC24D7E330007ABB70 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F3A8FA24D7E312007ABB70 /* libcrypto.a */; };
 		11F3A8FD24D7E330007ABB70 /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11F3A8FB24D7E316007ABB70 /* libhdkey.a */; };
-		17B8A10BF55D8D81464E36AE /* Pods_ElastosDIDSDK_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F48F6142BAD7F3AAC66AA0D /* Pods_ElastosDIDSDK_macOS.framework */; };
 		9BBAD7558D040C7F910B6F81 /* Pods_ElastosDIDSDKTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B39FB18C79DF653202E046 /* Pods_ElastosDIDSDKTests.framework */; };
 		A31801A324015EA30087E074 /* DIDResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A224015EA30087E074 /* DIDResolver.swift */; };
 		A31801A9240277190087E074 /* JsonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31801A8240277180087E074 /* JsonNode.swift */; };
@@ -325,27 +324,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 11F262A923260CF40009C103;
 			remoteInfo = ElastosDIDSDK;
-		};
-		11C49B1D2733FCB500B86E08 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 11B72DDE272A3C4200D9A32B;
-			remoteInfo = DIDExample;
-		};
-		11C49B1F2733FCB500B86E08 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 11B72DF4272A3C4400D9A32B;
-			remoteInfo = DIDExampleTests;
-		};
-		11C49B212733FCB500B86E08 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 11B72DFE272A3C4400D9A32B;
-			remoteInfo = DIDExampleUITests;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -474,7 +452,6 @@
 		11C3ECDE2477807300DF1B4F /* JWTDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWTDecoder.swift; sourceTree = "<group>"; };
 		11C3ECDF2477807300DF1B4F /* NoneAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoneAlgorithm.swift; sourceTree = "<group>"; };
 		11C489682637F17B002C479E /* Web3Adapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Web3Adapter.swift; sourceTree = "<group>"; };
-		11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DIDExample.xcodeproj; path = DIDExample/DIDExample.xcodeproj; sourceTree = "<group>"; };
 		11C8FFE226B241C2002CA102 /* DIDURLBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDURLBuilder.swift; sourceTree = "<group>"; };
 		11CA74B1235E06B7006E66F7 /* Base64.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base64.swift; sourceTree = "<group>"; };
 		11CACA9026120D65004145CB /* CredentialBiography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialBiography.swift; sourceTree = "<group>"; };
@@ -540,10 +517,7 @@
 		11FB0A6023F0FF0B001941CF /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Externals/HDKey/lib/-iphoneos/libcrypto.a"; sourceTree = "<group>"; };
 		2C9D52CBC88BB3D458134F3E /* Pods-ElastosDIDSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDK.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDK/Pods-ElastosDIDSDK.release.xcconfig"; sourceTree = "<group>"; };
 		35836A2B1CB8DA7F034879C8 /* Pods-ElastosDIDSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDK.debug.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDK/Pods-ElastosDIDSDK.debug.xcconfig"; sourceTree = "<group>"; };
-		3F48F6142BAD7F3AAC66AA0D /* Pods_ElastosDIDSDK_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ElastosDIDSDK_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52B39FB18C79DF653202E046 /* Pods_ElastosDIDSDKTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ElastosDIDSDKTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		5699F1AE39E513CD66E1D534 /* Pods-ElastosDIDSDK_macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDK_macOS.debug.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDK_macOS/Pods-ElastosDIDSDK_macOS.debug.xcconfig"; sourceTree = "<group>"; };
-		76C9A10F32B5E1905AE74076 /* Pods-ElastosDIDSDK_macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ElastosDIDSDK_macOS.release.xcconfig"; path = "Target Support Files/Pods-ElastosDIDSDK_macOS/Pods-ElastosDIDSDK_macOS.release.xcconfig"; sourceTree = "<group>"; };
 		A31801A224015EA30087E074 /* DIDResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDResolver.swift; sourceTree = "<group>"; };
 		A31801A8240277180087E074 /* JsonNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JsonNode.swift; sourceTree = "<group>"; };
 		A31801AA240281B00087E074 /* LRUCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LRUCache.swift; path = Util/LRUCache.swift; sourceTree = "<group>"; };
@@ -598,7 +572,6 @@
 			files = (
 				11AF7A6626BB873A00C24F90 /* libhdkey.a in Frameworks */,
 				11AF7A6526BB873700C24F90 /* libcrypto.a in Frameworks */,
-				17B8A10BF55D8D81464E36AE /* Pods_ElastosDIDSDK_macOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -716,7 +689,6 @@
 				1109D08423275CFE00A03D56 /* Antlr4.framework */,
 				ED7485A64A06C161BCD31D48 /* Pods_ElastosDIDSDK.framework */,
 				52B39FB18C79DF653202E046 /* Pods_ElastosDIDSDKTests.framework */,
-				3F48F6142BAD7F3AAC66AA0D /* Pods_ElastosDIDSDK_macOS.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -842,16 +814,6 @@
 			path = SwiftJWT;
 			sourceTree = "<group>";
 		};
-		11C49B182733FCB500B86E08 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				11C49B1E2733FCB500B86E08 /* DIDExample.app */,
-				11C49B202733FCB500B86E08 /* DIDExampleTests.xctest */,
-				11C49B222733FCB500B86E08 /* DIDExampleUITests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		11E3F791233D121900EF35C3 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
@@ -867,7 +829,6 @@
 		11F262A023260CF30009C103 = {
 			isa = PBXGroup;
 			children = (
-				11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */,
 				11E3F791233D121900EF35C3 /* Externals */,
 				11F262AC23260CF40009C103 /* ElastosDIDSDK */,
 				1155D9472352FACE00DF8C9D /* ElastosDIDSDKTests */,
@@ -953,8 +914,6 @@
 				2C9D52CBC88BB3D458134F3E /* Pods-ElastosDIDSDK.release.xcconfig */,
 				C20B571ECD0C5AC2E67B4609 /* Pods-ElastosDIDSDKTests.debug.xcconfig */,
 				0681BAC6ED686527AFAFA123 /* Pods-ElastosDIDSDKTests.release.xcconfig */,
-				5699F1AE39E513CD66E1D534 /* Pods-ElastosDIDSDK_macOS.debug.xcconfig */,
-				76C9A10F32B5E1905AE74076 /* Pods-ElastosDIDSDK_macOS.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -1082,7 +1041,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1100DBBD26B391FA00AB1FB3 /* Build configuration list for PBXNativeTarget "ElastosDIDSDK_macOS" */;
 			buildPhases = (
-				139D9E7DD0DB196090E43A0F /* [CP] Check Pods Manifest.lock */,
 				1100DBA726B391FA00AB1FB3 /* Headers */,
 				1100DBA826B391FA00AB1FB3 /* Sources */,
 				1100DBA926B391FA00AB1FB3 /* Frameworks */,
@@ -1196,12 +1154,6 @@
 			mainGroup = 11F262A023260CF30009C103;
 			productRefGroup = 11F262AB23260CF40009C103 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 11C49B182733FCB500B86E08 /* Products */;
-					ProjectRef = 11C49B172733FCB500B86E08 /* DIDExample.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				11F262A923260CF40009C103 /* ElastosDIDSDK */,
@@ -1212,30 +1164,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		11C49B1E2733FCB500B86E08 /* DIDExample.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = DIDExample.app;
-			remoteRef = 11C49B1D2733FCB500B86E08 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		11C49B202733FCB500B86E08 /* DIDExampleTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = DIDExampleTests.xctest;
-			remoteRef = 11C49B1F2733FCB500B86E08 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		11C49B222733FCB500B86E08 /* DIDExampleUITests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = DIDExampleUITests.xctest;
-			remoteRef = 11C49B212733FCB500B86E08 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1100DBAA26B391FA00AB1FB3 /* Resources */ = {
@@ -1286,28 +1214,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "FMK_NAME=${PROJECT_NAME}\nINSTALL_DIR=${SRCROOT}/'Products'/${FMK_NAME}'.framework'\nFINAL_DIR=${SRCROOT}/Products\nWRK_DIR=${BUILD_DIR}\nDEVICE_DIR=${WRK_DIR}'/Debug-iphoneos'/${FMK_NAME}'.framework'\nSIMULATOR_DIR=${WRK_DIR}'/Debug-iphonesimulator'/${FMK_NAME}'.framework'\nxcodebuild -workspace ${FMK_NAME}\".xcworkspace\" -scheme ${FMK_NAME} OTHER_CFLAGS=\"-fembed-bitcode\" -configuration \"Debug\" -sdk iphoneos -arch arm64 OBJROOT=\"${OBJROOT}/DependentBuilds\" || exit 1\nxcodebuild -workspace ${FMK_NAME}\".xcworkspace\" -scheme ${FMK_NAME} OTHER_CFLAGS=\"-fembed-bitcode\" -configuration \"Debug\" -sdk iphonesimulator -arch x86_64 OBJROOT=\"${OBJROOT}/DependentBuilds\" || exit 1\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]\nthen\nrm -rf \"${INSTALL_DIR}\"\nfi\nmkdir -p \"${INSTALL_DIR}\"\ncp -R \"${DEVICE_DIR}/\" \"${INSTALL_DIR}/\"\ncp -R \"${SIMULATOR_DIR}/Modules/${FMK_NAME}.swiftmodule/\" \"${INSTALL_DIR}/Modules/${FMK_NAME}.swiftmodule/\"\nlipo -create \"${DEVICE_DIR}/${FMK_NAME}\" \"${SIMULATOR_DIR}/${FMK_NAME}\" -output \"${INSTALL_DIR}/${FMK_NAME}\"\nrm -r \"${WRK_DIR}\"\nopen \"${FINAL_DIR}\"\n";
-		};
-		139D9E7DD0DB196090E43A0F /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ElastosDIDSDK_macOS-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
 		};
 		23CFDF98F56189FB9712B4B5 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1689,7 +1595,6 @@
 /* Begin XCBuildConfiguration section */
 		1100DBBE26B391FA00AB1FB3 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5699F1AE39E513CD66E1D534 /* Pods-ElastosDIDSDK_macOS.debug.xcconfig */;
 			buildSettings = {
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -1722,7 +1627,6 @@
 		};
 		1100DBBF26B391FA00AB1FB3 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 76C9A10F32B5E1905AE74076 /* Pods-ElastosDIDSDK_macOS.release.xcconfig */;
 			buildSettings = {
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;

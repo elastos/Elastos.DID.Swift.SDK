@@ -12,8 +12,8 @@ class InitializeDID: NSObject {
         do {
             super.init()
             // Initializa the DID backend globally.
-            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
-
+//            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
+            try DIDBackend.initialize(AssistDIDAdapter(network: "mainnet")) 
             try initPrivateIdentity()
             try initDid()
         } catch {

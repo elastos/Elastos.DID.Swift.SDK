@@ -8,8 +8,8 @@ class IssueCredential: NSObject {
         
         do {
             // Initializa the DID backend globally.
-            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
-            
+//            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
+            try DIDBackend.initialize(AssistDIDAdapter(network: "mainnet")) 
             try example.initPrivateIdentity()
             try example.initDid()
         } catch {
