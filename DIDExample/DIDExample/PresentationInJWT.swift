@@ -33,26 +33,31 @@ class PresentationInJWT: NSObject {
             print("  Genuine: \(try vp.isGenuine())")
             print("  Valid: \(try vp.isValid())")
             
-            let calendar = Calendar.current
+            let userCalendar = Calendar.current
             var components = DateComponents()
-            components.year = 2027
-            let iat = Date()
-            let nbf = Date()
-            let exp = calendar.date(from: components)
-            
+            components.year = 2020
+            components.month = 9
+            components.day = 14
+            components.minute = 21
+            components.hour = 21
+            components.second = 41
+            let iat = userCalendar.date(from: components)
+
+            let exp = iat! + 100000000000
+            let nbf = iat! - 10
             
             // Create JWT token with presentation.
             let token = try student.getDocument().jwtBuilder()
                 .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
                 .setId(id: "test00000000")
                 .setAudience(audience: university.getDid.description)
-                .setIssuedAt(issuedAt: iat)
+                .setIssuedAt(issuedAt: iat!)
                 .setNotBefore(nbf: nbf)
-                .setExpiration(expiration: exp!)
+                .setExpiration(expiration: exp)
                 .claimWithJson(name: "presentation", jsonValue: vp.description)
                 .sign(using: student.storepass)
                 .compact()
-            
+
             print("JWT Token:")
             print("  \(token)")
             
@@ -79,7 +84,6 @@ class PresentationInJWT: NSObject {
                 jwt = try jp.parseClaimsJwt(token)
             } catch {
                 // Should be here.
-                print("jp.parseClaimsJwt(token) error: \(error)")
             }
         } catch {
             print("PresentationInJWT init error: \(error)")
@@ -118,9 +122,7 @@ public class PresentationInJWTEntity: NSObject {
         print("  Mnemonic: \(mnemonic)")
         print("  Mnemonic passphrase: \(passphrase)")
         print("  Store password: \(storepass)")
-        let identity = try RootIdentity.create(mnemonic, passphrase, store, storepass)
-        let re = try identity.synchronize(0)
-        print(re)
+        _ = try RootIdentity.create(mnemonic, passphrase, store, storepass)
     }
     
     func initDid() throws {
@@ -209,15 +211,22 @@ public class JWTStudent: PresentationInJWTEntity {
         let subject = ["name": name, "gender": gender, "email": email]
         let userCalendar = Calendar.current
         var components = DateComponents()
-        components.year = 2023
-        let exp = userCalendar.date(from: components)
+        components.year = 2020
+        components.month = 9
+        components.day = 14
+        components.minute = 21
+        components.hour = 21
+        components.second = 41
+        let iat = userCalendar.date(from: components)
+
+        let exp = iat! + 100000000000
         let cb = try VerifiableCredentialIssuer(getDocument()).editingVerifiableCredentialFor(did: did)
         let vc = try cb.withId("profile")
             .withTypes("ProfileCredential", "SelfProclaimedCredential")
             .withProperties(subject)
-            .withExpirationDate(exp!)
+            .withExpirationDate(exp)
             .seal(using: storepass)
-        
+
         return vc
     }
     
