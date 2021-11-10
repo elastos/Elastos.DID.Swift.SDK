@@ -10,6 +10,8 @@
 		1119F92C27348C4400518B1D /* UsageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92B27348C4400518B1D /* UsageViewController.swift */; };
 		1119F92E27348D1F00518B1D /* UsageListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92D27348D1F00518B1D /* UsageListCell.swift */; };
 		1119F9302734956F00518B1D /* UserInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92F2734956F00518B1D /* UserInfo.swift */; };
+		112C4F29273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */; };
+		112C4F2A273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		116951282730D809003204CA /* AssistDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951272730D809003204CA /* AssistDIDAdapter.swift */; };
 		1169512A2730E09D003204CA /* AssistDIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951292730E09D003204CA /* AssistDIDRequest.swift */; };
 		1169512C2730E3AA003204CA /* CreatePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1169512B2730E3AA003204CA /* CreatePresentation.swift */; };
@@ -23,10 +25,7 @@
 		11B72DE9272A3C4200D9A32B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 11B72DE7272A3C4200D9A32B /* Main.storyboard */; };
 		11B72DEB272A3C4400D9A32B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 11B72DEA272A3C4400D9A32B /* Assets.xcassets */; };
 		11B72DEE272A3C4400D9A32B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 11B72DEC272A3C4400D9A32B /* LaunchScreen.storyboard */; };
-		11B72DF9272A3C4400D9A32B /* DIDExampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B72DF8272A3C4400D9A32B /* DIDExampleTests.swift */; };
-		11B72E03272A3C4400D9A32B /* DIDExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B72E02272A3C4400D9A32B /* DIDExampleUITests.swift */; };
-		11B72E05272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B72E04272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift */; };
-		582105BE8AD3ED0933C5F8D9 /* libPods-DIDExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B7092A009077FAC9D5C05C16 /* libPods-DIDExample.a */; };
+		234EA3AA89C1BD463A65CFD5 /* Pods_DIDExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2ECEA721B032DA78B437868 /* Pods_DIDExample.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,11 +45,26 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		112C4F2B273B7B3A00EEF4BA /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				112C4F2A273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		1119F92727348AD900518B1D /* DIDExample-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DIDExample-Bridging-Header.h"; sourceTree = "<group>"; };
 		1119F92B27348C4400518B1D /* UsageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageViewController.swift; sourceTree = "<group>"; };
 		1119F92D27348D1F00518B1D /* UsageListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageListCell.swift; sourceTree = "<group>"; };
 		1119F92F2734956F00518B1D /* UserInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfo.swift; sourceTree = "<group>"; };
+		112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		116951272730D809003204CA /* AssistDIDAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDAdapter.swift; sourceTree = "<group>"; };
 		116951292730E09D003204CA /* AssistDIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDRequest.swift; sourceTree = "<group>"; };
 		1169512B2730E3AA003204CA /* CreatePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePresentation.swift; sourceTree = "<group>"; };
@@ -67,14 +81,11 @@
 		11B72DED272A3C4400D9A32B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		11B72DEF272A3C4400D9A32B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		11B72DF4272A3C4400D9A32B /* DIDExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DIDExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		11B72DF8272A3C4400D9A32B /* DIDExampleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDExampleTests.swift; sourceTree = "<group>"; };
 		11B72DFE272A3C4400D9A32B /* DIDExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DIDExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		11B72E02272A3C4400D9A32B /* DIDExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDExampleUITests.swift; sourceTree = "<group>"; };
-		11B72E04272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDExampleUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		11C49B232733FCDC00B86E08 /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.debug.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.debug.xcconfig"; sourceTree = "<group>"; };
-		98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.release.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.release.xcconfig"; sourceTree = "<group>"; };
-		B7092A009077FAC9D5C05C16 /* libPods-DIDExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DIDExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		661270AF9F4AEE387B6A1F94 /* Pods-DIDExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.release.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.release.xcconfig"; sourceTree = "<group>"; };
+		6C87CF01DDAB28E382BC872E /* Pods-DIDExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DIDExample.debug.xcconfig"; path = "Target Support Files/Pods-DIDExample/Pods-DIDExample.debug.xcconfig"; sourceTree = "<group>"; };
+		E2ECEA721B032DA78B437868 /* Pods_DIDExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DIDExample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,7 +93,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				582105BE8AD3ED0933C5F8D9 /* libPods-DIDExample.a in Frameworks */,
+				112C4F29273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Frameworks */,
+				234EA3AA89C1BD463A65CFD5 /* Pods_DIDExample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,12 +119,10 @@
 			isa = PBXGroup;
 			children = (
 				11B72DE0272A3C4200D9A32B /* DIDExample */,
-				11B72DF7272A3C4400D9A32B /* DIDExampleTests */,
-				11B72E01272A3C4400D9A32B /* DIDExampleUITests */,
 				11B72DDF272A3C4200D9A32B /* Products */,
 				775CEBB4C83AFDF65497C367 /* Frameworks */,
-				C601075A4E72DD7F3DDC4A5B /* Pods */,
 				1119F92727348AD900518B1D /* DIDExample-Bridging-Header.h */,
+				9E4876341B3CC66EDBAD2CAE /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -150,39 +160,24 @@
 			path = DIDExample;
 			sourceTree = "<group>";
 		};
-		11B72DF7272A3C4400D9A32B /* DIDExampleTests */ = {
-			isa = PBXGroup;
-			children = (
-				11B72DF8272A3C4400D9A32B /* DIDExampleTests.swift */,
-			);
-			path = DIDExampleTests;
-			sourceTree = "<group>";
-		};
-		11B72E01272A3C4400D9A32B /* DIDExampleUITests */ = {
-			isa = PBXGroup;
-			children = (
-				11B72E02272A3C4400D9A32B /* DIDExampleUITests.swift */,
-				11B72E04272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift */,
-			);
-			path = DIDExampleUITests;
-			sourceTree = "<group>";
-		};
 		775CEBB4C83AFDF65497C367 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */,
 				11C49B232733FCDC00B86E08 /* ElastosDIDSDK.framework */,
-				B7092A009077FAC9D5C05C16 /* libPods-DIDExample.a */,
+				E2ECEA721B032DA78B437868 /* Pods_DIDExample.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		C601075A4E72DD7F3DDC4A5B /* Pods */ = {
+		9E4876341B3CC66EDBAD2CAE /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */,
-				98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */,
+				6C87CF01DDAB28E382BC872E /* Pods-DIDExample.debug.xcconfig */,
+				661270AF9F4AEE387B6A1F94 /* Pods-DIDExample.release.xcconfig */,
 			);
-			path = Pods;
+			name = Pods;
+			path = ../Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -196,6 +191,8 @@
 				11B72DDA272A3C4200D9A32B /* Sources */,
 				11B72DDB272A3C4200D9A32B /* Frameworks */,
 				11B72DDC272A3C4200D9A32B /* Resources */,
+				112C4F2B273B7B3A00EEF4BA /* Embed Frameworks */,
+				46E621813DB0B0060DE6A3BD /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -336,6 +333,23 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		46E621813DB0B0060DE6A3BD /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-DIDExample/Pods-DIDExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-DIDExample/Pods-DIDExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-DIDExample/Pods-DIDExample-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -363,7 +377,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B72DF9272A3C4400D9A32B /* DIDExampleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,8 +384,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11B72E03272A3C4400D9A32B /* DIDExampleUITests.swift in Sources */,
-				11B72E05272A3C4400D9A32B /* DIDExampleUITestsLaunchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -469,6 +480,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -523,13 +535,14 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 4.2;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		11B72E09272A3C4400D9A32B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2B6B8C6A30A2F66D804C6584 /* Pods-DIDExample.debug.xcconfig */;
+			baseConfigurationReference = 6C87CF01DDAB28E382BC872E /* Pods-DIDExample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -554,14 +567,14 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "DIDExample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		11B72E0A272A3C4400D9A32B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 98A5F43327C2E32B4D08F325 /* Pods-DIDExample.release.xcconfig */;
+			baseConfigurationReference = 661270AF9F4AEE387B6A1F94 /* Pods-DIDExample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -585,7 +598,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "DIDExample-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

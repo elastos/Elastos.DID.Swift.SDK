@@ -1,5 +1,5 @@
 def import_pods
-  pod 'PromiseKit'
+  pod 'PromiseKit', '~> 6.8'
   pod 'BlueRSA', '~> 1.0'
   pod 'LoggerAPI', '~> 1.7'
   pod 'KituraContracts', '~> 1.1'
@@ -13,8 +13,13 @@ def import_pods
 
 end
 
+workspace 'ElastosDIDSDK.xcworkspace'
+xcodeproj 'ElastosDIDSDK.xcodeproj' 
+xcodeproj 'DIDExample/DIDExample.xcodeproj'
+
 target :ElastosDIDSDK do
-  platform :ios, '10.10'
+xcodeproj 'ElastosDIDSDK' 
+  platform :ios, '11.0'
   use_frameworks!
   import_pods
   target 'ElastosDIDSDKTests' do
@@ -25,11 +30,12 @@ target :ElastosDIDSDK do
   end
 end
 
-target :ElastosDIDSDK_macOS do
-    platform :osx, '10.15'
+target :"DIDExample" do
+xcodeproj 'DIDExample/DIDExample'
+    source 'https://github.com/CocoaPods/Specs.git'
+    platform :ios, '11.0'
     use_frameworks!
     import_pods
+    pod 'WMPageController'
+    pod 'SnapKit', '~> 4.0.0'
 end
-
-
-

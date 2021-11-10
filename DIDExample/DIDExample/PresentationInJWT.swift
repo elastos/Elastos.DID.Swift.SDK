@@ -6,8 +6,8 @@ class PresentationInJWT: NSObject {
     override init() {
         do {
             // Initializa the DID backend globally.
-            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
-            
+//            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
+            try DIDBackend.initialize(AssistDIDAdapter(network: "mainnet")) 
             let university = JWTUniversity(name: "Elastos")
             let student = try JWTStudent("John Smith", "Male", "johnsmith@example.org")
             

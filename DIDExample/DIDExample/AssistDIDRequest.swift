@@ -26,7 +26,10 @@ class AssistDIDRequest {
     func serialize(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeStringField("did", did.description)
-        if memo != nil && memo != "" {
+        if memo == nil || memo == "" {
+            generator.writeStringField("memo", "")
+        }
+        else {
             generator.writeStringField("memo", memo!)
         }
         generator.writeStringField("requestFrom", agent)
