@@ -2,46 +2,39 @@
 import XCTest
 @testable import ElastosDIDSDK
 
-/*
 class JwtTest: XCTestCase {
+    var testData: TestData!
+    var doc: DIDDocument!
 
-    func testTokenJwt() {
+    override func setUp() {
+        // Put setup code here. This method is called before the invocation of each test method in the class.
+//        let toks = token.split(separator: ".")
+//        let str  = "\(toks[0]).\(toks[1])"
+//        _ = try doc!.verify(signature: "\(toks[2])", onto: str.data(using: String.Encoding.utf8)!)
         do {
-            try DIDBackend.initializeInstance(resolver, TestData.getResolverCacheDir())
-            let store = try DIDStore.open(atPath: "/Users/liaihong/Desktop/java/Temp/store/testapp", withType: "filesystem", adapter: DummyAdapter())
-            let doc = try store.loadDid(store.getDid(byPrivateIdentityIndex: 0))
-            let token = try doc!.jwtBuilder()
-                .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
-                .addHeader(key: Header.CONTENT_TYPE, value: "json")
-                .addHeader(key: "library", value: "Elastos DID")
-                .addHeader(key: "version", value: "1.0")
-                .setSubject(sub: "JwtTest")
-                .setId(id: "0")
-                .setAudience(audience: "Test cases")
-                .claim(name: "foo", value: "bar")
-                .sign(using: "password")
-                .compact()
-            print(token)
-            let toks = token.split(separator: ".")
-            let str  = "\(toks[0]).\(toks[1])"
-            _ = try doc!.verify(signature: "\(toks[2])", onto: str.data(using: String.Encoding.utf8)!)
-            _ = try doc?.jwtParserBuilder().build().parseClaimsJwt(token)
-        } catch {
-            print(error)
-            XCTFail()
+            let adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+            try! DIDBackend.initialize(adapter)
+            testData = TestData()
+            let identity = try testData.getRootIdentity()
+            doc = try identity.newDid(storePassword)
+            
+            let key = try TestData.generateKeypair()
+            let db = try doc.editing()
+            let id = try DIDURL(doc.subject, "#key2")
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+
+            try testData.store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storePassword)
+            doc = try db.seal(using: storePassword)
+            try testData.store!.storeDid(using: doc)
+            try doc.publish(using: storePassword)
+        }
+        catch {
+          print("JwtTest ERROR: \(error)")
         }
     }
-
-    func testJWT() {
+    
+    func testjwt() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
-            XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
-
             var h = JwtBuilder.createHeader()
             _ = h.setType("JWT")
                 .setContentType("json")
@@ -94,8 +87,12 @@ class JwtTest: XCTestCase {
             XCTAssertEqual(exp, c.getExpiration())
             XCTAssertEqual(nbf, c.getNotBefore())
             XCTAssertEqual("bar", c.get(key: "foo") as! String)
-
-        } catch {
+            
+            let jp0 = try JwtParserBuilder().build()
+            let jwt0 = try jp0.parseClaimsJwt(token)
+            print("jwt0")
+        }
+        catch {
             print(error)
             XCTFail()
         }
@@ -103,13 +100,8 @@ class JwtTest: XCTestCase {
 
     func testSignWithDefaultKey() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             var h = JwtBuilder.createHeader()
             h = h.setType(Header.JWT_TYPE)
@@ -176,13 +168,8 @@ class JwtTest: XCTestCase {
 
     func testSignWithSpecificKey() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -243,13 +230,8 @@ class JwtTest: XCTestCase {
 
     func testAutoVerify() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -312,13 +294,8 @@ class JwtTest: XCTestCase {
 
     func testClaimJsonNode() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -332,8 +309,8 @@ class JwtTest: XCTestCase {
 
             let exp = iat! + 100000000000
             let nbf = iat! - 10
-            let node = try testData.loadEmailVcNormalizedJson()
-            let dic: [String: Any]? = try JSONSerialization.jsonObject(with: node.data(using: .utf8)!, options: []) as? [String: Any]
+            let vcEmail = try testData.sharedInstantData().getUser1Document().credential(ofId: "#email")
+            let dic: [String: Any]? = try JSONSerialization.jsonObject(with: vcEmail!.toString(true).data(using: .utf8)!, options: []) as? [String: Any]
 
             let token = try doc.jwtBuilder()
                 .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
@@ -378,7 +355,6 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(s)
             let d = c.get(key: "vc") as? [String: Any]
             XCTAssertNotNil(d)
-            XCTAssertEqual(try testData.loadEmailCredential().getId().description, d!["id"] as? String)
         } catch {
             XCTFail()
         }
@@ -386,13 +362,8 @@ class JwtTest: XCTestCase {
 
     func testClaimJsonText() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -407,7 +378,8 @@ class JwtTest: XCTestCase {
             let exp = iat! + 100000000000
             let nbf = iat! - 10
 
-            let jsonValue = try testData.loadEmailVcNormalizedJson()
+            let vcPassport = try testData.sharedInstantData().getUser1PassportCredential()
+            let jsonValue = vcPassport.toString(true)
             let token = try doc.jwtBuilder()
                     .addHeader(key: Header.TYPE, value: Header.JWT_TYPE)
                     .addHeader(key: Header.CONTENT_TYPE, value: "json")
@@ -450,7 +422,6 @@ class JwtTest: XCTestCase {
             XCTAssertNotNil(s)
             let d = c.get(key: "vc") as? [String: Any]
             XCTAssertNotNil(d)
-            XCTAssertEqual(try testData.loadEmailCredential().getId().description, d!["id"] as? String)
         } catch {
             XCTFail()
         }
@@ -458,13 +429,8 @@ class JwtTest: XCTestCase {
 
     func testSignSetClaimWithJsonNode() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -534,13 +500,8 @@ class JwtTest: XCTestCase {
 
     func testSetClaimWithJsonText() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -610,13 +571,8 @@ class JwtTest: XCTestCase {
 
     func testAddClaimWithJsonNode() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -685,13 +641,8 @@ class JwtTest: XCTestCase {
 
     func testAddClaimWithJsonText() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
 
             let userCalendar = Calendar.current
             var components = DateComponents()
@@ -759,13 +710,8 @@ class JwtTest: XCTestCase {
 
     func testExpiration() {
         do {
-            let testData = TestData()
-            _ = try testData.setup(true)
-            _ = try testData.initIdentity()
-
-            let doc = try testData.loadTestDocument()
             XCTAssertNotNil(doc)
-            XCTAssertTrue(doc.isValid)
+            XCTAssertTrue(try doc.isValid())
             let userCalendar = Calendar.current
             var components = DateComponents()
             components.year = 2020
@@ -809,10 +755,6 @@ class JwtTest: XCTestCase {
         }
     }
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
@@ -828,6 +770,4 @@ class JwtTest: XCTestCase {
             // Put the code you want to measure the time of here.
         }
     }
-
 }
-*/
