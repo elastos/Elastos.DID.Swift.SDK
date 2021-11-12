@@ -556,6 +556,12 @@ public class DIDStore: NSObject {
         }
     }
     
+    /// Check if this store contains DIDs.
+    /// - Returns: true if the store contains DIDs, false otherwise
+    public func containsDids() throws -> Bool {
+        return try storage!.containsDids()
+    }
+
     /// Check if this store contains the specific DID.
     /// - Parameter did: the specified DID
     /// - Returns: true if the store contains this DID, false otherwise
