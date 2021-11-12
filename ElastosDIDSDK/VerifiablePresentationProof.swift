@@ -31,7 +31,8 @@ public class VerifiablePresentationProof: NSObject {
     private let _realm: String
     private let _nonce: String
     private let _signature: String
-    
+    private var created: Date?
+
     /// Create the proof object with the given values.
     /// - Parameters:
     ///   - type: the type string

@@ -30,8 +30,10 @@ public class VerifiableCredentialBuilder: NSObject {
     private var _credential: VerifiableCredential?
     private var _signKey: DIDURL
     private var _forDoc: DIDDocument
+    static let CONTEXT = "@context"
+    public static let DEFAULT_CREDENTIAL_TYPE = "VerifiableCredential"
 
-    init(_ issuer: VerifiableCredentialIssuer, _ target: DID, _ doc: DIDDocument, _ signKey: DIDURL) {
+    init(_ issuer: VerifiableCredentialIssuer, _ target: DID, _ doc: DIDDocument, _ signKey: DIDURL) throws {
         _issuer = issuer
         _target  = target
         _forDoc  = doc
@@ -40,6 +42,8 @@ public class VerifiableCredentialBuilder: NSObject {
         _credential = VerifiableCredential()
         _credential?.setIssuer(issuer.did)
         _credential?.setSubject(VerifiableCredentialSubject(target))
+        super.init()
+        try setDefaultType()
     }
     
     private func checkNotSealed() throws {
@@ -75,29 +79,87 @@ public class VerifiableCredentialBuilder: NSObject {
 
         return try withId(DIDURL(_target, id))
     }
-
-    /// Set Credential types.
-    /// - Parameter types: the credential types, which declare what data to expect in the credential
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder object.
-    public func withTypes(_ types: String...) throws -> VerifiableCredentialBuilder {
+    
+    /// Add a new credential type.
+    /// - Parameters:
+    ///   - type: the type name
+    ///   - context: the JSON-LD context for type, or null if not enabled the JSON-LD feature
+    /// - Returns: the VerifiableCredentialBuilder instance for method chaining
+    @objc(withType:context:error:)
+    public func withType(_ type: String, _ context: String) throws -> VerifiableCredentialBuilder{
         try checkNotSealed()
-        try checkArgument(types.count > 0, "Invalid types")
-        _credential!.setType(types)
+        try checkArgument(!type.isEmpty, "Invalid type: \(type)")
+        if (Features.isEnabledJsonLdContext()) {
+            try checkArgument(!context.isEmpty, "Invalid context: \(context)")
+            if !_credential!._context.contains(context) {
+                _credential!._context.append(context)
+            }
+        }
+        
+        if (!_credential!.getTypes().contains(type)) {
+            _credential?.appendType(type)
+        }
         
         return self
     }
-   
-    /// Set Credential types.
-    /// - Parameter types: the credential types, which declare what data to expect in the credential
-    /// - Throws: if an error occurred, throw error.
-    /// - Returns: VerifiableCredentialBuilder object.
+    
+    /// Add a new credential type.
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    /// [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - Parameter type: the type name
+    /// - Returns: the VerifiableCredentialBuilder instance for method chaining
+    public func withType(_ type: String) throws -> VerifiableCredentialBuilder {
+        try checkNotSealed()
+        try checkArgument(!type.isEmpty, "Invalid type: \(type)")
+        if type.index(of: "#") == nil {
+            return try withType(type, "")
+        }
+        else {
+            let content_type = type.split(separator: "#")
+            return try withType(String(content_type[1]), String(content_type[0]))
+        }
+    }
+
+    /// Add a new credential type.
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    /// [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - Parameter type: the type names
+    /// - Returns: the VerifiableCredentialBuilder instance for method chaining
+    public func withTypes(_ types: String...) throws -> VerifiableCredentialBuilder {
+        if types.count == 0 {
+            return self
+        }
+        try checkNotSealed()
+        try types.forEach { item in
+            try _ = withType(item)
+        }
+        
+        return self
+    }
+    
+    /// Add a new credential type.
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    /// [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - Parameter type: the type names
+    /// - Returns: the VerifiableCredentialBuilder instance for method chaining
     @objc
     public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
-
-        try checkNotSealed()
-        try checkArgument(types.count > 0, "Invalid types")
-        _credential!.setType(types)
+        try _ = withTypes(types)
         
         return self
      }
@@ -212,7 +274,9 @@ public class VerifiableCredentialBuilder: NSObject {
         if _credential!.hasExpirationDate() {
             _ = try withDefaultExpirationDate()
         }
-        
+        // TODO: CHECK
+        _ = _credential!._types.sorted()
+
         _credential?.setProof(nil)
     }
 
@@ -248,6 +312,22 @@ public class VerifiableCredentialBuilder: NSObject {
         self._credential = nil
 
         return sealed
+    }
+    
+    func setDefaultType() throws {
+        try checkNotSealed()
+        if (Features.isEnabledJsonLdContext()) {
+            if !_credential!._context.contains(VerifiableCredential.W3C_CREDENTIAL_CONTEXT) {
+                _credential!._context.append(VerifiableCredential.W3C_CREDENTIAL_CONTEXT)
+            }
+            if !_credential!._context.contains(VerifiableCredential.ELASTOS_CREDENTIAL_CONTEXT) {
+                _credential!._context.append(VerifiableCredential.ELASTOS_CREDENTIAL_CONTEXT)
+            }
+        }
+        
+        if !_credential!.getTypes().contains(VerifiableCredentialBuilder.DEFAULT_CREDENTIAL_TYPE) {
+            _credential!.appendType(VerifiableCredentialBuilder.DEFAULT_CREDENTIAL_TYPE)
+        }
     }
 
     private func maxExpirationDate() -> Date {

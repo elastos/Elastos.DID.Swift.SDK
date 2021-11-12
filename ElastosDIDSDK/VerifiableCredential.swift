@@ -47,8 +47,11 @@ public class VerifiableCredential: DIDObject {
     private let CREATED = "created";
     private let SIGNATURE = "signature"
 
+    public static let W3C_CREDENTIAL_CONTEXT = "https://www.w3.org/2018/credentials/v1"
+    public static let ELASTOS_CREDENTIAL_CONTEXT = "https://elastos.org/credentials/v1"
+    
+    var _types: Array<String> = []
     private var _id: DIDURL?
-    private var _types: Array<String> = []
     private var _issuer: DID?
     private var _issuanceDateString: String?
     private var _expirationDateString: String?
@@ -61,6 +64,7 @@ public class VerifiableCredential: DIDObject {
     private let RULE_EXPIRE : Int = 1
     private let RULE_GENUINE: Int = 2
     private let RULE_VALID  : Int = 3
+    var _context: [String] = [ ]
 
     override init() {
         super.init()
@@ -70,6 +74,7 @@ public class VerifiableCredential: DIDObject {
     /// - Parameter credential: the source credential object
     init(_ credential: VerifiableCredential, _ withProof: Bool) throws {
         super.init(credential.getId()!, credential.getType())
+        self._context = credential._context
         self._id = credential._id
         self._types = credential.getTypes()
         self._issuer = credential.issuer

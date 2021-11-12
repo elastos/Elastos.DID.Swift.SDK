@@ -33,4 +33,10 @@ extension NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(mesg)
         }
     }
+    
+    func checkState(_ full: Bool, _ mesg: String) throws {
+        guard full else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(mesg)
+        }
+    }
 }

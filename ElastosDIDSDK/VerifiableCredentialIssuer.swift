@@ -137,14 +137,14 @@ public class VerifiableCredentialIssuer: NSObject {
     /// - Returns: VerifiableCredentialBuilder instance.
     @objc
     public func editingVerifiableCredentialFor(did: String) throws -> VerifiableCredentialBuilder {
-        return VerifiableCredentialBuilder(self, try DID(did), _issuerDoc, signKey)
+        return try VerifiableCredentialBuilder(self, try DID(did), _issuerDoc, signKey)
     }
 
     /// Get VerifiableCredential Builder to modify VerifiableCredential.
     /// - Parameter did: Issuer’s did.
     /// - Returns: VerifiableCredentialBuilder instance.
-    @objc(editingVerifiableCredentialForDid:)
-    public func editingVerifiableCredentialFor(did: DID) -> VerifiableCredentialBuilder {
-        return VerifiableCredentialBuilder(self, did, _issuerDoc, signKey)
+    @objc(editingVerifiableCredentialForDidWith:error:)
+    public func editingVerifiableCredentialFor(did: DID) throws -> VerifiableCredentialBuilder {
+        return try VerifiableCredentialBuilder(self, did, _issuerDoc, signKey)
     }
 }

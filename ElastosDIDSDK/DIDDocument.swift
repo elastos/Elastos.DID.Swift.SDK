@@ -34,6 +34,7 @@ import PromiseKit
 @objc(DIDDocument)
 public class DIDDocument: NSObject {
     private static let TAG = NSStringFromClass(DIDDocument.self)
+    let CONTEXT = "@context"
     let ID = "id"
     let PUBLICKEY = "publicKey"
     let TYPE = "type"
@@ -74,6 +75,7 @@ public class DIDDocument: NSObject {
     var _authenticationKeys: [DIDURL: PublicKey] = [: ]
     var _authorizationKeys: [DIDURL: PublicKey] = [: ]
     private var _capacity: Int = 0
+    var _context: [String] = [ ]
 
     override init() { }
 
@@ -86,6 +88,7 @@ public class DIDDocument: NSObject {
     ///   - doc: the document be copied
     ///   - withProof: copy with the proof or not
     init(_ doc: DIDDocument, _ withProof: Bool) {
+        _context = doc._context
         _subject = doc.subject
         _controllers = doc._controllers
         _controllerDocs = doc._controllerDocs
@@ -1837,6 +1840,7 @@ public class DIDDocument: NSObject {
     
     func copy() throws -> DIDDocument {
         let doc = DIDDocument(subject)
+        doc._context = _context
         doc._controllers = _controllers.copy()
         doc._controllerDocs = _controllerDocs.copy()
         if self._multisig != nil {
@@ -2298,7 +2302,7 @@ public class DIDDocument: NSObject {
             }
         }
         // TODO: LOG
-        let db = DIDDocumentBuilder(did, self, store!)
+        let db = try DIDDocumentBuilder(did, self, store!)
         try ctrls.forEach { ctrl in
             _ = try db.appendController(with: ctrl)
         }
@@ -4045,7 +4049,7 @@ extension DIDDocument {
 
     public func clone() throws -> DIDDocument {
         let doc = DIDDocument(subject)
-
+        doc._context = _context
         doc._controllers = _controllers
         doc._controllerDocs = _controllerDocs
         doc._effectiveController = _effectiveController

@@ -30,6 +30,7 @@ public class VerifiablePresentationBuilder: NSObject {
     private let _signKey: DIDURL
     private var _realm: String?
     private var _nonce: String?
+    static let CONTEXT = "@context"
 
     private var presentation: VerifiablePresentation?
     
@@ -64,35 +65,113 @@ public class VerifiablePresentationBuilder: NSObject {
         return try withId(DIDURL.valueOf(_holder.subject, id)!)
     }
     
-    /// Set credential types.
-    /// - Parameter type: the type strings
-    /// - Returns: the Builder instance for method chaining
+    func setDefaultType() throws {
+        try checkNotSealed()
+        
+        if (Features.isEnabledJsonLdContext()) {
+            if !presentation!._context.contains(VerifiableCredential.W3C_CREDENTIAL_CONTEXT) {
+                presentation!._context.append(VerifiableCredential.W3C_CREDENTIAL_CONTEXT)
+            }
+
+            if !presentation!._context.contains(VerifiableCredential.ELASTOS_CREDENTIAL_CONTEXT) {
+                presentation!._context.append(VerifiableCredential.ELASTOS_CREDENTIAL_CONTEXT)
+            }
+        }
+        
+        if !presentation!.types.contains(DEFAULT_PRESENTATION_TYPE) {
+            presentation!._types.append(DEFAULT_PRESENTATION_TYPE)
+        }
+    }
+    
+    /// Add a new presentation type.
+    /// - Parameters:
+    ///   - type: the type name
+    ///   - context: the JSON-LD context for type, or null if not enabled the JSON-LD feature
+    /// - Returns: the DIDDocumentBuilder instance for method chaining
+    public func withType(_ type: String, _ context: String) throws -> VerifiablePresentationBuilder {
+        try checkNotSealed()
+        try checkArgument(!type.isEmpty, "Invalid type: \(type)")
+        
+        if (Features.isEnabledJsonLdContext()) {
+            try checkArgument(!context.isEmpty, "Invalid context: \(context)")
+            
+            if !presentation!._context.contains(context) {
+                presentation!._context.append(context)
+            }
+        }
+        
+        if !presentation!.types.contains(type) {
+            presentation!._types.append(type)
+        }
+        
+        return self
+    }
+    
+    /// Add a new presentation type.
+    ///
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    ///   [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - type: the type name
+    /// - Returns: the VerifiablePresentationBuilder instance for method chaining
     public func withType(_ type: String) throws -> VerifiablePresentationBuilder {
         try checkNotSealed()
-        presentation!._types.append(type)
-        
-       return self
+        try checkArgument(!type.isEmpty, "Invalid type: \(type)")
+
+        if (type.index(of: "#") == nil) {
+            return try withType(type, "")
+        }
+        else {
+            let context_type = type.split(separator: "#")
+            return try withType(String(context_type[1]), String(context_type[0]))
+        }
     }
-   
-    /// Set credential types.
-    /// - Parameter type: the type strings
-    /// - Returns: the Builder instance for method chaining
+    
+    /// Add a new presentation type.
+    ///
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    ///   [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - type: the type names
+    /// - Returns: the VerifiablePresentationBuilder instance for method chaining
     public func withTypes(_ types: Array<String>) throws -> VerifiablePresentationBuilder {
 
-        try checkNotSealed()
-        try checkArgument(types.count > 0, "Invalid types")
-        presentation?._types.append(contentsOf: types)
-        return self
+        return try withTypes(types)
      }
     
-    /// Set credential types.
-    /// - Parameter type: the type strings
-    /// - Returns: the Builder instance for method chaining
+    /// Add a new presentation type.
+    ///
+    /// If enabled the JSON-LD feature, the type should be a full type URI:
+    ///   [scheme:]scheme-specific-part#fragment,
+    /// [scheme:]scheme-specific-part should be the context URL,
+    /// the fragment should be the type name.
+    ///
+    /// Otherwise, the context URL part and # symbol could be omitted or
+    /// ignored.
+    /// - type: the type names
+    /// - Returns: the VerifiablePresentationBuilder instance for method chaining
     public func withTypes(_ types: String...) throws -> VerifiablePresentationBuilder {
         
-        return try withTypes(types)
+        if types.count == 0 {
+            return self
+        }
+        try checkNotSealed()
+        
+        try types.forEach{ item in
+            try _ = withType(item)
+        }
+        
+        return self
     }
-    
+
     /// Set verifiable credentials for presentation.
     /// - Parameter credentials: Verifiable credentials
     /// - Throws: if an error occurred, throw error.
@@ -171,11 +250,10 @@ public class VerifiablePresentationBuilder: NSObject {
         try checkArgument(_realm != nil && _nonce != nil, "Missing realm and nonce")
 
         if presentation!.types.count == 0 {
-            presentation!._types.append(DEFAULT_PRESENTATION_TYPE)
-        } else {
-            let t = presentation!._types.sorted()
-            presentation!._types = t
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation type")
         }
+        _ = presentation!._types.sorted()
+
         presentation!.setCreatedDate(DateFormatter.currentDate())
         var data: [Data] = []
         data.append(presentation!.toJson(true))

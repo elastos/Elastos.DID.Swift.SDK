@@ -27,13 +27,20 @@ import Foundation
 public class DIDDocumentBuilder: NSObject {
     private var document: DIDDocument?
     private var controllerDoc: DIDDocument?
+    public let W3C_DID_CONTEXT = "https://www.w3.org/ns/did/v1"
+    public let ELASTOS_DID_CONTEXT = "https://elastos.org/did/v1"
+    public let W3ID_SECURITY_CONTEXT = "https://w3id.org/security/v1"
     
     /// Constructs DID Document Builder with given DID and DIDStore.
     /// - Parameters:
     ///   - did: the specified DID
     ///   - store: the DIDStore object
-    init(_ did: DID, _ store: DIDStore) {
+    init(_ did: DID, _ store: DIDStore) throws {
+        super.init()
         self.document = DIDDocument(did)
+        if Features.isEnabledJsonLdContext() {
+            _ = try appendDefaultContexts()
+        }
         let metadata = DIDMetadata(did, store)
         self.document!.setMetadata(metadata)
     }
@@ -42,8 +49,12 @@ public class DIDDocumentBuilder: NSObject {
     /// - Parameters:
     ///   - did: the specified DID
     ///   - store: the DIDStore object
-    init(_ did: DID, _ controller: DIDDocument, _ store: DIDStore) {
+    init(_ did: DID, _ controller: DIDDocument, _ store: DIDStore) throws {
+        super.init()
         self.document = DIDDocument(did)
+        if Features.isEnabledJsonLdContext() {
+            _ = try appendDefaultContexts()
+        }
         self.document!._controllers = []
         self.document!._controllerDocs = [: ]
         self.document!._controllers.append(controller.subject)
@@ -761,7 +772,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let issuer  = try VerifiableCredentialIssuer(document!)
-        let builder = issuer.editingVerifiableCredentialFor(did: document!.subject)
+        let builder = try issuer.editingVerifiableCredentialFor(did: document!.subject)
         
         let credential = try builder.withId(id)
             .withTypes(realTypes)
@@ -932,7 +943,7 @@ public class DIDDocumentBuilder: NSObject {
         }
 
         let issuer  = try VerifiableCredentialIssuer(document!)
-        let builder = issuer.editingVerifiableCredentialFor(did: document!.subject)
+        let builder = try issuer.editingVerifiableCredentialFor(did: document!.subject)
         
         let credential = try builder.withId(id)
             .withTypes(realTypes)
@@ -1533,5 +1544,34 @@ public class DIDDocumentBuilder: NSObject {
         }
         
         document!._proofs.removeAll()
+    }
+    
+    /// Add the default DID contexts(include W3C and Elastos DID contexts).
+    /// - Returns: the DIDDocumentBuilder instance for method chaining
+    public func appendDefaultContexts() throws -> DIDDocumentBuilder {
+        try checkState(Features.isEnabledJsonLdContext(), "JSON-LD context support not enabled")
+        if !document!._context.contains(W3C_DID_CONTEXT) {
+            document!._context.append(W3C_DID_CONTEXT)
+        }
+        if !document!._context.contains(ELASTOS_DID_CONTEXT) {
+            document!._context.append(ELASTOS_DID_CONTEXT)
+        }
+        if !document!._context.contains(W3ID_SECURITY_CONTEXT) {
+            document!._context.append(W3ID_SECURITY_CONTEXT)
+        }
+        
+        return self
+    }
+    
+    /// Add a new context to the document.
+    /// - Parameter uri: URI for the new context
+    /// - Returns: the DIDDocumentBuilder instance for method chaining
+    public func appendContext(_ uri: String)throws -> DIDDocumentBuilder {
+        try checkState(Features.isEnabledJsonLdContext(), "JSON-LD context support not enabled")
+        if !document!._context.contains(uri) {
+            document!._context.append(uri)
+        }
+        
+        return self
     }
 }
