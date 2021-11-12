@@ -392,6 +392,28 @@ public class FileSystemStorage: DIDStorage {
         }
     }
     
+    func containsDids() throws -> Bool {
+        let dir = getDir(currentDataDir, DID_DIR)
+        if try !dir.dirExists() {
+            return false
+        }
+        let fileManager = FileManager.default
+        let enumerator = try fileManager.contentsOfDirectory(atPath: dir)
+        
+        return enumerator.count > 0
+    }
+
+    private func getDir(_ path: String...) -> String {
+        var relPath = ""
+        relPath.append(storeRoot)
+        path.forEach { p in
+            relPath.append("/")
+            relPath.append(p)
+        }
+        
+        return relPath
+    }
+
     func loadDidMetadata(_ did: DID) throws -> DIDMetadata? {
         let file = try getDidMetadataFile(did, false)
         var metadata: DIDMetadata?

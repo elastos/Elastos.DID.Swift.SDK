@@ -65,6 +65,11 @@ protocol DIDStorage {
     func deleteDid(_ did: DID) -> Bool
     func listDids() throws -> Array<DID>
     func listPrivateKeys(_ did: DID) throws -> Array<DIDURL>
+    
+    /// Check if this storage contains DIDs.
+    /// - Returns: true if the store contains DIDs, false otherwise
+    func containsDids() throws -> Bool
+
 
     // Credentials
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws
