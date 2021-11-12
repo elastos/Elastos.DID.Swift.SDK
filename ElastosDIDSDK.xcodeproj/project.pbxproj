@@ -179,6 +179,8 @@
 		1183E1DC261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1183E1DB261EE21400F8CEF0 /* SimulatedIDChainAdapter.swift */; };
 		1183E3A1261F4D3100F8CEF0 /* resources in Resources */ = {isa = PBXBuildFile; fileRef = 1183E3A0261F4D3100F8CEF0 /* resources */; };
 		119338DD237E4DB800C4998E /* TestConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119338DC237E4DB800C4998E /* TestConfig.swift */; };
+		1197D509273CEB5A0024FF18 /* Features.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1197D508273CEB5A0024FF18 /* Features.swift */; };
+		1197D50A273CEB5A0024FF18 /* Features.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1197D508273CEB5A0024FF18 /* Features.swift */; };
 		119B299E2578ED210084B859 /* EllipticCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29932578ED210084B859 /* EllipticCurve.swift */; };
 		119B299F2578ED210084B859 /* ECPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29942578ED210084B859 /* ECPublicKey.swift */; };
 		119B29A02578ED210084B859 /* ECSignable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119B29952578ED210084B859 /* ECSignable.swift */; };
@@ -398,6 +400,7 @@
 		119338E2237E622300C4998E /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.1.tbd"; sourceTree = DEVELOPER_DIR; };
 		119338E4237E623100C4998E /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
 		119338E6237E623E00C4998E /* libc++abi.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++abi.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/lib/libc++abi.tbd"; sourceTree = DEVELOPER_DIR; };
+		1197D508273CEB5A0024FF18 /* Features.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features.swift; sourceTree = "<group>"; };
 		119B29932578ED210084B859 /* EllipticCurve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EllipticCurve.swift; sourceTree = "<group>"; };
 		119B29942578ED210084B859 /* ECPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECPublicKey.swift; sourceTree = "<group>"; };
 		119B29952578ED210084B859 /* ECSignable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ECSignable.swift; sourceTree = "<group>"; };
@@ -879,6 +882,7 @@
 				A31ACDF823F199AD008EC032 /* PublicKey.swift */,
 				A31ACDFA23F199AE008EC032 /* Service.swift */,
 				A31ACE0223F199AE008EC032 /* DIDDocument.swift */,
+				1197D508273CEB5A0024FF18 /* Features.swift */,
 				11BE33B72607796300DEBD00 /* PublicKeyReference.swift */,
 				119F0C9225FF07ED006D4F75 /* TransferTicket.swift */,
 				119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */,
@@ -1433,6 +1437,7 @@
 				1100DC9426B3925C00AB1FB3 /* VerifiableCredentialProof.swift in Sources */,
 				1100DC0D26B3924000AB1FB3 /* RegexHelper.swift in Sources */,
 				1100DC8726B3925C00AB1FB3 /* VerifiablePresentationBuilder.swift in Sources */,
+				1197D50A273CEB5A0024FF18 /* Features.swift in Sources */,
 				1100DC4026B3924F00AB1FB3 /* DIDBiographyStatus.swift in Sources */,
 				1100DC2C26B3924900AB1FB3 /* DIDMetadata.swift in Sources */,
 				1100DC4926B3924F00AB1FB3 /* IDTransactionInfo.swift in Sources */,
@@ -1552,6 +1557,7 @@
 				11C3ECEF2477807300DF1B4F /* JWTDecoder.swift in Sources */,
 				11BE33D22608513A00DEBD00 /* RootIdentity.swift in Sources */,
 				A31ACE6C23F19A66008EC032 /* IDChainRequest.swift in Sources */,
+				1197D509273CEB5A0024FF18 /* Features.swift in Sources */,
 				A31ACE1D23F199BA008EC032 /* VerifiablePresentationProof.swift in Sources */,
 				A31ACE0E23F199AE008EC032 /* DIDDocumentProof.swift in Sources */,
 				11CACAC62612E66B004145CB /* CredentialListRequest.swift in Sources */,
