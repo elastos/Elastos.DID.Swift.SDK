@@ -391,7 +391,7 @@ public class RootIdentity: NSObject {
         
         let id = try DIDURL(did, "#primary")
         try store?.storePrivateKey(for: id, privateKey: try key.serialize(), using: storePassword)
-        let db = DIDDocumentBuilder(did, store!)
+        let db = try DIDDocumentBuilder(did, store!)
         _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
         doc = try db.seal(using: storePassword)
         

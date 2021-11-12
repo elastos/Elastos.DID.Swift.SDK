@@ -53,7 +53,8 @@ public class VerifiablePresentation: NSObject {
     private var _createdDate: Date
     private var _verifiableCredentials: [DIDURL: VerifiableCredential] = [: ]
     private var _proof: VerifiablePresentationProof?
-    
+    var _context: [String] = [ ]
+
     /// Default constructor.
     override init() {
         self._createdDate = DateFormatter.currentDate()
@@ -70,6 +71,7 @@ public class VerifiablePresentation: NSObject {
     /// - Parameters:
     ///   - vp: the source VerifiablePresentation object
     init(_ vp: VerifiablePresentation, _ withProof: Bool) {
+        self._context = vp._context
         self._id = vp.id
         self._types = vp.types
         self._holder = vp.holder
