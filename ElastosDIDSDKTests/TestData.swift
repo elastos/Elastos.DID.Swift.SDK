@@ -551,7 +551,7 @@ class InstantData {
             doc.getMetadata().setAlias("Issuer")
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             var props = ["name": "Test Issuer"]
             props["nation"] = "Singapore"
             props["language"] = "English"
@@ -640,7 +640,7 @@ class InstantData {
                          "MAP": map] as [String : Any]
             _ = try db.appendService(with: "#carrier", type: "CarrierAddress", endpoint: "carrier://X2tDd1ZTErwnHNot8pTdhp7C7Y9FxMPGD8ppiasUT4UsHH2BpF1d", properties: map)
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            var cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            var cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             var prop: [String: String] = [: ]
             prop["name"] = "John"
             prop["gender"] = "Male"
@@ -654,7 +654,7 @@ class InstantData {
                 .seal(using: storePassword)
             
             let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
-            cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
 
             prop.removeAll()
             prop["email"] = "john@example.com"
@@ -684,7 +684,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#passport")
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props: [String: String] = ["nation": "Singapore", "passport": "S653258Z07"]
             
@@ -708,7 +708,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#twitter")
             
             let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
-            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["twitter": "@john"]
             
@@ -732,7 +732,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#json")
 
             let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
-            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
 
             let jsonProps = "{\"name\":\"Jay Holtslander\",\"alternateName\":\"Jason Holtslander\",\"booleanValue\":true,\"numberValue\":1234,\"doubleValue\":9.5,\"nationality\":\"Canadian\",\"birthPlace\":{\"type\":\"Place\",\"address\":{\"type\":\"PostalAddress\",\"addressLocality\":\"Vancouver\",\"addressRegion\":\"BC\",\"addressCountry\":\"Canada\"}},\"affiliation\":[{\"type\":\"Organization\",\"name\":\"Futurpreneur\",\"sameAs\":[\"https://twitter.com/futurpreneur\",\"https://www.facebook.com/futurpreneur/\",\"https://www.linkedin.com/company-beta/100369/\",\"https://www.youtube.com/user/CYBF\"]}],\"alumniOf\":[{\"type\":\"CollegeOrUniversity\",\"name\":\"Vancouver Film School\",\"sameAs\":\"https://en.wikipedia.org/wiki/Vancouver_Film_School\",\"year\":2000},{\"type\":\"CollegeOrUniversity\",\"name\":\"CodeCore Bootcamp\"}],\"gender\":\"Male\",\"Description\":\"Technologist\",\"disambiguatingDescription\":\"Co-founder of CodeCore Bootcamp\",\"jobTitle\":\"Technical Director\",\"worksFor\":[{\"type\":\"Organization\",\"name\":\"Skunkworks Creative Group Inc.\",\"sameAs\":[\"https://twitter.com/skunkworks_ca\",\"https://www.facebook.com/skunkworks.ca\",\"https://www.linkedin.com/company/skunkworks-creative-group-inc-\",\"https://plus.google.com/+SkunkworksCa\"]}],\"url\":\"https://jay.holtslander.ca\",\"image\":\"https://s.gravatar.com/avatar/961997eb7fd5c22b3e12fb3c8ca14e11?s=512&r=g\",\"address\":{\"type\":\"PostalAddress\",\"addressLocality\":\"Vancouver\",\"addressRegion\":\"BC\",\"addressCountry\":\"Canada\"},\"sameAs\":[\"https://twitter.com/j_holtslander\",\"https://pinterest.com/j_holtslander\",\"https://instagram.com/j_holtslander\",\"https://www.facebook.com/jay.holtslander\",\"https://ca.linkedin.com/in/holtslander/en\",\"https://plus.google.com/+JayHoltslander\",\"https://www.youtube.com/user/jasonh1234\",\"https://github.com/JayHoltslander\",\"https://profiles.wordpress.org/jasonh1234\",\"https://angel.co/j_holtslander\",\"https://www.foursquare.com/user/184843\",\"https://jholtslander.yelp.ca\",\"https://codepen.io/j_holtslander/\",\"https://stackoverflow.com/users/751570/jay\",\"https://dribbble.com/j_holtslander\",\"http://jasonh1234.deviantart.com/\",\"https://www.behance.net/j_holtslander\",\"https://www.flickr.com/people/jasonh1234/\",\"https://medium.com/@j_holtslander\"]}";
 
@@ -758,7 +758,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#email")
             
             let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
-            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["title": "CEO"]
             
@@ -864,7 +864,7 @@ class InstantData {
             var doc = try idIssuer!.newCustomizedDid(withId: did, storePassword)
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["name": "Example LLC", "website": "https://example.com/", "email": "contact@example.com"]
             
@@ -932,7 +932,7 @@ class InstantData {
                                  endpoint: "https://foobar.com/credentials", properties: props)
             
             let selfIssuer = try VerifiableCredentialIssuer(doc, signKey!)
-            var cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            var cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             var pr = ["name": "Foo Bar Inc", "language": "Chinese", "email": "contact@foobar.com"]
             
@@ -942,7 +942,7 @@ class InstantData {
                 .seal(using: storePassword)
             
             let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
-            cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             pr.removeAll()
             pr["email"] = "foobar@example.com"
@@ -973,7 +973,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#services")
             
             let selfIssuer = try VerifiableCredentialIssuer(doc, idUser1!.defaultPublicKeyId()!)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["consultation": "https://foobar.com/consultation", "Outsourceing": "https://foobar.com/outsourcing"]
             
@@ -1001,7 +1001,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#license")
             
             let kycIssuer = try VerifiableCredentialIssuer(idExampleCorp!)
-            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["license-id": "20201021C889", "scope": "Consulting"]
             
@@ -1098,7 +1098,7 @@ class InstantData {
             let id = try DIDURL(doc.subject, "#email")
             
             let kycIssuer = try VerifiableCredentialIssuer(idIssuer!)
-            let cb = kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
+            let cb = try kycIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
             let props = ["email": "foo@example.com"]
             

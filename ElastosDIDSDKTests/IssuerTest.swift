@@ -92,7 +92,7 @@ class IssuerTest: XCTestCase {
 
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
@@ -134,7 +134,7 @@ class IssuerTest: XCTestCase {
 
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
@@ -177,7 +177,7 @@ class IssuerTest: XCTestCase {
 
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: testDoc.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: testDoc.subject)
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
@@ -222,7 +222,7 @@ class IssuerTest: XCTestCase {
 
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
                 .withTypes("BasicProfileCredential", "InternetAccountCredential")
                 .withProperties(props)
@@ -264,7 +264,7 @@ class IssuerTest: XCTestCase {
                         "email": "issuer@example.com"]
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
@@ -301,7 +301,7 @@ class IssuerTest: XCTestCase {
 
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
-            let cb = issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
+            let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
