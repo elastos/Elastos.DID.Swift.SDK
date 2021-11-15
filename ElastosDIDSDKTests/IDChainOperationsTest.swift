@@ -486,7 +486,7 @@ class IDChainOperationsTest: XCTestCase {
             let did = doc.subject
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["name": "John",
                          "gender": "Male",
@@ -543,7 +543,7 @@ class IDChainOperationsTest: XCTestCase {
             print("Last transaction id \(String(describing: lastTxid))")
             
             let selfIssuer = try VerifiableCredentialIssuer(doc!)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["nation": "Singapore",
                          "passport": "S653258Z07"]
@@ -615,7 +615,7 @@ class IDChainOperationsTest: XCTestCase {
             
             // Update again
             let selfIssuer = try VerifiableCredentialIssuer(doc!)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["Abc": "Abc",
                          "abc": "abc",
@@ -686,7 +686,7 @@ class IDChainOperationsTest: XCTestCase {
             let did = doc.subject
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["name": "John",
                          "gender": "Male",
@@ -764,7 +764,7 @@ class IDChainOperationsTest: XCTestCase {
             
             // Update
             let selfIssuer = try! VerifiableCredentialIssuer(doc!)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["nation": "Singapore",
                          "passport": "S653258Z07"]
@@ -835,7 +835,7 @@ class IDChainOperationsTest: XCTestCase {
             
             // Update again
             let selfIssuer = try VerifiableCredentialIssuer(doc!)
-            let cb = selfIssuer.editingVerifiableCredentialFor(did: did)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
             let props = ["Abc": "Abc",
                          "abc": "abc",
@@ -930,7 +930,7 @@ class IDChainOperationsTest: XCTestCase {
             let issuer = try VerifiableCredentialIssuer(did, cleanStore)
             
             let props = ["name": "John", "gender": "Male"]
-            let cb = issuer.editingVerifiableCredentialFor(did: did)
+            let cb = try issuer.editingVerifiableCredentialFor(did: did)
             let vc = try cb.withId("#selfCredential")
                 .withTypes("BasicProfileCredential")
                 .withProperties(props)

@@ -638,7 +638,7 @@ class DIDStoreTests: XCTestCase {
                 let doc = try identity!.newDid(storePassword)
                 doc.getMetadata().setAlias(alias)
                 let issuer = try VerifiableCredentialIssuer(doc)
-                let cb = issuer.editingVerifiableCredentialFor(did: doc.subject)
+                let cb = try issuer.editingVerifiableCredentialFor(did: doc.subject)
                 let vc = try cb.withId("#cred-1")
                     .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
                     .withProperties(props)
