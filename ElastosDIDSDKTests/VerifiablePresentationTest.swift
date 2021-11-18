@@ -32,7 +32,9 @@ class VerifiablePresentationTest: XCTestCase {
     func testReadPresentationNonempty2() {
         ReadPresentationNonempty(2)
     }
-    
+    func testReadPresentationNonempty3() {
+        ReadPresentationNonempty(3)
+    }
     func ReadPresentationNonempty(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -41,7 +43,7 @@ class VerifiablePresentationTest: XCTestCase {
             _ = try cd.getDocument("issuer")
             let user = try cd.getDocument("user1");
             let vp = try cd.getPresentation("user1", "nonempty");
-            if version == 1 {
+            if version < 2 {
                 XCTAssertNil(vp.id)
             }
             else {
@@ -81,6 +83,10 @@ class VerifiablePresentationTest: XCTestCase {
         ReadPresentationEmpty(2)
     }
     
+    func testReadPresentationEmpty3() {
+        ReadPresentationEmpty(3)
+    }
+    
     func ReadPresentationEmpty(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -90,7 +96,7 @@ class VerifiablePresentationTest: XCTestCase {
             let user = try cd.getDocument("user1")
             let vp = try cd.getPresentation("user1", "empty")
 
-            if version == 1 {
+            if version < 2 {
                 XCTAssertNil(vp.id)
             }
             else {
@@ -134,6 +140,25 @@ class VerifiablePresentationTest: XCTestCase {
     }
     func testParseAndSerializeNonempty8() {
         ParseAndSerializeNonempty(2, "foobar", "optionalattrs")
+    }
+    
+    func testParseAndSerializeNonempty9() {
+        ParseAndSerializeNonempty(3, "user1", "empty")
+    }
+    func testParseAndSerializeNonempty10() {
+        ParseAndSerializeNonempty(3, "user1", "nonempty")
+    }
+    func testParseAndSerializeNonempty11() {
+        ParseAndSerializeNonempty(3, "user1", "optionalattrs")
+    }
+    func testParseAndSerializeNonempty12() {
+        ParseAndSerializeNonempty(3, "foobar", "empty")
+    }
+    func testParseAndSerializeNonempty13() {
+        ParseAndSerializeNonempty(3, "foobar", "nonempty")
+    }
+    func testParseAndSerializeNonempty14() {
+        ParseAndSerializeNonempty(3, "foobar", "optionalattrs")
     }
     
     func ParseAndSerializeNonempty(_ version: Int, _ did: String, _ presentation: String) {
@@ -188,6 +213,26 @@ class VerifiablePresentationTest: XCTestCase {
         GenuineAndValidWithListener(2, "foobar", "optionalattrs")
     }
     
+    
+    func testGenuineAndValidWithListener9() {
+        GenuineAndValidWithListener(3, "user1", "empty")
+    }
+    func testGenuineAndValidWithListener10() {
+        GenuineAndValidWithListener(3, "user1", "nonempty")
+    }
+    func testGenuineAndValidWithListener11() {
+        GenuineAndValidWithListener(3, "user1", "optionalattrs")
+    }
+    func testGenuineAndValidWithListener12() {
+        GenuineAndValidWithListener(3, "foobar", "empty")
+    }
+    func testGenuineAndValidWithListener13() {
+        GenuineAndValidWithListener(3, "foobar", "nonempty")
+    }
+    func testGenuineAndValidWithListener14() {
+        GenuineAndValidWithListener(3, "foobar", "optionalattrs")
+    }
+    
     func GenuineAndValidWithListener(_ version: Int, _ did: String, _ presentation: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -211,8 +256,15 @@ class VerifiablePresentationTest: XCTestCase {
             XCTFail()
         }
     }
-
-    func testBuildNonempty() {
+    
+    func testBuildNonempty2() {
+        BuildNonempty(false)
+    }
+    func testBuildNonempty3() {
+        BuildNonempty(true)
+    }
+    func BuildNonempty(_ contextEnabled: Bool) {
+        Features.enableJsonLdContext(contextEnabled)
         do {
             let td = testData!.sharedInstantData()
             let doc = try td.getUser1Document()
@@ -252,7 +304,14 @@ class VerifiablePresentationTest: XCTestCase {
         }
     }
     
-    func testBuildNonemptyWithOptionalAttrs() {
+    func testBuildNonemptyWithOptionalAttrs2() {
+        BuildNonemptyWithOptionalAttrs(false)
+    }
+    func testBuildNonemptyWithOptionalAttrs3() {
+        BuildNonemptyWithOptionalAttrs(true)
+    }
+    func BuildNonemptyWithOptionalAttrs(_ contextEnabled: Bool) {
+        Features.enableJsonLdContext(contextEnabled)
         do {
             let td = testData!.sharedInstantData()
             let doc = try td.getUser1Document()
@@ -260,7 +319,8 @@ class VerifiablePresentationTest: XCTestCase {
             let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: store!)
             let vp = try pb
                 .withId("#test-vp")
-                .withTypes("Trail", "TestPresentation")
+                .withType("TestPresentation", "https://example.com/credential/v1")
+
                 .withCredentials(try doc.credential(ofId: "#profile")!, doc.credential(ofId: "#email")!, td.getUser1TwitterCredential(), td.getUser1PassportCredential())
                 .withRealm("https://example.com/")
                 .withNonce("873172f58701a9ee686f0630204fee59")
@@ -271,7 +331,7 @@ class VerifiablePresentationTest: XCTestCase {
             XCTAssertEqual(try DIDURL(doc.subject, "#test-vp"), vp.id)
             XCTAssertEqual(2, vp.types.count)
             XCTAssertEqual("TestPresentation", vp.types[0])
-            XCTAssertEqual("Trail", vp.types[1])
+            XCTAssertEqual("VerifiablePresentation", vp.types[1])
             XCTAssertEqual(doc.subject, vp.holder)
 
             XCTAssertEqual(4, vp.credentials.count)
@@ -295,7 +355,15 @@ class VerifiablePresentationTest: XCTestCase {
         }
     }
     
-    func testBuildEmpty() {
+    func testBuildEmpty2() {
+        BuildEmpty(false)
+    }
+    func testBuildEmpty3() {
+        BuildEmpty(true)
+    }
+    
+    func BuildEmpty(_ contextEnabled: Bool) {
+        Features.enableJsonLdContext(contextEnabled)
         do {
             let doc = try testData!.sharedInstantData().getUser1Document()
 
@@ -318,18 +386,26 @@ class VerifiablePresentationTest: XCTestCase {
             XCTAssertTrue(try vp.isGenuine())
             XCTAssertTrue(try vp.isValid())
         } catch {
+            print(error)
             XCTFail()
         }
     }
-    
-    func testBuildEmptyWithOptionsAttrs() {
+    func testBuildEmptyWithOptionsAttrs2() {
+        BuildEmptyWithOptionsAttrs(false)
+    }
+    func testBuildEmptyWithOptionsAttrs3() {
+        BuildEmptyWithOptionsAttrs(true)
+    }
+    func BuildEmptyWithOptionsAttrs(_ contextEnabled: Bool) {
+        Features.enableJsonLdContext(contextEnabled)
         do {
             let doc = try testData!.sharedInstantData().getUser1Document()
 
             let pb = try VerifiablePresentation.editingVerifiablePresentation(for: doc.subject, using: store!)
             let vp = try pb
                     .withId("#test-vp")
-                    .withTypes("HelloWorld", "FooBar", "Baz")
+                    .withType("TestPresentation", "https://example.com/credential/v1")
+                    .withType("SessionPresentation", "https://session.com/credential/v1")
                     .withRealm("https://example.com/")
                     .withNonce("873172f58701a9ee686f0630204fee59")
                     .seal(using: storePassword)
@@ -338,9 +414,9 @@ class VerifiablePresentationTest: XCTestCase {
 
             XCTAssertEqual(try DIDURL(doc.subject, "#test-vp"), vp.id)
             XCTAssertEqual(3, vp.types.count)
-            XCTAssertEqual("Baz", vp.types[0])
-            XCTAssertEqual("FooBar", vp.types[1])
-            XCTAssertEqual("HelloWorld", vp.types[2])
+            XCTAssertEqual("SessionPresentation", vp.types[0])
+            XCTAssertEqual("TestPresentation", vp.types[1])
+            XCTAssertEqual("VerifiablePresentation", vp.types[2])
             XCTAssertEqual(doc.subject, vp.holder)
 
             XCTAssertEqual(0, vp.credentials.count)

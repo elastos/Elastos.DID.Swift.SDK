@@ -38,11 +38,13 @@ public class VerifiablePresentationBuilder: NSObject {
     /// - Parameters:
     ///   - holder: the holder's DID document
     ///   - signKey: the key to sign the presentation
-    init(_ holder: DIDDocument, _ signKey: DIDURL) {
+    init(_ holder: DIDDocument, _ signKey: DIDURL) throws {
         self._holder = holder
         self._signKey = signKey
 
         self.presentation = VerifiablePresentation(_holder.subject)
+        super.init()
+        try setDefaultType()
     }
     
     /// Set the id for the presentation.
@@ -252,7 +254,7 @@ public class VerifiablePresentationBuilder: NSObject {
         if presentation!.types.count == 0 {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Missing presentation type")
         }
-        _ = presentation!._types.sorted()
+        presentation!._types = presentation!._types.sorted()
 
         presentation!.setCreatedDate(DateFormatter.currentDate())
         var data: [Data] = []

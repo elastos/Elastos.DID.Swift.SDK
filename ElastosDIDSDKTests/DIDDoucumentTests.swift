@@ -2,6 +2,13 @@
 import XCTest
 @testable import ElastosDIDSDK
 
+class DD: DefaultDIDAdapter {
+    
+    override func createIdTransaction(_ payload: String, _ memo: String?) throws {
+        
+    }
+}
+
 class DIDDoucumentTests: XCTestCase {
     var testData: TestData?
     var store: DIDStore?
@@ -16,6 +23,7 @@ class DIDDoucumentTests: XCTestCase {
 //        simulatedIDChain.start()
 //        let adapter = simulatedIDChain.getAdapter()
         try! DIDBackend.initialize(adapter)
+        Log.setLevel(.Debug)
     }
     
     override func tearDownWithError() throws {
@@ -34,6 +42,10 @@ class DIDDoucumentTests: XCTestCase {
     
     func testGetPublicKeyV2() {
         GetPublicKey(2)
+    }
+    
+    func testGetPublicKeyV3() {
+        GetPublicKey(3)
     }
     
     func GetPublicKey(_ version: Int) {
@@ -108,9 +120,18 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetPublicKeyWithCid() {
+    
+    func testGetPublicKeyWithCidV2() {
+        GetPublicKeyWithCid(2)
+    }
+    
+    func testGetPublicKeyWithCidV3() {
+        GetPublicKeyWithCid(3)
+    }
+    
+    func GetPublicKeyWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
 
             let issuer = try cd.getDocument("issuer")
             
@@ -164,9 +185,18 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetPublicKeyWithMultiControllerCid1() {
+    
+    func testGetPublicKeyWithMultiControllerCidV2() {
+        GetPublicKeyWithMultiControllerCid1(2)
+    }
+    
+    func testGetPublicKeyWithMultiControllerCidV3() {
+        GetPublicKeyWithMultiControllerCid1(3)
+    }
+    
+    func GetPublicKeyWithMultiControllerCid1(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
 
             let user1 = try cd.getDocument("user1")
             let user2 = try cd.getDocument("user2")
@@ -259,9 +289,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetPublicKeyWithMultiControllerCid2() {
+    func testGetPublicKeyWithMultiControllerCid2V2() {
+        GetPublicKeyWithMultiControllerCid2(2)
+    }
+    
+    func testGetPublicKeyWithMultiControllerCid2V3() {
+        GetPublicKeyWithMultiControllerCid2(3)
+    }
+    
+    func GetPublicKeyWithMultiControllerCid2(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
 
             let user1 = try cd.getDocument("user1")
             let user2 = try cd.getDocument("user2")
@@ -350,6 +388,10 @@ class DIDDoucumentTests: XCTestCase {
         AddPublicKey(2)
     }
     
+    func testAddPublicKey3() {
+        AddPublicKey(3)
+    }
+    
     func AddPublicKey(_ version: Int) {
         do {
             _ = try testData!.getRootIdentity()
@@ -386,13 +428,22 @@ class DIDDoucumentTests: XCTestCase {
             XCTAssertEqual(3, doc.authenticationKeyCount)
             XCTAssertEqual(1, doc.authorizationKeyCount)
         } catch {
+            print(error)
             XCTFail()
         }
     }
     
-    func testAddPublicKeyWithCid() {
+    func testAddPublicKeyWithCid2() {
+        AddPublicKeyWithCid(2)
+    }
+    
+    func testAddPublicKeyWithCid3() {
+        AddPublicKeyWithCid(3)
+    }
+    
+    func AddPublicKeyWithCid(_ verison: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(verison)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -444,6 +495,10 @@ class DIDDoucumentTests: XCTestCase {
     
     func testRemovePublicKey2() {
         RemovePublicKey(2)
+    }
+    
+    func testRemovePublicKey3() {
+        RemovePublicKey(3)
     }
     
     func RemovePublicKey(_ version: Int) {
@@ -514,9 +569,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testRemovePublicKeyWithCid() {
+    func testRemovePublicKeyWithCid2() {
+        RemovePublicKeyWithCid(2)
+    }
+    
+    func testRemovePublicKeyWithCid3() {
+        RemovePublicKeyWithCid(3)
+    }
+    
+    func RemovePublicKeyWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -594,6 +657,10 @@ class DIDDoucumentTests: XCTestCase {
         GetAuthenticationKey(2)
     }
     
+    func testGetAuthenticationKey3() {
+        GetAuthenticationKey(3)
+    }
+    
     func GetAuthenticationKey(_ version: Int) {
         do {
             _ = try testData!.getRootIdentity()
@@ -660,7 +727,15 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetAuthenticationKeyWithCid() {
+    func testGetAuthenticationKeyWithCid2() {
+        GetAuthenticationKeyWithCid(2)
+    }
+    
+    func testGetAuthenticationKeyWithCid3() {
+        GetAuthenticationKeyWithCid(3)
+    }
+    
+    func GetAuthenticationKeyWithCid(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(2)
 
@@ -712,7 +787,15 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetAuthenticationKeyWithMultiControllerCid1() {
+    func testGetAuthenticationKeyWithMultiControllerCid2() {
+        GetAuthenticationKeyWithMultiControllerCid1(2)
+    }
+    
+    func testGetAuthenticationKeyWithMultiControllerCid3() {
+        GetAuthenticationKeyWithMultiControllerCid1(3)
+    }
+    
+    func GetAuthenticationKeyWithMultiControllerCid1(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(2)
 
@@ -804,7 +887,15 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testGetAuthenticationKeyWithMultiControllerCid2() {
+    func testGetAuthenticationKeyWithMultiControllerCidV2() {
+        GetAuthenticationKeyWithMultiControllerCid2(2)
+    }
+    
+    func testGetAuthenticationKeyWithMultiControllerCidV3() {
+        GetAuthenticationKeyWithMultiControllerCid2(3)
+    }
+    
+    func GetAuthenticationKeyWithMultiControllerCid2(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(2)
 
@@ -892,6 +983,10 @@ class DIDDoucumentTests: XCTestCase {
         AddAuthenticationKey(2)
     }
     
+    func testAddAuthenticationKey3() {
+        AddAuthenticationKey(3)
+    }
+    
     func AddAuthenticationKey(_ version: Int) {
         do {
             _ = try testData!.getRootIdentity()
@@ -971,9 +1066,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testAddAuthenticationKeyWithCid() {
+    func testAddAuthenticationKeyWithCid2() {
+        AddAuthenticationKeyWithCid(2)
+    }
+    
+    func testAddAuthenticationKeyWithCid3() {
+        AddAuthenticationKeyWithCid(3)
+    }
+    
+    func AddAuthenticationKeyWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
 
             let user1 = try cd.getDocument("user1")
             _ = try cd.getDocument("user2")
@@ -1074,6 +1177,10 @@ class DIDDoucumentTests: XCTestCase {
             RemoveAuthenticationKey(2)
     }
     
+    func testRemoveAuthenticationKey3() {
+            RemoveAuthenticationKey(3)
+    }
+    
     func RemoveAuthenticationKey(_ version: Int) {
         do {
             _ = try testData!.getRootIdentity()
@@ -1139,9 +1246,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testRemoveAuthenticationKeyWithCid() {
+    func testRemoveAuthenticationKeyWithCid2() {
+        RemoveAuthenticationKeyWithCid(2)
+    }
+    
+    func testRemoveAuthenticationKeyWithCid3() {
+        RemoveAuthenticationKeyWithCid(3)
+    }
+    
+    func RemoveAuthenticationKeyWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -1222,6 +1337,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testGetAuthorizationKey3() {
+        do {
+            try GetAuthorizationKey(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func GetAuthorizationKey(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
 
@@ -1273,9 +1396,18 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(1, pks.count)
     }
     
-    func testGetAuthorizationKeyWithCid() {
+    
+    func testGetAuthorizationKeyWithCid2() {
+          GetAuthorizationKeyWithCid(2)
+    }
+    
+    func testGetAuthorizationKeyWithCid3() {
+          GetAuthorizationKeyWithCid(3)
+    }
+    
+    func GetAuthorizationKeyWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -1309,6 +1441,14 @@ class DIDDoucumentTests: XCTestCase {
     func testAddAuthorizationKey2() {
         do {
             try AddAuthorizationKey(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testAddAuthorizationKey3() {
+        do {
+            try AddAuthorizationKey(3)
         } catch {
             XCTFail()
         }
@@ -1394,9 +1534,17 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(5, doc.authorizationKeyCount)
     }
     
-    func testAddAuthorizationKeyWithCidError() {
+    func testAddAuthorizationKeyWithCidError2() {
+        AddAuthorizationKeyWithCidError(2)
+    }
+    
+    func testAddAuthorizationKeyWithCidError3() {
+        AddAuthorizationKeyWithCidError(3)
+    }
+    
+    func AddAuthorizationKeyWithCidError(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -1499,6 +1647,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testRemoveAuthorizationKey3() {
+        do {
+            try RemoveAuthorizationKey(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func RemoveAuthorizationKey(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
 
@@ -1575,6 +1731,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testGetCredential3() {
+        do {
+            try GetCredential(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func GetCredential(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
 
@@ -1627,9 +1791,17 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(0, vcs.count)
     }
     
-    func testGetCredentialWithCid() {
+    func testGetCredentialWithCid2() {
+        GetCredentialWithCid(2)
+    }
+    
+    func testGetCredentialWithCid3() {
+        GetCredentialWithCid(3)
+    }
+    
+    func GetCredentialWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -1705,6 +1877,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testAddCredential3() {
+        do {
+            try AddCredential(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func AddCredential(_ version: Int) throws {
         let cd = try testData!.getCompatibleData(version)
 
@@ -1751,9 +1931,17 @@ class DIDDoucumentTests: XCTestCase {
 //        assertEquals(4, doc.getCredentialCount());
     }
     
-    func testAddCredentialWithCid() {
+    func testAddCredentialWithCid2() {
+        AddCredentialWithCid(2)
+    }
+    
+    func testAddCredentialWithCid3() {
+        AddCredentialWithCid(3)
+    }
+    
+    func AddCredentialWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -1831,6 +2019,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testAddSelfClaimedCredential3() {
+        do {
+            try AddSelfClaimedCredential(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func AddSelfClaimedCredential(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
 
@@ -1875,7 +2071,15 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(5, doc.credentialCount)
     }
     
-    func testAddSelfClaimedCredentialWithCid() {
+    func testAddSelfClaimedCredentialWithCid2() {
+        AddSelfClaimedCredentialWithCid(2)
+    }
+    
+    func testAddSelfClaimedCredentialWithCid3() {
+        AddSelfClaimedCredentialWithCid(3)
+    }
+    
+    func AddSelfClaimedCredentialWithCid(_ verison: Int) {
         do {
             let cd = try testData!.getCompatibleData(2)
             _ = try testData!.getRootIdentity()
@@ -1947,6 +2151,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testRemoveCredential3() {
+        do {
+            try RemoveCredentia(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func RemoveCredentia(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
         let cd = try testData!.getCompatibleData(version)
@@ -2002,9 +2214,17 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(2, doc.credentialCount)
     }
     
-    func testRemoveCredentialWithCid() {
+    func testRemoveCredentialWithCid2() {
+        RemoveCredentialWithCid(2)
+    }
+    
+    func testRemoveCredentialWithCid3() {
+        RemoveCredentialWithCid(3)
+    }
+    
+    func RemoveCredentialWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
             
             _ = try cd.getDocument("issuer")
@@ -2072,6 +2292,14 @@ class DIDDoucumentTests: XCTestCase {
     func testGetService2() {
         do {
             try GetService(2)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetService3() {
+        do {
+            try GetService(3)
         } catch {
             XCTFail()
         }
@@ -2146,9 +2374,17 @@ class DIDDoucumentTests: XCTestCase {
         XCTAssertEqual(0, svcss.count)
     }
     
-    func testGetServiceWithCid() {
+    func testGetServiceWithCid2() {
+        GetServiceWithCid(2)
+    }
+    
+    func testGetServiceWithCid3() {
+        GetServiceWithCid(3)
+    }
+    
+    func GetServiceWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -2228,6 +2464,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testAddService3() {
+        do {
+            try AddService(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func AddService(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
 
@@ -2273,6 +2517,10 @@ class DIDDoucumentTests: XCTestCase {
     
     func testAddServiceWithDescription2() {
         AddServiceWithDescription(2)
+    }
+    
+    func testAddServiceWithDescription3() {
+        AddServiceWithDescription(3)
     }
     
     func AddServiceWithDescription(_ version: Int) {
@@ -2353,9 +2601,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testAddServiceWithCid() {
+    func testAddServiceWithCid2() {
+        AddServiceWithCid(2)
+    }
+    
+    func testAddServiceWithCid3() {
+        AddServiceWithCid(3)
+    }
+    
+    func AddServiceWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -2404,9 +2660,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testAddServiceWithCidAndDescription() {
+    func testAddServiceWithCidAndDescription2() {
+        AddServiceWithCidAndDescription(2)
+    }
+    
+    func testAddServiceWithCidAndDescription3() {
+        AddServiceWithCidAndDescription(3)
+    }
+    
+    func AddServiceWithCidAndDescription(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -2500,6 +2764,14 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testRemoveService3() {
+        do {
+            try RemoveService(3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func RemoveService(_ version: Int) throws {
         do {
             _ = try testData!.getRootIdentity()
@@ -2540,9 +2812,17 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
-    func testRemoveServiceWithCid() {
+    func testRemoveServiceWithCid2() {
+        RemoveServiceWithCid(2)
+    }
+    
+    func testRemoveServiceWithCid3() {
+        RemoveServiceWithCid(3)
+    }
+    
+    func RemoveServiceWithCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             _ = try testData!.getRootIdentity()
 
             _ = try cd.getDocument("issuer")
@@ -2645,6 +2925,37 @@ class DIDDoucumentTests: XCTestCase {
         ParseAndSerializeDocument(2, "baz")
     }
     
+    func testParseAndSerializeDocument15() {
+        ParseAndSerializeDocument(3, "issuer")
+    }
+    func testParseAndSerializeDocument16() {
+        ParseAndSerializeDocument(3, "user1")
+    }
+    func testParseAndSerializeDocument17() {
+        ParseAndSerializeDocument(3, "user2")
+    }
+    func testParseAndSerializeDocument18() {
+        ParseAndSerializeDocument(3, "user3")
+    }
+    func testParseAndSerializeDocument19() {
+        ParseAndSerializeDocument(3, "user4")
+    }
+    func testParseAndSerializeDocument20() {
+        ParseAndSerializeDocument(3, "examplecorp")
+    }
+    func testParseAndSerializeDocument21() {
+        ParseAndSerializeDocument(3, "foobar")
+    }
+    func testParseAndSerializeDocument22() {
+        ParseAndSerializeDocument(3, "foo")
+    }
+    func testParseAndSerializeDocument23() {
+        ParseAndSerializeDocument(3, "bar")
+    }
+    func testParseAndSerializeDocument24() {
+        ParseAndSerializeDocument(3, "baz")
+    }
+
     func ParseAndSerializeDocument(_ version: Int, _ did: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -2740,6 +3051,41 @@ class DIDDoucumentTests: XCTestCase {
     
     func testGenuineAndValidWithListener14() {
         GenuineAndValidWithListener(2, "baz")
+    }
+    
+    func testGenuineAndValidWithListener15() {
+        GenuineAndValidWithListener(3, "baz")
+    }
+    func testGenuineAndValidWithListener16() {
+        GenuineAndValidWithListener(3, "issuer")
+    }
+    func testGenuineAndValidWithListener17() {
+        GenuineAndValidWithListener(3, "user1")
+    }
+    func testGenuineAndValidWithListener18() {
+        GenuineAndValidWithListener(3, "user2")
+    }
+    func testGenuineAndValidWithListener19() {
+        GenuineAndValidWithListener(3, "user3")
+    }
+    func testGenuineAndValidWithListener20() {
+        GenuineAndValidWithListener(3, "user4")
+    }
+
+    func testGenuineAndValidWithListener21() {
+        GenuineAndValidWithListener(3, "examplecorp")
+    }
+    func testGenuineAndValidWithListener22() {
+        GenuineAndValidWithListener(3, "foobar")
+    }
+    func testGenuineAndValidWithListener23() {
+        GenuineAndValidWithListener(3, "foo")
+    }
+    func testGenuineAndValidWithListener24() {
+        GenuineAndValidWithListener(3, "bar")
+    }
+    func testGenuineAndValidWithListener25() {
+        GenuineAndValidWithListener(3, "baz")
     }
     
     func GenuineAndValidWithListener(_ version: Int, _ did: String) {
@@ -2842,10 +3188,16 @@ class DIDDoucumentTests: XCTestCase {
             XCTFail()
         }
     }
-    
     func testDerive2() {
+        Derive2(2)
+    }
+    func testDerive3() {
+        Derive2(3)
+    }
+
+    func Derive2(_ version: Int) {
         do {
-            let doc = try testData!.getCompatibleData(2).getDocument("user1")
+            let doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
             for i in 0...1000 {
@@ -2888,10 +3240,16 @@ class DIDDoucumentTests: XCTestCase {
     }
     
     func testDeriveFromIdentifier2() {
+        DeriveFromIdentifier2(2)
+    }
+    func testDeriveFromIdentifier3() {
+        DeriveFromIdentifier2(3)
+    }
+    func DeriveFromIdentifier2(_ version: Int) {
         do {
             let identifier = "org.elastos.did.test"
 
-            let doc = try testData!.getCompatibleData(2).getDocument("user1")
+            let doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
             XCTAssertTrue(try doc.isValid(debug))
 

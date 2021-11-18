@@ -132,7 +132,6 @@ public class DIDDocument: NSObject {
         if id.did != nil {
             return id
         }
-        
         return DIDURL(subject, id)
     }
     
@@ -2676,6 +2675,7 @@ public class DIDDocument: NSObject {
         Log.i(DIDDocument.TAG, "Publishing untrusted DID ", subject, "...")
         
         if (try !isGenuine()) {
+            try isGenuine()
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
@@ -3465,7 +3465,11 @@ public class DIDDocument: NSObject {
     func parse(withoutSanitize doc: JsonNode) throws {
         let serializer = JsonSerializer(doc)
         var options: JsonSerializer.Options
-
+        // content
+        let content = doc.get(forKey: CONTEXT)
+        if content != nil {
+            try parseContent(content!)
+        }
         // subject
         options = JsonSerializer.Options()
         guard let did = try serializer.getDID(Constants.ID, options) else {
@@ -3527,6 +3531,16 @@ public class DIDDocument: NSObject {
         node = doc.get(forKey: Constants.PROOF)
         try checkArgument(node != nil, "missing document proof")
         try parseProof(node!)
+    }
+    
+    private func parseContent(_ arrayNode: JsonNode) throws {
+        let array = arrayNode.asArray()
+        var contexts: [String] = []
+        array?.forEach{ item in
+            contexts.append(item.asString()!)
+        }
+        print(contexts)
+        _context = contexts
     }
     
     private func parseProof(_ arrayNode: JsonNode) throws {
@@ -3749,7 +3763,14 @@ public class DIDDocument: NSObject {
     private func toJson(_ generator: JsonGenerator, _ normalized: Bool, _ forSign: Bool) throws {
         try sort()
         generator.writeStartObject()
-
+        if _context.count > 0 {
+            generator.writeFieldName("@context")
+            generator.writeStartArray()
+            _context.forEach { item in
+                generator.writeString(item)
+            }
+            generator.writeEndArray()
+        }
         // subject
         generator.writeFieldName(Constants.ID)
         generator.writeString(self.subject.toString())

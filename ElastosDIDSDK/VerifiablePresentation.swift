@@ -34,6 +34,7 @@ import PromiseKit
 @objc(VerifiablePresentation)
 public class VerifiablePresentation: NSObject {
     /// Default presentation type
+    let CONTEXT = "@context"
     let DEFAULT_PRESENTATION_TYPE = "VerifiablePresentation"
     let ID = "id"
     let TYPE = "type"
@@ -497,6 +498,12 @@ public class VerifiablePresentation: NSObject {
 
     private func parse(_ node: JsonNode) throws {
 
+        // content
+        let content = node.get(forKey: CONTEXT)
+        if content != nil {
+            try parseContent(content!)
+        }
+        
         let id = node.get(forKey: ID)?.asString()
         if let _ = id {
             _id = try DIDURL(id!)
@@ -552,7 +559,17 @@ public class VerifiablePresentation: NSObject {
         
         try sanitize()
     }
-
+    
+    private func parseContent(_ arrayNode: JsonNode) throws {
+        let array = arrayNode.asArray()
+        var contexts: [String] = []
+        array?.forEach{ item in
+            contexts.append(item.asString()!)
+        }
+        print(contexts)
+        _context = contexts
+    }
+    
     /// Get Presentation from json context.
     /// - Parameter json: Json context about Presentation.
     /// - Throws: if an error occurred, throw error.
@@ -590,7 +607,14 @@ public class VerifiablePresentation: NSObject {
      */
     func toJson(_ generator: JsonGenerator, _ forSign: Bool) {
         generator.writeStartObject()
-        
+        if _context.count > 0 {
+            generator.writeFieldName("@context")
+            generator.writeStartArray()
+            _context.forEach { item in
+                generator.writeString(item)
+            }
+            generator.writeEndArray()
+        }
         if let _ = id {
             generator.writeStringField(Constants.ID, id!.toString())
         }
@@ -682,7 +706,7 @@ public class VerifiablePresentation: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError(Errors.NO_PRIVATE_KEY_EXIST)
         }
 
-        return VerifiablePresentationBuilder(holder!, useKey)
+        return try VerifiablePresentationBuilder(holder!, useKey)
     }
 
     /// Get VerifiablePresentation Builder to modify VerifiableCredential.
