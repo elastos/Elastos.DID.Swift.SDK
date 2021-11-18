@@ -85,8 +85,7 @@ class IssuerTest: XCTestCase {
         do {
             let props = ["name": "John",
                          "gender": "Male",
-                         "nation": "Singapore",
-                         "language": "English",
+                         "nationality": "Singapore",
                          "email": "john@example.com",
                          "twitter": "@john"]
 
@@ -94,7 +93,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
-                .withTypes("BasicProfileCredential", "InternetAccountCredential")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -102,17 +103,18 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.id)
 
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
-            XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("EmailCredential"))
+            XCTAssertTrue(vc.getType().contains("SocialCredential"))
+            XCTAssertTrue(vc.getType().contains("VerifiableCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
-
+            
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
             XCTAssertEqual("Male", vc.subject!.properties()["gender"] as? String)
-            XCTAssertEqual("Singapore", vc.subject!.properties()["nation"] as? String)
-            XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
+            XCTAssertEqual("Singapore", vc.subject!.properties()["nationality"] as? String)
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
 
@@ -127,7 +129,7 @@ class IssuerTest: XCTestCase {
     func testIssueSelfProclaimedCredentialTest() {
         do {
             let props = ["name": "Testing Issuer",
-                    "nation": "Singapore",
+                    "nationality": "Singapore",
                     "language": "English",
                     "email": "issuer@example.com",
                     "twitter": "@john"]
@@ -136,7 +138,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -144,15 +148,15 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.getId())
 
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
-            XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
-
+            XCTAssertTrue(vc.getType().contains("EmailCredential"))
+            
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("Testing Issuer", vc.subject!.properties()["name"] as? String)
-            XCTAssertEqual("Singapore", vc.subject!.properties()["nation"] as? String)
+            XCTAssertEqual("Singapore", vc.subject!.properties()["nationality"] as? String)
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("issuer@example.com", vc.subject!.properties()["email"] as? String)
 
@@ -170,7 +174,7 @@ class IssuerTest: XCTestCase {
 
             let props = ["name": "John",
                          "gender": "Male",
-                         "nation": "Singapore",
+                         "nationality": "Singapore",
                          "language": "English",
                          "email": "john@example.com",
                          "twitter": "@john"]
@@ -179,7 +183,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc.subject)
             let vc = try cb.withId("#testCredential")
-                .withTypes("BasicProfileCredential", "InternetAccountCredential")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -187,16 +193,16 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.getId());
 
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
-            XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("SocialCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
-
+            
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
             XCTAssertEqual("Male", vc.subject!.properties()["gender"] as? String)
-            XCTAssertEqual("Singapore", vc.subject!.properties()["nation"] as? String)
+            XCTAssertEqual("Singapore", vc.subject!.properties()["nationality"] as? String)
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
@@ -215,7 +221,7 @@ class IssuerTest: XCTestCase {
 
             let props = ["name": "John",
                          "gender": "Male",
-                         "nation": "Singapore",
+                         "nationality": "Singapore",
                          "language": "English",
                          "email": "john@example.com",
                          "twitter": "@john"]
@@ -224,7 +230,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
-                .withTypes("BasicProfileCredential", "InternetAccountCredential")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -232,16 +240,16 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.id)
 
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
-            XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("EmailCredential"))
             XCTAssertFalse(vc.getType().contains("SelfProclaimedCredential"))
-
+            
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(testDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("John", vc.subject!.properties()["name"] as? String)
             XCTAssertEqual("Male", vc.subject!.properties()["gender"] as? String)
-            XCTAssertEqual("Singapore", vc.subject!.properties()["nation"] as? String)
+            XCTAssertEqual("Singapore", vc.subject!.properties()["nationality"] as? String)
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("john@example.com", vc.subject!.properties()["email"] as? String)
             XCTAssertEqual("@john", vc.subject!.properties()["twitter"] as? String)
@@ -259,14 +267,16 @@ class IssuerTest: XCTestCase {
             let issuerDoc = try testData?.sharedInstantData().getExampleCorpDocument()
 
             let props = ["name": "Testing Issuer",
-                        "nation": "Singapore",
+                        "nationality": "Singapore",
                         "language": "English",
                         "email": "issuer@example.com"]
             let issuer = try VerifiableCredentialIssuer(issuerDoc!)
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -274,16 +284,15 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.id)
 
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
             XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
-
             
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)
 
             XCTAssertEqual("Testing Issuer", vc.subject!.properties()["name"] as? String)
-            XCTAssertEqual("Singapore", vc.subject!.properties()["nation"] as? String)
+            XCTAssertEqual("Singapore", vc.subject!.properties()["nationality"] as? String)
             XCTAssertEqual("English", vc.subject!.properties()["language"] as? String)
             XCTAssertEqual("issuer@example.com", vc.subject!.properties()["email"] as? String)
 
@@ -303,7 +312,8 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -311,10 +321,9 @@ class IssuerTest: XCTestCase {
 
             XCTAssertEqual(vcId, vc.getId())
             
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("ProfileCredential"))
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
             XCTAssertFalse(vc.getType().contains("InternetAccountCredential"))
-
             
             XCTAssertEqual(issuerDoc?.subject, vc.issuer)
             XCTAssertEqual(issuerDoc?.subject, vc.subject?.did)

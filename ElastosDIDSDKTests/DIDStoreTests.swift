@@ -507,6 +507,9 @@ class DIDStoreTests: XCTestCase {
     func testCompatibility2() {
         Compatibility(2,"/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v2/teststore")
     }
+    func testCompatibility3() {
+        Compatibility(2,"/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v3/teststore")
+    }
     func Compatibility(_ version: Int, _ path: String) {
         do {
             let data = "Hello World".data(using: .utf8)
@@ -566,11 +569,14 @@ class DIDStoreTests: XCTestCase {
     func testCompatibilityNewDIDWithWrongPass2() {
         CompatibilityNewDIDWithWrongPass(2)
     }
+    func testCompatibilityNewDIDWithWrongPass3() {
+        CompatibilityNewDIDWithWrongPass(3)
+    }
     func CompatibilityNewDIDWithWrongPass(_ version: Int) {
         do {
             
-//            let path = try testData.getCompatibleData(version).storePath
-            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v1/teststore"
+//            let store = try testData.getCompatibleData(version).store!
+            let path = "/Users/liaihong/Library/Developer/CoreSimulator/Devices/020AAD07-8674-4D58-AD51-C9EF0B21E155/data/Library/Caches/Resources/v3/teststore"
             let store = try DIDStore.open(atPath: path)
             let idenitty = try store.loadRootIdentity()
             
@@ -1014,6 +1020,7 @@ class DIDStoreTests: XCTestCase {
             vcIds = try store2.listCredentials(for: did)
             XCTAssertEqual(0, vcIds.count)
         } catch {
+            print(error)
             XCTFail()
         }
     }

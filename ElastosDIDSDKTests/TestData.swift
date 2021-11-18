@@ -12,6 +12,8 @@ class TestData {
     
     var v1: CompatibleData?
     var v2: CompatibleData?
+    var v3: CompatibleData?
+
     var instantData: InstantData?
     init() {
         do {
@@ -19,6 +21,7 @@ class TestData {
             store = try DIDStore.open(atPath: storeRoot)
             v1 = CompatibleData(1, store!)
             v2 = CompatibleData(2, store!)
+            v3 = CompatibleData(3, store!)
 
         } catch {
             print(error)
@@ -101,6 +104,11 @@ class TestData {
                 v2 = CompatibleData(version, store!)
             }
             return v2!
+        case 3:
+            if (v3 == nil) {
+                v3 = CompatibleData(version, store!)
+            }
+            return v3!
             
         default:
             throw TestError.failue("Unsupported version")
@@ -260,7 +268,7 @@ public class CompatibleData {
     }
     
     var isLatestVersion: Bool {
-        return version == 2
+        return version == 3
     }
     
     func getDidFile(_ name: String, _ type: String?) -> String {
@@ -492,7 +500,7 @@ public class CompatibleData {
         _ = try getDocument("user2")
         _ = try getDocument("user3")
 
-        if (version == 2) {
+        if (version >= 2) {
             _ = try getDocument("user4")
             _ = try getDocument("examplecorp")
             _ = try getDocument("foobar")
@@ -553,11 +561,11 @@ class InstantData {
             let selfIssuer = try VerifiableCredentialIssuer(doc)
             let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             var props = ["name": "Test Issuer"]
-            props["nation"] = "Singapore"
+            props["nationality"] = "Singapore"
             props["language"] = "English"
             props["email"] = "issuer@example.com"
             let vc = try cb.withId("#profile")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("BasicProfileCredential", "SelfProclaimedCredential")
                 .withProperties(props)
                 .seal(using: storePassword)
             
@@ -644,12 +652,15 @@ class InstantData {
             var prop: [String: String] = [: ]
             prop["name"] = "John"
             prop["gender"] = "Male"
-            prop["nation"] = "Singapore"
+            prop["nationality"] = "Singapore"
             prop["language"] = "English"
             prop["email"] = "john@example.com"
             prop["twitter"] = "@john"
             let vcProfile = try cb.withId("#profile")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("https://elastos.org/credentials/v1#SelfProclaimedCredential")
+                .withType("https://elastos.org/credentials/profile/v1#ProfileCredential")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
                 .withProperties(prop)
                 .seal(using: storePassword)
             
@@ -660,9 +671,8 @@ class InstantData {
             prop["email"] = "john@example.com"
 
             let vcEmail = try cb.withId("#email")
-                    .withTypes("BasicProfileCredential",
-                            "InternetAccountCredential", "EmailCredential")
-                    .withProperties(prop)
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withProperties(prop)
                 .seal(using: storePassword)
 
             _ = try db.appendCredential(with: vcProfile)
@@ -686,10 +696,10 @@ class InstantData {
             let selfIssuer = try VerifiableCredentialIssuer(doc)
             let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
             
-            let props: [String: String] = ["nation": "Singapore", "passport": "S653258Z07"]
+            let props: [String: String] = ["nationality": "Singapore", "passport": "S653258Z07"]
             
             let vcPassport = try cb.withId(id)
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("https://elastos.org/credentials/v1#SelfProclaimedCredential")
                 .withProperties(props)
                 .seal(using: storePassword)
             vcPassport.getMetadata().setAlias("Passport")
@@ -713,7 +723,7 @@ class InstantData {
             let props = ["twitter": "@john"]
             
             let vcTwitter = try cb.withId(id)
-                .withTypes("InternetAccountCredential", "TwitterCredential")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             vcTwitter.getMetadata().setAlias("Twitter")
@@ -763,7 +773,7 @@ class InstantData {
             let props = ["title": "CEO"]
             
             let vc = try cb.withId(id)
-                .withTypes("JobPositionCredential")
+                .withType("JobPositionCredential", "https://example.com/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
@@ -819,9 +829,14 @@ class InstantData {
 
             let db = try doc.editing()
 
-            let props = ["name": "John", "gender": "Male", "nation": "Singapore", "language": "English", "email": "john@example.com", "twitter": "@john"]
-
-            _ = try db.appendCredential(with: "#profile", subject: props, using: storePassword)
+            let props = ["name": "John", "gender": "Male", "nationality": "Singapore", "language": "English", "email": "john@example.com", "twitter": "@john"]
+            let types = [
+                "https://elastos.org/credentials/v1#SelfProclaimedCredential",
+                "https://elastos.org/credentials/profile/v1#ProfileCredential",
+                "https://elastos.org/credentials/email/v1#EmailCredential",
+                "https://elastos.org/credentials/social/v1#SocialCredential"
+            ]
+            _ = try db.appendCredential(with: "#profile", types: types, json: props.toJsonString()!, using: storePassword)
             doc = try db.seal(using: storePassword)
             try testData.store!.storeDid(using: doc)
             try doc.publish(using: storePassword)
@@ -865,11 +880,15 @@ class InstantData {
             
             let selfIssuer = try VerifiableCredentialIssuer(doc)
             let cb = try selfIssuer.editingVerifiableCredentialFor(did: doc.subject)
-            
-            let props = ["name": "Example LLC", "website": "https://example.com/", "email": "contact@example.com"]
+            let props = ["name": "Example LLC", "url": "https://example.com/", "email": "contact@example.com"]
             
             let vc = try cb.withId("#profile")
                 .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("https://elastos.org/credentials/v1#SelfProclaimedCredential")
+                .withType("https://elastos.org/credentials/profile/v1#ProfileCredential")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
+
                 .withProperties(props)
                 .seal(using: storePassword)
             
@@ -937,7 +956,9 @@ class InstantData {
             var pr = ["name": "Foo Bar Inc", "language": "Chinese", "email": "contact@foobar.com"]
             
             let vcProfile = try cb.withId("#profile")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(pr)
                 .seal(using: storePassword)
             
@@ -948,8 +969,7 @@ class InstantData {
             pr["email"] = "foobar@example.com"
             
             let vcEmail = try cb.withId("#email")
-                .withTypes("BasicProfileCredential",
-                           "InternetAccountCredential", "EmailCredential")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(pr)
                 .seal(using: storePassword)
             
@@ -978,7 +998,7 @@ class InstantData {
             let props = ["consultation": "https://foobar.com/consultation", "Outsourceing": "https://foobar.com/outsourcing"]
             
             let vc = try cb.withId(id)
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
@@ -1006,7 +1026,7 @@ class InstantData {
             let props = ["license-id": "20201021C889", "scope": "Consulting"]
             
             let vc = try cb.withId(id)
-                .withTypes("LicenseCredential")
+                .withType("LicenseCredential", "https://example.com/credentials/license/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)
@@ -1103,7 +1123,7 @@ class InstantData {
             let props = ["email": "foo@example.com"]
             
             let vc = try cb.withId(id)
-                .withTypes("InternetAccountCredential")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             try testData.store!.storeCredential(using: vc)

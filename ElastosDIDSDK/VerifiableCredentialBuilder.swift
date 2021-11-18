@@ -136,15 +136,8 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Parameter type: the type names
     /// - Returns: the VerifiableCredentialBuilder instance for method chaining
     public func withTypes(_ types: String...) throws -> VerifiableCredentialBuilder {
-        if types.count == 0 {
-            return self
-        }
-        try checkNotSealed()
-        try types.forEach { item in
-            try _ = withType(item)
-        }
-        
-        return self
+
+        return try withTypes(types)
     }
     
     /// Add a new credential type.
@@ -159,7 +152,13 @@ public class VerifiableCredentialBuilder: NSObject {
     /// - Returns: the VerifiableCredentialBuilder instance for method chaining
     @objc
     public func withTypes(_ types: Array<String>) throws -> VerifiableCredentialBuilder {
-        try _ = withTypes(types)
+        if types.count == 0 {
+            return self
+        }
+        try checkNotSealed()
+        try types.forEach { item in
+            try _ = withType(item)
+        }
         
         return self
      }
@@ -275,7 +274,7 @@ public class VerifiableCredentialBuilder: NSObject {
             _ = try withDefaultExpirationDate()
         }
         // TODO: CHECK
-        _ = _credential!._types.sorted()
+        _credential!._types = _credential!._types.sorted()
 
         _credential?.setProof(nil)
     }

@@ -490,13 +490,16 @@ class IDChainOperationsTest: XCTestCase {
             
             let props = ["name": "John",
                          "gender": "Male",
-                         "nation": "Singapore",
+                         "nationality": "Singapore",
                          "language": "English",
                          "email": "john@example.com",
                          "twitter": "@john"]
             
             let vc = try cb.withId("#profile")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -545,11 +548,11 @@ class IDChainOperationsTest: XCTestCase {
             let selfIssuer = try VerifiableCredentialIssuer(doc!)
             let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
-            let props = ["nation": "Singapore",
+            let props = ["nationality": "Singapore",
                          "passport": "S653258Z07"]
             
             let vc = try cb.withId("#passport")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -625,7 +628,7 @@ class IDChainOperationsTest: XCTestCase {
                          "Zoo": "Zoo"]
             
             let vc = try cb.withId("#test")
-                .withTypes("TestCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -690,13 +693,16 @@ class IDChainOperationsTest: XCTestCase {
             
             let props = ["name": "John",
                          "gender": "Male",
-                         "nation": "Singapore",
+                         "nationality": "Singapore",
                          "language": "English",
                          "email": "john@example.com",
                          "twitter": "@john"]
             
             let vc = try cb.withId("#profile")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -766,11 +772,11 @@ class IDChainOperationsTest: XCTestCase {
             let selfIssuer = try! VerifiableCredentialIssuer(doc!)
             let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
             
-            let props = ["nation": "Singapore",
+            let props = ["nationality": "Singapore",
                          "passport": "S653258Z07"]
             
             let vc = try cb.withId("#passport")
-                .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -845,7 +851,7 @@ class IDChainOperationsTest: XCTestCase {
                          "Zoo": "Zoo"]
             
             let vc = try cb.withId("#test")
-                .withTypes("TestCredential", "SelfProclaimedCredential")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             XCTAssertNotNil(vc)
@@ -932,7 +938,7 @@ class IDChainOperationsTest: XCTestCase {
             let props = ["name": "John", "gender": "Male"]
             let cb = try issuer.editingVerifiableCredentialFor(did: did)
             let vc = try cb.withId("#selfCredential")
-                .withTypes("BasicProfileCredential")
+                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
             let result = vc.subject!.getPropertyAsString(ofName: "name")

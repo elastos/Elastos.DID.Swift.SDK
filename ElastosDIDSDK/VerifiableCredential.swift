@@ -36,6 +36,7 @@ import PromiseKit
 @objc(VerifiableCredential)
 public class VerifiableCredential: DIDObject {
     private let TAG = NSStringFromClass(VerifiableCredential.self)
+    let CONTEXT = "@context"
     private let ID = "id"
     private let TYPE = "type"
     private let ISSUER = "issuer"
@@ -1943,7 +1944,11 @@ public class VerifiableCredential: DIDObject {
     func parse(_ node: JsonNode, _ ref: DID?) throws  {
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
-
+        // content
+        let content = node.get(forKey: CONTEXT)
+        if content != nil {
+            try parseContent(content!)
+        }
         let arrayNode = node.get(forKey: Constants.TYPE)?.asArray()
         guard let _ = arrayNode else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("missing credential type")
@@ -2004,6 +2009,16 @@ public class VerifiableCredential: DIDObject {
             setIssuer(self.subject!.did)
             return
         }
+    }
+    
+    private func parseContent(_ arrayNode: JsonNode) throws {
+        let array = arrayNode.asArray()
+        var contexts: [String] = []
+        array?.forEach{ item in
+            contexts.append(item.asString()!)
+        }
+        print(contexts)
+        _context = contexts
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredential {
@@ -2083,7 +2098,14 @@ public class VerifiableCredential: DIDObject {
     */
     func toJson(_ generator: JsonGenerator, _ ref: DID?, _ normalized: Bool, _ forSign: Bool) {
         generator.writeStartObject()
-
+        if _context.count > 0 {
+            generator.writeFieldName(CONTEXT)
+            generator.writeStartArray()
+            _context.forEach { item in
+                generator.writeString(item)
+            }
+            generator.writeEndArray()
+        }
         // id
         generator.writeFieldName(Constants.ID)
         generator.writeString(IDGetter(getId()!, subject?.did).value(normalized))

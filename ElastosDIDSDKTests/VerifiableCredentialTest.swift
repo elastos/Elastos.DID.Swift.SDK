@@ -59,6 +59,10 @@ class VerifiableCredentialTest: XCTestCase {
         KycCredential(2)
     }
     
+    func testKycCredential3() {
+        KycCredential(3)
+    }
+    
     func KycCredential(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -70,9 +74,14 @@ class VerifiableCredentialTest: XCTestCase {
             
             XCTAssertEqual(try DIDURL(user.subject, "#twitter"), vc.getId())
             
-            XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
-            XCTAssertTrue(vc.getType().contains("TwitterCredential"))
-            
+            if (version < 2) {
+                XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
+                XCTAssertTrue(vc.getType().contains("TwitterCredential"))
+            } else {
+                XCTAssertTrue(vc.getType().contains("VerifiableCredential"))
+                XCTAssertTrue(vc.getType().contains("SocialCredential"))
+            }
+
             XCTAssertEqual(issuer.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
@@ -97,7 +106,9 @@ class VerifiableCredentialTest: XCTestCase {
     func testSelfProclaimedCredential2() {
         SelfProclaimedCredential1(2)
     }
-    
+    func testSelfProclaimedCredential3() {
+        SelfProclaimedCredential1(3)
+    }
     func SelfProclaimedCredential1(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -107,15 +118,25 @@ class VerifiableCredentialTest: XCTestCase {
             
             XCTAssertEqual(try DIDURL(user.subject, "#passport"), vc.getId())
             
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
-            XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
-            
+            if (version < 2) {
+                XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
+                XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
+            } else {
+                XCTAssertTrue(vc.getType().contains("VerifiableCredential"))
+                XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
+            }
+
             XCTAssertEqual(user.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
-            XCTAssertEqual("Singapore", vc.subject?.getProperties()?.get(forKey: "nation")?.asString())
-            XCTAssertEqual("S653258Z07", vc.subject?.getProperty(ofName: "passport")?.asString())
-            
+            if (version < 2) {
+                XCTAssertEqual("Singapore", vc.subject?.getProperties()?.get(forKey: "nation")?.asString())
+                XCTAssertEqual("S653258Z07", vc.subject?.getProperty(ofName: "passport")?.asString())
+            } else {
+                XCTAssertEqual("Singapore", vc.subject?.getProperty(ofName: "nationality")?.asString())
+                XCTAssertEqual("S653258Z07", vc.subject?.getProperty(ofName:"passport")?.asString())
+            }
+
             XCTAssertNotNil(vc.issuanceDate)
             XCTAssertNotNil(try vc.getExpirationDate())
             
@@ -136,6 +157,10 @@ class VerifiableCredentialTest: XCTestCase {
         JsonCredential(2)
     }
     
+    func testJsonCredential3() {
+        JsonCredential(3)
+    }
+    
     func JsonCredential(_ version: Int) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -146,9 +171,14 @@ class VerifiableCredentialTest: XCTestCase {
             
             XCTAssertEqual(try DIDURL(user.subject, "#json"), vc.getId())
             
-            XCTAssertTrue(vc.getType().contains("JsonCredential"))
-            XCTAssertTrue(vc.getType().contains("TestCredential"))
-            
+            if (version < 2) {
+                XCTAssertTrue(vc.getType().contains("JsonCredential"))
+                XCTAssertTrue(vc.getType().contains("TestCredential"))
+            } else {
+                XCTAssertTrue(vc.getType().contains("VerifiableCredential"))
+                XCTAssertFalse(vc.getType().contains("NonExistsType"))
+            }
+
             XCTAssertEqual(issuer.subject, vc.issuer)
             XCTAssertEqual(user.subject, vc.subject?.did)
             
@@ -168,9 +198,15 @@ class VerifiableCredentialTest: XCTestCase {
         }
     }
     
-    func testKycCredentialToCid() {
+    func testKycCredentialToCid2() {
+        KycCredentialToCid(2)
+    }
+    func testKycCredentialToCid3() {
+        KycCredentialToCid(3)
+    }
+    func KycCredentialToCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             try cd.loadAll()
             
             let issuer = try cd.getDocument("issuer")
@@ -180,7 +216,7 @@ class VerifiableCredentialTest: XCTestCase {
             
             XCTAssertEqual(try DIDURL(foo.subject, "#email"), vc.id)
             
-            XCTAssertTrue(vc.getType().contains("InternetAccountCredential"))
+            XCTAssertTrue(vc.getType().contains("EmailCredential"))
             XCTAssertFalse(vc.getType().contains("ProfileCredential"))
             
             XCTAssertEqual(issuer.subject, vc.issuer)
@@ -200,9 +236,15 @@ class VerifiableCredentialTest: XCTestCase {
         }
     }
     
-    func testKycCredentialFromCid() {
+    func testKycCredentialFromCid2() {
+        KycCredentialFromCid(2)
+    }
+    func testKycCredentialFromCid3() {
+        KycCredentialFromCid(3)
+    }
+    func KycCredentialFromCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             try cd.loadAll()
             
             let exampleCorp = try cd.getDocument("examplecorp")
@@ -232,10 +274,15 @@ class VerifiableCredentialTest: XCTestCase {
             XCTFail()
         }
     }
-    
-    func testSelfProclaimedCredentialFromCid() {
+    func testSelfProclaimedCredentialFromCid2() {
+        SelfProclaimedCredentialFromCid(2)
+    }
+    func testSelfProclaimedCredentialFromCid3() {
+        SelfProclaimedCredentialFromCid(3)
+    }
+    func SelfProclaimedCredentialFromCid(_ version: Int) {
         do {
-            let cd = try testData!.getCompatibleData(2)
+            let cd = try testData!.getCompatibleData(version)
             try cd.loadAll()
             
             let foobar = try cd.getDocument("foobar")
@@ -245,7 +292,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertEqual(try DIDURL(foobar.subject, "#services"), vc.getId())
             
             XCTAssertTrue(vc.getType().contains("SelfProclaimedCredential"))
-            XCTAssertTrue(vc.getType().contains("BasicProfileCredential"))
+            XCTAssertTrue(vc.getType().contains("VerifiableCredential"))
             
             XCTAssertEqual(foobar.subject, vc.issuer)
             XCTAssertEqual(foobar.subject, vc.subject?.did)
@@ -293,6 +340,25 @@ class VerifiableCredentialTest: XCTestCase {
         ParseAndSerializeJsonCredential(2, "foo", "email")
     }
     
+    func testParseAndSerializeJsonCredentia20() {
+        ParseAndSerializeJsonCredential(3, "user1", "twitter")
+    }
+    func testParseAndSerializeJsonCredentia21() {
+        ParseAndSerializeJsonCredential(3, "user1", "passport")
+    }
+    func testParseAndSerializeJsonCredentia22() {
+        ParseAndSerializeJsonCredential(3, "user1", "json")
+    }
+    func testParseAndSerializeJsonCredentia23() {
+        ParseAndSerializeJsonCredential(3, "foobar", "license")
+    }
+    func testParseAndSerializeJsonCredentia24() {
+        ParseAndSerializeJsonCredential(3, "foobar", "services")
+    }
+    func testParseAndSerializeJsonCredentia25() {
+        ParseAndSerializeJsonCredential(3, "foo", "email")
+    }
+    
     func ParseAndSerializeJsonCredential(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -321,6 +387,7 @@ class VerifiableCredentialTest: XCTestCase {
                 XCTAssertEqual(compactJson, credential.toString(false))
             }
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -359,6 +426,29 @@ class VerifiableCredentialTest: XCTestCase {
     
     func testGenuineAndValidWithListener9() {
         GenuineAndValidWithListener(2, "foo", "email")
+    }
+    
+    
+    func testGenuineAndValidWithListener10() {
+        GenuineAndValidWithListener(3, "user1", "twitter")
+    }
+    
+    func testGenuineAndValidWithListener11() {
+        GenuineAndValidWithListener(3, "user1", "passport")
+    }
+    
+    func testGenuineAndValidWithListener12() {
+        GenuineAndValidWithListener(3, "user1", "json")
+    }
+    
+    func testGenuineAndValidWithListener13() {
+        GenuineAndValidWithListener(3, "foobar", "license")
+    }
+    func testGenuineAndValidWithListener14() {
+        GenuineAndValidWithListener(3, "foobar", "services")
+    }
+    func testGenuineAndValidWithListener15() {
+        GenuineAndValidWithListener(3, "foo", "email")
     }
     
     func GenuineAndValidWithListener(_ version: Int, _ did: String, _ vc: String) {
@@ -410,6 +500,25 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareCrendential(2, "foo", "email")
     }
     
+    func testDeclareCrendentia20() {
+        DeclareCrendential(3, "user1", "twitter")
+    }
+    func testDeclareCrendentia21() {
+        DeclareCrendential(3, "user1", "passport")
+    }
+    func testDeclareCrendentia22() {
+        DeclareCrendential(3, "user1", "json")
+    }
+    func testDeclareCrendentia23() {
+        DeclareCrendential(3, "foobar", "license")
+    }
+    func testDeclareCrendentia24() {
+        DeclareCrendential(3, "foobar", "services")
+    }
+    func testDeclareCrendentia25() {
+        DeclareCrendential(3, "foo", "email")
+    }
+    
     func DeclareCrendential(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -449,11 +558,21 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertEqual(1, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
         } catch {
+            print(error)
             XCTFail()
         }
     }
     
-    func testDeclareCrendentials() {
+    func testDeclareCrendentials2() {
+        DeclareCrendentials(false)
+    }
+    
+    func testDeclareCrendentials3() {
+        DeclareCrendentials(true)
+    }
+    
+    func DeclareCrendentials(_ contextEnabled: Bool) {
+        Features.enableJsonLdContext(contextEnabled)
         let sd = testData!.sharedInstantData()
         let vcds = [
             [ "user1": "passport" ]]
@@ -502,6 +621,7 @@ class VerifiableCredentialTest: XCTestCase {
                 XCTAssertEqual(1, bio?.getAllTransactions().count)
                 XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
             } catch {
+                print(error)
                 XCTFail()
             }
         }
@@ -534,6 +654,26 @@ class VerifiableCredentialTest: XCTestCase {
         RevokeCrendential(2, "foo", "email")
     }
     
+    
+    func testRevokeCrendentia20() {
+        RevokeCrendential(3, "user1", "twitter")
+    }
+    func testRevokeCrendentia21() {
+        RevokeCrendential(3, "user1", "passport")
+    }
+    func testRevokeCrendentia22() {
+        RevokeCrendential(3, "user1", "json")
+    }
+    func testRevokeCrendentia23() {
+        RevokeCrendential(3, "foobar", "license")
+    }
+    func testRevokeCrendentia24() {
+        RevokeCrendential(3, "foobar", "services")
+    }
+    func testRevokeCrendentia25() {
+        RevokeCrendential(3, "foo", "email")
+    }
+
     func RevokeCrendential(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -627,6 +767,25 @@ class VerifiableCredentialTest: XCTestCase {
         IllegalRevoke(2, "foo", "email")
     }
     
+    func testIllegalRevoke10() {
+        IllegalRevoke(3, "user1", "twitter")
+    }
+    func testIllegalRevoke11() {
+        IllegalRevoke(3, "user1", "passport")
+    }
+    func testIllegalRevoke12() {
+        IllegalRevoke(3, "user1", "json")
+    }
+    func testIllegalRevoke13() {
+        IllegalRevoke(3, "foobar", "license")
+    }
+    func testIllegalRevoke14() {
+        IllegalRevoke(3, "foobar", "services")
+    }
+    func testIllegalRevoke15() {
+        IllegalRevoke(3, "foo", "email")
+    }
+
     func IllegalRevoke(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -691,6 +850,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertEqual(1, bio?.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -705,6 +865,16 @@ class VerifiableCredentialTest: XCTestCase {
         RevokeCrendentialWithDifferentKey(2, "foo", "email")
     }
     
+    func testRevokeCrendentialWithDifferentKey4() {
+        RevokeCrendentialWithDifferentKey(3, "foobar", "license")
+    }
+    func testRevokeCrendentialWithDifferentKey5() {
+        RevokeCrendentialWithDifferentKey(3, "foobar", "services")
+    }
+    func testRevokeCrendentialWithDifferentKey6() {
+        RevokeCrendentialWithDifferentKey(3, "foo", "email")
+    }
+
     func RevokeCrendentialWithDifferentKey(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -795,6 +965,27 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterDeclare(2, "foo", "email")
     }
     
+    
+    func testDeclareAfterDeclare10() {
+        DeclareAfterDeclare(3, "user1", "twitter")
+    }
+    func testDeclareAfterDeclare11() {
+        DeclareAfterDeclare(3, "user1", "passport")
+    }
+    func testDeclareAfterDeclare12() {
+        DeclareAfterDeclare(3, "user1", "json")
+    }
+    func testDeclareAfterDeclare13() {
+        DeclareAfterDeclare(3, "foobar", "license")
+    }
+    
+    func testDeclareAfterDeclare14() {
+        DeclareAfterDeclare(3, "foobar", "services")
+    }
+    func testDeclareAfterDeclare15() {
+        DeclareAfterDeclare(3, "foo", "email")
+    }
+    
     func DeclareAfterDeclare(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -868,6 +1059,26 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevoke(2, "foo", "email")
     }
     
+    
+    func testDeclareAfterRevoke10() {
+        DeclareAfterRevoke(2, "user1", "twitter")
+    }
+    func testDeclareAfterRevoke11() {
+        DeclareAfterRevoke(2, "user1", "passport")
+    }
+    func testDeclareAfterRevoke12() {
+        DeclareAfterRevoke(2, "user1", "json")
+    }
+    func testDeclareAfterRevoke13() {
+        DeclareAfterRevoke(2, "foobar", "license")
+    }
+    func testDeclareAfterRevoke14() {
+        DeclareAfterRevoke(2, "foobar", "services")
+    }
+    func testDeclareAfterRevoke15() {
+        DeclareAfterRevoke(2, "foo", "email")
+    }
+    
     func DeclareAfterRevoke(_ version: Int, _ did: String, _ vc: String) {
         do {
             let cd = try testData!.getCompatibleData(version)
@@ -926,6 +1137,16 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevokeWithDifferentKey(2, "foo", "email")
     }
     
+    func testDeclareAfterRevokeWithDifferentKey4() {
+        DeclareAfterRevokeWithDifferentKey(3, "foobar", "license")
+    }
+    func testDeclareAfterRevokeWithDifferentKey5() {
+        DeclareAfterRevokeWithDifferentKey(3, "foobar", "services")
+    }
+    func testDeclareAfterRevokeWithDifferentKey6() {
+        DeclareAfterRevokeWithDifferentKey(3, "foo", "email")
+    }
+
     func DeclareAfterRevokeWithDifferentKey(_ version: Int, _ did: String, _ vc: String) {
         
         do {
@@ -973,6 +1194,7 @@ class VerifiableCredentialTest: XCTestCase {
             XCTAssertEqual(1, bio!.getAllTransactions().count)
             XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1002,6 +1224,25 @@ class VerifiableCredentialTest: XCTestCase {
         DeclareAfterRevokeByIssuer(2, "foobar", "services")
     }
     func testDeclareAfterRevokeByIssuer9() {
+        DeclareAfterRevokeByIssuer(2, "foo", "email")
+    }
+    
+    func testDeclareAfterRevokeByIssuer10() {
+        DeclareAfterRevokeByIssuer(2, "user1", "twitter")
+    }
+    func testDeclareAfterRevokeByIssuer11() {
+        DeclareAfterRevokeByIssuer(2, "user1", "passport")
+    }
+    func testDeclareAfterRevokeByIssuer12() {
+        DeclareAfterRevokeByIssuer(2, "user1", "json")
+    }
+    func testDeclareAfterRevokeByIssuer13() {
+        DeclareAfterRevokeByIssuer(2, "foobar", "license")
+    }
+    func testDeclareAfterRevokeByIssuer14() {
+        DeclareAfterRevokeByIssuer(2, "foobar", "services")
+    }
+    func testDeclareAfterRevokeByIssuer15() {
         DeclareAfterRevokeByIssuer(2, "foo", "email")
     }
     
