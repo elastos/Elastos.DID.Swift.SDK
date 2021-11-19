@@ -10,7 +10,7 @@ class IssueCredential: NSObject {
             // Initializa the DID backend globally.
 //            try DIDBackend.initialize(AssistDIDAdapter(network: "testnet"))
             try DIDBackend.initialize(AssistDIDAdapter(network: "mainnet")) 
-            try example.initPrivateIdentity()
+            try example.initRootIdentity()
             try example.initDid()
         } catch {
             print("IssueCredential init error: \(error)")
@@ -30,11 +30,11 @@ public class IssueCredentialEntity: NSObject {
     init(name: String) {
         self.name = name
         super.init()
-        try! initPrivateIdentity()
+        try! initRootIdentity()
         try! initDid()
     }
     
-    func initPrivateIdentity() throws {
+    func initRootIdentity() throws {
         
         let storePath = "\(NSHomeDirectory())/Library/Caches/data/didCache/" + name + ".store"
         store = try DIDStore.open(atPath: storePath)
@@ -115,7 +115,7 @@ class IssueUniversity: IssueCredentialEntity {
         let exp = userCalendar.date(from: components)
         let cb = issuer!.editingVerifiableCredentialFor(did: student.did)
         let vc = try cb.withId("diploma")
-            .withTypes("DiplomaCredential")
+            .withType("DiplomaCredential", "https://ttech.io/credentials/diploma/v1")
             .withProperties(subject)
             .withExpirationDate(exp!)
             .seal(using: storepass)
