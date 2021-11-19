@@ -50,11 +50,11 @@ public class PresentationEntity: NSObject {
     init(name: String) {
         self.name = name
         super.init()
-        try! initPrivateIdentity()
+        try! initRootIdentity()
         try! initDid()
     }
     
-    func initPrivateIdentity() throws {
+    func initRootIdentity() throws {
         
         let storePath = "\(NSHomeDirectory())/Library/Caches/data/didCache/" + name + ".store"
         print("storePath: \(storePath)")
@@ -133,7 +133,7 @@ class University: PresentationEntity {
         let exp = userCalendar.date(from: components)
         let cb = issuer!.editingVerifiableCredentialFor(did: student.did)
         let vc = try cb.withId("diploma")
-            .withTypes("DiplomaCredential")
+            .withType("DiplomaCredential", "https://ttech.io/credentials/diploma/v1")
             .withProperties(subject)
             .withExpirationDate(exp!)
             .seal(using: storepass)
@@ -165,7 +165,9 @@ public class Student: PresentationEntity {
         let exp = userCalendar.date(from: components)
         let cb = try VerifiableCredentialIssuer(getDocument()).editingVerifiableCredentialFor(did: did)
         let vc = try cb.withId("profile")
-            .withTypes("ProfileCredential", "SelfProclaimedCredential")
+            .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+            .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+            .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
             .withProperties(subject)
             .withExpirationDate(exp!)
             .seal(using: storepass)

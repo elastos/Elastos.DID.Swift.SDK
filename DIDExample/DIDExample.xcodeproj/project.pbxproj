@@ -12,6 +12,7 @@
 		1119F9302734956F00518B1D /* UserInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1119F92F2734956F00518B1D /* UserInfo.swift */; };
 		112C4F29273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */; };
 		112C4F2A273B7B3A00EEF4BA /* ElastosDIDSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1133058F274774D400390072 /* createFromString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1133058E274774D400390072 /* createFromString.swift */; };
 		116951282730D809003204CA /* AssistDIDAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951272730D809003204CA /* AssistDIDAdapter.swift */; };
 		1169512A2730E09D003204CA /* AssistDIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116951292730E09D003204CA /* AssistDIDRequest.swift */; };
 		1169512C2730E3AA003204CA /* CreatePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1169512B2730E3AA003204CA /* CreatePresentation.swift */; };
@@ -65,6 +66,7 @@
 		1119F92D27348D1F00518B1D /* UsageListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageListCell.swift; sourceTree = "<group>"; };
 		1119F92F2734956F00518B1D /* UserInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfo.swift; sourceTree = "<group>"; };
 		112C4F28273B7B3A00EEF4BA /* ElastosDIDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ElastosDIDSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1133058E274774D400390072 /* createFromString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = createFromString.swift; sourceTree = "<group>"; };
 		116951272730D809003204CA /* AssistDIDAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDAdapter.swift; sourceTree = "<group>"; };
 		116951292730E09D003204CA /* AssistDIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistDIDRequest.swift; sourceTree = "<group>"; };
 		1169512B2730E3AA003204CA /* CreatePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePresentation.swift; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				11839BDE273383B500972C0A /* IssueCredential.swift */,
 				11839BE02733871B00972C0A /* ParseJWT.swift */,
 				11839BE22733873700972C0A /* PresentationInJWT.swift */,
+				1133058E274774D400390072 /* createFromString.swift */,
 				11B72DE5272A3C4200D9A32B /* ViewController.swift */,
 				1119F92B27348C4400518B1D /* UsageViewController.swift */,
 				1119F92D27348D1F00518B1D /* UsageListCell.swift */,
@@ -357,6 +360,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1133058F274774D400390072 /* createFromString.swift in Sources */,
 				1169512E2731195F003204CA /* InitializeDID.swift in Sources */,
 				11839BE12733871B00972C0A /* ParseJWT.swift in Sources */,
 				1169512A2730E09D003204CA /* AssistDIDRequest.swift in Sources */,
