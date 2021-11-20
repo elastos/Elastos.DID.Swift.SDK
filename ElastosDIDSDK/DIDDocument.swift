@@ -2675,7 +2675,6 @@ public class DIDDocument: NSObject {
         Log.i(DIDDocument.TAG, "Publishing untrusted DID ", subject, "...")
         
         if (try !isGenuine()) {
-            try isGenuine()
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
@@ -3468,7 +3467,7 @@ public class DIDDocument: NSObject {
         // content
         let content = doc.get(forKey: CONTEXT)
         if content != nil {
-            try parseContent(content!)
+            try parseContext(content!)
         }
         // subject
         options = JsonSerializer.Options()
@@ -3533,7 +3532,7 @@ public class DIDDocument: NSObject {
         try parseProof(node!)
     }
     
-    private func parseContent(_ arrayNode: JsonNode) throws {
+    private func parseContext(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
         var contexts: [String] = []
         array?.forEach{ item in

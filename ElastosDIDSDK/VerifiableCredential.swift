@@ -1947,7 +1947,7 @@ public class VerifiableCredential: DIDObject {
         // content
         let content = node.get(forKey: CONTEXT)
         if content != nil {
-            try parseContent(content!)
+            try parseContext(content!)
         }
         let arrayNode = node.get(forKey: Constants.TYPE)?.asArray()
         guard let _ = arrayNode else {
@@ -2011,7 +2011,7 @@ public class VerifiableCredential: DIDObject {
         }
     }
     
-    private func parseContent(_ arrayNode: JsonNode) throws {
+    private func parseContext(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
         var contexts: [String] = []
         array?.forEach{ item in

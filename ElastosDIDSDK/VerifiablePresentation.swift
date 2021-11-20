@@ -501,7 +501,7 @@ public class VerifiablePresentation: NSObject {
         // content
         let content = node.get(forKey: CONTEXT)
         if content != nil {
-            try parseContent(content!)
+            try parseContext(content!)
         }
         
         let id = node.get(forKey: ID)?.asString()
@@ -560,7 +560,7 @@ public class VerifiablePresentation: NSObject {
         try sanitize()
     }
     
-    private func parseContent(_ arrayNode: JsonNode) throws {
+    private func parseContext(_ arrayNode: JsonNode) throws {
         let array = arrayNode.asArray()
         var contexts: [String] = []
         array?.forEach{ item in
