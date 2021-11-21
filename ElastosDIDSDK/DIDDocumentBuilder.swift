@@ -28,7 +28,7 @@ public class DIDDocumentBuilder: NSObject {
     private var document: DIDDocument?
     private var controllerDoc: DIDDocument?
     public let W3C_DID_CONTEXT = "https://www.w3.org/ns/did/v1"
-    public let ELASTOS_DID_CONTEXT = "https://elastos.org/did/v1"
+    public let ELASTOS_DID_CONTEXT = "https://ns.elastos.org/did/v1"
     public let W3ID_SECURITY_CONTEXT = "https://w3id.org/security/v1"
     
     /// Constructs DID Document Builder with given DID and DIDStore.
