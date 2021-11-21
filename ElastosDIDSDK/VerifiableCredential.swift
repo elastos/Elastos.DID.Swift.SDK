@@ -49,7 +49,7 @@ public class VerifiableCredential: DIDObject {
     private let SIGNATURE = "signature"
 
     public static let W3C_CREDENTIAL_CONTEXT = "https://www.w3.org/2018/credentials/v1"
-    public static let ELASTOS_CREDENTIAL_CONTEXT = "https://elastos.org/credentials/v1"
+    public static let ELASTOS_CREDENTIAL_CONTEXT = "https://ns.elastos.org/credentials/v1"
     
     var _types: Array<String> = []
     private var _id: DIDURL?
@@ -2017,7 +2017,6 @@ public class VerifiableCredential: DIDObject {
         array?.forEach{ item in
             contexts.append(item.asString()!)
         }
-        print(contexts)
         _context = contexts
     }
 

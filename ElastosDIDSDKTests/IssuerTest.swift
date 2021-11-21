@@ -93,9 +93,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
-                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -138,9 +138,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -183,9 +183,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc.subject)
             let vc = try cb.withId("#testCredential")
-                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -230,9 +230,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: testDoc!.subject)
             let vc = try cb.withId("#testCredential")
-                .withType("SocialCredential", "https://elastos.org/credentials/social/v1")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -274,9 +274,9 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://elastos.org/credentials/email/v1")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 
@@ -312,8 +312,8 @@ class IssuerTest: XCTestCase {
 
             let cb = try issuer.editingVerifiableCredentialFor(did: issuerDoc!.subject)
             let vc = try cb.withId("#myCredential")
-                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
-                .withType("ProfileCredential", "https://elastos.org/credentials/profile/v1")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
                 .withProperties(props)
                 .seal(using: storePassword)
 

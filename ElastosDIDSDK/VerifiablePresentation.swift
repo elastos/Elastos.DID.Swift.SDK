@@ -566,7 +566,6 @@ public class VerifiablePresentation: NSObject {
         array?.forEach{ item in
             contexts.append(item.asString()!)
         }
-        print(contexts)
         _context = contexts
     }
     

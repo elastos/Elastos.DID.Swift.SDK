@@ -3538,7 +3538,6 @@ public class DIDDocument: NSObject {
         array?.forEach{ item in
             contexts.append(item.asString()!)
         }
-        print(contexts)
         _context = contexts
     }
     

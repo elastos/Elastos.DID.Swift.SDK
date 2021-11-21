@@ -646,7 +646,10 @@ class DIDStoreTests: XCTestCase {
                 let issuer = try VerifiableCredentialIssuer(doc)
                 let cb = try issuer.editingVerifiableCredentialFor(did: doc.subject)
                 let vc = try cb.withId("#cred-1")
-                    .withTypes("BasicProfileCredential", "SelfProclaimedCredential")
+                    .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                    .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                    .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                    .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
                     .withProperties(props)
                     .seal(using: storePassword)
                 
