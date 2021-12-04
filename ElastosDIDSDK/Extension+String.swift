@@ -311,3 +311,11 @@ extension String{
         return sum
     }
 }
+
+extension String {
+    func normalizedCanonicallyComposed() -> String {
+        let mutable = NSMutableString(string: self) as CFMutableString
+        CFStringNormalize(mutable, .D) // OR .C
+        return mutable as String
+    }
+}
