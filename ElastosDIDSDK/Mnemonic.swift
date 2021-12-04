@@ -70,18 +70,19 @@ public class Mnemonic: NSObject {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic.")
         let language = try getLanguage(mnemonic)
         return language.withCString { (clang) in
-            return mnemonic.withCString { (cmnemonic) in
+            return mnemonic.normalizedCanonicallyComposed().withCString { (cmnemonic) in
                 return HDKey_MnemonicIsValid(cmnemonic, clang)
             }
         }
     }
+    
     
     static func isValid(_ language: String, _ mnemonic: String) throws -> Bool {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic.")
         try checkArgument(!language.isEmpty, "Invalid language.")
 
         return language.withCString { (clang) in
-            return mnemonic.withCString { (cmnemonic) in
+            return mnemonic.normalizedCanonicallyComposed().withCString { (cmnemonic) in
                 return HDKey_MnemonicIsValid(cmnemonic, clang)
             }
         }

@@ -73,7 +73,7 @@ public class RootIdentity: NSObject {
         try checkArgument(!mnemonic.isEmpty, "Invalid mnemonic")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         let _passphrase = passphrase == nil ? "" : passphrase
-        try checkArgument(Mnemonic.isValid(Mnemonic.getLanguage(mnemonic), mnemonic), "Invalid mnemonic.")
+        try checkArgument(Mnemonic.checkIsValid(mnemonic), "Invalid mnemonic.")
         
         let identity = try RootIdentity(mnemonic, _passphrase!)
         if try store.containsRootIdentity(identity.getId()) && !overwrite {
