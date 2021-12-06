@@ -75,7 +75,7 @@ public class RootIdentity: NSObject {
         let _passphrase = passphrase == nil ? "" : passphrase
         try checkArgument(Mnemonic.checkIsValid(mnemonic), "Invalid mnemonic.")
         
-        let identity = try RootIdentity(mnemonic, _passphrase!)
+        let identity = try RootIdentity(mnemonic.normalizedCanonicallyComposed(), _passphrase!.normalizedCanonicallyComposed())
         if try store.containsRootIdentity(identity.getId()) && !overwrite {
             throw DIDError.UncheckedError.IllegalStateError.RootIdentityAlreadyExistError(identity.id)
         }

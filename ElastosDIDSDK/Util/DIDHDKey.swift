@@ -51,8 +51,8 @@ public class DIDHDKey: NSObject {
 
     @objc
     public convenience init(_ mnemonic: String, _ passPhrase: String, _ language: String) {
-        let cmnemonic = mnemonic.toUnsafePointerInt8()!
-        let cpassphrase = passPhrase.toUnsafePointerInt8()!
+        let cmnemonic = mnemonic.normalizedCanonicallyComposed().toUnsafePointerInt8()!
+        let cpassphrase = passPhrase.normalizedCanonicallyComposed().toUnsafePointerInt8()!
         let chdKey: UnsafeMutablePointer<CHDKey> = UnsafeMutablePointer<CHDKey>.allocate(capacity: 66)
         let key = HDKey_FromMnemonic(cmnemonic, cpassphrase, language.toUnsafePointerInt8()!, chdKey)
         self.init(key)
