@@ -35,6 +35,18 @@ class DIDDoucumentTests: XCTestCase {
         testData?.cleanup()
         simulatedIDChain.httpServer.stop()
     }
+    
+    func testPayload() {
+        let payload = "eyJpc3MiOiJkaWQ6ZWxhc3RvczppbU1ZN3VIYzVXQ0RVaFdDVmFINU10RkZDQk1lZ0NhRVlIIiwicHJlc2VudGF0aW9uIjp7ImhvbGRlciI6ImRpZDplbGFzdG9zOmltTVk3dUhjNVdDRFVoV0NWYUg1TXRGRkNCTWVnQ2FFWUgiLCJjcmVhdGVkIjoiMjAyMS0xMi0wOVQxMTozNToxNFoiLCJwcm9vZiI6eyJub25jZSI6IjEzYzhjMzllLTU4ZTQtMTFlYy1iZjg2LTAyNDJhYzE5MDAwNCIsInNpZ25hdHVyZSI6ImhUUUhxanIxdEJSakRubzFTLTMyRFloZXBSdHZNMk5ON3BmbGVGcmZGa1hfVldqdkVGNzBfeVRtNG0xXzhWc3hmWHY5cm8wY2ZWYUhoUy1yQ1JCVjVBIiwidmVyaWZpY2F0aW9uTWV0aG9kIjoiZGlkOmVsYXN0b3M6aW1NWTd1SGM1V0NEVWhXQ1ZhSDVNdEZGQ0JNZWdDYUVZSCNwcmltYXJ5IiwidHlwZSI6IkVDRFNBc2VjcDI1NnIxIiwicmVhbG0iOiJkaWQ6ZWxhc3RvczppWWdENGtwV2FrUWlCQjlhM01CVFV4OFcyRTJxZW9qZE41In0sInR5cGUiOiJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlt7Imlzc3VlciI6ImRpZDplbGFzdG9zOmltZWR0SHlqTFMxNTVHZWRodjd2S1AzRlRXanBCVUFVbTQiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjYtMTItMDlUMTE6MDA6MDBaIiwiaXNzdWFuY2VEYXRlIjoiMjAyMS0xMi0wOVQxMTozNToxNFoiLCJpZCI6ImRpZDplbGFzdG9zOmltTVk3dUhjNVdDRFVoV0NWYUg1TXRGRkNCTWVnQ2FFWUgjZGlkYXBwIiwicHJvb2YiOnsidHlwZSI6IkVDRFNBc2VjcDI1NnIxIiwic2lnbmF0dXJlIjoiRl9haUx5elRFaVBYdG1YcmdQMkhCOXB2b3ZIN1U0VktQNDVyU0ZDdE9HWTF6OVZzb3FTNzh6SWNQY2liTk92NXVRTEx6X2Exb1huS29LNzM0OV9YR2ciLCJ2ZXJpZmljYXRpb25NZXRob2QiOiJkaWQ6ZWxhc3RvczppbWVkdEh5akxTMTU1R2VkaHY3dktQM0ZUV2pwQlVBVW00I3ByaW1hcnkifSwidHlwZSI6WyJBcHBJZENyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplbGFzdG9zOmltTVk3dUhjNVdDRFVoV0NWYUg1TXRGRkNCTWVnQ2FFWUgiLCJhcHBEaWQiOiJhcHBJZCJ9fV19LCJpYXQiOjE2MzkwNDk3MTQsImV4cCI6MTY3MjUwMjQwMH0"
+        let capacity = payload.count * 3
+        let buffer: UnsafeMutablePointer<UInt8> = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+        let cp = payload.toUnsafePointerInt8()
+        let c = b64_url_decode(buffer, cp)
+        buffer[c] = 0
+        let json: String = String(cString: buffer)
+        print(json)
+        print(json)
+    }
 
     func testGetPublicKeyV1() {
         GetPublicKey(1)
