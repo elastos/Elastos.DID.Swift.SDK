@@ -29,9 +29,9 @@ import Foundation
 /// createIdTransaction method to support publish capability.
 open class DefaultDIDAdapter: DIDAdapter {
     private let TAG = NSStringFromClass(DefaultDIDAdapter.self)
-    let MAINNET_RESOLVERS = ["https://api.elastos.io/eid", "https://api.trinity-tech.cn/eid"]
-    let TESTNET_RESOLVERS = ["https://api-testnet.elastos.io/eid", "https://api-testnet.trinity-tech.cn/eid"]
-    private var resolver: String!
+    let MAINNET_RPC_ENDPOINTS = ["https://api.elastos.io/eid", "https://api.trinity-tech.io/eid"]
+    let TESTNET_RPC_ENDPOINTS = ["https://api-testnet.elastos.io/eid", "https://api-testnet.trinity-tech.io/eid"]
+    private var rpcEndpoint: String!
     private var endpoints: [String]?
     
     /// Create a DefaultDIDAdapter instance with given resolver endpoint.
@@ -40,12 +40,12 @@ open class DefaultDIDAdapter: DIDAdapter {
         var resolver = resolver
         switch resolver.lowercased() {
         case "mainnet":
-            resolver = MAINNET_RESOLVERS[0]
-            endpoints = MAINNET_RESOLVERS
+            resolver = MAINNET_RPC_ENDPOINTS[0]
+            endpoints = MAINNET_RPC_ENDPOINTS
             break
         case "testnet":
-            resolver = TESTNET_RESOLVERS[0]
-            endpoints = TESTNET_RESOLVERS
+            resolver = TESTNET_RPC_ENDPOINTS[0]
+            endpoints = TESTNET_RPC_ENDPOINTS
             break
         default:
             break
@@ -58,8 +58,8 @@ open class DefaultDIDAdapter: DIDAdapter {
 
     /// Create a DefaultDIDAdapter instance with given resolver endpoint.
     /// - Parameter resolver: resolver the resolver URL object
-    public init(_ resolver: String) {
-        self.resolver = resolver
+    public init(_ rpcEndpoint: String) {
+        self.rpcEndpoint = rpcEndpoint
     }
     
     private func checkEndpoint(_ endpoint: String) throws -> CheckResult {
@@ -105,8 +105,8 @@ open class DefaultDIDAdapter: DIDAdapter {
         if (results.count > 0) {
             let best = results[0]
             if (best.available()) {
-                self.resolver = best.endpoint
-                Log.i(TAG, "Update resolver to ", resolver.description)
+                self.rpcEndpoint = best.endpoint
+                Log.i(TAG, "Update resolver to ", rpcEndpoint.description)
             }
         }
     }
@@ -159,7 +159,7 @@ open class DefaultDIDAdapter: DIDAdapter {
     }
     
     public func resolve(_ request: String) throws -> Data {
-        return try performRequest(resolver, request)
+        return try performRequest(rpcEndpoint, request)
     }
     
     open func createIdTransaction(_ payload: String, _ memo: String?) throws {
