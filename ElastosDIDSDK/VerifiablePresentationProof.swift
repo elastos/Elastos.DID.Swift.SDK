@@ -26,12 +26,12 @@ import Foundation
 /// The default proof type is ECDSAsecp256r1.
 @objc(VerifiablePresentationProof)
 public class VerifiablePresentationProof: NSObject {
-    private let _type: String
+    private let _type: String?
     private let _verificationMethod: DIDURL
     private let _realm: String
     private let _nonce: String
     private let _signature: String
-    private var created: Date?
+    private var _created: Date?
 
     /// Create the proof object with the given values.
     /// - Parameters:
@@ -40,12 +40,13 @@ public class VerifiablePresentationProof: NSObject {
     ///   - realm: where is presentation use
     ///   - nonce: the nonce string
     ///   - signature: the signature string
-    init(_ type: String,  _ method: DIDURL, _ realm: String,  _ nonce: String, _ signature: String) {
+    init(_ type: String?, _ created: Date?, _ method: DIDURL, _ realm: String,  _ nonce: String, _ signature: String) {
         self._type = type
         self._verificationMethod = method
         self._realm = realm
         self._nonce = nonce
         self._signature = signature
+        self._created = created
     }
     
     /// Create the proof object with the given values.
@@ -55,12 +56,16 @@ public class VerifiablePresentationProof: NSObject {
     ///   - nonce: the nonce string
     ///   - signature: the signature string
     convenience init(_ method: DIDURL, _ realm: String, _ nonce: String, _ signature: String) {
-        self.init(Constants.DEFAULT_PUBLICKEY_TYPE, method, realm, nonce, signature)
+        self.init(nil, method, realm, nonce, signature)
+    }
+    
+    convenience init(_ created: Date?, _ method: DIDURL, _ realm: String, _ nonce: String, _ signature: String) {
+        self.init(Constants.DEFAULT_PUBLICKEY_TYPE, created != nil ? created : DateFormatter.currentDate(), method, realm, nonce, signature)
     }
 
     /// Get the proof type.
     @objc
-    public var type: String {
+    public var type: String? {
         return _type
     }
 
@@ -82,6 +87,12 @@ public class VerifiablePresentationProof: NSObject {
         return _nonce
     }
 
+    // Get the proof create time stamp.
+    @objc
+    public var created: Date? {
+        return _created
+    }
+    
     /// Get signature value of this presentation object.
     @objc
     public var signature: String {
@@ -99,6 +110,9 @@ public class VerifiablePresentationProof: NSObject {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof type")
         }
 
+        options = JsonSerializer.Options()
+        let createdDate = try serializer.getDate(Constants.CREATED, options)
+        
         options = JsonSerializer.Options()
                                 .withRef(ref)
         guard let method = try serializer.getDIDURL(Constants.VERIFICATION_METHOD, options) else {
@@ -120,12 +134,17 @@ public class VerifiablePresentationProof: NSObject {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedPresentationError("Mssing presentation proof signature")
         }
 
-        return VerifiablePresentationProof(type, method, realm, nonce, signature)
+        return VerifiablePresentationProof(type, createdDate, method, realm, nonce, signature)
     }
 
     func toJson(_ generator: JsonGenerator) {
         generator.writeStartObject()
-        generator.writeStringField(Constants.TYPE, type)
+        if type != nil {
+            generator.writeStringField(Constants.TYPE, type!)
+        }
+        if created != nil {
+            generator.writeStringField(Constants.CREATED, DateFormatter.convertToUTCStringFromDate(created!))
+        }
         generator.writeStringField(Constants.VERIFICATION_METHOD, verificationMethod.toString())
         generator.writeStringField(Constants.REALM, realm)
         generator.writeStringField(Constants.NONCE, nonce)

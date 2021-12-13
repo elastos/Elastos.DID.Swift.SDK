@@ -256,6 +256,9 @@ public class VerifiablePresentationBuilder: NSObject {
         }
         presentation!._types = presentation!._types.sorted()
 
+        // from 2.2.x, will use proof.created as the formal created time stamp
+        // keep the field for backward compatible only.
+        // TODO: remove this in the future
         presentation!.setCreatedDate(DateFormatter.currentDate())
         var data: [Data] = []
         data.append(presentation!.toJson(true))

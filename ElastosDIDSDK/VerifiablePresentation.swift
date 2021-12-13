@@ -51,6 +51,7 @@ public class VerifiablePresentation: NSObject {
     var _types: [String] = []
     var _holder: DID?
     var _credentialsArray: [VerifiableCredential] = [ ]
+    // TODO: remove the created field in the future, use proof.created as formal time stamp
     private var _createdDate: Date
     private var _verifiableCredentials: [DIDURL: VerifiableCredential] = [: ]
     private var _proof: VerifiablePresentationProof?
@@ -120,7 +121,10 @@ public class VerifiablePresentation: NSObject {
     /// Get the time created this presentation object.
     @objc
     public var createdDate: Date {
-        return _createdDate
+        // From 2.2.x proof.created is the formal created time stamp,
+        // fail-back to created for back compatible support.
+
+        return proof.created != nil ? proof.created! : _createdDate
     }
 
     func setCreatedDate(_ newDate: Date) {
@@ -152,7 +156,7 @@ public class VerifiablePresentation: NSObject {
     public func credential(ofId: DIDURL) throws -> VerifiableCredential? {
         var id = ofId
         if id.did == nil {
-            id = try DIDURL(holder!, id)
+            id = DIDURL(holder!, id)
         }
         return self._verifiableCredentials[id]
     }
