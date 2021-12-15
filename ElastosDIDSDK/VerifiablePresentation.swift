@@ -124,7 +124,7 @@ public class VerifiablePresentation: NSObject {
         // From 2.2.x proof.created is the formal created time stamp,
         // fail-back to created for back compatible support.
 
-        return proof.created != nil ? proof.created! : _createdDate
+        return _proof?.created != nil ? proof.created! : _createdDate
     }
 
     func setCreatedDate(_ newDate: Date) {
