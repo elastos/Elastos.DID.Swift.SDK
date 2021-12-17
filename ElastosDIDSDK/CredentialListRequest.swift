@@ -74,18 +74,33 @@ public class CredentialListRequest: ResolveRequest {
     }
     
     public override var description: String {
-        
-        return "TODO:"
+        let generator = JsonGenerator()
+        generator.writeStartObject()
+        generator.writeStringField(ID, requestId)
+        generator.writeStringField(METHOD, method)
+        if params != nil {
+            generator.writeFieldName(PARAMETERS)
+            generator.writeStartArray()
+            generator.writeStartObject()
+            params!.serialize(generator)
+            generator.writeEndObject()
+            generator.writeEndArray()
+        }
+        generator.writeEndObject()
+        return generator.toString()
     }
     
     override func serialize(_ force: Bool) -> String {
-        // TODO:
-        return "todo"
+        
+        return description
     }
 }
 
-
 public class CredentialListParameters: NSObject {
+    private let PARAMETER_DID = "did"
+    private let PARAMETER_SKIP = "skip"
+    private let PARAMETER_LIMIT = "limit"
+    
     private var _did: DID
     private var _skip: Int
     private var _limit: Int
@@ -142,5 +157,19 @@ public class CredentialListParameters: NSObject {
         else {
             return false
         }
+    }
+    
+    public override var description: String {
+        let generator = JsonGenerator()
+        generator.writeStringField(PARAMETER_DID, did.description)
+        generator.writeNumberField(PARAMETER_SKIP, skip)
+        generator.writeNumberField(PARAMETER_LIMIT, limit)
+        return generator.toString()
+    }
+    
+    func serialize(_ generator: JsonGenerator) {
+        generator.writeStringField(PARAMETER_DID, did.description)
+        generator.writeNumberField(PARAMETER_SKIP, skip)
+        generator.writeNumberField(PARAMETER_LIMIT, limit)
     }
 }

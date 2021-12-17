@@ -149,6 +149,32 @@ class VerifiableCredentialTest: XCTestCase {
         }
     }
     
+    func testListCredential1() {
+        testListCredential(1)
+    }
+    
+    func testListCredential2() {
+        testListCredential(2)
+    }
+    func testListCredential3() {
+        testListCredential(3)
+    }
+    func testListCredential(_ version: Int) {
+        do {
+            let cd = try testData!.getCompatibleData(version)
+            
+            let user = try cd.getDocument("user1")
+            let vc = try cd.getCredential("user1", "passport")
+            let list1 = try VerifiableCredential.list(user.subject)
+            let list2 = try VerifiableCredential.list(vc.subject!.did)
+            
+            print(list1)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
     func testJsonCredential1() {
         JsonCredential(1)
     }

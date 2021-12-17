@@ -9,7 +9,8 @@ class IDChainOperationsTest: XCTestCase {
     var mnemonic: String = ""
     var identity: RootIdentity?
     var adapter: Web3Adapter?
-    
+    var debug = TestEventListener()
+
     override func setUp() {
         adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, walletPassword)
         try! DIDBackend.initialize(adapter!)
@@ -1201,7 +1202,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_20CustomizedWithCreataAndResolve() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
@@ -1245,7 +1246,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_21CreateMultisigCustomizedDid() {
             do {
                 // Create normal DID first
-                let ctrl1 = try identity.newDid(storePassword)
+                let ctrl1 = try identity!.newDid(storePassword)
                 
                 try ctrl1.publish(using: storePassword)
 
@@ -1257,7 +1258,7 @@ class IDChainOperationsTest: XCTestCase {
 
                 XCTAssertTrue(try resolved!.isValid(debug))
 
-                let ctrl2 = try identity.newDid(storePassword)
+                let ctrl2 = try identity!.newDid(storePassword)
                 XCTAssertTrue(try ctrl2.isValid(debug))
                 try ctrl2.publish(using: storePassword)
 
@@ -1269,7 +1270,7 @@ class IDChainOperationsTest: XCTestCase {
 
                 XCTAssertTrue(try resolved!.isValid(debug))
 
-                let ctrl3 = try identity.newDid(storePassword)
+                let ctrl3 = try identity!.newDid(storePassword)
                 XCTAssertTrue(try ctrl3.isValid(debug))
                 try ctrl3.publish(using: storePassword)
 
@@ -1316,7 +1317,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_22UpdateCustomizedDid() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve();
@@ -1391,7 +1392,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_23UpdateMultisigCustomizedDid() {
         do {
             // Create normal DID first
-            let ctrl1 = try identity.newDid(storePassword)
+            let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
@@ -1403,7 +1404,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-            let ctrl2 = try identity.newDid(storePassword)
+            let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
@@ -1415,7 +1416,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-            let ctrl3 = try identity.newDid(storePassword)
+            let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
@@ -1495,7 +1496,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_24TransferCustomizedDidAfterCreate() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
@@ -1534,7 +1535,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // create new controller
-            let newController = try identity.newDid(storePassword)
+            let newController = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             resolved = try newController.subject.resolve()
@@ -1581,7 +1582,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_25TransferCustomizedDidAfterUpdate() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
@@ -1635,7 +1636,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertEqual(doc.toString(), resolved?.toString())
 
             // create new controller
-            let newController = try identity.newDid(storePassword)
+            let newController = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             resolved = try newController.subject.resolve()
@@ -1681,7 +1682,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_26TransferMultisigCustomizedDidAfterCreate() {
         do {
             // Create normal DID first
-            let ctrl1 = try identity.newDid(storePassword)
+            let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
@@ -1693,7 +1694,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-            let ctrl2 = try identity.newDid(storePassword)
+            let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
@@ -1705,7 +1706,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-               let ctrl3 = try identity.newDid(storePassword)
+               let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
@@ -1752,7 +1753,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // new controllers for the did
-            let td = testData!.sharedInstantData()
+            let td = IDChainOperationsTest.testData.sharedInstantData()
             _ = try td.getIssuerDocument()
             let u1 = try td.getUser1Document()
             let u2 = try td.getUser2Document()
@@ -1793,7 +1794,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_27TransferMultisigCustomizedDidAfterUpdate() {
         do {
             // Create normal DID first
-            let ctrl1 = try identity.newDid(storePassword)
+            let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
@@ -1805,7 +1806,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-            let ctrl2 = try identity.newDid(storePassword)
+            let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try  ctrl2.publish(using: storePassword)
 
@@ -1817,7 +1818,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-               let ctrl3 = try identity.newDid(storePassword)
+               let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
@@ -1877,7 +1878,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertEqual(4, resolved?.authenticationKeyCount)
 
             // new controllers for the did
-            let td = testData!.sharedInstantData()
+            let td = IDChainOperationsTest.testData.sharedInstantData()
             _ = try td.getIssuerDocument()
             let u1 = try td.getUser1Document()
             let u2 = try td.getUser2Document()
@@ -1918,7 +1919,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_28DeactivateCustomizedDidAfterCreate() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
@@ -1968,7 +1969,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_29DeactivateCustomizedDidAfterUpdate() {
         do {
             // Create normal DID first
-            let controller = try identity.newDid(storePassword)
+            let controller = try identity!.newDid(storePassword)
             XCTAssertTrue(try controller.isValid(debug))
 
             var resolved = try controller.subject.resolve()
@@ -2033,7 +2034,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_30DeactivateMultisigCustomizedDidAfterCreate() {
         do {
             // Create normal DID first
-            let ctrl1 = try identity.newDid(storePassword)
+            let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
@@ -2045,7 +2046,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-            let ctrl2 = try identity.newDid(storePassword)
+            let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
@@ -2057,7 +2058,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-               let ctrl3 = try identity.newDid(storePassword)
+               let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
@@ -2115,7 +2116,7 @@ class IDChainOperationsTest: XCTestCase {
     func test_31DeactivateMultisigCustomizedDidAfterUpdate() {
         do {
             // Create normal DID first
-            let ctrl1 = try identity.newDid(storePassword)
+            let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
 
@@ -2127,7 +2128,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-               let ctrl2 = try identity.newDid(storePassword)
+               let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
 
@@ -2139,7 +2140,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
 
-               let ctrl3 = try identity.newDid(storePassword)
+               let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
 
