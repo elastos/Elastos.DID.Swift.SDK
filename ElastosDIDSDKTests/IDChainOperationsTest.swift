@@ -1209,7 +1209,8 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword);
-
+            waitForWalletAvaliable()
+            
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
             XCTAssertEqual(controller.subject, resolved?.subject)
@@ -1230,6 +1231,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1249,6 +1251,7 @@ class IDChainOperationsTest: XCTestCase {
                 let ctrl1 = try identity!.newDid(storePassword)
                 
                 try ctrl1.publish(using: storePassword)
+                waitForWalletAvaliable()
 
                 var resolved = try ctrl1.subject.resolve()
                 XCTAssertNotNil(resolved)
@@ -1261,6 +1264,7 @@ class IDChainOperationsTest: XCTestCase {
                 let ctrl2 = try identity!.newDid(storePassword)
                 XCTAssertTrue(try ctrl2.isValid(debug))
                 try ctrl2.publish(using: storePassword)
+                waitForWalletAvaliable()
 
                 resolved = try ctrl2.subject.resolve()
                 XCTAssertNotNil(resolved)
@@ -1273,6 +1277,7 @@ class IDChainOperationsTest: XCTestCase {
                 let ctrl3 = try identity!.newDid(storePassword)
                 XCTAssertTrue(try ctrl3.isValid(debug))
                 try ctrl3.publish(using: storePassword)
+                waitForWalletAvaliable()
 
                 resolved = try ctrl3.subject.resolve()
                 XCTAssertNotNil(resolved)
@@ -1305,6 +1310,7 @@ class IDChainOperationsTest: XCTestCase {
 
                 try doc.setEffectiveController(ctrl1.subject)
                 try doc.publish(using: storePassword)
+                waitForWalletAvaliable()
 
                 resolved = try did.resolve()
     
@@ -1324,6 +1330,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1334,7 +1341,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld")
+            let did = try DID("did:elastos:helloworld123")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
             XCTAssertTrue(try doc.isValid(debug))
 
@@ -1345,6 +1352,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1365,6 +1373,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1380,11 +1389,13 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
             XCTAssertEqual(doc.toString(), resolved?.toString())
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1395,6 +1406,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             var resolved = try ctrl1.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1407,6 +1419,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl2.subject.resolve();
             XCTAssertNotNil(resolved)
@@ -1419,6 +1432,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl3.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1429,7 +1443,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld3")
+            let did = try DID("did:elastos:helloworld321")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
             XCTAssertFalse(try doc.isValid(debug))
@@ -1447,6 +1461,7 @@ class IDChainOperationsTest: XCTestCase {
 
             try doc.setEffectiveController(ctrl1.subject)
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1465,6 +1480,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             
@@ -1482,6 +1498,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1489,6 +1506,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertEqual(5, resolved?.publicKeyCount)
             XCTAssertEqual(5, resolved?.authenticationKeyCount)
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1503,6 +1521,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1513,7 +1532,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld")
+            let did = try DID("did:elastos:helloworld1234")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
             XCTAssertTrue(try doc.isValid(debug))
 
@@ -1524,6 +1543,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try doc.publish(using: storePassword);
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1542,6 +1562,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try newController.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try newController.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1565,6 +1586,7 @@ class IDChainOperationsTest: XCTestCase {
 
             // transfer
             try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1575,6 +1597,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1589,6 +1612,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1599,7 +1623,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld")
+            let did = try DID("did:elastos:helloworld98")
             var doc = try controller.newCustomizedDid(withId: did, storePassword)
             XCTAssertTrue(try doc.isValid(debug))
 
@@ -1610,6 +1634,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1630,6 +1655,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1643,6 +1669,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try newController.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try newController.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1665,6 +1692,7 @@ class IDChainOperationsTest: XCTestCase {
 
             // transfer
             try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1675,6 +1703,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1685,6 +1714,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             var resolved = try ctrl1.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1697,6 +1727,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try ctrl2.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl2.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1709,6 +1740,7 @@ class IDChainOperationsTest: XCTestCase {
                let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl3.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1719,7 +1751,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld3")
+            let did = try DID("did:elastos:helloworld380")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
                     2, storePassword)
             XCTAssertFalse(try doc.isValid(debug))
@@ -1743,6 +1775,7 @@ class IDChainOperationsTest: XCTestCase {
 
             try doc.setEffectiveController(ctrl1.subject)
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1777,6 +1810,7 @@ class IDChainOperationsTest: XCTestCase {
 
             // transfer
             try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1797,6 +1831,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl1 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl1.isValid(debug))
             try ctrl1.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             var resolved = try ctrl1.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1809,6 +1844,7 @@ class IDChainOperationsTest: XCTestCase {
             let ctrl2 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl2.isValid(debug))
             try  ctrl2.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl2.subject.resolve()
             XCTAssertNotNil(resolved);
@@ -1821,6 +1857,7 @@ class IDChainOperationsTest: XCTestCase {
                let ctrl3 = try identity!.newDid(storePassword)
             XCTAssertTrue(try ctrl3.isValid(debug))
             try ctrl3.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try ctrl3.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1831,7 +1868,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertTrue(try resolved!.isValid(debug))
 
             // Create customized DID
-            let did = try DID("did:elastos:helloworld3")
+            let did = try DID("did:elastos:helloworld3781")
             var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
             XCTAssertFalse(try doc.isValid(debug))
 
@@ -1852,6 +1889,7 @@ class IDChainOperationsTest: XCTestCase {
 
             try doc.setEffectiveController(ctrl1.subject)
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1870,6 +1908,7 @@ class IDChainOperationsTest: XCTestCase {
             try store!.storeDid(using: doc)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try doc.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1902,6 +1941,7 @@ class IDChainOperationsTest: XCTestCase {
 
             // transfer
             try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1912,6 +1952,7 @@ class IDChainOperationsTest: XCTestCase {
 
             XCTAssertTrue(try resolved!.isValid(debug))
         } catch {
+            print(error)
             XCTFail()
         }
     }
@@ -1926,6 +1967,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -1947,6 +1989,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try did.resolve()
             XCTAssertNotNil(resolved)
@@ -1976,6 +2019,7 @@ class IDChainOperationsTest: XCTestCase {
             XCTAssertNil(resolved)
 
             try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
 
             resolved = try controller.subject.resolve()
             XCTAssertNotNil(resolved)
@@ -2215,5 +2259,354 @@ class IDChainOperationsTest: XCTestCase {
             XCTFail()
         }
     }
+    
+    func test_32CredentialDeclare() {
+        do {
+            // Create new DID and publish to ID sidechain.
+            var doc = try identity!.newDid(storePassword)
+            let did = doc.subject
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            let props = ["name": "John",
+                         "gender": "Male",
+                         "nationality": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            let vc = try cb.withId("#profile")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            let db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(1, doc.credentialCount)
+            try store!.storeDid(using: doc)
+            
+            print("Publishing new DID \(did)...")
+            try doc.publish(using: storePassword)
+            print("Publish new DID \(did)...OK({}s)")
+            
+            waitForWalletAvaliable()
+            let resolved = try did.resolve()
+            XCTAssertEqual(did, resolved!.subject)
+            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertEqual(doc.toString(true), resolved!.toString(true))
+            
+            let lastTxid = resolved!.getMetadata().transactionId
+            print("Last transaction id \(String(describing: lastTxid))")
+            
+            IDChainOperationsTest.dids.append(did) // 3
+        
+            let credential = try doc.credential(ofId: "\(did)#profile")
+            XCTAssertFalse(try credential!.wasDeclared())
+            XCTAssertFalse(try credential!.isRevoked())
+            
+            var signKey: DIDURL? = nil
+            if (doc.controllerCount() > 1) {
+                let rnd = Int(arc4random())
+                let index = rnd % doc.controllerCount()
+                signKey = try doc.controllers()[index].resolve()?.defaultPublicKeyId()
+            }
+            if let _ = signKey {
+                try credential!.declare(signKey!, storePassword)
+            }
+            else {
+                try credential!.declare(storePassword)
+            }
+            let resolvedCre = try VerifiableCredential.resolve(credential!.id!)
+            XCTAssertNotNil(resolvedCre)
+            XCTAssertTrue(try credential!.wasDeclared())
+            XCTAssertFalse(try credential!.isRevoked())
+            
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func test_33CredentialDeclareAfterRevoke() {
+        do {
+            // Create new DID and publish to ID sidechain.
+            var doc = try identity!.newDid(storePassword)
+            let did = doc.subject
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            let props = ["name": "John",
+                         "gender": "Male",
+                         "nationality": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            let vc = try cb.withId("#profile")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            let db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(1, doc.credentialCount)
+            try store!.storeDid(using: doc)
+            
+            print("Publishing new DID \(did)...")
+            try doc.publish(using: storePassword)
+            print("Publish new DID \(did)...OK({}s)")
+            
+            waitForWalletAvaliable()
+            let resolved = try did.resolve()
+            XCTAssertEqual(did, resolved!.subject)
+            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertEqual(doc.toString(true), resolved!.toString(true))
+            
+            let lastTxid = resolved!.getMetadata().transactionId
+            print("Last transaction id \(String(describing: lastTxid))")
+            
+            IDChainOperationsTest.dids.append(did) // 3
+        
+            let credential = try doc.credential(ofId: "\(did)#profile")
+            XCTAssertFalse(try credential!.wasDeclared())
+            XCTAssertFalse(try credential!.isRevoked())
+            
+            // Sign key for customized DID
+            doc = try credential?.subject?.did.resolve() as! DIDDocument
+            var signKey: DIDURL? = nil
+            if (doc.controllerCount() > 1) {
+                let rnd = Int(arc4random())
+                let index = rnd % doc.controllerCount()
+                signKey = try doc.controllers()[index].resolve()?.defaultPublicKeyId()
+            }
+            if let _ = signKey {
+                try credential!.revoke(signKey!, storePassword)
+            }
+            else {
+                try credential!.revoke(storePassword)
+            }
+            
+            XCTAssertFalse(try credential!.wasDeclared())
+            XCTAssertTrue(try credential!.isRevoked())
+            
+            let resolvedVC = try VerifiableCredential.resolve(credential!.id!)
+            XCTAssertNil(resolvedVC)
+            
+            var _: DIDURL? = signKey
+            XCTAssertThrowsError(_ = try credential!.declare(storePassword)) { error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.CredentialRevokedError: break
+                default:
+                    XCTFail()
+                }
+            }
+            
+            let bio = try VerifiableCredential.resolveBiography(credential!.id!, credential!.issuer!)
+            XCTAssertNotNil(bio)
+            XCTAssertEqual(1, bio?.getAllTransactions().count)
+            XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
+            
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func test_33CredentialDeclareAfterRevokeByIssuer() {
+        do {
+            // Create new DID and publish to ID sidechain.
+            var doc = try identity!.newDid(storePassword)
+            let did = doc.subject
+            
+            let selfIssuer = try VerifiableCredentialIssuer(doc)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            let props = ["name": "John",
+                         "gender": "Male",
+                         "nationality": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            let vc = try cb.withId("#profile")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            let db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(1, doc.credentialCount)
+            try store!.storeDid(using: doc)
+            
+            print("Publishing new DID \(did)...")
+            try doc.publish(using: storePassword)
+            print("Publish new DID \(did)...OK({}s)")
+            
+            waitForWalletAvaliable()
+            let resolved = try did.resolve()
+            XCTAssertEqual(did, resolved!.subject)
+            XCTAssertTrue(try resolved!.isValid())
+            XCTAssertEqual(doc.toString(true), resolved!.toString(true))
+            
+            let lastTxid = resolved!.getMetadata().transactionId
+            print("Last transaction id \(String(describing: lastTxid))")
+            
+            IDChainOperationsTest.dids.append(did) // 3
+        
+            let credential = try doc.credential(ofId: "\(did)#profile")
+            XCTAssertFalse(try credential!.wasDeclared())
+            XCTAssertFalse(try credential!.isRevoked())
+            
+            // Sign key for issuer
+            let issuer = try credential!.issuer!.resolve()
+            var signKey: DIDURL? = nil
+            if (issuer!.controllerCount() > 1) {
+                let rnd = Int(arc4random())
+                let index = rnd % issuer!.controllerCount()
+                signKey = try issuer!.controllers()[index].resolve()?.defaultPublicKeyId()
+            } else {
+                signKey = issuer?.defaultPublicKeyId()
+            }
+            
+            try credential!.revoke(signKey!, storePassword)
+            
+            XCTAssertFalse(try credential!.wasDeclared())
+            XCTAssertTrue(try credential!.isRevoked())
+            
+            let resolvedCredential = try VerifiableCredential.resolve(credential!.getId()!)
+            XCTAssertNil(resolvedCredential)
+            
+            doc = try credential!.subject?.did.resolve() as! DIDDocument as! DIDDocument
+            if (doc.controllerCount() > 1) {
+                let rnd = Int(arc4random())
+                let index = rnd % doc.controllerCount()
+                signKey = try doc.controllers()[index].resolve()?.defaultPublicKeyId()
+            }
+            
+            let key: DIDURL? = signKey
+            
+            XCTAssertThrowsError(_ = try credential!.declare(key!, storePassword)) { error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.CredentialRevokedError: break
+                default:
+                    XCTFail()
+                }
+            }
+            let bio = try VerifiableCredential.resolveBiography(credential!.getId()!, (credential?.issuer!)!)
+            XCTAssertNotNil(bio)
+            XCTAssertEqual(1, bio!.getAllTransactions().count)
+            XCTAssertEqual(IDChainRequestOperation.REVOKE, bio!.getTransaction(0).request.operation)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func test_34ListCredential() {
+        do {
+            // Create new DID and publish to ID sidechain.
+            var doc = try identity!.newDid(storePassword)
+            let did = doc.subject
+            
+            var selfIssuer = try VerifiableCredentialIssuer(doc)
+            var cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            var props = ["name": "John",
+                         "gender": "Male",
+                         "nationality": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            var vc = try cb.withId("#profile")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            var db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(1, doc.credentialCount)
+            try store!.storeDid(using: doc)
+            
+            print("Publishing new DID \(did)...")
+            try doc.publish(using: storePassword)
+            print("Publish new DID \(did)...OK({}s)")
+            
+            waitForWalletAvaliable()
+            
+            // Update again
+            selfIssuer = try VerifiableCredentialIssuer(doc)
+            cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            props = ["Abc": "Abc",
+                         "abc": "abc",
+                         "Foobar": "Foobar",
+                         "foobar": "foobar",
+                         "zoo": "zoo",
+                         "Zoo": "Zoo"]
+            
+            vc = try cb.withId("#test")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(3, doc.credentialCount)
+            try store!.storeDid(using: doc)
+            
+            print("Updating DID \(did)...")
+            let lock = XCTestExpectation()
+            var resolved: DIDDocument?
+            doc.publishAsync(using: storePassword).then{ [self] _ -> Promise<DIDDocument?> in
+                print("Update DID \(did)...OK({}s)")
+                waitForWalletAvaliable()
+                return did.resolveAsync(true)
+            }.done{ doc in
+                resolved = doc
+                lock.fulfill()
+            }.catch{ error in
+                XCTFail()
+                lock.fulfill()
+            }
+            wait(for: [lock], timeout: 1000)
+
+            let list1 = try VerifiableCredential.list(resolved!.subject)
+            let list2 = try VerifiableCredential.list(vc.subject!.did)
+            XCTAssertEqual(2, list1.count)
+            XCTAssertEqual(1, list2.count)
+            print(list1)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
 }
 
