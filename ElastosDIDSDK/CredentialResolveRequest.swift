@@ -107,6 +107,23 @@ public class CredentialResolveRequest: ResolveRequest{
     public class func deserialize(_ content: JsonNode) throws -> CredentialResolveRequest {
         return try deserialize(content.toString().toDictionary())
     }
+    
+    public override var hash: Int {
+        return self.description.hashValue
+    }
+
+    public func equalsTo(_ other: CredentialParameters) -> Bool {
+        return self.description == other.description
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        if object is CredentialResolveRequest {
+            return equalsTo(object as! CredentialResolveRequest)
+        }
+        else {
+            return false
+        }
+    }
 }
 
 

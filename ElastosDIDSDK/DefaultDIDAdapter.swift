@@ -70,7 +70,7 @@ open class DefaultDIDAdapter: DIDAdapter {
             let body = json.toJsonString()
             let start: Int = DateFormatter.getTimeStamp(Date())
             let resultData = try performRequest(endpoint, body!)
-            let result: [String: Any] = try resultData.dataToDictionary()
+            let result: [String: Any] = try resultData!.dataToDictionary()
             let latency = DateFormatter.getTimeStamp(Date()) - start
             let resultId = result["id"] as! Int
             if resultId != id {
@@ -116,7 +116,7 @@ open class DefaultDIDAdapter: DIDAdapter {
     ///   - urlString: the target HTTP endpoint
     ///   - body: the request body
     /// - Returns: an input data object of the response body
-    public func performRequest(_ urlString: String, _ body: String) throws -> Data {
+    public func performRequest(_ urlString: String, _ body: String) throws -> Data? {
         let url = URL(string: urlString)!
         var request = URLRequest.init(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 60)
         request.httpMethod = "POST"
@@ -130,14 +130,14 @@ open class DefaultDIDAdapter: DIDAdapter {
         var result: Data?
         
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let _ = data,
-                  let response = response as? HTTPURLResponse,
-                  error == nil else { // check for fundamental networking error
+            guard let response = response as? HTTPURLResponse,
+                error == nil else { // check for fundamental networking error
                 
                 errDes = error.debugDescription
                 semaphore.signal()
                 return
             }
+            
             guard (200 ... 299) ~= response.statusCode else { // check for http errors
                 errDes = "Server eror (status code: \(response.statusCode)"
                 semaphore.signal()
@@ -155,10 +155,10 @@ open class DefaultDIDAdapter: DIDAdapter {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError(errDes ?? "Unknown error")
         }
         
-        return result!
+        return result
     }
     
-    public func resolve(_ request: String) throws -> Data {
+    public func resolve(_ request: String) throws -> Data? {
         return try performRequest(rpcEndpoint, request)
     }
     

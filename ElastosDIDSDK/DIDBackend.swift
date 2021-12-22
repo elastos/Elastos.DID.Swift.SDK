@@ -251,21 +251,21 @@ public class DIDBackend: NSObject {
         
         let requestJson = request.serialize(true)
         let re = try adapter.resolve(requestJson)
-        guard re.count > 0 else {
+        guard re!.count > 0 else {
             throw DIDError.CheckedError.DIDBackendError.DIDResolveError("Unknown error, got nil result.")
         }
         var response = ResolveResponse()
         switch request.method {
         case DIDResolveRequest.METHOD_NAME: do {
-            response = try DIDResolveResponse.deserialize(re)
+            response = try DIDResolveResponse.deserialize(re!)
             break
         }
         case CredentialResolveRequest.METHOD_NAME: do {
-            response = try CredentialResolveResponse.deserialize(re)
+            response = try CredentialResolveResponse.deserialize(re!)
             break
         }
         case CredentialListRequest.METHOD_NAME: do {
-            response = try CredentialListResponse.deserialize(re)
+            response = try CredentialListResponse.deserialize(re!)
             break
         }
         default:
