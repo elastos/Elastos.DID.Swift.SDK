@@ -8,8 +8,8 @@ class IDChainOperationsTest2: XCTestCase {
     var store:  DIDStore?
     var mnemonic: String = ""
     var identity: RootIdentity?
-//    static var adapter: Web3Adapter?
-    static var adapter: SimulatedIDChainAdapter?
+    static var adapter: Web3Adapter?
+//    static var adapter: SimulatedIDChainAdapter?
     var debug = TestEventListener()
 
     static private var persons: [IDChainEntity] = [ ]
@@ -39,8 +39,8 @@ class IDChainOperationsTest2: XCTestCase {
     
     override class func setUp() {
         print("111")
-        IDChainOperationsTest2.adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
-//        IDChainOperationsTest2.adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, walletPassword)
+//        IDChainOperationsTest2.adapter = SimulatedIDChainAdapter("http://localhost:\(DEFAULT_PORT)/")
+        IDChainOperationsTest2.adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, walletPassword)
         try! DIDBackend.initialize(IDChainOperationsTest2.adapter!)
 
         IDChainOperationsTest2.Alice = IDChainEntity("Alice")
@@ -76,16 +76,15 @@ class IDChainOperationsTest2: XCTestCase {
     
     func waitForWalletAvaliable() {
         while true {
-            Thread.sleep(forTimeInterval: 1)
-            break
-//            if IDChainOperationsTest2.adapter!.isAvailable() {
-//                print("OK")
-//                break
-//            }
-//            else {
-//                print(".")
-//            }
-            Thread.sleep(forTimeInterval: 0)
+            Thread.sleep(forTimeInterval: 40)
+            if IDChainOperationsTest2.adapter!.isAvailable() {
+                print("OK")
+                break
+            }
+            else {
+                print(".")
+            }
+//            Thread.sleep(forTimeInterval: 60)
         }
     }
 
@@ -902,7 +901,8 @@ class IDChainOperationsTest2: XCTestCase {
 
             // Bob publish the DID and take the ownership
             try customizedDoc.publish(with: ticket, using: IDChainOperationsTest2.Bob.storepass)
-
+            waitForWalletAvaliable()
+            
             resolvedDoc = try customizedDid.resolve()
             XCTAssertNotNil(resolvedDoc)
             XCTAssertEqual(customizedDid, resolvedDoc?.subject)
@@ -958,6 +958,7 @@ func test_18TransferCustomizedDid_1to2() {
 
         // Bob publish the DID and take the ownership
         try customizedDoc.publish(with: ticket, using: IDChainOperationsTest2.Bob.storepass)
+        waitForWalletAvaliable()
 
         resolvedDoc = try customizedDid.resolve()
         XCTAssertNotNil(resolvedDoc)
@@ -1062,6 +1063,7 @@ func test_18TransferCustomizedDid_1to2() {
 
             // Carol publish the DID and take the ownership
             try customizedDoc!.publish(with: ticket, using: IDChainOperationsTest2.Carol.storepass)
+            waitForWalletAvaliable()
 
             let resolvedDoc = try customizedDid!.resolve()
             XCTAssertNotNil(resolvedDoc)
@@ -1111,6 +1113,7 @@ func test_18TransferCustomizedDid_1to2() {
             try IDChainOperationsTest2.Dave.store!.storeDid(using: customizedDoc!)
             try customizedDoc!.setEffectiveController(IDChainOperationsTest2.Dave.did!)
             try customizedDoc!.publish(with: ticket, using: IDChainOperationsTest2.Dave.storepass)
+            waitForWalletAvaliable()
 
             let resolvedDoc = try customizedDid!.resolve()
             XCTAssertNotNil(resolvedDoc);
@@ -1151,6 +1154,7 @@ func test_18TransferCustomizedDid_1to2() {
 
             // Dave publish the DID and take the ownership
             try customizedDoc!.publish(with: ticket, using: IDChainOperationsTest2.Dave.storepass)
+            waitForWalletAvaliable()
 
             let resolvedDoc = try customizedDid!.resolve()
             XCTAssertNotNil(resolvedDoc)
@@ -1199,6 +1203,7 @@ func test_18TransferCustomizedDid_1to2() {
             try IDChainOperationsTest2.Erin.store!.storeDid(using: customizedDoc!)
             try customizedDoc!.setEffectiveController(IDChainOperationsTest2.Erin.did)
             try customizedDoc!.publish(with: ticket, using: IDChainOperationsTest2.Erin.storepass)
+            waitForWalletAvaliable()
 
             let resolvedDoc = try customizedDid!.resolve()
             XCTAssertNotNil(resolvedDoc)
@@ -1310,9 +1315,10 @@ func test_18TransferCustomizedDid_1to2() {
 
                 try person.store!.storeCredential(using: vc!)
                 try vc!.declare(person.storepass)
+                waitForWalletAvaliable()
+                
                 let vcs = try VerifiableCredential.list(IDChainOperationsTest2.Alice.did!)
                 print(vcs)
-                waitForWalletAvaliable()
                 
                 let resolvedVc = try VerifiableCredential.resolve(id)
                 XCTAssertNotNil(resolvedVc)
@@ -1496,9 +1502,9 @@ func test_18TransferCustomizedDid_1to2() {
 
                 try person.store!.storeCredential(using: vc)
                 try vc.declare(person.storepass)
+                waitForWalletAvaliable()
                 let vcs = try VerifiableCredential.list(IDChainOperationsTest2.Alice.did!)
                 print(vcs)
-                waitForWalletAvaliable()
                 
                 let resolvedVc = try VerifiableCredential.resolve(id)
                 XCTAssertNotNil(resolvedVc)
@@ -1865,6 +1871,7 @@ func test_18TransferCustomizedDid_1to2() {
             XCTFail()
         }
     }
+    /*
     func test_40_204ListPagination() {
         do {
             let issuer = try VerifiableCredentialIssuer(IDChainOperationsTest2.Grace.getCustomizedDocument()!)
@@ -1980,6 +1987,7 @@ func test_18TransferCustomizedDid_1to2() {
             XCTFail()
         }
     }
+    */
     func test_41_300RevokeSelfProclaimedVcFromNobody_p() {
         do {
             // Frank' self-proclaimed credential
