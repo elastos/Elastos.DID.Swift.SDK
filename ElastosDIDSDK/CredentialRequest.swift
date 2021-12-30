@@ -209,12 +209,11 @@ public class CredentialRequest: IDChainRequest {
             signer = try credential?.subject?.did.resolve()
         }
         else {
-           if credential != nil {
-            signer = try credential?.subject?.did.resolve()
-            }
-           else {
+//           if credential != nil {
+//            signer = try credential?.subject?.did.resolve()
+//            }
+//           else {
             signer = try proof?.verificationMethod.did?.resolve()
-           }
         }
         
         return signer

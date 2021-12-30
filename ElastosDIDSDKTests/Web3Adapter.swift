@@ -72,8 +72,8 @@ class Web3Adapter: DefaultDIDAdapter {
         var options = TransactionOptions.defaultOptions
         options.value = 0
         options.from = walletAddress
-        options.gasPrice = .manual(1000000000000) // 12
-        options.gasLimit = .limited(8000000) // 6
+        options.gasPrice = .manual(100000000) // 12
+        options.gasLimit = .limited(30000000) // 6
 //        options.nonce = .manual(0)
         web33.transactionOptions = options
         let contract = web33.contract(contractABI!, at: contractAddress, abiVersion: abiVersion)!

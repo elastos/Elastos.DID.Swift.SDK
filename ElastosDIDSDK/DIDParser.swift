@@ -114,7 +114,7 @@ class DIDParser: NSObject {
             throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDError("Missing id string at: \(pos + 1 > limit ? pos : pos + 1)")
         }
         pos = pos + 1
-        nextPart = try scanNextPart(did, pos, limit, "0")
+        nextPart = try scanNextPart(did, pos, limit, "")
         self.did.setMethodSpecificId(did[pos..<nextPart])
     }
 }

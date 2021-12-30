@@ -9,7 +9,8 @@ class IDChainOperationsTest: XCTestCase {
     var mnemonic: String = ""
     var identity: RootIdentity?
     var adapter: Web3Adapter?
-    
+    var debug = TestEventListener()
+
     override func setUp() {
         adapter = Web3Adapter(rpcEndpoint, contractAddress, walletPath, walletPassword)
         try! DIDBackend.initialize(adapter!)
@@ -1196,6 +1197,647 @@ class IDChainOperationsTest: XCTestCase {
             XCTFail()
         }
     }
+    //    customized DID(create, update, transfer, deactivate), credential(declare, revoke, list)
 
+    func test_20CustomizedWithCreataAndResolve() {
+        do {
+            // Create normal DID first
+            let controller = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(using: storePassword);
+            waitForWalletAvaliable()
+            
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld")
+            let doc = try controller.newCustomizedDid(withId: did, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+        }
+        catch {
+            print(error)
+        }
+    }
+    
+    func test_21CreateMultisigCustomizedDid() {
+            do {
+                // Create normal DID first
+                let ctrl1 = try identity!.newDid(storePassword)
+                
+                try ctrl1.publish(using: storePassword)
+                waitForWalletAvaliable()
+
+                var resolved = try ctrl1.subject.resolve()
+                XCTAssertNotNil(resolved)
+                XCTAssertEqual(ctrl1.subject, resolved?.subject)
+                XCTAssertEqual(ctrl1.proof.signature,
+                               resolved?.proof.signature)
+
+                XCTAssertTrue(try resolved!.isValid(debug))
+
+                let ctrl2 = try identity!.newDid(storePassword)
+                XCTAssertTrue(try ctrl2.isValid(debug))
+                try ctrl2.publish(using: storePassword)
+                waitForWalletAvaliable()
+
+                resolved = try ctrl2.subject.resolve()
+                XCTAssertNotNil(resolved)
+                XCTAssertEqual(ctrl2.subject, resolved?.subject)
+                XCTAssertEqual(ctrl2.proof.signature,
+                        resolved?.proof.signature)
+
+                XCTAssertTrue(try resolved!.isValid(debug))
+
+                let ctrl3 = try identity!.newDid(storePassword)
+                XCTAssertTrue(try ctrl3.isValid(debug))
+                try ctrl3.publish(using: storePassword)
+                waitForWalletAvaliable()
+
+                resolved = try ctrl3.subject.resolve()
+                XCTAssertNotNil(resolved)
+                XCTAssertEqual(ctrl3.subject, resolved?.subject)
+                XCTAssertEqual(ctrl3.proof.signature,
+                        resolved?.proof.signature)
+
+                XCTAssertTrue(try resolved!.isValid(debug))
+
+                // Create customized DID
+                let did = try DID("did:elastos:helloworld3")
+                var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
+                        2, storePassword)
+                XCTAssertFalse(try doc.isValid(debug))
+
+                doc = try ctrl2.sign(with: doc, using: storePassword)
+                XCTAssertTrue(try doc.isValid(debug));
+
+                XCTAssertEqual(did, doc.subject)
+                XCTAssertEqual(3, doc.controllerCount())
+                var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+                ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                    let compareResult = didA.toString().compare(didB.toString())
+                    return compareResult == ComparisonResult.orderedAscending
+                }
+                XCTAssertEqual(doc.controllers(), ctrls)
+
+                resolved = try did.resolve()
+                XCTAssertNil(resolved)
+
+                try doc.setEffectiveController(ctrl1.subject)
+                try doc.publish(using: storePassword)
+                waitForWalletAvaliable()
+
+                resolved = try did.resolve()
+    
+        }
+        catch {
+            print(error)
+        }
+    }
+    
+    func test_22UpdateCustomizedDid() {
+        do {
+            // Create normal DID first
+            let controller = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            var resolved = try controller.subject.resolve();
+            XCTAssertNil(resolved)
+
+            try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved!.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld123")
+            var doc = try controller.newCustomizedDid(withId: did, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Update
+            var db = try doc.editing()
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // Update again
+            db = try doc.editing()
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            XCTAssertEqual(3, doc.publicKeyCount)
+            XCTAssertEqual(3, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
+    func test_23UpdateMultisigCustomizedDid() {
+        do {
+            // Create normal DID first
+            let ctrl1 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid(debug))
+            try ctrl1.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            let ctrl2 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid(debug))
+            try ctrl2.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try ctrl2.subject.resolve();
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            let ctrl3 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid(debug))
+            try ctrl3.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld321")
+            var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject],
+                    2, storePassword)
+            XCTAssertFalse(try doc.isValid(debug))
+
+            doc = try ctrl2.sign(with: doc, using: storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            let ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            XCTAssertEqual(doc.controllers().count, ctrls.count)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Update
+            var db = try doc.editing(ctrl2)
+            var key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            doc = try ctrl1.sign(with: doc, using: storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved?.publicKeyCount)
+            XCTAssertEqual(4, resolved?.authenticationKeyCount)
+
+            // Update again
+            db = try doc.editing(ctrl3)
+            key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key2", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            doc = try ctrl2.sign(with: doc, using: storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(5, resolved?.publicKeyCount)
+            XCTAssertEqual(5, resolved?.authenticationKeyCount)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
+    func test_24TransferCustomizedDidAfterCreate() {
+        do {
+            // Create normal DID first
+            let controller = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld1234")
+            var doc = try controller.newCustomizedDid(withId: did, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(using: storePassword);
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // create new controller
+            let newController = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try newController.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(newController.subject, resolved?.subject)
+            XCTAssertEqual(newController.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // create the transfer ticket
+            try doc.setEffectiveController(controller.subject)
+            let ticket = try doc.createTransferTicket(to: newController.subject, using: storePassword)
+            XCTAssertTrue(try ticket.isValid(debug))
+
+            // create new document for customized DID
+            doc = try newController.newCustomizedDid(withId: did, true, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(newController.subject, doc.controller)
+
+            // transfer
+            try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(newController.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
+    func test_25TransferCustomizedDidAfterUpdate() {
+        do {
+            // Create normal DID first
+            let controller = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            var resolved = try controller.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try controller.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try controller.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(controller.subject, resolved?.subject)
+            XCTAssertEqual(controller.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld98")
+            var doc = try controller.newCustomizedDid(withId: did, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(controller.subject, doc.controller)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(controller.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                           resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Update
+            let db = try doc.editing()
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            XCTAssertEqual(2, doc.publicKeyCount)
+            XCTAssertEqual(2, doc.authenticationKeyCount)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+
+            // create new controller
+            let newController = try identity!.newDid(storePassword)
+            XCTAssertTrue(try controller.isValid(debug))
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNil(resolved)
+
+            try newController.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try newController.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(newController.subject, resolved?.subject)
+            XCTAssertEqual(newController.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // create the transfer ticket
+            let ticket = try controller.createTransferTicket(withId: did, to: newController.subject, using: storePassword)
+            XCTAssertTrue(try ticket.isValid(debug));
+
+            // create new document for customized DID
+            doc = try newController.newCustomizedDid(withId: did, true, storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(newController.subject, doc.controller)
+
+            // transfer
+            try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(newController.subject, resolved?.controller)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+   
+    func test_27TransferMultisigCustomizedDidAfterUpdate() {
+        do {
+            // Create normal DID first
+            let ctrl1 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl1.isValid(debug))
+            try ctrl1.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            var resolved = try ctrl1.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl1.subject, resolved?.subject)
+            XCTAssertEqual(ctrl1.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            let ctrl2 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl2.isValid(debug))
+            try  ctrl2.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try ctrl2.subject.resolve()
+            XCTAssertNotNil(resolved);
+            XCTAssertEqual(ctrl2.subject, resolved?.subject)
+            XCTAssertEqual(ctrl2.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+               let ctrl3 = try identity!.newDid(storePassword)
+            XCTAssertTrue(try ctrl3.isValid(debug))
+            try ctrl3.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try ctrl3.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(ctrl3.subject, resolved?.subject)
+            XCTAssertEqual(ctrl3.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Create customized DID
+            let did = try DID("did:elastos:helloworld3781")
+            var doc = try ctrl1.newCustomizedDid(withId: did, [ctrl2.subject, ctrl3.subject], 2, storePassword)
+            XCTAssertFalse(try doc.isValid(debug))
+
+            doc = try ctrl2.sign(with: doc, using: storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(3, doc.controllerCount())
+            var ctrls = [ctrl1.subject, ctrl2.subject, ctrl3.subject]
+            ctrls = ctrls.sorted { (didA, didB) -> Bool in
+                let compareResult = didA.toString().compare(didB.toString())
+                return compareResult == ComparisonResult.orderedAscending
+            }
+            XCTAssertEqual(doc.controllers(), ctrls)
+
+            resolved = try did.resolve()
+            XCTAssertNil(resolved)
+
+            try doc.setEffectiveController(ctrl1.subject)
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+
+            // Update
+            let db = try doc.editing(ctrl2)
+            let key = try TestData.generateKeypair()
+            _ = try db.appendAuthenticationKey(with: "#key1", keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storePassword)
+            doc = try ctrl1.sign(with: doc, using: storePassword)
+            try store!.storeDid(using: doc)
+
+            try doc.publish(using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try doc.subject.resolve()
+            XCTAssertNotNil(resolved)
+            XCTAssertEqual(doc.toString(), resolved?.toString())
+            XCTAssertEqual(4, resolved?.publicKeyCount)
+            XCTAssertEqual(4, resolved?.authenticationKeyCount)
+
+            // new controllers for the did
+            let td = IDChainOperationsTest.testData.sharedInstantData()
+            _ = try td.getIssuerDocument()
+            let u1 = try td.getUser1Document()
+            let u2 = try td.getUser2Document()
+            let u3 = try td.getUser3Document()
+            let u4 = try td.getUser4Document()
+
+            // transfer ticket
+            try doc.setEffectiveController(ctrl1.subject)
+            var ticket = try doc.createTransferTicket(to: u1.subject, using: storePassword)
+            ticket = try ctrl2.sign(with: ticket, using: storePassword)
+            XCTAssertTrue(try ticket.isValid(debug))
+
+            doc = try u1.newCustomizedDid(withId: did, [u2.subject, u3.subject, u4.subject], 3, true, storePassword)
+            doc = try u2.sign(with: doc, using: storePassword)
+            doc = try u3.sign(with: doc, using: storePassword)
+            XCTAssertTrue(try doc.isValid(debug))
+
+            XCTAssertEqual(did, doc.subject)
+            XCTAssertEqual(4, doc.controllerCount())
+            XCTAssertEqual("3:4", doc.multiSignature?.description)
+
+            // transfer
+            try doc.publish(with: ticket, using: storePassword)
+            waitForWalletAvaliable()
+
+            resolved = try did.resolve()
+            XCTAssertNotNil(resolved)
+
+            XCTAssertEqual(did, resolved?.subject)
+            XCTAssertEqual(doc.proof.signature,
+                    resolved?.proof.signature)
+
+            XCTAssertTrue(try resolved!.isValid(debug))
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
 }
 

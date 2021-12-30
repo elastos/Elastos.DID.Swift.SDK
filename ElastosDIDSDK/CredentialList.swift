@@ -59,4 +59,16 @@ public class CredentialList: ResolveResult {
     override func sanitize() throws {
         
     }
+    
+    class func deserialize(_ json: [String: Any]) throws -> CredentialList {
+        let didString = "\(json["did"]!)"
+        let credentials = json["credentials"] != nil ? json["credentials"] as! [String] : [ ]
+        let did = try ElastosDIDSDK.DID(didString)
+        let cre = CredentialList(did)
+        try credentials.forEach { did in
+            try cre._credentialIds.append(DIDURL(did))
+        }
+        
+        return cre
+    }
 }

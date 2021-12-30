@@ -855,7 +855,12 @@ public class VerifiableCredential: DIDObject {
     /// - Throws DIDBackendError if an error occurred when publish the transaction
     private func revoke(signer: DIDDocument?, signKey: DIDURL?, storePassword: String, adapter: DIDTransactionAdapter?) throws {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        // Prefer use the signer's store
+        if signer != nil && signer!.getMetadata().attachedStore {
+            getMetadata().attachStore(signer!.store!)
+        }
         try checkAttachedStore()
+ 
         let owner = try subject?.did.resolve()
         guard let _ = owner else {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject?.did.toString())
@@ -1265,7 +1270,7 @@ public class VerifiableCredential: DIDObject {
         }
         if bio!.status == CredentialBiographyStatus.STATUS_VALID {
             let vc = bio!.getTransaction(0).request.credential
-            guard signer == vc!.subject!.did else {
+            if signer.subject != vc?.subject?.did && signer.subject != vc?.issuer {
                 Log.e(NSStringFromClass(VerifiableCredential.self), "Publish failed because the invalid signer or signkey.")
                 throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Not owner or issuer: \(signer.subject)")
             }

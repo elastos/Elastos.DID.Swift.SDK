@@ -206,6 +206,7 @@
 		11B628442648E38C00B20904 /* RootIdentityExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B628432648E38C00B20904 /* RootIdentityExport.swift */; };
 		11B62848264BA8BA00B20904 /* Extension+String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B62847264BA8BA00B20904 /* Extension+String.swift */; };
 		11BA5E9726C61BE4005CE483 /* LocalResolveHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */; };
+		11BC47AE2771E50B00FF7863 /* IDChainOperationsTest2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BC47AD2771E50B00FF7863 /* IDChainOperationsTest2.swift */; };
 		11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33982604383700DEBD00 /* DIDRequest.swift */; };
 		11BE33A026043BBB00DEBD00 /* IDChainHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */; };
 		11BE33A42604403100DEBD00 /* IDChainProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33A32604403100DEBD00 /* IDChainProof.swift */; };
@@ -425,6 +426,7 @@
 		11B628432648E38C00B20904 /* RootIdentityExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityExport.swift; sourceTree = "<group>"; };
 		11B62847264BA8BA00B20904 /* Extension+String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+String.swift"; sourceTree = "<group>"; };
 		11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalResolveHandle.swift; sourceTree = "<group>"; };
+		11BC47AD2771E50B00FF7863 /* IDChainOperationsTest2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainOperationsTest2.swift; sourceTree = "<group>"; };
 		11BE33982604383700DEBD00 /* DIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDRequest.swift; sourceTree = "<group>"; };
 		11BE339F26043BBB00DEBD00 /* IDChainHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainHeader.swift; sourceTree = "<group>"; };
 		11BE33A32604403100DEBD00 /* IDChainProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainProof.swift; sourceTree = "<group>"; };
@@ -731,6 +733,7 @@
 				11054F1E239D2088008A4500 /* DIDTest.swift */,
 				11054F1C239D1B31008A4500 /* DIDURLTest.swift */,
 				11E751DA23A774DD0022C592 /* IDChainOperationsTest.swift */,
+				11BC47AD2771E50B00FF7863 /* IDChainOperationsTest2.swift */,
 				11E09CBB23A8DB5A009B6A8D /* IssuerTest.swift */,
 				11E7519E23A7570A0022C592 /* TestData.swift */,
 				119338DC237E4DB800C4998E /* TestConfig.swift */,
@@ -1437,6 +1440,7 @@
 				11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */,
 				11D4B9C723545A5700453218 /* DIDStoreTests.swift in Sources */,
 				119338DD237E4DB800C4998E /* TestConfig.swift in Sources */,
+				11BC47AE2771E50B00FF7863 /* IDChainOperationsTest2.swift in Sources */,
 				11E09CBE23A8E033009B6A8D /* RootIdentityTest.swift in Sources */,
 				11641BBB23B715CF0037016B /* TestError.swift in Sources */,
 				11E751DB23A774DD0022C592 /* IDChainOperationsTest.swift in Sources */,
@@ -1918,7 +1922,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20211215122744;
+				CURRENT_PROJECT_VERSION = 20211229094928;
 				DEFINES_MODULE = YES;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;
@@ -1963,7 +1967,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20211215122744;
+				CURRENT_PROJECT_VERSION = 20211229094928;
 				DEFINES_MODULE = YES;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;

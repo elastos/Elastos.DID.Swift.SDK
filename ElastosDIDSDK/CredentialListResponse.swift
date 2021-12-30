@@ -33,7 +33,17 @@ public class CredentialListResponse: ResolveResponse{
     }
     
     class func deserialize(_ input: Data) throws -> CredentialListResponse {
-        
-        return try CredentialListResponse("TODO", CredentialList(DID()))
+        let json: [String: Any] = try input.dataToDictionary()
+        let id = "\(String(describing: json["id"]))"
+        let result: [String: Any]? = json["result"] as? [String: Any]
+        let err: [String: Any]? = json["error"] as? [String: Any]
+        if let _ = result {
+            return try CredentialListResponse(id, CredentialList.deserialize(result!))
+        }
+        else {
+            let code = "\(String(describing: err!["code"]))"
+            let message = "\(String(describing: err!["message"]))"
+            return CredentialListResponse(id, try Int(value: code), message)
+        }
     }
 }

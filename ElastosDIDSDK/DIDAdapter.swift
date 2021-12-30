@@ -27,5 +27,5 @@ public protocol DIDAdapter: DIDTransactionAdapter {
 
     /// Perform the resolve request.
     /// - Parameter request: a string representation of resolve request.
-    func resolve(_ request: String) throws -> Data
+    func resolve(_ request: String) throws -> Data?
 }
