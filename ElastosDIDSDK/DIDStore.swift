@@ -1124,7 +1124,11 @@ public class DIDStore: NSObject {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(digest.count > 0, "Invalid digest")
         
-        let key = try DIDHDKey.deserialize(loadPrivateKey(id, storePassword)!)
+        let privateKey = try loadPrivateKey(id, storePassword)
+        if privateKey == nil {
+            throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Key not exists: \(id.description)")
+        }
+        let key = DIDHDKey.deserialize(privateKey!)
         let privatekeys = key.getPrivateKeyData()
         let toPPointer = privatekeys.toPointer()
         

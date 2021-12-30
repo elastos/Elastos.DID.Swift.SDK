@@ -1884,6 +1884,9 @@ public class DIDDocument: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.NotAttachedWithStoreError()
         }
         if controller.getMetadata().attachedStore {
+            getMetadata().attachStore(controller.getMetadata().store!)
+        }
+        else {
             controller.getMetadata().attachStore(getMetadata().store!)
         }
         
@@ -2737,7 +2740,6 @@ public class DIDDocument: NSObject {
         }
         Log.i(DIDDocument.TAG, "Publishing DID ", subject, "force " , force , "...")
         guard try isGenuine() else {
-           _ =  try isGenuine()
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }

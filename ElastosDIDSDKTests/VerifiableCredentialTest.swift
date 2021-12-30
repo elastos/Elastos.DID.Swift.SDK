@@ -149,6 +149,80 @@ class VerifiableCredentialTest: XCTestCase {
         }
     }
     
+    func testListCredential() {
+        do {
+            // Create new DID and publish to ID sidechain.
+            let identity = try testData?.getRootIdentity()
+            var doc = try identity!.newDid(storePassword)
+            let did = doc.subject
+            
+            var selfIssuer = try VerifiableCredentialIssuer(doc)
+            var cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            var props = ["name": "John",
+                         "gender": "Male",
+                         "nationality": "Singapore",
+                         "language": "English",
+                         "email": "john@example.com",
+                         "twitter": "@john"]
+            
+            var vc = try cb.withId("#profile")
+                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
+                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
+                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            var db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(1, doc.credentialCount)
+//            try store!.storeDid(using: doc)
+            
+            print("Publishing new DID \(did)...")
+            try doc.publish(using: storePassword)
+            print("Publish new DID \(did)...OK({}s)")
+            
+            // Update again
+            selfIssuer = try VerifiableCredentialIssuer(doc)
+            cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            
+            props = ["Abc": "Abc",
+                         "abc": "abc",
+                         "Foobar": "Foobar",
+                         "foobar": "foobar",
+                         "zoo": "zoo",
+                         "Zoo": "Zoo"]
+            
+            vc = try cb.withId("#test")
+                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
+                .withProperties(props)
+                .seal(using: storePassword)
+            XCTAssertNotNil(vc)
+            
+            db = try doc.editing()
+            _ = try db.appendCredential(with: vc)
+            doc = try db.seal(using: storePassword)
+            XCTAssertNotNil(doc)
+            XCTAssertEqual(3, doc.credentialCount)
+//            try store!.storeDid(using: doc)
+            
+            print("Updating DID \(did)...")
+
+            let list1 = try VerifiableCredential.list(doc.subject)
+            let list2 = try VerifiableCredential.list(vc.subject!.did)
+            XCTAssertEqual(2, list1.count)
+            XCTAssertEqual(1, list2.count)
+            print(list1)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+    
     func testJsonCredential1() {
         JsonCredential(1)
     }
