@@ -76,7 +76,7 @@ public class DIDResolveRequest: ResolveRequest {
         }
         generator.writeEndObject()
 
-        return generator.toString().NFC()
+        return generator.toString()
     }
 }
 

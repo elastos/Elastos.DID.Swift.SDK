@@ -145,6 +145,6 @@ public class IDTransactionInfo: NSObject {
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString().NFC()
+        return generator.toString()
     }
 }

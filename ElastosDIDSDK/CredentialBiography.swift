@@ -107,7 +107,7 @@ public class CredentialBiography: ResolveResult{
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString().NFC()
+        return generator.toString()
     }
     
     public func serialize(_ generator: JsonGenerator) {

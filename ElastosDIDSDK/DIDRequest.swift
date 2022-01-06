@@ -324,6 +324,6 @@ public class DIDRequest: IDChainRequest {
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString().NFC()
+        return generator.toString()
     }
 }

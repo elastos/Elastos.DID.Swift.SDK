@@ -193,7 +193,7 @@ public class IDChainRequest: NSObject {
     func serialize(_ force: Bool) -> String {
         let generator = JsonGenerator()
         serialize(generator, force)
-        return generator.toString().NFC()
+        return generator.toString()
     }
     
     func serialize(_ generator: JsonGenerator, _ force: Bool) {

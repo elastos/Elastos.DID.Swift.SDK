@@ -109,7 +109,7 @@ public class DIDBiography: ResolveResult {
         }
         generator.writeEndObject()
         
-        return generator.toString().NFC()
+        return generator.toString()
     }
     
     public class func deserialize(_ json: [String: Any]) throws -> DIDBiography {

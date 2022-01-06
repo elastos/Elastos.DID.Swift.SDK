@@ -3929,7 +3929,7 @@ public class DIDDocument: NSObject {
     func toJson(_ normalized: Bool, _ forSign: Bool) throws -> String {
         let generator = JsonGenerator()
         try toJson(generator, normalized, forSign)
-        return generator.toString().NFC()
+        return generator.toString()
     }
 
     func toJson(_ normalized: Bool, _ forSign: Bool) throws -> Data {

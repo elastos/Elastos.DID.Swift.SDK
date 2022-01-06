@@ -52,7 +52,7 @@ public class CredentialTransaction: IDTransactionInfo {
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString().NFC()
+        return generator.toString()
     }
     
     public class func deserialize(_ json: [String: Any]) throws -> CredentialTransaction {
