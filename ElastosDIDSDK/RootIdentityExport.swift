@@ -160,7 +160,7 @@ public class RootIdentityExport: NSObject {
         generator.writeStringField(FINGERPRINT, _fingerprint!)
 
         generator.writeEndObject()
-        return generator.toString()
+        return generator.toString().NFC()
     }
     
     public class func deserialize(_ content: [String: Any]) throws -> RootIdentityExport {

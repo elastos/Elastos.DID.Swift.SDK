@@ -244,7 +244,7 @@ public class CredentialRequest: IDChainRequest {
         return request
     }
 
-    public override func serialize(_ generator: JsonGenerator) {
+    public func serialize(_ generator: JsonGenerator) {
         generator.writeStartObject()
         generator.writeFieldName(HEADER)
         header?.serialize(generator)
@@ -257,5 +257,12 @@ public class CredentialRequest: IDChainRequest {
             proof?.serialize(generator)
         }
         generator.writeEndObject()
+    }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString().NFC()
     }
 }

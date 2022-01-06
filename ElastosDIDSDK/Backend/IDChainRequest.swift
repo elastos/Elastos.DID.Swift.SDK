@@ -192,6 +192,11 @@ public class IDChainRequest: NSObject {
     
     func serialize(_ force: Bool) -> String {
         let generator = JsonGenerator()
+        serialize(generator, force)
+        return generator.toString().NFC()
+    }
+    
+    func serialize(_ generator: JsonGenerator, _ force: Bool) {
         generator.writeStartObject()
         generator.writeFieldName(HEADER)
         header?.serialize(generator)
@@ -202,8 +207,6 @@ public class IDChainRequest: NSObject {
         generator.writeFieldName(PROOF)
         proof?.serialize(generator)
         generator.writeEndObject()
-
-        return generator.toString()
     }
     
     func sanitize() throws {
@@ -221,9 +224,5 @@ public class IDChainRequest: NSObject {
         request.setPayload(payload!)
         
         return request
-    }
-    
-    public func serialize(_ generator: JsonGenerator) {
-        
     }
 }

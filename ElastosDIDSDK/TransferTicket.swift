@@ -383,7 +383,7 @@ public class TransferTicket: NSObject {
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString()
+        return generator.toString().NFC()
     }
     
     /// Parse a TransferTicket object from from a string JSON representation.

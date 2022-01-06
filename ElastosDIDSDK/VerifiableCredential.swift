@@ -2157,7 +2157,7 @@ public class VerifiableCredential: DIDObject {
     func toJson(_ normalized: Bool, _ forSign: Bool) -> String {
         let generator = JsonGenerator()
         toJson(generator, nil, normalized, forSign)
-        return generator.toString()
+        return generator.toString().NFC()
     }
     
     public func serialize(_ generator: JsonGenerator, _ normalized: Bool) {
