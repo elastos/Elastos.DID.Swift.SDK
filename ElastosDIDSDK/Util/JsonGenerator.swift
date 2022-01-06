@@ -314,6 +314,6 @@ public class JsonGenerator: NSObject {
     public func toString() -> String {
         let output = buffer
         buffer = ""
-        return output.literalized()
+        return output.literalized().NFC()
     }
 }

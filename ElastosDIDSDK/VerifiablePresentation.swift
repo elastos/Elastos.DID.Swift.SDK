@@ -671,7 +671,7 @@ public class VerifiablePresentation: NSObject {
     func toJson(_ forSign: Bool) -> String {
         let generator = JsonGenerator()
         toJson(generator, forSign)
-        return generator.toString().NFC()
+        return generator.toString()
     }
 
     func toJson(_ forSign: Bool) -> Data {

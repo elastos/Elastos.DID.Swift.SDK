@@ -369,14 +369,14 @@ public class AbstractMetadata: NSObject {
             generator.writeStringField(k, v)
         }
         generator.writeEndObject()
-        let mataData = generator.toString().NFC()
+        let mataData = generator.toString()
         try mataData.write(to: URL(fileURLWithPath: path), atomically: true, encoding: .utf8)
     }
     
     func serialize(_ force: Bool) throws -> String {
         let generator = JsonGenerator()
         try serialize(generator)
-        let mataData = generator.toString().NFC()
+        let mataData = generator.toString()
         
         return mataData
     }
