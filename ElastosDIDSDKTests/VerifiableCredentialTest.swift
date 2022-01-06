@@ -151,78 +151,287 @@ class VerifiableCredentialTest: XCTestCase {
     
     func testListCredential() {
         do {
-            // Create new DID and publish to ID sidechain.
-            let identity = try testData?.getRootIdentity()
-            var doc = try identity!.newDid(storePassword)
-            let did = doc.subject
+            let vcds = [[ "user1", "twitter" ],
+                        [ "user1", "passport" ],
+                        [ "user1", "json" ],
+                        [ "user1", "jobposition" ],
+                        [ "foobar", "license" ],
+                        [ "foobar", "services" ],
+                        [ "foo", "email" ]]
+            let sd = testData!.sharedInstantData()
             
-            var selfIssuer = try VerifiableCredentialIssuer(doc)
-            var cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
+            for vcd in vcds {
+                let credential = try sd.getCredential(vcd[0], vcd[1])
+                
+                // Sign key for customized DID
+                let doc = try credential?.subject?.did.resolve()
+                var signKey: DIDURL?
+                if (doc!.controllerCount() > 1) {
+                    let index = 1
+                    let contr = doc!.controllers()[index]
+                    signKey = try contr.resolve()!.defaultPublicKeyId()!
+                }
+                if signKey == nil {
+                    
+                    try credential!.declare(storePassword)
+                }
+                else {
+                    try credential!.declare(signKey!, storePassword)
+                }
+                
+                let id = credential!.getId()
+                let resolved = try VerifiableCredential.resolve(id!)
+                XCTAssertNotNil(resolved)
+                
+                XCTAssertEqual(credential!.toString(), resolved!.toString())
+                
+                let metadata = resolved!.getMetadata()
+                XCTAssertNotNil(metadata);
+                XCTAssertNotNil(metadata.getPublishTime())
+                XCTAssertNotNil(metadata.getTransactionId())
+                XCTAssertFalse(try resolved!.isRevoked())
+                
+                let bio = try VerifiableCredential.resolveBiography(id!, credential!.issuer!)
+                XCTAssertNotNil(bio)
+                XCTAssertEqual(1, bio!.getAllTransactions().count)
+                XCTAssertEqual(IDChainRequestOperation.DECLARE, bio!.getTransaction(0).request.operation)
+            }
             
-            var props = ["name": "John",
-                         "gender": "Male",
-                         "nationality": "Singapore",
-                         "language": "English",
-                         "email": "john@example.com",
-                         "twitter": "@john"]
+            var doc = try sd.getUser1Document()
+            var did = doc.subject
+            var ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(4, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(id, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertFalse(try vc!.isRevoked())
+            }
             
-            var vc = try cb.withId("#profile")
-                .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
-                .withType("ProfileCredential", "https://ns.elastos.org/credentials/profile/v1")
-                .withType("EmailCredential", "https://ns.elastos.org/credentials/email/v1")
-                .withType("SocialCredential", "https://ns.elastos.org/credentials/social/v1")
-                .withProperties(props)
-                .seal(using: storePassword)
-            XCTAssertNotNil(vc)
+            doc = try sd.getFooBarDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(2, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(id, vc?.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertFalse(try vc!.isRevoked())
+            }
             
-            var db = try doc.editing()
-            _ = try db.appendCredential(with: vc)
-            doc = try db.seal(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertEqual(1, doc.credentialCount)
-//            try store!.storeDid(using: doc)
+            doc = try sd.getFooDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(1, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(id, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertFalse(try vc!.isRevoked())
+            }
+            doc = try sd.getBarDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
             
-            print("Publishing new DID \(did)...")
-            try doc.publish(using: storePassword)
-            print("Publish new DID \(did)...OK({}s)")
+            for vcd in vcds {
+                let credential = try sd.getCredential(vcd[0], vcd[1])
+                
+                // Sign key for customized DID
+                doc = try credential!.subject!.did.resolve()!
+                var signKey: DIDURL?
+                if (doc.controllerCount() > 1) {
+                    
+                    let index = 1
+                    let tr = doc.controllers()[index]
+                    signKey = try tr.resolve()!.defaultPublicKeyId()!
+                }
+                if signKey == nil {
+                    
+                    try credential!.revoke(storePassword)
+                }
+                else {
+                    try credential!.revoke(signKey!, storePassword)
+                }
+                
+                let id = credential!.getId()
+                let resolved = try VerifiableCredential.resolve(id!)
+                XCTAssertNotNil(resolved)
+                XCTAssertTrue(try resolved!.isRevoked())
+            }
             
-            // Update again
-            selfIssuer = try VerifiableCredentialIssuer(doc)
-            cb = try selfIssuer.editingVerifiableCredentialFor(did: did)
-            
-            props = ["Abc": "Abc",
-                         "abc": "abc",
-                         "Foobar": "Foobar",
-                         "foobar": "foobar",
-                         "zoo": "zoo",
-                         "Zoo": "Zoo"]
-            
-            vc = try cb.withId("#test")
-                .withType("SelfProclaimedCredential", "https://elastos.org/credentials/v1")
-                .withProperties(props)
-                .seal(using: storePassword)
-            XCTAssertNotNil(vc)
-            
-            db = try doc.editing()
-            _ = try db.appendCredential(with: vc)
-            doc = try db.seal(using: storePassword)
-            XCTAssertNotNil(doc)
-            XCTAssertEqual(3, doc.credentialCount)
-//            try store!.storeDid(using: doc)
-            
-            print("Updating DID \(did)...")
-
-            let list1 = try VerifiableCredential.list(doc.subject)
-            let list2 = try VerifiableCredential.list(vc.subject!.did)
-            XCTAssertEqual(2, list1.count)
-            XCTAssertEqual(1, list2.count)
-            print(list1)
+            doc = try sd.getUser1Document()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(4, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc!)
+                XCTAssertEqual(id, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertTrue(try vc!.isRevoked())
+            }
+            doc = try sd.getFooBarDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(2, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(id, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertTrue(try vc!.isRevoked())
+            }
+            doc = try sd.getFooDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(1, ids.count)
+            for id in ids {
+                let vc = try VerifiableCredential.resolve(id)
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(id, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+                XCTAssertTrue(try vc!.isRevoked())
+            }
+            doc = try sd.getBarDocument()
+            did = doc.subject
+            ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
         } catch {
             print(error)
             XCTFail()
         }
     }
     
+    func testListPagination() {
+        do {
+            let sd = testData?.sharedInstantData()
+            
+            let doc = try sd!.getUser1Document()
+            let did = doc.subject
+            
+            let selfIssuer =  try VerifiableCredentialIssuer(doc)
+            
+            for i in 0..<1028 {
+                print("Creating test credential \(i)...")
+                
+                let vc = try selfIssuer.editingVerifiableCredentialFor(did: did)
+                    .withId("#test\(i)")
+                    .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                    .withProperties("index", "\(i)")
+                    .seal(using: storePassword)
+                
+                vc.getMetadata().attachStore(doc.store!)
+                try vc.declare(storePassword)
+                
+                XCTAssertTrue(try vc.wasDeclared())
+            }
+            
+            var index = 1028
+            var ids = try VerifiableCredential.list(did)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(CredentialList.DEFAULT_SIZE, ids.count)
+            for id in ids {
+                print("Resolving credential \(id.fragment)...")
+                index = index - 1
+                let ref = try DIDURL(did, "#test\(index)")
+                XCTAssertEqual(ref, id)
+                
+                let vc = try VerifiableCredential.resolve(id)
+                
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(ref, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+            }
+            
+            index = 1028
+            ids = try VerifiableCredential.list(did, 500)
+            XCTAssertNotNil(ids)
+            XCTAssertEqual(CredentialList.MAX_SIZE, ids.count)
+            for id in ids {
+                print("Resolving credential \(id.fragment)...")
+                index = index - 1
+                let ref = try DIDURL(did, "#test\(index)")
+                XCTAssertEqual(ref, id)
+                
+                let vc = try VerifiableCredential.resolve(id)
+                
+                XCTAssertNotNil(vc)
+                XCTAssertEqual(ref, vc!.getId())
+                XCTAssertTrue(try vc!.wasDeclared())
+            }
+            
+            ids = try VerifiableCredential.list(did, 1028, 100)
+            XCTAssertEqual(ids.count, 0)
+            
+            var skip = 0
+            var limit = CredentialList.DEFAULT_SIZE
+            index = 1028
+            while (true) {
+                let resultSize = index >= limit ? limit : index
+                ids = try VerifiableCredential.list(did, skip, limit)
+                if (ids.count == 0) {
+                    break
+                }
+                XCTAssertEqual(resultSize, ids.count)
+                for id in ids {
+                    print("Resolving credential \(id.fragment)...")
+                    index = index - 1
+                    let ref = try DIDURL(did, "#test\(index)")
+                    XCTAssertEqual(ref, id)
+                    
+                    let vc = try VerifiableCredential.resolve(id)
+                    
+                    XCTAssertNotNil(vc)
+                    XCTAssertEqual(ref, vc!.getId())
+                    XCTAssertTrue(try vc!.wasDeclared())
+                }
+                
+                skip += ids.count
+            }
+            XCTAssertEqual(0, index)
+            
+            skip = 200
+            limit = 100
+            index = 828
+            while (true) {
+                let resultSize = index >= limit ? limit : index
+                ids = try VerifiableCredential.list(did, skip, limit)
+                if (ids.count == 0) {
+                    break
+                }
+                XCTAssertEqual(resultSize, ids.count)
+                for id in ids {
+                    print("Resolving credential \(id.fragment)...")
+                    index = index - 1
+                    let ref = try DIDURL(did, "#test\(index)")
+                    XCTAssertEqual(ref, id)
+                    
+                    let vc = try VerifiableCredential.resolve(id)
+                    
+                    XCTAssertNotNil(vc)
+                    XCTAssertEqual(ref, vc!.getId())
+                    XCTAssertTrue(try vc!.wasDeclared())
+                }
+                
+                skip += ids.count
+            }
+            XCTAssertEqual(0, index)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+
     func testJsonCredential1() {
         JsonCredential(1)
     }

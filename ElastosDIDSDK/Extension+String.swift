@@ -318,4 +318,27 @@ extension String {
         CFStringNormalize(mutable, .KD) // OR .C
         return mutable as String
     }
+    
+    func NFC() -> String {
+        let mutable = NSMutableString(string: self) as CFMutableString
+        CFStringNormalize(mutable, .C) // OR .C
+        return mutable as String
+    }
+}
+
+extension String {
+    static let escapeSequences = [
+        (original: "\n", escaped: "\\n"),
+        (original: "\\\n", escaped: "\\n"),
+    ]
+
+    mutating func literalize() {
+        self = self.literalized()
+    }
+
+    func literalized() -> String {
+        return String.escapeSequences.reduce(self) { string, seq in
+            string.replacingOccurrences(of: seq.original, with: seq.escaped)
+        }
+    }
 }

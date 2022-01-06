@@ -1839,5 +1839,56 @@ class IDChainOperationsTest: XCTestCase {
             XCTFail()
         }
     }
+    
+    func test_28_300DeclareMultilangCredential() {
+        do {
+            
+            let nobody = IDChainEntity("nobody")
+
+            let selfIssuer = try VerifiableCredentialIssuer(nobody.getDocument()!)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: nobody.did!)
+
+            var props: [String: String] = [: ]
+            let i18nDir: String = "resources/i18n"
+            let bl = Bundle(for: type(of: self))
+            let lags = bl.paths(forResourcesOfType: "txt", inDirectory: i18nDir)
+            for l in lags {
+                let data: String = try l.forReading()
+                
+                props[l.basename()] = data
+            }
+
+            let id = try DIDURL(nobody.did!, "#i18n")
+            let vc = try cb.withId(id)
+                    .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                    .withType("TestCredential", "https://trinity-tech.io/credentials/i18n/v1")
+                    .withProperties(props)
+                    .seal(using: nobody.storepass)
+            XCTAssertNotNil(vc)
+
+            try nobody.store!.storeCredential(using: vc)
+            try vc.declare(nobody.storepass)
+            print(vc)
+
+            let resolvedVc = try VerifiableCredential.resolve(id)
+            XCTAssertNotNil(resolvedVc)
+            XCTAssertEqual(id, resolvedVc!.getId())
+            XCTAssertTrue(resolvedVc!.getType().contains("SelfProclaimedCredential"))
+            XCTAssertEqual(nobody.did, resolvedVc!.subject?.did)
+            XCTAssertEqual(nobody.did, resolvedVc!.issuer)
+            XCTAssertEqual(vc.proof!.signature,
+                    resolvedVc?.proof!.signature)
+
+            XCTAssertTrue(try resolvedVc!.isValid())
+
+            let bio = try VerifiableCredential.resolveBiography(id)
+            XCTAssertNotNil(bio)
+            XCTAssertEqual(1, bio.count)
+            XCTAssertEqual(vc.proof!.signature, bio.getTransaction(0).request.credential!.proof!.signature)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
 }
 
