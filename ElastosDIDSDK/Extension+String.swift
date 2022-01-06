@@ -330,6 +330,14 @@ extension String {
     static let escapeSequences = [
         (original: "\n", escaped: "\\n"),
         (original: "\\\n", escaped: "\\n"),
+        (original: "\0", escaped: "\\0"),
+        (original: "\\\0", escaped: "\0"),
+        (original: "\t", escaped: "\\t"),
+        (original: "\\\t", escaped: "\\t"),
+        (original: "\r", escaped: "\\r"),
+        (original: "\\\r", escaped: "\\r"),
+        (original: "\'", escaped: "\\'"),
+        (original: "\\\'", escaped: "\\'"),
     ]
 
     mutating func literalize() {
