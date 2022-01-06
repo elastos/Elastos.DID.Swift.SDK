@@ -1871,7 +1871,7 @@ func test_18TransferCustomizedDid_1to2() {
             XCTFail()
         }
     }
-    /*
+    
     func test_40_204ListPagination() {
         do {
             let issuer = try VerifiableCredentialIssuer(IDChainOperationsTest2.Grace.getCustomizedDocument()!)
@@ -1898,7 +1898,8 @@ func test_18TransferCustomizedDid_1to2() {
             XCTAssertNotNil(ids)
             XCTAssertEqual(CredentialList.DEFAULT_SIZE, ids.count)
                for id in ids {
-                   let ref = try DIDURL(nobody.did!, "#test" + "\(index - 1)")
+                   index = index - 1
+                   let ref = try DIDURL(nobody.did!, "#test" + "\(index)")
                    XCTAssertEqual(ref, id)
 
                    let vc = try VerifiableCredential.resolve(id)
@@ -1914,7 +1915,8 @@ func test_18TransferCustomizedDid_1to2() {
             XCTAssertNotNil(ids)
             XCTAssertEqual(CredentialList.MAX_SIZE, ids.count)
                for id in ids {
-                   let ref = try DIDURL(nobody.did!, "#test" + "\(index - 1)")
+                   index = index - 1
+                   let ref = try DIDURL(nobody.did!, "#test" + "\(index)")
                    XCTAssertEqual(ref, id)
 
                    let vc = try VerifiableCredential.resolve(id)
@@ -1926,14 +1928,13 @@ func test_18TransferCustomizedDid_1to2() {
 
                // out of boundary
             ids = try VerifiableCredential.list(nobody.did!, 300, 100)
-            XCTAssertNil(ids)
-
+            XCTAssertEqual(ids.count, 0)
             // list all with default page size
             var skip = 0
             var limit = CredentialList.DEFAULT_SIZE
             index = 271
             while (true) {
-                var resultSize = index >= limit ? limit : index
+                let resultSize = index >= limit ? limit : index
                 ids = try VerifiableCredential.list(nobody.did!, skip, limit)
                 if (ids.count == 0) {
                     break
@@ -1941,7 +1942,8 @@ func test_18TransferCustomizedDid_1to2() {
 
                 XCTAssertEqual(resultSize, ids.count)
                    for id in ids {
-                       let ref = try DIDURL(nobody.did!, "#test" + "\(index - 1)")
+                       index = index - 1
+                       let ref = try DIDURL(nobody.did!, "#test" + "\(index)")
                        XCTAssertEqual(ref, id)
 
                        let vc = try VerifiableCredential.resolve(id)
@@ -1960,7 +1962,7 @@ func test_18TransferCustomizedDid_1to2() {
             limit = 100
             index = 171
             while (true) {
-                var resultSize = index >= limit ? limit : index
+                let resultSize = index >= limit ? limit : index
                 ids = try VerifiableCredential.list(nobody.did!, skip, limit)
                 if (ids.count == 0) {
                     break
@@ -1968,7 +1970,9 @@ func test_18TransferCustomizedDid_1to2() {
 
                 XCTAssertEqual(resultSize, ids.count)
                    for id in ids {
-                       let ref = try DIDURL(nobody.did!, "#test" + "\(index - 1)")
+                       index = index - 1
+
+                       let ref = try DIDURL(nobody.did!, "#test" + "\(index)")
                        XCTAssertEqual(ref, id)
 
                        let vc = try VerifiableCredential.resolve(id)
@@ -1987,7 +1991,7 @@ func test_18TransferCustomizedDid_1to2() {
             XCTFail()
         }
     }
-    */
+    
     func test_41_300RevokeSelfProclaimedVcFromNobody_p() {
         do {
             // Frank' self-proclaimed credential
@@ -2493,6 +2497,58 @@ func test_18TransferCustomizedDid_1to2() {
         }
     }
 
+    func test_64_111DeclareMultilangCredential() {
+        do {
+
+            let nobody = IDChainEntity("nobody")
+
+            let selfIssuer = try VerifiableCredentialIssuer(nobody.getDocument()!)
+            let cb = try selfIssuer.editingVerifiableCredentialFor(did: nobody.did!)
+            var props: [String: String] = [: ]
+            let i18nDir: String = "resources/i18n"
+            let bl = Bundle(for: type(of: self))
+            let lags = bl.paths(forResourcesOfType: "txt", inDirectory: i18nDir)
+            for l in lags {
+                let str: String = try l.forReading()
+                print(str)
+                props[l.basename()] = str
+            }
+
+            let id = try DIDURL(nobody.did!, "#i18n")
+            let vc = try cb.withId(id)
+                    .withType("SelfProclaimedCredential", "https://ns.elastos.org/credentials/v1")
+                    .withType("TestCredential", "https://trinity-tech.io/credentials/i18n/v1")
+                    .withProperties(props)
+                    .seal(using: nobody.storepass)
+            XCTAssertNotNil(vc)
+
+            try nobody.store!.storeCredential(using: vc)
+            try vc.declare(nobody.storepass)
+            print(vc)
+
+            let resolvedVc = try VerifiableCredential.resolve(id)
+            XCTAssertNotNil(resolvedVc)
+            XCTAssertEqual(id, resolvedVc!.getId())
+            XCTAssertTrue(resolvedVc!.getType().contains("SelfProclaimedCredential"))
+            XCTAssertEqual(nobody.did, resolvedVc!.subject?.did)
+            XCTAssertEqual(nobody.did, resolvedVc!.issuer)
+            XCTAssertEqual(vc.proof!.signature,
+                    resolvedVc?.proof!.signature)
+
+            XCTAssertTrue(try resolvedVc!.isValid())
+            XCTAssertTrue(try resolvedVc!.isValid())
+            XCTAssertTrue(try resolvedVc!.isValid())
+
+            let bio = try VerifiableCredential.resolveBiography(id)
+            XCTAssertNotNil(bio)
+            XCTAssertEqual(1, bio.count)
+            XCTAssertEqual(vc.proof!.signature, bio.getTransaction(0).request.credential!.proof!.signature)
+        } catch {
+            print(error)
+            XCTFail()
+        }
+    }
+
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {
@@ -2630,6 +2686,4 @@ class IDChainEntity {
             return [ ]
         }
     }
-
 }
-
