@@ -52,7 +52,7 @@ public class CredentialTransaction: IDTransactionInfo {
         let generator = JsonGenerator()
         serialize(generator)
         
-        return generator.toString()
+        return generator.toString().NFC()
     }
     
     public class func deserialize(_ json: [String: Any]) throws -> CredentialTransaction {
@@ -60,7 +60,7 @@ public class CredentialTransaction: IDTransactionInfo {
         let timestamp = json[Constants.TIMESTAMP] as! String
         let op = json[Constants.OPERATION]
         let request = try CredentialRequest.deserialize(JsonNode(op as Any))
-        return CredentialTransaction(txid, DateFormatter.convertToUTCDateFromString(timestamp)!, request as! CredentialRequest)
+        return CredentialTransaction(txid, DateFormatter.convertToUTCDateFromString(timestamp)!, request)
     }
 }
 

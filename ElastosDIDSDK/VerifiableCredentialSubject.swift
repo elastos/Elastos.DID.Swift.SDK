@@ -123,12 +123,12 @@ public class VerifiableCredentialSubject: NSObject {
     /// - Parameters:
     ///   - name: the property name
     ///   - value: the property value
-    func setProperties(_ key: String, _ value: Any) {
+    func setProperties(_ key: String, _ value: String) {
         
         guard key != ID else {
             return
         }
-        _properties.setValue(value, forKey: key)
+        _properties.put(forKey: key, value: value)
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialSubject {

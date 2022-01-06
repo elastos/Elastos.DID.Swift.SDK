@@ -27,7 +27,7 @@ public class CredentialList: ResolveResult {
     static let CREDENTIALS = "credentials"
 
     static let DEFAULT_SIZE = 128
-    static let MAX_SIZE = 512
+    static let MAX_SIZE = 256
 
     private var _did: DID
     private var _credentialIds: [DIDURL] = [ ]

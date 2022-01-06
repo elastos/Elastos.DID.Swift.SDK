@@ -132,10 +132,19 @@ public class IDTransactionInfo: NSObject {
 //    }
     
     public func serialize(_ generator: JsonGenerator) {
+        generator.writeStartObject()
+        generator.writeStringField(Constants.TXID, self.transactionId)
+        generator.writeStringField(Constants.TIMESTAMP, self.timestamp.description)
         
+        generator.writeFieldName(Constants.OPERATION)
+        self._request.serialize(generator, false)
+        generator.writeEndObject()
     }
     
     public func serialize() -> String {
-        return "TODO:"
+        let generator = JsonGenerator()
+        serialize(generator)
+        
+        return generator.toString().NFC()
     }
 }

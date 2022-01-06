@@ -192,7 +192,7 @@ public class DIDExport: NSObject {
         }
         generator.writeEndObject()
         
-        return generator.toString()
+        return generator.toString().NFC()
     }
     
     public class func deserialize(_ content: [String: Any]) throws -> DIDExport{
