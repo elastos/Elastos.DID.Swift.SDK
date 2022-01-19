@@ -331,7 +331,7 @@ extension String {
         (original: "\n", escaped: "\\n"),
         (original: "\\\n", escaped: "\\n"),
         (original: "\0", escaped: "\\0"),
-        (original: "\\\0", escaped: "\0"),
+        (original: "\\\0", escaped: "\\0"),
         (original: "\t", escaped: "\\t"),
         (original: "\\\t", escaped: "\\t"),
         (original: "\r", escaped: "\\r"),
