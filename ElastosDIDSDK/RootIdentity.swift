@@ -269,7 +269,12 @@ public class RootIdentity: NSObject {
     
     /// Get the default DID of this RootIdentity object.
     public func defaultDid() throws -> DID {
-        return try metadata!.getDefaultDid()!
+        var did = try metadata?.getDefaultDid()
+        if did == nil {
+            did = try getDid(0)
+        }
+        
+        return did!
     }
     
     /// Set this RootIdentity as the global default identity in current DIDStore.
