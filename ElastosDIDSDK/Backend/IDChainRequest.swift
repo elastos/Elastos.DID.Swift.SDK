@@ -162,7 +162,8 @@ public class IDChainRequest: NSObject {
             return false
         }
         
-        guard try doc!.isValid() else {
+        // Here should not check the expiration and deactivated
+        guard try doc!.isGenuine() else {
             return false
         }
         
