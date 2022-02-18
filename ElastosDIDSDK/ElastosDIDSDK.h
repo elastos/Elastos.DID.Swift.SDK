@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-#import <UIKit/UIKit.h>
+@import Foundation;
 
 //! Project version number for Elastos_DID_Swift_SDK.
 FOUNDATION_EXPORT double Elastos_DID_Swift_SDKVersionNumber;
