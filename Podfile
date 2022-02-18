@@ -32,7 +32,7 @@ end
 
 target :"DIDExample" do
 xcodeproj 'DIDExample/DIDExample'
-    source 'https://github.com/CocoaPods/Specs.git'
+    #source 'https://github.com/CocoaPods/Specs.git'
     platform :ios, '11.0'
     use_frameworks!
     import_pods
