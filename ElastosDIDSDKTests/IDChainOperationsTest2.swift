@@ -84,10 +84,11 @@ class IDChainOperationsTest2: XCTestCase {
             else {
                 print(".")
             }
-//            Thread.sleep(forTimeInterval: 60)
+            Thread.sleep(forTimeInterval: 5)
         }
     }
-
+    // 注意：
+    //每次仿真链测试需手动删除本地已存信息： /Users/liaihong/Library/Developer/CoreSimulator/Devices/F54027CD-873F-4B03-B813-6640B62C779A/data/Library/Caches/data/didCache/
     func test_01CreateCustomizedDid() {
         do {
             for person in IDChainOperationsTest2.persons {
@@ -2397,7 +2398,7 @@ func test_18TransferCustomizedDid_1to2() {
             waitForWalletAvaliable()
             
             doc = try IDChainOperationsTest2.foo1.resolve()
-            XCTAssertTrue(doc!.isDeactivated)
+            XCTAssertTrue(try doc!.isDeactivated())
         }
         catch {
             print(error)
@@ -2414,7 +2415,7 @@ func test_18TransferCustomizedDid_1to2() {
             waitForWalletAvaliable()
             
             doc = try IDChainOperationsTest2.foo1.resolve()
-            XCTAssertTrue(doc!.isDeactivated)
+            XCTAssertTrue(try doc!.isDeactivated())
         }
         catch {
             print(error)
@@ -2431,7 +2432,7 @@ func test_18TransferCustomizedDid_1to2() {
             waitForWalletAvaliable()
             
             doc = try IDChainOperationsTest2.bar1.resolve()
-            XCTAssertTrue(doc!.isDeactivated)
+            XCTAssertTrue(try doc!.isDeactivated())
         }
         catch {
             print(error)
@@ -2450,7 +2451,7 @@ func test_18TransferCustomizedDid_1to2() {
             waitForWalletAvaliable()
             
             doc = try IDChainOperationsTest2.bar2.resolve()
-            XCTAssertTrue(doc!.isDeactivated)
+            XCTAssertTrue(try doc!.isDeactivated())
         }
         catch {
             print(error)
@@ -2469,7 +2470,7 @@ func test_18TransferCustomizedDid_1to2() {
             waitForWalletAvaliable()
             
             doc = try IDChainOperationsTest2.bar3.resolve()
-            XCTAssertTrue(doc!.isDeactivated)
+            XCTAssertTrue(try doc!.isDeactivated())
         }
         catch {
             print(error)
@@ -2488,7 +2489,7 @@ func test_18TransferCustomizedDid_1to2() {
                 waitForWalletAvaliable()
                 
                 doc = try person.customizedDid!.resolve()
-                XCTAssertTrue(doc!.isDeactivated)
+                XCTAssertTrue(try doc!.isDeactivated())
             }
         }
         catch {

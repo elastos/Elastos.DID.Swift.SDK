@@ -4467,7 +4467,7 @@ class DIDDoucumentTests: XCTestCase {
             try doc.deactivate(using: storePassword)
 
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4503,7 +4503,7 @@ class DIDDoucumentTests: XCTestCase {
 
             try doc.deactivate(using: storePassword)
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4555,7 +4555,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try doc.deactivate(using: storePassword)
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4622,7 +4622,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try doc.deactivate(using: storePassword)
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4674,7 +4674,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try controller.deactivate(with: did, using: storePassword)
             doc = try did.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4741,7 +4741,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try controller.deactivate(with: did, using: storePassword)
             doc = try did.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4825,7 +4825,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try doc.deactivate(with: ctrl1.defaultPublicKeyId()!, using: storePassword)
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -4930,7 +4930,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try doc.deactivate(with: ctrl1.defaultPublicKeyId()!, using: storePassword)
             doc = try doc.subject.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -5017,7 +5017,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try ctrl1.deactivate(with: did, using: storePassword)
             doc = try did.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -5120,7 +5120,7 @@ class DIDDoucumentTests: XCTestCase {
             // Deactivate
             try ctrl2.deactivate(with: did, using: storePassword)
             doc = try did.resolve()!
-            XCTAssertTrue(doc.isDeactivated)
+            XCTAssertTrue(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -5156,10 +5156,10 @@ class DIDDoucumentTests: XCTestCase {
 
             try doc.deactivate(with: target.subject, using: storePassword)
             target = try target.subject.resolve()!
-            XCTAssertTrue(target.isDeactivated)
+            XCTAssertTrue(try target.isDeactivated())
 
             doc = try doc.subject.resolve()!
-            XCTAssertFalse(doc.isDeactivated)
+            XCTAssertFalse(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
@@ -5204,10 +5204,10 @@ class DIDDoucumentTests: XCTestCase {
 
             try doc.deactivate(with: target.subject, of: id, using: storePassword)
             target = try target.subject.resolve()!
-            XCTAssertTrue(target.isDeactivated)
+            XCTAssertTrue(try target.isDeactivated())
 
             doc = try doc.subject.resolve()!
-            XCTAssertFalse(doc.isDeactivated)
+            XCTAssertFalse(try doc.isDeactivated())
         } catch {
          XCTFail()
         }
@@ -5252,10 +5252,10 @@ class DIDDoucumentTests: XCTestCase {
 
             try doc.deactivate(with: target.subject, using: storePassword)
             target = try target.subject.resolve()!
-            XCTAssertTrue(target.isDeactivated)
+            XCTAssertTrue(try target.isDeactivated())
 
             doc = try doc.subject.resolve()!
-            XCTAssertFalse(doc.isDeactivated)
+            XCTAssertFalse(try doc.isDeactivated())
         } catch {
             XCTFail()
         }
