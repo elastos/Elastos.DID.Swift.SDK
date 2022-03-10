@@ -249,6 +249,10 @@ public class VerifiableCredential: DIDObject {
         guard let _ = issuanceDate else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential issuance date")
         }
+        
+        if (_expirationDate == nil) {
+            throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential expiration date")
+        }
         guard let _ = subject else {
             throw DIDError.CheckedError.DIDSyntaxError.MalformedCredentialError("Missing credential subject")
         }
@@ -290,25 +294,8 @@ public class VerifiableCredential: DIDObject {
     /// Check if this credential object is expired or not.
     /// whether the credential object is expired
     public func isExpired() throws -> Bool {
-        if (_expirationDate != nil) {
-            if checkExpired() {
-                return true
-            }
-        }
         
-        let controllerDoc = try subject?.did.resolve()
-        if (controllerDoc != nil && controllerDoc!.isExpired) {
-            return true
-        }
-        
-        if (!isSelfProclaimed) {
-            let issuerDoc = try issuer?.resolve()
-            if (issuerDoc != nil && issuerDoc!.isExpired) {
-                return true
-            }
-        }
-        
-        return false
+        return checkExpired()
     }
 
     /// Check if this credential object is expired or not in asynchronous mode.
@@ -399,15 +386,6 @@ public class VerifiableCredential: DIDObject {
 
             return false
         }
-        if !isSelfProclaimed {
-            let controllerDoc = try subject?.did.resolve()
-            if (try controllerDoc != nil && !controllerDoc!.isGenuine(listener)) {
-                listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is not genuine")
-                listener?.failed(context: self, args: "VC \(String(describing: id)): is not genuine")
-                
-                return false
-            }
-        }
         listener?.succeeded(context: self, args: "VC \(String(describing: id)): is genuine")
         
         return true
@@ -479,15 +457,21 @@ public class VerifiableCredential: DIDObject {
     /// Credential is expired or not.
     /// Issuance always occurs before any other actions involving a credential.
     func isValid(_ listener: VerificationEventListener?) throws -> Bool {
-        if (_expirationDate != nil) {
-            if checkExpired() == true {
-                listener?.failed(context: self, args: "VC \(String(describing: id)): is expired")
+
+        if try isRevoked() {
+            if listener != nil {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is revoked")
                 listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
-                
-                return false
             }
         }
         
+        if try isExpired() {
+            if listener != nil {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is expired")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+            }
+            return false
+        }
         let issuerDoc = try issuer?.resolve()
         if (issuerDoc == nil) {
             //throw new DIDNotFoundException(issuer.toString());
@@ -497,9 +481,18 @@ public class VerifiableCredential: DIDObject {
             return false
         }
         
-        if (try !issuerDoc!.isValid(listener)) {
+        if (try issuerDoc!.isDeactivated()) {
             listener?.failed(context: self, args: "VC \(String(describing: id)): issuer '\(String(describing: issuer))' is invalid")
             listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+
+            return false
+        }
+        
+        if (try !issuerDoc!.isGenuine(listener)) {
+            if (listener != nil) {
+                listener?.failed(context: self, args: "VC \(String(describing: id)): issuer '\(String(describing: issuer))' is not genuine")
+                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
+            }
 
             return false
         }
@@ -529,15 +522,6 @@ public class VerifiableCredential: DIDObject {
             return false
         }
 
-        if !isSelfProclaimed {
-            let controllerDoc = try subject?.did.resolve()
-            if (try controllerDoc == nil && !controllerDoc!.isValid(listener)) {
-                listener?.failed(context: self, args: "VC \(String(describing: id)): holder's document is invalid")
-                listener?.failed(context: self, args: "VC \(String(describing: id)): is invalid")
-
-                return false
-            }
-        }
         listener?.succeeded(context: self, args: "VC \(String(describing: id)): is valid")
 
         return true
@@ -596,6 +580,9 @@ public class VerifiableCredential: DIDObject {
             return true
         }
         let bio = try DIDBackend.sharedInstance().resolveCredentialBiography(id!, issuer!)
+        if bio == nil {
+            return false
+        }
         let revoked = bio!.status == CredentialBiographyStatus.STATUS_REVOKED
         if revoked {
             metadata.setRevoked(revoked)

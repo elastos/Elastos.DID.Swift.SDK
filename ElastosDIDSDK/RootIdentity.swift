@@ -366,7 +366,7 @@ public class RootIdentity: NSObject {
         let did = try getDid(index)
         var doc = try store?.loadDid(did)
         if doc != nil  {
-            guard !doc!.isDeactivated else {
+            guard try !doc!.isDeactivated() else {
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
             }
             guard overwrite else {
@@ -377,7 +377,7 @@ public class RootIdentity: NSObject {
         do {
             doc = try did.resolve()
             if doc != nil  {
-                guard !doc!.isDeactivated else {
+                guard try !doc!.isDeactivated() else {
                     throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
                 }
                 if !overwrite {

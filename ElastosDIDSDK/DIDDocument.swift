@@ -1662,9 +1662,20 @@ public class DIDDocument: NSObject {
     ///
     /// Check if this DIDDocument is deactivated.
     /// true if deactivated, false otherwise
-    @objc
-    public var isDeactivated: Bool {
-        return getMetadata().isDeactivated
+    public func isDeactivated()throws -> Bool {
+        if getMetadata().isDeactivated {
+            return true
+        }
+        let bio = try DIDBackend.sharedInstance().resolveDidBiography(subject)
+        if bio == nil {
+            return false
+        }
+        let deactivated = bio!.status == DIDBiographyStatus.STATUS_DEACTIVATED
+        if deactivated {
+            getMetadata().setDeactivated(deactivated)
+        }
+        
+        return deactivated
     }
 
     /// Check if this DIDDocument is expired.
@@ -1797,7 +1808,7 @@ public class DIDDocument: NSObject {
     /// Check if this DIDDocument is valid.
     /// true if valid, false otherwise
     func isValid(_ listener: VerificationEventListener?) throws -> Bool {
-        if (isDeactivated) {
+        if (try isDeactivated()) {
             listener?.failed(context: self, args: "\(subject): is deactivated")
             listener?.failed(context: self, args: "\(subject): is invalid")
             return false
@@ -1817,7 +1828,7 @@ public class DIDDocument: NSObject {
         
         if hasController() {
             for doc in _controllerDocs.values {
-                if (doc.isDeactivated) {
+                if (try doc.isDeactivated()) {
                     listener?.failed(context: self, args: "\(subject): controller \(doc.subject)' is deactivated")
                     listener?.failed(context: self, args: "\(subject): is invalid")
                     
@@ -2418,7 +2429,7 @@ public class DIDDocument: NSObject {
         guard target != nil else {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(did.toString())
         }
-        guard !target!.isDeactivated else {
+        guard try !target!.isDeactivated() else {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
         }
         guard target!.isCustomizedDid() else {
@@ -2497,7 +2508,7 @@ public class DIDDocument: NSObject {
         guard targetDoc != nil else {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(did.toString())
         }
-        guard !targetDoc!.isDeactivated else {
+        guard try !targetDoc!.isDeactivated() else {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
         }
         if sigK == nil {
@@ -2682,7 +2693,7 @@ public class DIDDocument: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
         
-        if (isDeactivated) {
+        if (try isDeactivated()) {
             Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
         }
@@ -2697,7 +2708,7 @@ public class DIDDocument: NSObject {
         let _signKey = signKey != nil ? signKey : defaultPublicKeyId()
         let resolvedDoc = try DIDBackend.sharedInstance().resolveUntrustedDid(subject, true)
         if (resolvedDoc != nil) {
-            if (resolvedDoc!.isDeactivated) {
+            if (try resolvedDoc!.isDeactivated()) {
                 getMetadata().setDeactivated(true)
                 
                 Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
@@ -2743,7 +2754,7 @@ public class DIDDocument: NSObject {
             Log.e(DIDDocument.TAG, "Publish failed because document is not genuine.")
             throw DIDError.UncheckedError.IllegalStateError.DIDNotGenuineError(subject.toString())
         }
-        guard !isDeactivated else {
+        guard try !isDeactivated() else {
             Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
         }
@@ -2759,7 +2770,7 @@ public class DIDDocument: NSObject {
         var resolvedSignature: String = ""
         let resolvedDoc = try subject.resolve(true)
         if resolvedDoc != nil {
-            guard !resolvedDoc!.isDeactivated else {
+            guard try !resolvedDoc!.isDeactivated() else {
                 getMetadata().setDeactivated(true)
                 Log.e(DIDDocument.TAG, "Publish failed because DID is deactivated.")
                 throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
@@ -3085,7 +3096,7 @@ public class DIDDocument: NSObject {
         if doc == nil {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(subject.toString())
         }
-        else if doc!.isDeactivated {
+        else if try doc!.isDeactivated() {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(subject.toString())
         }
         else {
@@ -3112,9 +3123,6 @@ public class DIDDocument: NSObject {
         }
         
         try DIDBackend.sharedInstance().deactivateDid(doc!, sigK!, storePassword, adapter)
-        if signature != doc!.signature {
-            try store?.storeDid(using: doc!)
-        }
     }
     
     /// Deactivate this DID using the authentication key.
@@ -3245,7 +3253,7 @@ public class DIDDocument: NSObject {
         guard let _ = targetDoc else {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(target.toString())
         }
-        guard !targetDoc!.isDeactivated else {
+        guard try !targetDoc!.isDeactivated() else {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(target.toString())
         }
         
@@ -3301,10 +3309,6 @@ public class DIDDocument: NSObject {
             }
             
             try DIDBackend.sharedInstance().deactivateDid(targetDoc!, _signKey!, storePassword, adapter)
-            
-            if try store!.containsDid(target) {
-                try store?.storeDid(using: targetDoc!)
-            }
         }
     }
     

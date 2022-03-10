@@ -389,10 +389,15 @@ public class VerifiablePresentation: NSObject {
             listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
         }
         // Check the validity of signer's document.
-        guard try doc!.isValid(listener) else {
-            listener?.failed(context: self, args: "VP \(String(describing: id)): holder's document is invalid")
+        if try doc!.isDeactivated() {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): holder's document is deactivated")
             listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
             
+            return false
+        }
+        if (try !doc!.isGenuine(listener)) {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): holder's document is genuine")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
             return false
         }
         // Unsupported public key type.
@@ -409,7 +414,24 @@ public class VerifiablePresentation: NSObject {
             
             return false
         }
-
+        
+        var data: [Data] = []
+        data.append(toJson(true))
+        if let d = proof.realm.data(using: .utf8)  {
+            data.append(d)
+        }
+        if let d = proof.nonce.data(using: .utf8)  {
+            data.append(d)
+        }
+        
+        if (try !doc!.verify(proof.verificationMethod,
+                        proof.signature, data)) {
+            listener?.failed(context: self, args: "VP \(String(describing: id)): proof is invalid, signature mismatch")
+            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+            
+            return false
+        }
+        
         // All credentials should be owned by signer.
         for credential in self._verifiableCredentials.values {
             guard credential.subject!.did == holder else {
@@ -426,25 +448,8 @@ public class VerifiablePresentation: NSObject {
             }
         }
 
-        var data: [Data] = []
-        data.append(toJson(true))
-        if let d = proof.realm.data(using: .utf8)  {
-            data.append(d)
-        }
-        if let d = proof.nonce.data(using: .utf8)  {
-            data.append(d)
-        }
-
-        let result = (try? doc!.verify(proof.verificationMethod, proof.signature, data)) ?? false
-        
-        if (result) {
-            listener?.succeeded(context: self, args: "VP \(String(describing: id)): is valid")
-        } else {
-            listener?.failed(context: self, args: "VP \(String(describing: id)): proof is invalid, signature mismatch")
-            listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
-        }
-        
-        return result
+        listener?.failed(context: self, args: "VP \(String(describing: id)): is invalid")
+        return true
     }
 
     /// Check whether the credential is valid in asynchronous mode.

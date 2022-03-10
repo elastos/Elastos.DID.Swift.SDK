@@ -113,9 +113,14 @@ public class SimulatedIDChain {
             throw DIDError.CheckedError.DIDBackendError.DIDTransactionError("Resove DID error")
         }
         if request.operation != IDChainRequestOperation.DEACTIVATE {
-            if (try !request.document!.isValid()) {
-                _ = stat.invalidDidRequestWithInvalidDocument()
-                throw DIDError.CheckedError.DIDBackendError.DIDTransactionError("Invalid DID Document.")
+         
+            do {
+                if (try !request.document!.isValid()) {
+                    _ = stat.invalidDidRequestWithInvalidDocument()
+                    throw DIDError.CheckedError.DIDBackendError.DIDTransactionError("Invalid DID Document.")
+                }
+            } catch {
+                throw DIDError.CheckedError.DIDBackendError.DIDTransactionError("Invalid DID Document. \(error.localizedDescription)")
             }
         }
 

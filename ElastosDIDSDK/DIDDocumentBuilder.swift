@@ -589,7 +589,7 @@ public class DIDDocumentBuilder: NSObject {
         if (controllerDoc == nil) {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(id.toString())
         }
-        guard !controllerDoc!.isDeactivated else {
+        guard try !controllerDoc!.isDeactivated() else {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(controller.toString())
         }
         guard !controllerDoc!.isExpired else {
@@ -1332,7 +1332,7 @@ public class DIDDocumentBuilder: NSObject {
             throw DIDError.UncheckedError.IllegalStateError.DIDNotFoundError(controller.toString())
         }
         
-        guard !controllerDoc!.isDeactivated else {
+        guard try !controllerDoc!.isDeactivated() else {
             throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(controller.toString())
         }
         guard !controllerDoc!.isExpired else {
