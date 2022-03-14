@@ -120,9 +120,23 @@ public class DID: NSObject {
     }
     
     /// Check the DID is deactivated or not.
-    @objc
-    public var isDeactivated: Bool {
-        return getMetadata().isDeactivated
+    /// - Throws: If error occurs, throw error.
+    /// - Returns: the DID deactivated status
+    public func isDeactivated()throws -> Bool {
+        if getMetadata().isDeactivated {
+            return true
+        }
+        let bio = try DIDBackend.sharedInstance().resolveDidBiography(self)
+        if (bio == nil) {
+            return false
+        }
+
+        let deactivated = bio!.status == DIDBiographyStatus.STATUS_DEACTIVATED
+
+        if (deactivated) {
+            getMetadata().setDeactivated(deactivated)
+        }
+        return deactivated
     }
 
     /// Resolve the DID document.
