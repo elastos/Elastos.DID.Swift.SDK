@@ -31,7 +31,7 @@ public class VerifiableCredentialBuilder: NSObject {
     private var _signKey: DIDURL
     private var _forDoc: DIDDocument
     static let CONTEXT = "@context"
-    public static let DEFAULT_CREDENTIAL_TYPE = "VerifiableCredential"
+    public static let DEFAULT_CREDENTIAL_TYPE = "VerifiableCredential"// The default verifiable credential type.
 
     init(_ issuer: VerifiableCredentialIssuer, _ target: DID, _ doc: DIDDocument, _ signKey: DIDURL) throws {
         _issuer = issuer

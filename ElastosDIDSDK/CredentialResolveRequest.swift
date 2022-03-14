@@ -25,7 +25,7 @@ import Foundation
 public class CredentialResolveRequest: ResolveRequest{
     private let PARAMETER_ID = "id"
     private let PARAMETER_ISSUER = "issuer"
-    public static let METHOD_NAME = "did_resolveCredential"
+    public static let METHOD_NAME = "did_resolveCredential"// The resolve method name.
 
     private var _params: CredentialParameters?
     

@@ -25,7 +25,7 @@ import Foundation
 public class DIDResolveRequest: ResolveRequest {
     private let PARAMETER_DID = "did"
     private let PARAMETER_ALL = "all"
-    public static let METHOD_NAME = "did_resolveDID"
+    public static let METHOD_NAME = "did_resolveDID"// The resolve method name.
 
     private var _params: DIDParameters?
 

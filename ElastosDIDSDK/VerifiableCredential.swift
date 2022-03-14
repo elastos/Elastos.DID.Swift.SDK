@@ -47,8 +47,11 @@ public class VerifiableCredential: DIDObject {
     private let VERIFICATION_METHOD = "verificationMethod"
     private let CREATED = "created";
     private let SIGNATURE = "signature"
-
+    
+    /// W3C verifiable credential context URI.
     public static let W3C_CREDENTIAL_CONTEXT = "https://www.w3.org/2018/credentials/v1"
+    
+    /// Elastos verifiable credential context URI.
     public static let ELASTOS_CREDENTIAL_CONTEXT = "https://ns.elastos.org/credentials/v1"
     
     var _types: Array<String> = []
