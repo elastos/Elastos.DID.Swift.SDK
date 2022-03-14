@@ -134,7 +134,9 @@ public class DIDDocument: NSObject {
         }
         return DIDURL(subject, id)
     }
-    
+
+    /// Check if this document is a customized DID document.
+    /// - Returns: true if the document is a customized DID document, false otherwise
     public func isCustomizedDid() -> Bool {
         return _defaultPublicKey == nil
     }

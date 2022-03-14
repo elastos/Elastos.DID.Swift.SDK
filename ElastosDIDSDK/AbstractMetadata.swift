@@ -348,6 +348,19 @@ public class AbstractMetadata: NSObject {
         }
     }
     
+    /// Update current metadata object from the specified source metadata object.
+    /// - Parameter metadata: the source metadata object
+    public func update(_ metadata: AbstractMetadata) throws {
+        if metadata == self {
+            return
+        }
+        metadata.properties.forEach { k,v in
+            if store == nil && metadata.store != nil {
+                _store = metadata.store
+            }
+        }
+    }
+
     public func clone() throws -> AbstractMetadata {
         let metadata = AbstractMetadata()
         metadata._store = store
