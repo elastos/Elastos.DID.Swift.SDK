@@ -1899,6 +1899,8 @@ class DIDDoucumentTests: XCTestCase {
     
     func AddCredential(_ version: Int) throws {
         let cd = try testData!.getCompatibleData(version)
+        // load issuer doc for vc verification
+        _ = try cd.getDocument("issuer")
 
         _ = try testData!.getRootIdentity()
 
@@ -2174,6 +2176,8 @@ class DIDDoucumentTests: XCTestCase {
     func RemoveCredentia(_ version: Int) throws {
         _ = try testData!.getRootIdentity()
         let cd = try testData!.getCompatibleData(version)
+        // load issuer doc for vc verification
+        _ = try cd.getDocument("issuer");
 
         var doc = try cd.getDocument("user1")
         XCTAssertNotNil(doc)

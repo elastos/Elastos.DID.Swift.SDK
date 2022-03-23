@@ -338,6 +338,37 @@ public class VerifiableCredential: DIDObject {
         return try isGenuine(listener)
     }
     
+    // internal method for DIDDocument.Builder.addCredential,
+    // check the self-proclaimed credential that it's owner still not published
+    func isGenuineInternal(_ owner: DIDDocument) throws -> Bool {
+        try checkState(isSelfProclaimed, "The credential should be self-proclaimed")
+        try checkArgument(subject?.did == owner.subject, "Invalid owner document")
+
+        if getId()?.did != subject?.did {
+            return false
+        }
+
+        // Credential should signed by any authentication key.
+        if try proof != nil && !owner.containsAuthenticationKey(forId: proof!.verificationMethod) {
+            return false
+        }
+        // Unsupported public key type;
+        if proof?.type != Constants.DEFAULT_PUBLICKEY_TYPE {
+            return false
+        }
+
+        let vc = try VerifiableCredential(self, false)
+        let json = vc.toString(true)
+        guard let data = json.data(using: .utf8) else {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError("credential is nil")
+        }
+        if try proof != nil && !owner.verify(withId: proof!.verificationMethod, using: proof!.signature, onto: data) {
+            return false
+        }
+        
+        return true
+    }
+    
     /// Check whether this credential object is genuine or not.
     /// - Parameter listener: the listener for the verification events and messages
     /// Issuance always occurs before any other actions involving a credential.

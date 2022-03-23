@@ -1296,7 +1296,7 @@ public class DIDStore: NSObject {
         let dids = try storage!.listDids()
         for did in dids {
             let doc = try storage!.loadDid(did)
-            if (doc!.isCustomizedDid()) {
+            if (doc != nil && doc!.isCustomizedDid()) {
                 _ = try synchronize(did, conflictHandler, nil, -1)
             }
         }

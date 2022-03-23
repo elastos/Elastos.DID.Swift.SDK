@@ -25,6 +25,7 @@ import Foundation
 /// Create a credential builder.
 @objc(VerifiableCredentialBuilder)
 public class VerifiableCredentialBuilder: NSObject {
+    private let TAG = NSStringFromClass(VerifiableCredentialBuilder.self)
     private var _issuer: VerifiableCredentialIssuer
     private var _target: DID
     private var _credential: VerifiableCredential?
@@ -94,6 +95,9 @@ public class VerifiableCredentialBuilder: NSObject {
             if !_credential!._context.contains(context) {
                 _credential!._context.append(context)
             }
+        }
+        else {
+            Log.w(TAG, "JSON-LD context support not enabled, the context ", context, " will be ignored")
         }
         
         if (!_credential!.getTypes().contains(type)) {
