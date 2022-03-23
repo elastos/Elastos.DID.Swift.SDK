@@ -25,6 +25,7 @@ import Foundation
 /// Presentation Builder object to create presentation.
 @objc(VerifiablePresentationBuilder)
 public class VerifiablePresentationBuilder: NSObject {
+    private let TAG = NSStringFromClass(VerifiablePresentationBuilder.self)
     private let DEFAULT_PRESENTATION_TYPE = "VerifiablePresentation"
     private let _holder: DIDDocument
     private let _signKey: DIDURL
@@ -100,6 +101,9 @@ public class VerifiablePresentationBuilder: NSObject {
             if !presentation!._context.contains(context) {
                 presentation!._context.append(context)
             }
+        }
+        else {
+            Log.w(TAG, "JSON-LD context support not enabled, the context ", context, " will be ignored")
         }
         
         if !presentation!.types.contains(type) {

@@ -25,6 +25,7 @@ import Foundation
 /// A DIDDocument Builder to modify DIDDocument elems.
 @objc(DIDDocumentBuilder)
 public class DIDDocumentBuilder: NSObject {
+    private let TAG = NSStringFromClass(DIDDocumentBuilder.self)
     private var document: DIDDocument?
     private var controllerDoc: DIDDocument?
     public let W3C_DID_CONTEXT = "https://www.w3.org/ns/did/v1" //W3C DID context URI.
@@ -733,11 +734,21 @@ public class DIDDocumentBuilder: NSObject {
     public func appendCredential(with credential: VerifiableCredential) throws -> DIDDocumentBuilder {
         try checkNotSealed()
         
-        //         Check the credential belongs to current DID.
         // Check the credential belongs to current DID.
         guard try credential.subject?.did == getSubject() else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalUsageError(credential.subject?.did.toString())
         }
+        
+        // The credential should be genuine
+        let genuine = try credential.isSelfProclaimed ? credential.isGenuineInternal(document!) : credential.isGenuine()
+        if (!genuine) {
+            throw DIDError.UncheckedError.IllegalArgumentErrors.IllegalArgumentError(credential.subject?.did.toString())
+        }
+
+        return try appendCredentialUncheck(credential)
+    }
+    
+    private func appendCredentialUncheck(_ credential: VerifiableCredential) throws -> DIDDocumentBuilder {
         guard document!._credentialDict[credential.getId()!] == nil else {
             throw DIDError.UncheckedError.IllegalArgumentErrors.DIDObjectAlreadyExistError(credential.subject?.did.toString())
         }
@@ -779,9 +790,8 @@ public class DIDDocumentBuilder: NSObject {
             .withProperties(subject)
             .withExpirationDate(realExpires)
             .seal(using: storePassword)
-        _ = try appendCredential(with: credential)
         
-        return self
+        return try appendCredentialUncheck(credential)
     }
 
     /// Add one credential to credential array.
@@ -950,9 +960,8 @@ public class DIDDocumentBuilder: NSObject {
             .withProperties(json)
             .withExpirationDate(realExpires)
             .seal(using: storePassword)
-        _ = try appendCredential(with: credential)
         
-        return self
+        return try appendCredentialUncheck(credential)
     }
 
     /// Add one credential to credential array.
@@ -1549,15 +1558,18 @@ public class DIDDocumentBuilder: NSObject {
     /// Add the default DID contexts(include W3C and Elastos DID contexts).
     /// - Returns: the DIDDocumentBuilder instance for method chaining
     public func appendDefaultContexts() throws -> DIDDocumentBuilder {
-        try checkState(Features.isEnabledJsonLdContext(), "JSON-LD context support not enabled")
-        if !document!._context.contains(W3C_DID_CONTEXT) {
-            document!._context.append(W3C_DID_CONTEXT)
-        }
-        if !document!._context.contains(ELASTOS_DID_CONTEXT) {
-            document!._context.append(ELASTOS_DID_CONTEXT)
-        }
-        if !document!._context.contains(W3ID_SECURITY_CONTEXT) {
-            document!._context.append(W3ID_SECURITY_CONTEXT)
+        if Features.isEnabledJsonLdContext() {
+            if !document!._context.contains(W3C_DID_CONTEXT) {
+                document!._context.append(W3C_DID_CONTEXT)
+            }
+            if !document!._context.contains(ELASTOS_DID_CONTEXT) {
+                document!._context.append(ELASTOS_DID_CONTEXT)
+            }
+            if !document!._context.contains(W3ID_SECURITY_CONTEXT) {
+                document!._context.append(W3ID_SECURITY_CONTEXT)
+            }
+        } else {
+            Log.w(TAG, "JSON-LD context support not enabled")
         }
         
         return self
@@ -1567,9 +1579,12 @@ public class DIDDocumentBuilder: NSObject {
     /// - Parameter uri: URI for the new context
     /// - Returns: the DIDDocumentBuilder instance for method chaining
     public func appendContext(_ uri: String)throws -> DIDDocumentBuilder {
-        try checkState(Features.isEnabledJsonLdContext(), "JSON-LD context support not enabled")
-        if !document!._context.contains(uri) {
-            document!._context.append(uri)
+        if Features.isEnabledJsonLdContext() {
+            if !document!._context.contains(uri) {
+                document!._context.append(uri)
+            }
+        } else {
+            Log.w(TAG, "JSON-LD context support not enabled, the context ", uri, " will be ignored")
         }
         
         return self
