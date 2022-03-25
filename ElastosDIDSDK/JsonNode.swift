@@ -315,7 +315,10 @@ public class JsonNode: NSObject {
             return JsonNodeType.NUMBER
         } else if self.node is Float {
             return JsonNodeType.NUMBER
-        }else if self.node is Date {
+        } else if self.node is Double {
+            return JsonNodeType.NUMBER
+        }
+        else if self.node is Date {
             return JsonNodeType.DATE
         }else {
             return JsonNodeType.NIL
