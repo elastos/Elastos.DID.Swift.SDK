@@ -336,8 +336,6 @@ extension String {
         (original: "\\\t", escaped: "\\t"),
         (original: "\r", escaped: "\\r"),
         (original: "\\\r", escaped: "\\r"),
-        (original: "\'", escaped: "\\'"),
-        (original: "\\\'", escaped: "\\'"),
     ]
 
     mutating func literalize() {
