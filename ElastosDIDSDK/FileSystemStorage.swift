@@ -340,8 +340,13 @@ public class FileSystemStorage: DIDStorage {
         var ids: [RootIdentity] = []
         let enumerator = try dir.files()
         for element: String in enumerator {
-            let identity = try loadRootIdentity(element)
-            ids.append(identity!)
+            
+            let sk = dir + "/" + element + "/" + ROOT_IDENTITY_PRIVATEKEY_FILE
+            if try sk.fileExists() && sk.fileExistsWithContent() {
+                let identity = try loadRootIdentity(element)
+                ids.append(identity!)
+            }
+
         }
         
         return ids
@@ -467,8 +472,11 @@ public class FileSystemStorage: DIDStorage {
 
         let enumerator = try path.files()
         for element in enumerator {
-            let did = DID(DID.METHOD, element)
-            dids.append(did)
+            let doc = path + "/" + element + "/" + DOCUMENT_FILE
+            if try doc.fileExists() && doc.fileExistsWithContent() {
+                let did = DID(DID.METHOD, element)
+                dids.append(did)
+            }
         }
         return dids
     }
@@ -581,9 +589,13 @@ public class FileSystemStorage: DIDStorage {
         var didurls: Array<DIDURL> = []
         let enumerator = try dir.files()
         for element: String in enumerator  {
-            let didUrl: DIDURL = try DIDURL(did, element)
-            didurls.append(didUrl)
+            let vc = dir + "/" + element + "/" + CREDENTIAL_FILE
+            if try vc.fileExists() && vc.fileExistsWithContent() {
+                let didUrl: DIDURL = try DIDURL(did, element)
+                didurls.append(didUrl)
+            }
         }
+
         return didurls
     }
     
