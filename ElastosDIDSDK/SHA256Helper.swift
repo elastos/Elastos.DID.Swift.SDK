@@ -61,3 +61,19 @@ class MD5Helper {
         return hash
     }
 }
+
+extension Collection {
+    
+    func divideArrayBySpecifyCount(by distance: Int) -> [[Element]] {
+        var index = startIndex
+        let iterator: AnyIterator<Array<Element>> = AnyIterator({
+            let newIndex = self.index(index, offsetBy: distance, limitedBy: self.endIndex) ?? self.endIndex
+            defer { index = newIndex }
+            let range = index ..< newIndex
+            return index != self.endIndex ? Array(self[range]) : nil
+        })
+        
+        return Array(iterator)
+    }
+    
+}

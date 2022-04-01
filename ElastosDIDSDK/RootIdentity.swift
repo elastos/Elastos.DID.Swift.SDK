@@ -441,6 +441,119 @@ public class RootIdentity: NSObject {
         return try newDid(false, storePassword)
     }
     
+    func mapToDerivePath(identifier: String, securityCode: Int) -> String {
+
+        let sha256 = SHA256Helper()
+        var bytes = [UInt8](identifier.data(using: .utf8)!)
+        sha256.update(&bytes)
+            
+        let subArray = sha256.finalize().divideArrayBySpecifyCount(by: 4)
+
+        var result = ""
+        for array in subArray {
+            let i = Int32(array[0]) << 24 | Int32(array[1]) << 16 | Int32(array[2]) << 8 | Int32(array[3])
+            result.append(String(i & 0x7FFFFFFF))
+            result.append("/")
+        }
+        result.append(String(securityCode & 0x7FFFFFFF))
+        
+        return result
+    }
+    
+    /// Get DID that derived from the specific specified application identifier
+    /// and the security code.
+    /// - Parameters:
+    ///   - identifier: the application identifier, could be app' package or bundle name
+    ///   - securityCode: the user defined security code
+    /// - Returns: a DID object
+    public func getDid(_ identifier: String, _ securityCode: Int) throws -> DID {
+        try checkArgument(!identifier.isEmpty, "Invalid identifier");
+
+        let key = try preDerivedPublicKey.derive(mapToDerivePath(identifier: identifier, securityCode: securityCode))
+        let did = DID(DID.METHOD, key.getAddress())
+
+        return did
+    }
+    
+    /// Create a new DID that derive from the specified application identifier
+    /// and the security code.
+    /// - Parameters:
+    ///   - identifier: the application identifier, could be app' package or bundle name
+    ///   - securityCode: the user defined security code
+    ///   - overwrite: true for overwriting the existing one, fail otherwise
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new created DIDDocument object
+    public func newDid(_ identifier: String, _ securityCode: Int, _ overwrite: Bool, _ storepass: String) throws -> DIDDocument {
+        try checkArgument(!identifier.isEmpty, "Invalid identifier");
+        try checkArgument(!storepass.isEmpty, "Invalid storepass");
+
+        let path = try DIDHDKey.DID_PRE_DERIVED_PUBLICKEY_PATH + "/" + mapToDerivePath(identifier: identifier, securityCode: securityCode)
+    
+        let key = try store!.derive(getId(), path, storepass)
+        let did = DID(DID.METHOD, key.getAddress())
+
+        var doc = try store?.loadDid(did)
+        if (doc != nil) {
+            if try doc!.isDeactivated() {
+                throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+            }
+            if (!overwrite) {
+                throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError("DID already exists in the store.")
+            }
+        }
+
+        do {
+            doc = try did.resolve()
+            if (doc != nil) {
+                if (try doc!.isDeactivated()) {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDDeactivatedError(did.toString())
+                }
+
+                if (!overwrite) {
+                    throw DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError("DID already published.")
+                }
+            }
+        } catch {
+            if (!overwrite) {
+                throw error
+            }
+        }
+
+
+        Log.d(TAG, "Creating new DID ", did.toString(), " for ", identifier, "/", securityCode)
+        do {
+            let id = try DIDURL(did, "#primary")
+            try store!.storePrivateKey(for: id, privateKey: key.serialize(), using: storepass)
+
+            let db = try DIDDocumentBuilder(did, store!)
+            _ = try db.appendAuthenticationKey(with: id, keyBase58: key.getPublicKeyBase58())
+            doc = try db.seal(using: storepass)
+
+            try doc!.getMetadata().setRootIdentityId(getId())
+            try doc!.getMetadata().setExtra("application", identifier)
+            try doc!.getMetadata().setExtra("securityCode", securityCode)
+            doc!.getMetadata().attachStore(store!)
+
+            try store!.storeDid(using: doc!)
+            key.wipe()
+
+            return doc!
+        } catch {
+            throw DIDError.UncheckedError.IllegalStateError.UnknownInternalError(error.localizedDescription)
+        }
+    }
+    
+    /// Create a new DID that derive from the specified application identifier
+    /// and the security code.
+    /// - Parameters:
+    ///   - identifier: the application identifier, could be app' package or bundle name
+    ///   - securityCode: the user defined security code
+    ///   - storepass: the password for DIDStore
+    /// - Returns: the new created DIDDocument object
+    public func newDid(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> DIDDocument {
+        return try newDid(identifier, securityCode, false, storepass)
+    }
+    
     /// Check whether this RootIdentity created from mnemonic.
     /// - Throws: DIDStoreError if an error occurred when accessing the store
     /// - Returns: true if this RootIdentity created from mnemonic, false otherwise

@@ -29,6 +29,63 @@ class RootIdentityTest: XCTestCase {
         simulatedIDChain.httpServer.stop()
     }
     
+    func testGenerateDid() {
+        do {
+            let mnemonics = [
+                ["mnemonic": "movie borrow suggest tenant special evolve trial reason worth pelican bean manual", "passphrase": "secret", "AppDID": "io.trinity-tech.did.testcase", "securityCode": 619, "did": "did:elastos:iYLpo6qv9uAsnKMjhwH9wroBmgTa1wFm32"],
+                ["mnemonic": "gain tag blur dress champion dream meadow tattoo elephant pudding patrol stamp", "passphrase": "secret", "AppDID": "io.trinity-tech.did.testcase", "securityCode": 619, "did": "did:elastos:iV38NKNqW7PbRqM52U5L3hd5Bax6MVk8kE"],
+                ["mnemonic": "space strategy hard flock initial cigar educate piano network test lawn wagon", "passphrase": "secret", "AppDID": "io.trinity-tech.did.testcase", "securityCode": 619, "did": "did:elastos:ietb7xtNvUvHarjwqgb1iCF2LLb4aGdM6N"],
+                ["mnemonic": "veteran trash trial tumble hybrid network chair drink entire inherit palace try", "passphrase": "secret", "AppDID": "io.trinity-tech.showcase", "securityCode": 12345678, "did": "did:elastos:iVUFFdf69EJw7TuaijVKVrKt8h8RmraYHx"],
+                ["mnemonic": "inner pigeon field banner tide inside scout pattern arm ordinary birth again", "passphrase": "secret", "AppDID": "io.trinity-tech.showcase", "securityCode": 12345678, "did": "did:elastos:iZHETmuoU3xMWnWUDprwFWah58YVLwjr1g"],
+                ["mnemonic": "air possible rubber flame actor together rifle skull cricket silver half width", "passphrase": "secret", "AppDID": "io.trinity-tech.showcase", "securityCode": 12345678, "did": "did:elastos:iinhWmnUkwyk8TGgM889gBjx1jBW1rBEev"]]
+            try mnemonics.forEach { item in
+                let mnemonic: String = item["mnemonic"] as! String
+                let passphrase: String = item["passphrase"] as! String
+                let appId: String = item["AppDID"] as! String
+                let securityCode: Int = item["securityCode"] as! Int
+                let did: String = item["did"] as! String
+                let identity = try RootIdentity.create(mnemonic, passphrase, store!, storePassword)
+                let generateDid = try identity.getDid(appId, securityCode)
+                print(generateDid)
+                XCTAssertEqual(did, generateDid.toString())
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testCreateAppDid() {
+        do {
+            let identity = try testData!.getRootIdentity()
+            let appId = "io.trinity-tech.did.testcase"
+            let appCode = 619
+            let did = try identity.getDid(appId, appCode)
+            var doc = try identity.newDid(appId, appCode, storePassword)
+            XCTAssertTrue(try doc.isValid())
+            XCTAssertEqual(did, doc.subject)
+        
+            XCTAssertThrowsError(_ = try identity.newDid(appId, appCode, storePassword)){ error in
+                switch error {
+                case DIDError.UncheckedError.IllegalStateError.DIDAlreadyExistError:
+                    XCTAssertTrue(true)
+                    print("error.localizedDescription ====== ", error.localizedDescription)
+                    XCTAssertEqual("DID already exists in the store.", error.localizedDescription)
+                    break
+                default:
+                    XCTFail()
+                }
+            }
+
+            let success = store!.deleteDid(did)
+            XCTAssertTrue(success)
+            doc = try identity.newDid(appId, appCode, storePassword)
+            XCTAssertTrue(try doc.isValid())
+            XCTAssertEqual(did, doc.subject)
+        } catch {
+            XCTFail()
+        }
+    }
+
     func testInitPrivateIdentity() {
         do {
             XCTAssertFalse(try store!.containsRootIdentities())
