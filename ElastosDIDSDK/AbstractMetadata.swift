@@ -201,7 +201,7 @@ public class AbstractMetadata: NSObject {
     ///   - value: value to be associated with the property name
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: String) throws {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -215,7 +215,7 @@ public class AbstractMetadata: NSObject {
     ///         nil if this metadata not contains the property name
     /// - Throws: throw an exception when the key is empty
     public func getExtra(_ key: String) throws -> String? {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -230,7 +230,7 @@ public class AbstractMetadata: NSObject {
     ///   - value: value to be associated with the property name
     /// - Throws: throw an exception when the key is empty
     public func setExtra(_ key: String, _ value: Bool) throws {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -246,7 +246,7 @@ public class AbstractMetadata: NSObject {
     /// - Returns: the boolean value of the specified property name, or
     ///         false if this metadata not contains the property name
     public func getExtraBoolean(_ key: String, _ defaultValue: Bool) throws -> Bool? {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -260,7 +260,7 @@ public class AbstractMetadata: NSObject {
     ///   - key: the property name to be set
     ///   - value: value to be associated with the property name
     public func setExtra(_ key: String, _ value: Int) throws {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -275,7 +275,7 @@ public class AbstractMetadata: NSObject {
     /// - Returns: the integer value of the specified property name, or
     ///        nil if this metadata not contains the property name
     public func getExtraInteger(_ key: String, _ defaultValue: Int?) throws -> Int? {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -289,7 +289,7 @@ public class AbstractMetadata: NSObject {
     ///   - key: the property key to be set
     ///   - value: value to be associated with the property name
     public func setExtra(_ key: String, _ value: Date) throws {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -304,7 +304,7 @@ public class AbstractMetadata: NSObject {
     /// - Returns: the Date value of the specified property name, or
     ///         nil if this metadata not contains the property name
     public func getExtraDate(_ key: String, _ defaultValue: Date?) throws -> Date? {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
@@ -317,7 +317,7 @@ public class AbstractMetadata: NSObject {
     /// - Returns: the previous value associated with key, or
     ///         nil if there was no mapping for key.
     public func removeExtra(_ key: String) throws -> String? {
-        guard key.isEmpty else {
+        if key.isEmpty {
             throw DIDError.UncheckedError.IllegalArgumentErrors.InvalidKeyError("Invalid key")
         }
         
