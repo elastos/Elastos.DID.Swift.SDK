@@ -114,7 +114,7 @@ public enum DIDError: Error {
     }
 }
 
-// MARK: - Error Descriptions
+// MARK: - Error Descriptions  // TODO: localizedDescription
 extension DIDError.UncheckedError.IllegalArgumentErrors: LocalizedError {
         
     public var errorDescription: String? {
@@ -144,6 +144,10 @@ extension DIDError.UncheckedError.IllegalArgumentErrors: LocalizedError {
         case .EncryptToBase64Error(let des):
             return des
         }
+    }
+    
+    public var localizedDescription: String? {
+        return errorDescription
     }
 }
 
@@ -193,6 +197,10 @@ extension DIDError.UncheckedError.IllegalStateError: LocalizedError {
             return des
         }
     }
+    
+    public var localizedDescription: String? {
+        return errorDescription
+    }
 }
 
 extension DIDError.UncheckedError.UnsupportedOperationError: LocalizedError {
@@ -205,6 +213,10 @@ extension DIDError.UncheckedError.UnsupportedOperationError: LocalizedError {
         case .NotCustomizedDIDError(let des):
             return des
         }
+    }
+    
+    public var localizedDescription: String? {
+        return errorDescription
     }
 }
 
@@ -234,6 +246,10 @@ extension DIDError.CheckedError.DIDSyntaxError: LocalizedError {
             return des
         }
     }
+    
+    public var localizedDescription: String? {
+        return errorDescription
+    }
 }
 
 extension DIDError.CheckedError.DIDStoreError: LocalizedError {
@@ -257,6 +273,10 @@ extension DIDError.CheckedError.DIDStoreError: LocalizedError {
             return des
         }
     }
+    
+    public var localizedDescription: String? {
+        return errorDescription
+    }
 }
 
 extension DIDError.CheckedError.DIDStoreError.DIDStorageErrors: LocalizedError {
@@ -265,6 +285,10 @@ extension DIDError.CheckedError.DIDStoreError.DIDStorageErrors: LocalizedError {
         case .DIDStoreVersionMismatchError(let des):
             return des
         }
+    }
+    
+    public var localizedDescription: String? {
+        return errorDescription
     }
 }
 
@@ -279,6 +303,10 @@ extension DIDError.CheckedError.DIDBackendError: LocalizedError {
             return des
         }
     }
+    
+    public var localizedDescription: String? {
+        return errorDescription
+    }
 }
 
 extension DIDError.CheckedError.DIDBackendError.DIDResolveErrors: LocalizedError {
@@ -288,6 +316,10 @@ extension DIDError.CheckedError.DIDBackendError.DIDResolveErrors: LocalizedError
             return des
         }
     }
+    
+    public var localizedDescription: String? {
+        return errorDescription
+    }
 }
 
 extension DIDError {
@@ -296,6 +328,10 @@ extension DIDError {
         case .NetWorkError(let des):
             return des
         }
+    }
+    
+    public var localizedDescription: String? {
+        return errorDescription
     }
 }
 
