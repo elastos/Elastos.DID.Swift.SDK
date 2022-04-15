@@ -3950,6 +3950,18 @@ public class DIDDocument: NSObject {
         try toJson(generator, false, false)
     }
 
+    public func serialize(_ normalized: Bool, forSign: Bool) throws -> String {
+        return try toJson(normalized, forSign)
+    }
+    
+    public func serialize(_ normalized: Bool) throws -> String {
+        return try toJson(normalized, false)
+    }
+    
+    public func serialize() throws -> String {
+        return try toJson(false, false)
+    }
+    
     /// Get json context from DID Document.
     /// - Parameter normalized: Json context is normalized or not.
     /// true represents normalized, false represents not compact.

@@ -756,4 +756,12 @@ extension VerifiablePresentation {
     public override var description: String {
         return toString()
     }
+    
+    public func serialize() -> String {
+        return toString()
+    }
+    
+    public func serialize(_ forSign: Bool) -> String {
+        return toJson(forSign)
+    }
 }

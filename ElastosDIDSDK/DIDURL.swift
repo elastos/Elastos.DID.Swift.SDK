@@ -339,6 +339,10 @@ extension DIDURL {
         }
         return repr
     }
+    
+    public func serialize() -> String {
+        return toString()
+    }
 }
 
 extension DIDURL {

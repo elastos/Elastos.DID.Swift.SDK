@@ -336,6 +336,13 @@ public class DIDExportPrivateKey: NSObject {
         generator.writeEndObject()
     }
     
+    public func serialize() throws -> String {
+       let generator = JsonGenerator()
+        try serialize(generator)
+        
+        return generator.toString()
+    }
+    
     public class func deserialize(_ content: [String: Any]) throws -> DIDExportPrivateKey {
         let id = content["id"] as! String
         let key = content["key"] as! String
