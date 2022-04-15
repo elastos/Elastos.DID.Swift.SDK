@@ -141,7 +141,7 @@ public class RootIdentityExport: NSObject {
         }
     }
     
-    func serialize(_ force: Bool) throws -> String {
+    public func serialize(_ force: Bool) throws -> String {
         try sanitize()
         let generator = JsonGenerator()
         generator.writeStartObject()
@@ -161,6 +161,11 @@ public class RootIdentityExport: NSObject {
 
         generator.writeEndObject()
         return generator.toString()
+    }
+    
+    public func serialize() throws -> String {
+        
+        return try serialize(false)
     }
     
     public class func deserialize(_ content: [String: Any]) throws -> RootIdentityExport {

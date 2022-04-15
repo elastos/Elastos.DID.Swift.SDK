@@ -278,6 +278,11 @@ extension DID {
     public override var description: String {
         return toString()
     }
+    
+    public func serialize() -> String {
+        return toString()
+    }
+    
 }
 
 extension DID {

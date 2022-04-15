@@ -2181,12 +2181,20 @@ public class VerifiableCredential: DIDObject {
         return generator.toString()
     }
     
-    public func serialize(_ generator: JsonGenerator, _ normalized: Bool) {
+    func serialize(_ generator: JsonGenerator, _ normalized: Bool) {
         toJson(generator, nil, normalized)
     }
     
-    public func serialize(_ generator: JsonGenerator) {
+    func serialize(_ generator: JsonGenerator) {
         serialize(generator, false)
+    }
+    
+    public func serialize(_ normalized: Bool) -> String {
+        return toString(normalized)
+    }
+    
+    public func serialize() -> String {
+        return toString()
     }
 }
 

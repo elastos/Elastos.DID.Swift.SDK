@@ -151,4 +151,11 @@ public class VerifiablePresentationProof: NSObject {
         generator.writeStringField(Constants.SIGNATURE, signature)
         generator.writeEndObject()
     }
+    
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        toJson(generator)
+        
+        return generator.toString()
+    }
 }
