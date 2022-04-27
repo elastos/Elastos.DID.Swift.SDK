@@ -376,6 +376,10 @@ extension DIDURL {
     public func compareTo(_ id: DIDURL) -> ComparisonResult {
         return self.toString().compare(id.toString())
     }
+    
+    public func isQualified() -> Bool {
+        return (did != nil && fragment != nil);
+    }
 }
 
 // DIDURL used as hash key.

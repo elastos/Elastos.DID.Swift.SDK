@@ -562,6 +562,7 @@ public class FileSystemStorage: DIDStorage {
 
     func deleteCredential(_ id: DIDURL) -> Bool {
         do {
+            try checkArgument(id.isQualified(), "Unqualified credential id");
             var dir = try getCredentialDir(id)
             if try dir.dirExists() {
                 try FileManager.default.removeItem(atPath: dir)
@@ -652,6 +653,7 @@ public class FileSystemStorage: DIDStorage {
     
     func deletePrivateKey(_ id: DIDURL) -> Bool {
         do {
+            try checkArgument(id.isQualified(), "Unqualified credential id");
             let file = try getPrivateKeyFile(id, false)
             if try file.fileExists() {
                 _ = try file.deleteFile()

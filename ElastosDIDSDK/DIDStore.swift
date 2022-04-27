@@ -742,6 +742,7 @@ public class DIDStore: NSObject {
     /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: DIDURL) throws -> VerifiableCredential? {
         
+        try checkArgument(byId.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forCredential(byId)) { () -> NSObject? in
             let vc = try storage?.loadCredential(byId)
             guard vc != nil else {
@@ -761,7 +762,6 @@ public class DIDStore: NSObject {
     /// - Throws: DIDStoreError if an error occurred when accessing the store
     /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: String) throws -> VerifiableCredential? {
-        try checkFullDidUrl(byId)
         
         return try loadCredential(byId: DIDURL.valueOf(byId))
     }
@@ -789,7 +789,6 @@ public class DIDStore: NSObject {
     @objc(loadCredentialbyId:error:)
     public func loadCredential(byId: String, error: NSErrorPointer) -> VerifiableCredential? {
         do {
-            try checkFullDidUrl(byId)
             return try loadCredential(byId: byId)
         } catch let aError as NSError {
             error?.pointee = aError
@@ -812,7 +811,6 @@ public class DIDStore: NSObject {
     /// - Throws: DIDStoreError if an error occurred when accessing the store
     /// - Returns: true if the store contains this credential, false otherwise
     public func containsCredential(_ id: String) throws -> Bool {
-        try checkFullDidUrl(id)
         return try containsCredential(DIDURL.valueOf(id))
     }
     
@@ -847,6 +845,7 @@ public class DIDStore: NSObject {
     ///   - id: the credential id
     ///   - metadata: the credential metadata object
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         try storage!.storeCredentialMetadata(id, metadata)
         metadata.attachStore(self)
         
@@ -858,7 +857,6 @@ public class DIDStore: NSObject {
     ///   - id: the credential id
     ///   - metadata: the credential metadata object
     func storeCredentialMetadata(_ id: String, _ metadata: CredentialMetadata) throws {
-        try checkFullDidUrl(id)
         try storeCredentialMetadata(DIDURL.valueOf(id), metadata)
     }
     
@@ -866,7 +864,8 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - byId: the credential id
     /// - Returns: the credential metadata object
-    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {        
+    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {
+        try checkArgument(byId.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forCredentialMetadata(byId)) { () -> NSObject? in
             var metadata = try storage?.loadCredentialMetadata(byId)
             if metadata != nil {
@@ -888,7 +887,6 @@ public class DIDStore: NSObject {
     ///   - byId: the credential id
     /// - Returns: the credential metadata object
     func loadCredentialMetadata(_ byId: String) throws -> CredentialMetadata? {
-        try checkFullDidUrl(byId)
         return try loadCredentialMetadata(DIDURL.valueOf(byId))
     }
     
@@ -913,7 +911,6 @@ public class DIDStore: NSObject {
     ///   - id: the credential id to be delete
     /// - Returns: true if the credential exist and deleted successful, false otherwise
     public func deleteCredential(_ id: String) throws -> Bool{
-        try checkFullDidUrl(id)
         return try deleteCredential(DIDURL.valueOf(id))
     }
     
@@ -979,6 +976,7 @@ public class DIDStore: NSObject {
     /// - Throws: if an error occurred when accessing the store
     func storeLazyPrivateKey(_ id: DIDURL) throws {
 
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         try storage?.storePrivateKey(id, DIDStore.DID_LAZY_PRIVATEKEY)
         cache.removeValue(for: Key.forDidPrivateKey(id))
     }
@@ -998,6 +996,7 @@ public class DIDStore: NSObject {
         try checkArgument(privateKey.count != 0, "Invalid private key")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePassword)
         try storage!.storePrivateKey(id, encryptedKey)
     }
@@ -1013,13 +1012,13 @@ public class DIDStore: NSObject {
     public func storePrivateKey(for id: String,
                                 privateKey: Data,
                                 using storePassword: String) throws {
-        try checkFullDidUrl(id)
         let _key = try DIDURL.valueOf(id)
 
         return try storePrivateKey(for: _key, privateKey: privateKey, using: storePassword)
     }
 
     func loadPrivateKey(_ id: DIDURL) throws -> String? {
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forDidPrivateKey(id)) { () -> NSObject? in
             let encryptedKey = try storage!.loadPrivateKey(id)
             
@@ -1036,6 +1035,7 @@ public class DIDStore: NSObject {
     /// - Returns: the original private key
     func loadPrivateKey(_ id: DIDURL, _ storePassword: String) throws -> Data? {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(id.isQualified(), "Unqualified credential id");
 
         let encryptedKey = try loadPrivateKey(id)
         if (encryptedKey == nil || encryptedKey!.isEmpty) {
@@ -1063,7 +1063,6 @@ public class DIDStore: NSObject {
     /// - Returns: true if this store contains the specific key, false otherwise
     public func containsPrivateKey(for id: String) throws -> Bool {
         do {
-            try checkFullDidUrl(id)
             let _key = try DIDURL.valueOf(id)
             return try containsPrivateKey(for: _key)
         } catch {
@@ -1115,7 +1114,6 @@ public class DIDStore: NSObject {
     @objc(deletePrivateKeyId:)
     public func deletePrivateKey(for id: String) -> Bool {
         do {
-            try checkFullDidUrl(id)
             let _key = try DIDURL.valueOf(id)
             
             return deletePrivateKey(for: _key)
@@ -1134,6 +1132,7 @@ public class DIDStore: NSObject {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(digest.count > 0, "Invalid digest")
         
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let privateKey = try loadPrivateKey(id, storePassword)
         if privateKey == nil {
             throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Key not exists: \(id.description)")
@@ -1163,7 +1162,6 @@ public class DIDStore: NSObject {
     /// - Returns: the base64(URL safe) encoded signature string
     func sign(WithId id: String, using storePassword: String, for digest: Data, capacity: Int) throws -> String {
 
-        try checkFullDidUrl(id)
         return try sign(WithId: DIDURL.valueOf(id), using: storePassword, for: digest, capacity)
     }
     
@@ -1727,7 +1725,6 @@ public class DIDStore: NSObject {
     }
     
     private func exportRootIdentity(_ id: String, _ password: String, _ storepass: String) throws -> RootIdentityExport {
-        try checkFullDidUrl(id)
         let rie = RootIdentityExport(DID_EXPORT)
 
         // TODO: support multiple named root identities
@@ -1758,7 +1755,6 @@ public class DIDStore: NSObject {
                       to output: OutputStream,
                  using password: String,
                   storePassword: String) throws {
-        try checkFullDidUrl(id)
         let exportStr = try exportRootIdentity(id, password, storePassword).serialize(true)
         output.open()
         self.writeData(data: exportStr.data(using: .utf8)!, outputStream: output, maxLengthPerWrite: 1024)
@@ -1776,7 +1772,6 @@ public class DIDStore: NSObject {
                   to fileHandle: FileHandle,
                  using password: String,
                   storePassword: String) throws {
-        try checkFullDidUrl(id)
         let exportStr = try exportRootIdentity(id, password, storePassword).serialize(true)
         fileHandle.write(exportStr.data(using: .utf8)!)
     }
@@ -2005,14 +2000,6 @@ public class DIDStore: NSObject {
             buffer.deallocate()
         }
         return data
-    }
-    
-    private func checkFullDidUrl(_ didUrl: String) throws {
-        let pre = "did:elastos:"
-        let result = didUrl.hasPrefix(pre)
-        if !result {
-            throw DIDError.UncheckedError.IllegalArgumentErrors.MalformedDIDURLError("Must be the full didstring")
-        }
     }
 }
 
