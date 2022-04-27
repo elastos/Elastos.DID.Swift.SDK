@@ -742,6 +742,7 @@ public class DIDStore: NSObject {
     /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: DIDURL) throws -> VerifiableCredential? {
         
+        try checkArgument(byId.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forCredential(byId)) { () -> NSObject? in
             let vc = try storage?.loadCredential(byId)
             guard vc != nil else {
@@ -761,6 +762,7 @@ public class DIDStore: NSObject {
     /// - Throws: DIDStoreError if an error occurred when accessing the store
     /// - Returns: the VerifiableCredential object
     public func loadCredential(byId: String) throws -> VerifiableCredential? {
+        
         return try loadCredential(byId: DIDURL.valueOf(byId))
     }
     
@@ -843,6 +845,7 @@ public class DIDStore: NSObject {
     ///   - id: the credential id
     ///   - metadata: the credential metadata object
     func storeCredentialMetadata(_ id: DIDURL, _ metadata: CredentialMetadata) throws {
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         try storage!.storeCredentialMetadata(id, metadata)
         metadata.attachStore(self)
         
@@ -861,7 +864,8 @@ public class DIDStore: NSObject {
     /// - Parameters:
     ///   - byId: the credential id
     /// - Returns: the credential metadata object
-    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {        
+    func loadCredentialMetadata(_ byId: DIDURL) throws -> CredentialMetadata {
+        try checkArgument(byId.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forCredentialMetadata(byId)) { () -> NSObject? in
             var metadata = try storage?.loadCredentialMetadata(byId)
             if metadata != nil {
@@ -972,6 +976,7 @@ public class DIDStore: NSObject {
     /// - Throws: if an error occurred when accessing the store
     func storeLazyPrivateKey(_ id: DIDURL) throws {
 
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         try storage?.storePrivateKey(id, DIDStore.DID_LAZY_PRIVATEKEY)
         cache.removeValue(for: Key.forDidPrivateKey(id))
     }
@@ -991,6 +996,7 @@ public class DIDStore: NSObject {
         try checkArgument(privateKey.count != 0, "Invalid private key")
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let encryptedKey = try DIDStore.encryptToBase64(privateKey, storePassword)
         try storage!.storePrivateKey(id, encryptedKey)
     }
@@ -1012,6 +1018,7 @@ public class DIDStore: NSObject {
     }
 
     func loadPrivateKey(_ id: DIDURL) throws -> String? {
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let value = try cache.getValue(for: Key.forDidPrivateKey(id)) { () -> NSObject? in
             let encryptedKey = try storage!.loadPrivateKey(id)
             
@@ -1028,6 +1035,7 @@ public class DIDStore: NSObject {
     /// - Returns: the original private key
     func loadPrivateKey(_ id: DIDURL, _ storePassword: String) throws -> Data? {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
+        try checkArgument(id.isQualified(), "Unqualified credential id");
 
         let encryptedKey = try loadPrivateKey(id)
         if (encryptedKey == nil || encryptedKey!.isEmpty) {
@@ -1124,6 +1132,7 @@ public class DIDStore: NSObject {
         try checkArgument(!storePassword.isEmpty, "Invalid storePassword")
         try checkArgument(digest.count > 0, "Invalid digest")
         
+        try checkArgument(id.isQualified(), "Unqualified credential id");
         let privateKey = try loadPrivateKey(id, storePassword)
         if privateKey == nil {
             throw DIDError.CheckedError.DIDStoreError.DIDStoreError("Key not exists: \(id.description)")
@@ -1993,3 +2002,4 @@ public class DIDStore: NSObject {
         return data
     }
 }
+
