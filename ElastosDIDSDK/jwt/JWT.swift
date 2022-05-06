@@ -68,7 +68,7 @@ public class JWT: NSObject {
     /// - Throws: `JWTError.failedVerification` if the verifier fails to verify the jwtString.
     /// - Throws: A DecodingError if the JSONDecoder throws an error while decoding the JWT.
     @objc
-    public init(jwtString: String, verifier: JWTVerifier = .none) throws {
+    public init(jwtString: String, verifier: JWTVerifier = .none, allwedClockSkewSeconds: Int = 0) throws {
         let components = jwtString.components(separatedBy: ".")
         guard components.count == 2 || components.count == 3,
             let headerData = JWTDecoder.data(base64urlEncoded: components[0]),
@@ -88,13 +88,16 @@ public class JWT: NSObject {
         let claims = try Claims.decode(claimsData) // try jsonDecoder.decode(T.self, from: claimsData)
         self.header = header
         self.claims = claims
-        let currentTime = Date()
-        if let nbf = claims.getNotBefore() {
+        let currentTime = DateFormatter.currentDate()
+        if var nbf = claims.getNotBefore() {
+            nbf = Date(timeInterval: TimeInterval(-allwedClockSkewSeconds), since: nbf)
             guard nbf < currentTime else {
                 throw JWTError.notBeforeJwtTime
             }
         }
-        if let exp = claims.getExpiration() {
+        if var exp = claims.getExpiration() {
+            exp = Date(timeInterval: TimeInterval(allwedClockSkewSeconds), since: exp)
+
             guard currentTime < exp else {
                 throw JWTError.expiredJwtTime
             }

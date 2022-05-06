@@ -29,6 +29,8 @@ public class JwtParserBuilder: NSObject {
     var getPrivateKey : ((_ id: String?, _ storePassword: String) throws -> Data)?
     var claimsJwt : String?
     var key: String?
+    private var allwedClockSkewSeconds: Int = 0
+
 
     /// Constructs the empty JwtParserBuilder.
     @objc
@@ -49,7 +51,13 @@ public class JwtParserBuilder: NSObject {
     public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
         let publicKey = try self.getPublicKey!(key)
         let jwtVerifier = JWTVerifier.es256(publicKey: publicKey)
-        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier)
+        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier, allwedClockSkewSeconds: allwedClockSkewSeconds)
+    }
+    
+    public func setAllwedClockSkewSeconds(_ seconds: Int) -> JwtParserBuilder {
+        allwedClockSkewSeconds = seconds
+        
+        return self
     }
 
     /// Create JwtParser
@@ -57,9 +65,9 @@ public class JwtParserBuilder: NSObject {
     @objc
     public func build() throws -> JwtParser {
         guard let _ =  getPublicKey else {
-            return JwtParser(nil)
+            return JwtParser(nil, allwedClockSkewSeconds)
         }
-        return JwtParser(try self.getPublicKey!(key))
+        return JwtParser(try self.getPublicKey!(key), allwedClockSkewSeconds)
     }
 }
 
@@ -68,9 +76,10 @@ public class JwtParser: NSObject {
 
     var jwt: JWT?
     var publickey: Data?
-
-    init(_ key: Data?) {
+    var allwedClockSkewSeconds: Int = 0
+    init(_ key: Data?, _ allwedClockSkewSeconds: Int) {
         self.publickey = key
+        self.allwedClockSkewSeconds = allwedClockSkewSeconds
     }
     /// Parse jwt token.
     /// - Parameter claimsJwt: Jwt token.
@@ -79,11 +88,11 @@ public class JwtParser: NSObject {
     @objc
     public func parseClaimsJwt(_ claimsJwt: String) throws -> JWT {
         guard let _ = publickey else {
-            return try JWT(jwtString: claimsJwt)
+            return try JWT(jwtString: claimsJwt, allwedClockSkewSeconds: allwedClockSkewSeconds)
         }
 
         let jwtVerifier = JWTVerifier.es256(publicKey: publickey!)
-        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier)
+        return try JWT(jwtString: claimsJwt, verifier: jwtVerifier, allwedClockSkewSeconds: allwedClockSkewSeconds)
     }
 
     /// Get jwt header.
