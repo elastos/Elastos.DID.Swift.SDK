@@ -88,7 +88,7 @@ class JwtTest: XCTestCase {
             XCTAssertEqual(nbf, c.getNotBefore())
             XCTAssertEqual("bar", c.get(key: "foo") as! String)
             
-            let jp0 = try JwtParserBuilder().build()
+            let jp0 = try JwtParserBuilder().setAllwedClockSkewSeconds(30).build()
             let jwt0 = try jp0.parseClaimsJwt(token)
             print("jwt0")
         }
