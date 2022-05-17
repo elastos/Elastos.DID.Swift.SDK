@@ -197,6 +197,8 @@
 		119F0C9325FF07ED006D4F75 /* TransferTicket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9225FF07ED006D4F75 /* TransferTicket.swift */; };
 		119F0C9825FF0A65006D4F75 /* TransferTicketProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */; };
 		119F0C9C25FF75F5006D4F75 /* DIDTransactionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */; };
+		11A4DF29282CF1AB00C76F04 /* DIDAdapterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A4DF28282CF1AB00C76F04 /* DIDAdapterTest.swift */; };
+		11A4DF2A282CF1AB00C76F04 /* DIDAdapterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A4DF28282CF1AB00C76F04 /* DIDAdapterTest.swift */; };
 		11AF7A6526BB873700C24F90 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 117609EC26BB802F00CE61B8 /* libcrypto.a */; };
 		11AF7A6626BB873A00C24F90 /* libhdkey.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 117609ED26BB802F00CE61B8 /* libhdkey.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		11B096DA241930690065228B /* SHA256Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B096D5241930690065228B /* SHA256Helper.swift */; };
@@ -417,6 +419,7 @@
 		119F0C9225FF07ED006D4F75 /* TransferTicket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicket.swift; sourceTree = "<group>"; };
 		119F0C9725FF0A65006D4F75 /* TransferTicketProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTicketProof.swift; sourceTree = "<group>"; };
 		119F0C9B25FF75F5006D4F75 /* DIDTransactionAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDTransactionAdapter.swift; sourceTree = "<group>"; };
+		11A4DF28282CF1AB00C76F04 /* DIDAdapterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDAdapterTest.swift; sourceTree = "<group>"; };
 		11A6B159238FD77E00D3C1F1 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Externals/HDKey/lib/-iphonesimulator/libcrypto.a"; sourceTree = "<group>"; };
 		11A6B15A238FD77E00D3C1F1 /* libhdkey.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhdkey.a; path = "Externals/HDKey/lib/-iphonesimulator/libhdkey.a"; sourceTree = "<group>"; };
 		11B096D5241930690065228B /* SHA256Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256Helper.swift; sourceTree = "<group>"; };
@@ -725,6 +728,7 @@
 				11C489682637F17B002C479E /* Web3Adapter.swift */,
 				116CAA56236008FD00BBEE4F /* TestUtils */,
 				11D4B9B423535E7000453218 /* DIDDoucumentTests.swift */,
+				11A4DF28282CF1AB00C76F04 /* DIDAdapterTest.swift */,
 				119D723726CCBFFD008F4733 /* TransferTicketTest.swift */,
 				1115A95A269D26EC00B3D1FC /* TestEventListener.swift */,
 				11C3EC702476734B00DF1B4F /* JwtTest.swift */,
@@ -1423,6 +1427,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1100DBBA26B391FA00AB1FB3 /* ElastosDIDSDK_macOSTests.swift in Sources */,
+				11A4DF2A282CF1AB00C76F04 /* DIDAdapterTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1435,6 +1440,7 @@
 				11C489692637F17B002C479E /* Web3Adapter.swift in Sources */,
 				11D4B9B523535E7000453218 /* DIDDoucumentTests.swift in Sources */,
 				11E09CBC23A8DB5A009B6A8D /* IssuerTest.swift in Sources */,
+				11A4DF29282CF1AB00C76F04 /* DIDAdapterTest.swift in Sources */,
 				11054F1F239D2088008A4500 /* DIDTest.swift in Sources */,
 				11E7519F23A7570A0022C592 /* TestData.swift in Sources */,
 				11054F1D239D1B31008A4500 /* DIDURLTest.swift in Sources */,
@@ -1922,7 +1928,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20220427105841;
+				CURRENT_PROJECT_VERSION = 20220517101555;
 				DEFINES_MODULE = YES;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;
@@ -1945,7 +1951,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Externals/HDKey/lib",
 				);
-				MARKETING_VERSION = 2.2.11;
+				MARKETING_VERSION = 2.2.12;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				PRODUCT_BUNDLE_IDENTIFIER = elastos.ElastosDIDSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -1967,7 +1973,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20220427105841;
+				CURRENT_PROJECT_VERSION = 20220517101555;
 				DEFINES_MODULE = YES;
 				DEPLOYMENT_POSTPROCESSING = NO;
 				DEVELOPMENT_TEAM = T4LVNDN76A;
@@ -1990,7 +1996,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Externals/HDKey/lib",
 				);
-				MARKETING_VERSION = 2.2.11;
+				MARKETING_VERSION = 2.2.12;
 				OTHER_CFLAGS = "-fembed-bitcode";
 				PRODUCT_BUNDLE_IDENTIFIER = elastos.ElastosDIDSDK;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
