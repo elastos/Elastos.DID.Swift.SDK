@@ -21,7 +21,7 @@ $ open -a Xcode ElastosDIDSDK.xcworkspace
 ```
 
 
-### 1.Build DID NDK
+### 1. Build DID NDK
 
 Before to build the whole workspace, native library distributions targeting at iPhone device should be built from DID native repository with following commands on macOS:
 
@@ -52,9 +52,9 @@ $ make install
 
 Please notice that only the architectures of **x86-64** (simulator) and **amd64** (device) are supported.
 
-### 2.Import DID NDK
+### 2. Import DID NDK
 
-The directory **"Externals/HDKey"** would rely on native shared libraries built from upper steps and should have the following directory structure:
+The directory **"Externals/HDKey"** would rely on native shared libraries built from the upper steps and should have the following directory structure:
 
 ```
 Externals/HDKey
@@ -67,7 +67,7 @@ Externals/HDKey
        （Please read the PLACEHOLDER.md）
 ```
 
-Then follow the instruction of **PLACEHOLDER.md** , and import native headers and libraries with the specific locations.
+Then follow the instruction of **PLACEHOLDER.md**, and import native headers and libraries with the specific locations.
 
 ### 3. Build DID SDK
 
@@ -79,7 +79,7 @@ Use Apple Xcode to generate **ElastosDIDSDK.framework**.
 
 ## Tests
 
-### 1.Import DID NDK
+### 1. Import DID NDK
 
 The directory **"Externals/SPVWrapper/SPVWrapper"** to import native shared libraries and headers should have following directory structure:
 
