@@ -200,7 +200,9 @@ public class VerifiableCredentialSubject: NSObject {
             }
 
             break
-        default: break
+        default:
+            generator.writeString("")
+            break
 
         }
     }
