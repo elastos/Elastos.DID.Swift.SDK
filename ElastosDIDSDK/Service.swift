@@ -91,6 +91,29 @@ public class Service: DIDObject {
         return proStr.toDictionary()
     }
 
+    /// Get the specified property.
+    /// - Parameter key: the property name
+    /// - Returns: property value
+    public func getProperty(_ key: String)  -> Any {
+        let proStr = _properties.toString()
+        let pros = proStr.toDictionary()
+        
+        return pros[key] as Any
+    }
+    
+    /// Check whether the service has the specified property.
+    /// - Parameter key: the property name
+    /// - Returns: true if this service object has the specific property, false otherwise.
+    public func hasProperty(_ key: String) -> Bool {
+        let generator = JsonGenerator()
+        generatorJson(generator, _properties)
+        let prostr = generator.toString()
+        print(prostr)
+        let pros = prostr.toDictionary()
+        
+       return pros.keys.contains(key)
+    }
+    
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> Service {
         let serializer = JsonSerializer(node)
         var options: JsonSerializer.Options
@@ -179,6 +202,14 @@ public class Service: DIDObject {
             break
         case .DATE:
             generator.writeString(DateFormatter.convertToUTCStringFromDate(node.asDate()!))
+            
+        case .NSNULL:
+             generator.writeNSNULL()
+            break
+            
+        case .NIL:
+             generator.writeNSNULL()
+            break
         default:  break// DATE
             
         }

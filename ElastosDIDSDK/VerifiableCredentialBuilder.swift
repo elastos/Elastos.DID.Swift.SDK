@@ -196,11 +196,18 @@ public class VerifiableCredentialBuilder: NSObject {
     }
     
     /// Set the claim properties to the credential subject from a dictionary object.
-    /// - Parameter properites: a dictionary include the claims
+    /// - Parameter properites: a dictionary include the claims： If you need to set the value to nil in the properties, use NSNull(), for example:
+    ///    ["abc": "helloworld",
+    ///    "foo": 123,
+    ///    "bar": "foobar",
+    ///    "foobar": "lalala...",
+    ///    "empty": "",
+    ///    "nil": NSNull()] as [String : Any]
+    ///    
     /// - Throws: if an error occurred, throw error.
     /// - Returns: VerifiableCredentialBuilder object.
     @objc
-    public func withProperties(_ properites: Dictionary<String, String>) throws -> VerifiableCredentialBuilder {
+    public func withProperties(_ properites: Dictionary<String, Any>) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
         guard !properites.isEmpty else {
             return self
@@ -239,10 +246,16 @@ public class VerifiableCredentialBuilder: NSObject {
     /// Add new claim property to the credential subject.
     /// - Parameters:
     ///   - key: the property name
-    ///   - value: the property value
+    ///   - value: the property value: If you need to set the value to nil, use NSNull(), for example:
+    ///   let vc = try issuer.editingVerifiableCredentialFor(did: user.subject).withId("#test")
+    ///       .withProperties("hello", "world")
+    ///       .withProperties("empty", "")
+    ///       .withProperties("nil", NSNull())
+    ///       .seal(using: storePassword)
+    ///
     /// - Returns: VerifiableCredentialBuilder object.
     @objc(withPropertiesWith::error:)
-    public func withProperties(_ key: String, _ value: String) throws -> VerifiableCredentialBuilder {
+    public func withProperties(_ key: String, _ value: Any) throws -> VerifiableCredentialBuilder {
         try checkNotSealed()
         try checkArgument(!key.isEmpty && key != "id", "Invalid name")
         _credential?.subject?.setProperties(key, value)

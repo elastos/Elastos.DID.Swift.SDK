@@ -1165,6 +1165,13 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The identifier of Service.
     ///   - type: The type of Service.
     ///   - endpoint: ServiceEndpoint property is a valid URI.
+    ///   - properties: the application defined extra properties： If you need to set the value to nil in the properties, use NSNull(), for example:
+    ///    ["abc": "helloworld",
+    ///    "foo": 123,
+    ///    "bar": "foobar",
+    ///    "foobar": "lalala...",
+    ///    "empty": "",
+    ///    "nil": NSNull()] as [String : Any]
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc
@@ -1207,6 +1214,13 @@ public class DIDDocumentBuilder: NSObject {
     ///   - id: The identifier of Service.
     ///   - type: The type of Service.
     ///   - endpoint: ServiceEndpoint property is a valid URI.
+    ///   - properties: the application defined extra properties： If you need to set the value to nil in the properties, use NSNull(), for example:
+    ///    ["abc": "helloworld",
+    ///    "foo": 123,
+    ///    "bar": "foobar",
+    ///    "foobar": "lalala...",
+    ///    "empty": "",
+    ///    "nil": NSNull()] as [String : Any]
     /// - Throws: if an error occurred, throw error.
     /// - Returns: DIDDocumentBuilder instance.
     @objc(appendService:type:endpoint:properties:error:)

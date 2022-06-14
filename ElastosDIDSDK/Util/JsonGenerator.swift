@@ -220,6 +220,20 @@ public class JsonGenerator: NSObject {
             setSticky()
         }
     }
+    
+    @objc
+    public func writeNSNULL() {
+        if isSticky() {
+            buffer.append(JsonGenerator.COMMA)
+        }
+        buffer.append("null")
+
+        if getState() == .Field {
+            _ = popState()
+        } else {
+            setSticky()
+        }
+    }
 
     /// Public API, write methods, numeric.
     /// Method for outputting given value as JSON number.
