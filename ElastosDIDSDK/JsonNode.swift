@@ -31,6 +31,8 @@ public enum JsonNodeType: Int {
     case DICTIONARY
     case STRING
     case DATE
+    case NSNULL
+
 }
 
 @objc(JsonNode)
@@ -223,6 +225,21 @@ public class JsonNode: NSObject {
         self.node = temp as Any
     }
 
+    func put(forKey key: String, value: Any) {
+        
+        guard self.node is [String: JsonNode] else {
+            return
+        }
+        
+        let node: JsonNode = JsonNode(value)
+        var temp = self.node as? [String: JsonNode]
+        if temp == nil {
+            temp = [: ]
+        }
+        temp![key] = node
+        self.node = temp as Any
+    }
+    
     func put(forKey key: String, value: Bool) {
         guard self.node is [String: JsonNode] else {
             return
@@ -317,10 +334,12 @@ public class JsonNode: NSObject {
             return JsonNodeType.NUMBER
         } else if self.node is Double {
             return JsonNodeType.NUMBER
-        }
-        else if self.node is Date {
+        } else if self.node is Date {
             return JsonNodeType.DATE
-        }else {
+        } else if self.node is NSNull {
+            return JsonNodeType.NSNULL
+        }
+        else {
             return JsonNodeType.NIL
         }
     }

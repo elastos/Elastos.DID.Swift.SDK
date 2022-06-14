@@ -99,7 +99,7 @@ public class VerifiableCredentialSubject: NSObject {
 
     /// Get specified subject property according to the key of property.
     /// - Parameter ofName: The key of property.
-    /// - Returns: properties as string.
+    /// - Returns: properties as JsonNode.
     @objc
     public func getProperty(ofName: String) -> JsonNode? {
         return self._properties.get(forKey: ofName)
@@ -107,7 +107,7 @@ public class VerifiableCredentialSubject: NSObject {
     
     /// Get specified subject property according to the key of property.
     /// - Parameter ofName: The key of property.
-    /// - Returns: properties as string.
+    /// - Returns: properties as Dictionary.
     @objc
     public func property(ofName: String) -> [String: Any]? {
         return self._properties.get(forKey: ofName)?.asDictionary()
@@ -123,12 +123,29 @@ public class VerifiableCredentialSubject: NSObject {
     /// - Parameters:
     ///   - name: the property name
     ///   - value: the property value
-    func setProperties(_ key: String, _ value: String) {
+    func setProperties(_ key: String, _ value: Any) {
         
         guard key != ID else {
             return
         }
         _properties.put(forKey: key, value: value)
+    }
+    
+    /// Get specified subject property according to the key of property.
+    /// - Parameter ofName: The key of property.
+    /// - Returns: properties as any.
+    public func getProperty(_ key: String) -> Any {
+        let proStr = _properties.toString()
+        let pros = proStr.toDictionary()
+        return pros[key] as Any
+    }
+    
+    
+    public func hasProperty(_ key: String) -> Bool {
+        let proStr = _properties.toString()
+        let pros = proStr.toDictionary()
+        
+        return pros.keys.contains(key)
     }
 
     class func fromJson(_ node: JsonNode, _ ref: DID?) throws -> VerifiableCredentialSubject {
@@ -200,6 +217,14 @@ public class VerifiableCredentialSubject: NSObject {
             }
 
             break
+        case .NSNULL:
+             generator.writeNSNULL()
+            break
+            
+        case .NIL:
+             generator.writeNSNULL()
+            break
+            
         default:
             generator.writeString("")
             break

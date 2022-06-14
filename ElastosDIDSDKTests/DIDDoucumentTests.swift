@@ -2552,7 +2552,9 @@ class DIDDoucumentTests: XCTestCase {
                        "FOO": 678,
                        "BAR": "Foobar",
                        "FOOBAR": "Lalala...",
-                       "DATE": DateFormatter.currentDate()] as [String : Any]
+                       "DATE": DateFormatter.currentDate(),
+                       "empty": "",
+                       "nil": NSNull()] as [String : Any]
             let props = ["abc": "helloworld",
                          "foo": 123,
                          "bar": "foobar",
@@ -2564,7 +2566,9 @@ class DIDDoucumentTests: XCTestCase {
                          "BAR": "Foobar",
                          "FOOBAR": "Lalala...",
                          "DATE": DateFormatter.currentDate(),
-                         "MAP": map] as [String : Any]
+                         "MAP": map,
+                         "empty": "",
+                         "nil": NSNull()] as [String : Any]
             
             var doc = try testData!.getCompatibleData(version).getDocument("user1")
             XCTAssertNotNil(doc)
@@ -2612,6 +2616,13 @@ class DIDDoucumentTests: XCTestCase {
 //            XCTAssertTrue(svcs[1].properties.isEmpty == false)
             XCTAssertEqual("Service.Testing", svcs[2].getType())
 //            XCTAssertTrue(svcs[2].properties.isEmpty == true)
+            
+            let svc = try doc.service(ofId: "#test-svc-1")
+            XCTAssertTrue(svc!.hasProperty("nil"))
+            let re = svc!.getProperty("nil")
+//            XCTAssertNil(re)
+            XCTAssertTrue(svc!.hasProperty("empty"))
+            XCTAssertEqual("", svc!.getProperty("empty") as! String)
         } catch {
             XCTFail()
         }

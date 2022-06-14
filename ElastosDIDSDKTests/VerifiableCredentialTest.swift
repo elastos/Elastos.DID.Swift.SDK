@@ -1581,5 +1581,41 @@ class VerifiableCredentialTest: XCTestCase {
             XCTFail()
         }
     }
+    
+    func testCredentialSubjectWithEmptyAndNullValues1() {
+        CredentialSubjectWithEmptyAndNullValues(1)
+    }
+    func testCredentialSubjectWithEmptyAndNullValues2() {
+        CredentialSubjectWithEmptyAndNullValues(2)
+    }
+    func testCredentialSubjectWithEmptyAndNullValues3() {
+        CredentialSubjectWithEmptyAndNullValues(3)
+    }
+    
+    
+    func CredentialSubjectWithEmptyAndNullValues(_ version: Int) {
+        do {
+            let cd = try testData!.getCompatibleData(version)
+            
+            let user = try cd.getDocument("user1");
+            let iss = try VerifiableCredentialIssuer(user)
+
+            let vc = try iss.editingVerifiableCredentialFor(did: user.subject).withId("#test")
+                .withProperties("hello", "world")
+                .withProperties("empty", "")
+                .withProperties("nil", NSNull())
+            .seal(using: storePassword)
+
+            XCTAssertTrue(!(vc.subject!.hasProperty("world")))
+            XCTAssertTrue(vc.subject!.hasProperty("hello"))
+            XCTAssertEqual("world", vc.subject!.getProperty("hello") as! String)
+            XCTAssertTrue(vc.subject!.hasProperty("empty"))
+            XCTAssertEqual("", vc.subject!.getProperty("empty") as! String)
+            XCTAssertTrue(vc.subject!.hasProperty("nil"))
+            XCTAssertNil(vc.subject!.getProperty("nil") as Any)
+        } catch {
+            XCTFail()
+        }
+    }
 }
 
