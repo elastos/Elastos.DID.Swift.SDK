@@ -33,17 +33,17 @@ public class DIDXChaCha20Poly1305Cipher: DIDCipher {
         _key = key
     }
     
-    public func setOtherSideCurve25519PublicKey(key: [UInt8]) throws {
+    public func setOtherSideCurve25519PublicKey(_ key: [UInt8]) throws {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not support yet.")
     }
     
-    public func encrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8] {
+    public func encrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8] {
         
-        if data.count > 0 {
+        if data.count < 0 {
             print("Invalid data")
         }
         
-        if nonce.count > 0 {
+        if nonce.count < 0 {
             print("Invalid nonce")
         }
         
@@ -70,13 +70,13 @@ public class DIDXChaCha20Poly1305Cipher: DIDCipher {
 
     }
     
-    public func decrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8] {
+    public func decrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8] {
         
-        if data.count > 0 {
+        if data.count < 0 {
             print("Invalid data")
         }
         
-        if nonce.count > 0 {
+        if nonce.count < 0 {
             print("Invalid nonce")
         }
                 
@@ -105,10 +105,10 @@ public class DIDXChaCha20Poly1305Cipher: DIDCipher {
     }
     
     public func createEncryptionStream() throws -> EncryptionStream {
-        return try DIDSSEncrypt(key: self._key)
+        return try DIDSSEncrypt(self._key)
     }
     
-    public func createDecryptionStream(header: [UInt8]) throws -> DecryptionStream {
+    public func createDecryptionStream(_ header: [UInt8]) throws -> DecryptionStream {
         return try DIDSSDecrypt(self._key, header)
     }
     

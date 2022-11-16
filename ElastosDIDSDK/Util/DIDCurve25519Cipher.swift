@@ -26,8 +26,8 @@ import Clibsodium
 
 public class DIDCurve25519Cipher: DIDCipher {
     
-    private var encryptKey: [UInt8]?
-    private var sharedKeys: KeyExchange.SessionKeyPair?
+    private var encryptKey: [UInt8]!
+    private var sharedKeys: KeyExchange.SessionKeyPair!
     private var keyPair: DIDCurve25519KeyPair
     private var isServer: Bool
 
@@ -43,7 +43,7 @@ public class DIDCurve25519Cipher: DIDCipher {
         }
     }
     
-    public func setOtherSideCurve25519PublicKey(key: [UInt8]) {
+    public func setOtherSideCurve25519PublicKey(_ key: [UInt8]) {
         
         let sodium = Sodium()
         self.encryptKey = sodium.box.beforenm(recipientPublicKey: key, senderSecretKey: self.keyPair.privateKey)
@@ -52,7 +52,7 @@ public class DIDCurve25519Cipher: DIDCipher {
 
     }
 
-    public func encrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8] {
+    public func encrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8] {
         
         if data.count == 0 {
             print("Invalid data")
@@ -63,7 +63,7 @@ public class DIDCurve25519Cipher: DIDCipher {
         }
                 
         var authenticatedCipherText = [UInt8](repeating: 0, count: data.count + Int(crypto_box_macbytes()))
-                                 
+
         var result: Int32 = -1
         result = crypto_box_easy_afternm (
             &authenticatedCipherText,
@@ -80,7 +80,7 @@ public class DIDCurve25519Cipher: DIDCipher {
         return authenticatedCipherText
     }
     
-    public func decrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8] {
+    public func decrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8] {
         
         if data.count == 0 {
             print("Invalid data")
@@ -91,13 +91,13 @@ public class DIDCurve25519Cipher: DIDCipher {
         }
         
         var message = [UInt8](repeating: 0, count: data.count - Int(crypto_box_macbytes()))
-        
         var result: Int32 = -1
         result = crypto_box_open_easy_afternm(&message,
                                               data,
                                               UInt64(data.count),
                                               nonce,
                                               self.encryptKey!)
+        
         if result != 0 {
             print("Failed to decrypt data.")
         }
@@ -107,12 +107,12 @@ public class DIDCurve25519Cipher: DIDCipher {
     
     public func createEncryptionStream() throws -> EncryptionStream {
         try self.checkEncryptionKeys()
-        return try DIDSSEncrypt(key: self.sharedKeys!.tx);
+        return try DIDSSEncrypt(self.sharedKeys!.tx)
     }
     
-    public func createDecryptionStream(header: [UInt8]) throws -> DecryptionStream {
+    public func createDecryptionStream(_ header: [UInt8]) throws -> DecryptionStream {
         try self.checkEncryptionKeys()
-        return try DIDSSDecrypt(self.sharedKeys!.tx, header);
+        return try DIDSSDecrypt(self.sharedKeys!.rx, header)
     }
     
     public func getEd25519PublicKey() throws -> [UInt8] {

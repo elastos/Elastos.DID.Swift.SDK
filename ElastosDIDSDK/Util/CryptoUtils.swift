@@ -35,8 +35,6 @@ public class CryptoUtils {
 
     public static func getCurve25519KeyPair(_ key: [UInt8]) throws -> DIDCurve25519KeyPair {
         
-        
-        
         let sodium = Sodium()
 
         // ED25519
@@ -54,8 +52,8 @@ public class CryptoUtils {
         return DIDCurve25519KeyPair(
             ed25519Sk: edKeyPair!.secretKey,
             ed25519Pk: edKeyPair!.publicKey,
-            privateKey: pk,
-            publicKey: sk
+            privateKey: sk,
+            publicKey: pk
         )
     }
     

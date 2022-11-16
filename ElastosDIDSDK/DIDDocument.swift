@@ -2282,7 +2282,7 @@ public class DIDDocument: NSObject {
     ///   - isServer: current side is server or not, the data exchange must occur between client and server sides.
     /// - Throws: if no error occurs, throw error.
     public func createCurve25519Cipher(_ identifier: String, _ securityCode: Int, _ storepass: String,
-                                        isServer: Bool) throws -> DIDCipher {
+                                        _ isServer: Bool) throws -> DIDCipher {
         let derivedPrivateKey = try self.getDerivedPrivateKeyForCipher(identifier, securityCode, storepass)
         let curveKeyPair = try CryptoUtils.getCurve25519KeyPair(derivedPrivateKey)
         return DIDCurve25519Cipher(curveKeyPair, isServer)

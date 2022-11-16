@@ -28,21 +28,21 @@ import Clibsodium
 public protocol DIDCipher {
     
     // Set the other side public key for curve25519
-    func setOtherSideCurve25519PublicKey(key: [UInt8]) throws
+    func setOtherSideCurve25519PublicKey(_ key: [UInt8]) throws
 
     /// Encrypt the message with small size.
     /// - Parameters:
     ///   - data: the data to be encrypted.
     ///   - nonce: the nonce for encryption.
     /// - Throws: if no error occurs, throw error.
-    func encrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8]
+    func encrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8]
 
     /// Decrypt the message with small size.
     /// - Parameters:
     ///   - data: the data to be decrypted.
     ///   - nonce: the nonce for decryption, same as the nonce on encrypt().
     /// - Throws: if no error occurs, throw error.
-    func decrypt(data: [UInt8], nonce: [UInt8]) throws -> [UInt8];
+    func decrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8];
 
     // Get a encrypt stream for large size.
     func createEncryptionStream() throws -> EncryptionStream
@@ -51,7 +51,7 @@ public protocol DIDCipher {
     /// - Parameters:
     ///   - header: the header from EncryptionStream.
     /// - Throws: if no error occurs, throw error.
-    func createDecryptionStream(header: [UInt8]) throws -> DecryptionStream
+    func createDecryptionStream(_ header: [UInt8]) throws -> DecryptionStream
 
     // Get the public key for ed25519
     func getEd25519PublicKey() throws -> [UInt8]
@@ -89,7 +89,7 @@ public class DecryptionStream {
         return SecretStream.XChaCha20Poly1305.ABytes
     }
 
-    func pull(cipherText: [UInt8]) throws -> [UInt8] {
+    func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not implemented.")
     }
 
@@ -103,7 +103,7 @@ class DIDSSEncrypt: EncryptionStream {
     private var state: crypto_secretstream_xchacha20poly1305_state
     private var _header: [UInt8]
 
-    init(key: [UInt8]) throws {
+    init(_ key: [UInt8]) throws {
 
         let KeyBytes = Int(crypto_secretstream_xchacha20poly1305_keybytes())
         let HeaderBytes = Int(crypto_secretstream_xchacha20poly1305_headerbytes())
@@ -131,7 +131,7 @@ class DIDSSEncrypt: EncryptionStream {
         return self._header
     }
 
-    func pushAny(clearText: [UInt8], isFinal: Bool) throws -> [UInt8] {
+    override func pushAny(_ clearText: [UInt8], _ isFinal: Bool) throws -> [UInt8] {
 
         let tag: SecretStream.XChaCha20Poly1305.Tag = isFinal ? .FINAL : .MESSAGE;
 
@@ -178,7 +178,7 @@ class DIDSSDecrypt: DecryptionStream {
         self.complete = false
     }
 
-    override func pull(cipherText: [UInt8]) throws -> [UInt8] {
+    override func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
         
         let ABytes = Int(crypto_secretstream_xchacha20poly1305_abytes())
         var message = [UInt8](repeating: 0, count: cipherText.count - ABytes)
