@@ -9,7 +9,7 @@ def import_pods
   pod 'Alamofire'
   pod 'Telegraph'
   pod 'SSZipArchive'
- # pod 'CryptoSwift', '~> 1.4.1'
+  pod 'Sodium'
 
 end
 
@@ -19,7 +19,7 @@ xcodeproj 'DIDExample/DIDExample.xcodeproj'
 
 target :ElastosDIDSDK do
 xcodeproj 'ElastosDIDSDK' 
-  platform :ios, '11.0'
+  platform :ios, '12.0'
   use_frameworks!
   import_pods
   target 'ElastosDIDSDKTests' do
