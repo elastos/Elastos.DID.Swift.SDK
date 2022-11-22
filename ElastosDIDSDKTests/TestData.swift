@@ -92,6 +92,14 @@ class TestData {
         return identity!
     }
     
+    public func getSpecificRootIdentity() throws -> RootIdentity {
+        return try RootIdentity.create("clever bless future fuel obvious black subject cake art pyramid member clump", passphrase, true,  self.store!, storePassword)
+    }
+
+    public func getSpecificRootIdentity2() throws -> RootIdentity {
+        return try RootIdentity.create("chimney limit involve fine absent topic catch chalk goat era suit leisure", passphrase, true,  self.store!, storePassword)
+    }
+    
     public func getCompatibleData(_ version: Int) throws -> CompatibleData {
         switch (version) {
         case 1:

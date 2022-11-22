@@ -69,6 +69,7 @@ public enum DIDError: Error {
             case DIDObjectHasReferenceError(_ des: String? = nil)
             case CanNotRemoveEffectiveControllerError(_ des: String? = nil)
             case NotCustomizedDIDError(_ des: String? = nil)
+            case UnsupportedError (_ des: String? = nil)
         }
     }
     
@@ -211,6 +212,8 @@ extension DIDError.UncheckedError.UnsupportedOperationError: LocalizedError {
         case .CanNotRemoveEffectiveControllerError(let des):
             return des
         case .NotCustomizedDIDError(let des):
+            return des
+        case .UnsupportedError(let des):
             return des
         }
     }

@@ -22,6 +22,7 @@
 
 import Foundation
 import PromiseKit
+import Sodium
 
 /// DID documents contain information associated with a DID.
 /// They typically express verification methods, such as cryptographic
@@ -2247,6 +2248,44 @@ public class DIDDocument: NSObject {
             error?.pointee = aError
             return false
         }
+    }
+    
+    private func getDerivedPrivateKeyForCipher(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> [UInt8] {
+        try checkArgument(identifier != "", "Invalid identifier")
+        try self.checkAttachedStore()
+        try self.checkIsPrimitive()
+
+        let key = DIDHDKey.deserialize(try self.getMetadata().store!.loadPrivateKey(
+            self.getDefaultPublicKey()!, storepass)!)
+
+        let path = self.mapToDerivePath(identifier, securityCode)
+        return try key.derive(path).getPrivateKeyBytes()
+    }
+    
+    /// Create cipher for symmetric encryption
+    /// - Parameters:
+    ///   - identifier: the identifier string
+    ///   - securityCode: the security code
+    ///   - storepass: the password for DID store
+    /// - Throws: if no error occurs, throw error.
+    public func createCipher(_ identifier: String, _ securityCode: Int, _ storepass: String) throws -> DIDCipher {
+        let derivedPrivateKey = try self.getDerivedPrivateKeyForCipher(identifier, securityCode, storepass)
+        
+        return DIDXChaCha20Poly1305Cipher(derivedPrivateKey)
+    }
+
+    /// Create cipher for asymmetric encryption
+    /// - Parameters:
+    ///   - identifier: the identifier string
+    ///   - securityCode: the security code
+    ///   - storepass: the password for DID store
+    ///   - isServer: current side is server or not, the data exchange must occur between client and server sides.
+    /// - Throws: if no error occurs, throw error.
+    public func createCurve25519Cipher(_ identifier: String, _ securityCode: Int, _ storepass: String,
+                                        _ isServer: Bool) throws -> DIDCipher {
+        let derivedPrivateKey = try self.getDerivedPrivateKeyForCipher(identifier, securityCode, storepass)
+        let curveKeyPair = try CryptoUtils.getCurve25519KeyPair(derivedPrivateKey)
+        return DIDCurve25519Cipher(curveKeyPair, isServer)
     }
     
     /// Create a new customized DID using current DID as the controller.

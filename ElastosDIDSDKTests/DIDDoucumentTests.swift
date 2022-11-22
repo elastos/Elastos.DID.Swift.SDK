@@ -3295,6 +3295,81 @@ class DIDDoucumentTests: XCTestCase {
         }
     }
     
+    func testEncryptDecryptData() {
+        do {
+            // Get random DIDDocument.
+          let identity = try testData!.getRootIdentity()
+          let doc = try identity.newDid(0, true, storePassword)
+          XCTAssertNotNil(doc)
+
+          XCTAssertTrue(try doc.isValid(debug))
+
+            // symmetric encryption
+            let identifier = "identifier1"
+            let securityCode = 1
+            let cipher = try doc.createCipher(identifier, securityCode, storePassword)
+            try encryptDecrypt(cipher, cipher)
+
+            // asymmetric encryption
+            let identity2 = try testData!.getSpecificRootIdentity()
+            let doc2 = try identity2.newDid( 0, true, storePassword)
+            XCTAssertNotNil(doc2)
+            XCTAssertTrue(try doc2.isValid(debug))
+
+            let identity3 = try testData!.getSpecificRootIdentity2()
+            let doc3 = try identity3.newDid(0, true, storePassword)
+            XCTAssertNotNil(doc3)
+            XCTAssertTrue(try doc3.isValid(debug))
+
+            let cipher2 = try doc2.createCurve25519Cipher(identifier, securityCode, storePassword, false)
+            let cipher3 = try doc3.createCurve25519Cipher(identifier, securityCode, storePassword, true)
+            try cipher2.setOtherSideCurve25519PublicKey(cipher3.getCurve25519PublicKey())
+            try cipher3.setOtherSideCurve25519PublicKey(cipher2.getCurve25519PublicKey())
+
+            try encryptDecrypt(cipher2, cipher3)
+            try encryptDecrypt(cipher3, cipher2)
+        } catch {
+            print("测试出现crash ........................ ", error)
+            XCTFail()
+        }
+      }
+    
+    func encryptDecrypt(_ cipher: DIDCipher, _ cipher2: DIDCipher) throws {
+        let sourceStr1 = "This is the string 1 for encrypting."
+        let sourceStr2 = "This is the string 2 for encrypting."
+        let sourceStr3 = "This is the string 3 for encrypting."
+        let nonce = "@ABCDEFGHIJKLMNOPQRSTUVW"
+        
+        let sourceStr1Data = sourceStr1.data(using: .utf8)
+        let sourceStr2Data = sourceStr2.data(using: .utf8)
+        let sourceStr3Data = sourceStr3.data(using: .utf8)
+        let nonceData = nonce.data(using: .utf8)
+
+        // message
+        let cipherStr = try cipher.encrypt([UInt8](sourceStr1Data!), [UInt8](nonceData!))
+        let clearText = try cipher2.decrypt(cipherStr, [UInt8](nonceData!))
+        XCTAssertEqual(String(bytes: clearText, encoding: .utf8), sourceStr1)
+
+        // stream
+        let encryptStream = try cipher.createEncryptionStream()
+        let header = try encryptStream.header()
+
+        let cipherStr1 = try encryptStream.push([UInt8](sourceStr1Data!))
+        let cipherStr2 = try encryptStream.push([UInt8](sourceStr2Data!))
+        let cipherStr3 = try encryptStream.pushLast([UInt8](sourceStr3Data!))
+
+        let decryptStream = try cipher2.createDecryptionStream(header)
+
+        let clearStr1 = try decryptStream.pull(cipherStr1)
+        let clearStr2 = try decryptStream.pull(cipherStr2)
+        let clearStr3 = try decryptStream.pull(cipherStr3)
+
+        XCTAssertEqual(String(bytes: clearStr1, encoding: .utf8) , sourceStr1)
+        XCTAssertEqual(String(bytes: clearStr2, encoding: .utf8) , sourceStr2)
+        XCTAssertEqual(String(bytes: clearStr3, encoding: .utf8) , sourceStr3)
+        XCTAssertTrue(try decryptStream.isComplete())
+    }
+
     func testCreateCustomizedDid() {
         do {
             let identity = try testData!.getRootIdentity()

@@ -23,7 +23,7 @@
 import Foundation
 
 public class CredentialList: ResolveResult {
-    static let DID = "did"
+    static let _DID = "did"
     static let CREDENTIALS = "credentials"
 
     static let DEFAULT_SIZE = 128
@@ -60,10 +60,24 @@ public class CredentialList: ResolveResult {
         
     }
     
+    public func serialize() -> String {
+        let generator = JsonGenerator()
+        generator.writeFieldName(CredentialList._DID)
+        generator.writeFieldName(did.toString())
+        generator.writeFieldName(CredentialList.CREDENTIALS)
+        generator.writeStartArray()
+
+        for cre in credentialIds {
+            generator.writeString(cre.toString())
+        }
+        generator.writeEndArray()
+        return generator.toString()
+    }
+    
     class func deserialize(_ json: [String: Any]) throws -> CredentialList {
         let didString = "\(json["did"]!)"
         let credentials = json["credentials"] != nil ? json["credentials"] as! [String] : [ ]
-        let did = try ElastosDIDSDK.DID(didString)
+        let did = try DID(didString)
         let cre = CredentialList(did)
         try credentials.forEach { did in
             try cre._credentialIds.append(DIDURL(did))

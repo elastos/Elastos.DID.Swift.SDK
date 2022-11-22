@@ -16,8 +16,8 @@ Pod::Spec.new do |s|
   s.homepage     = 'https://www.elastos.org'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = { 'hive-dev' => 'support@elastos.org' }
-  s.platform     = :ios, '11.0'
-  s.ios.deployment_target = '11.0'
+  s.platform     = :ios, '12.0'
+  s.ios.deployment_target = '12.0'
   s.source = {:git => 'https://github.com/elastos/Elastos.DID.Swift.SDK.git', :tag => 'release-2.2.14'}
   s.source_files = 'ElastosDIDSDK/**/*.{h,m,swift}','Externals/Antlr4/**/**/*.{h,m,swift,interp,tokens,g4}','Externals/base58/*.{swift}','Externals/ByteBuffer/*.{swift}','Externals/CryptorECC/*.{swift}','Externals/HDKey/include/*.{h,swift}','Externals/SwiftJWT/*.{swift}'
   s.vendored_libraries = 'Externals/HDKey/lib/*.a'
@@ -29,6 +29,7 @@ Pod::Spec.new do |s|
   s.dependency 'ReadWriteLock', '~> 1.0'
   s.dependency 'Swifter'
   s.dependency 'SSZipArchive'
+  s.dependency 'Sodium'
 
   s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
   s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }

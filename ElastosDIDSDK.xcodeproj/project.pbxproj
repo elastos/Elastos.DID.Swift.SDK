@@ -207,6 +207,14 @@
 		11B6284026483A5A00B20904 /* DIDExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B6283E26483A5A00B20904 /* DIDExport.swift */; };
 		11B628442648E38C00B20904 /* RootIdentityExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B628432648E38C00B20904 /* RootIdentityExport.swift */; };
 		11B62848264BA8BA00B20904 /* Extension+String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B62847264BA8BA00B20904 /* Extension+String.swift */; };
+		11B867AD2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867AC2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift */; };
+		11B867AE2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867AC2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift */; };
+		11B867B02923FF830046FD87 /* CryptoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867AF2923FF820046FD87 /* CryptoUtils.swift */; };
+		11B867B12923FF830046FD87 /* CryptoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867AF2923FF820046FD87 /* CryptoUtils.swift */; };
+		11B867B32923FF910046FD87 /* DIDCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867B22923FF910046FD87 /* DIDCipher.swift */; };
+		11B867B42923FF910046FD87 /* DIDCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867B22923FF910046FD87 /* DIDCipher.swift */; };
+		11B867B62923FF9D0046FD87 /* DIDCurve25519Cipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867B52923FF9D0046FD87 /* DIDCurve25519Cipher.swift */; };
+		11B867B72923FF9D0046FD87 /* DIDCurve25519Cipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B867B52923FF9D0046FD87 /* DIDCurve25519Cipher.swift */; };
 		11BA5E9726C61BE4005CE483 /* LocalResolveHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */; };
 		11BC47AE2771E50B00FF7863 /* IDChainOperationsTest2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BC47AD2771E50B00FF7863 /* IDChainOperationsTest2.swift */; };
 		11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE33982604383700DEBD00 /* DIDRequest.swift */; };
@@ -428,6 +436,10 @@
 		11B6283E26483A5A00B20904 /* DIDExport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIDExport.swift; sourceTree = "<group>"; };
 		11B628432648E38C00B20904 /* RootIdentityExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIdentityExport.swift; sourceTree = "<group>"; };
 		11B62847264BA8BA00B20904 /* Extension+String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+String.swift"; sourceTree = "<group>"; };
+		11B867AC2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDXChaCha20Poly1305Cipher.swift; path = Util/DIDXChaCha20Poly1305Cipher.swift; sourceTree = "<group>"; };
+		11B867AF2923FF820046FD87 /* CryptoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CryptoUtils.swift; path = Util/CryptoUtils.swift; sourceTree = "<group>"; };
+		11B867B22923FF910046FD87 /* DIDCipher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDCipher.swift; path = Util/DIDCipher.swift; sourceTree = "<group>"; };
+		11B867B52923FF9D0046FD87 /* DIDCurve25519Cipher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DIDCurve25519Cipher.swift; path = Util/DIDCurve25519Cipher.swift; sourceTree = "<group>"; };
 		11BA5E9626C61BE4005CE483 /* LocalResolveHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalResolveHandle.swift; sourceTree = "<group>"; };
 		11BC47AD2771E50B00FF7863 /* IDChainOperationsTest2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IDChainOperationsTest2.swift; sourceTree = "<group>"; };
 		11BE33982604383700DEBD00 /* DIDRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIDRequest.swift; sourceTree = "<group>"; };
@@ -941,6 +953,10 @@
 		A31ACE2923F19A10008EC032 /* Util */ = {
 			isa = PBXGroup;
 			children = (
+				11B867AC2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift */,
+				11B867B52923FF9D0046FD87 /* DIDCurve25519Cipher.swift */,
+				11B867B22923FF910046FD87 /* DIDCipher.swift */,
+				11B867AF2923FF820046FD87 /* CryptoUtils.swift */,
 				1179520C241B3A7100A1C55B /* RegexHelper.swift */,
 				11B096E224193E200065228B /* OrderedDictionary.swift */,
 				11B096D5241930690065228B /* SHA256Helper.swift */,
@@ -1121,6 +1137,8 @@
 			dependencies = (
 			);
 			name = ElastosDIDSDK;
+			packageProductDependencies = (
+			);
 			productName = Elastos.DID.Swift.SDK;
 			productReference = 11F262AA23260CF40009C103 /* ElastosDIDSDK.framework */;
 			productType = "com.apple.product-type.framework";
@@ -1163,6 +1181,8 @@
 				Base,
 			);
 			mainGroup = 11F262A023260CF30009C103;
+			packageReferences = (
+			);
 			productRefGroup = 11F262AB23260CF40009C103 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1316,6 +1336,7 @@
 				1100DC4126B3924F00AB1FB3 /* ResolveResult.swift in Sources */,
 				1100DBD226B3921E00AB1FB3 /* ECError.swift in Sources */,
 				1100DC9626B3925C00AB1FB3 /* DIDStorage.swift in Sources */,
+				11B867B42923FF910046FD87 /* DIDCipher.swift in Sources */,
 				1100DBD626B3921E00AB1FB3 /* SSLPointerTricks.swift in Sources */,
 				1100DC0826B3923A00AB1FB3 /* LogLevel.swift in Sources */,
 				1100DBE226B3922400AB1FB3 /* NoneAlgorithm.swift in Sources */,
@@ -1375,12 +1396,14 @@
 				1100DC4826B3924F00AB1FB3 /* CredentialTransaction.swift in Sources */,
 				1100DC0026B3923600AB1FB3 /* JWT.swift in Sources */,
 				1100DC9B26B3925C00AB1FB3 /* Constants.swift in Sources */,
+				11B867B72923FF9D0046FD87 /* DIDCurve25519Cipher.swift in Sources */,
 				1100DC3E26B3924F00AB1FB3 /* SimulatedIDChain.swift in Sources */,
 				1100DC1926B3924000AB1FB3 /* Extension+Data.swift in Sources */,
 				1100DC9826B3925C00AB1FB3 /* FileSystemStorage.swift in Sources */,
 				1100DC8326B3925C00AB1FB3 /* DefaultDIDAdapter.swift in Sources */,
 				1100DC2A26B3924900AB1FB3 /* CredentialMetadata.swift in Sources */,
 				1100DC3C26B3924F00AB1FB3 /* CredentialResolveRequest.swift in Sources */,
+				11B867B12923FF830046FD87 /* CryptoUtils.swift in Sources */,
 				1100DBEC26B3922400AB1FB3 /* VerifierAlgorithm.swift in Sources */,
 				1100DBEA26B3922400AB1FB3 /* RSAKeyType.swift in Sources */,
 				1100DC2426B3924500AB1FB3 /* DIDError.swift in Sources */,
@@ -1418,6 +1441,7 @@
 				1100DC2C26B3924900AB1FB3 /* DIDMetadata.swift in Sources */,
 				1100DC4926B3924F00AB1FB3 /* IDTransactionInfo.swift in Sources */,
 				1100DC4526B3924F00AB1FB3 /* IDChainRequest.swift in Sources */,
+				11B867AE2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift in Sources */,
 				1100DBD826B3921E00AB1FB3 /* Data+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1481,7 +1505,9 @@
 				A31ACE0A23F199AE008EC032 /* DIDURL.swift in Sources */,
 				119B299F2578ED210084B859 /* ECPublicKey.swift in Sources */,
 				11BA5E9726C61BE4005CE483 /* LocalResolveHandle.swift in Sources */,
+				11B867AD2923FF6A0046FD87 /* DIDXChaCha20Poly1305Cipher.swift in Sources */,
 				A31ACE1323F199AE008EC032 /* DID.swift in Sources */,
+				11B867B62923FF9D0046FD87 /* DIDCurve25519Cipher.swift in Sources */,
 				110B8203264E4BF600F6477F /* extension+Dictionary.swift in Sources */,
 				11BE33DE260984C600DEBD00 /* Extension+Data.swift in Sources */,
 				A31ACE3F23F19A22008EC032 /* DateHelper.swift in Sources */,
@@ -1502,6 +1528,7 @@
 				11C3ECEE2477807300DF1B4F /* SignerAlgorithm.swift in Sources */,
 				11C3ECE22477807300DF1B4F /* Header.swift in Sources */,
 				11C3ECE82477807300DF1B4F /* ValidateClaimsResult.swift in Sources */,
+				11B867B32923FF910046FD87 /* DIDCipher.swift in Sources */,
 				11C8FFE326B241C2002CA102 /* DIDURLBuilder.swift in Sources */,
 				11BE33992604383700DEBD00 /* DIDRequest.swift in Sources */,
 				A31ACE0923F199AE008EC032 /* DIDStorage.swift in Sources */,
@@ -1589,6 +1616,7 @@
 				A34D732923FA758900B4CB3E /* IDGetter.swift in Sources */,
 				A31ACE3623F19A22008EC032 /* JsonGenerator.swift in Sources */,
 				11411CC225ECC4B00033F659 /* MultiSignature.swift in Sources */,
+				11B867B02923FF830046FD87 /* CryptoUtils.swift in Sources */,
 				11C3ECE72477807300DF1B4F /* BlueECDSA.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1842,7 +1870,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1851,6 +1879,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = "";
 				VALID_ARCHS = "x86_64 arm64";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -1905,7 +1934,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1913,6 +1942,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = "";
 				VALIDATE_PRODUCT = YES;
 				VALID_ARCHS = "x86_64 arm64";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1941,7 +1971,7 @@
 				);
 				INFOPLIST_FILE = ElastosDIDSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1986,7 +2016,7 @@
 				);
 				INFOPLIST_FILE = ElastosDIDSDK/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
