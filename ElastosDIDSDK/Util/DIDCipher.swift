@@ -42,7 +42,7 @@ public protocol DIDCipher {
     ///   - data: the data to be decrypted.
     ///   - nonce: the nonce for decryption, same as the nonce on encrypt().
     /// - Throws: if no error occurs, throw error.
-    func decrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8];
+    func decrypt(_ data: [UInt8], _ nonce: [UInt8]) throws -> [UInt8]
 
     // Get a encrypt stream for large size.
     func createEncryptionStream() throws -> EncryptionStream
@@ -62,43 +62,43 @@ public protocol DIDCipher {
 
 // Stream class to encrypt data.
 public class EncryptionStream {
-    func header() throws -> [UInt8] {
+    public func header() throws -> [UInt8] {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not implemented.")
     }
 
-    func push(_ clearText: [UInt8]) throws -> [UInt8] {
+    public func push(_ clearText: [UInt8]) throws -> [UInt8] {
         return try self.pushAny(clearText, true)
     }
 
-    func pushLast(_ clearText: [UInt8]) throws -> [UInt8] {
+    public func pushLast(_ clearText: [UInt8]) throws -> [UInt8] {
         return try self.pushAny(clearText, true)
     }
 
-    func pushAny(_ clearText: [UInt8], _ isFinal: Bool) throws -> [UInt8] {
+    public func pushAny(_ clearText: [UInt8], _ isFinal: Bool) throws -> [UInt8] {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not implemented.")
     }
 }
 
 //  Stream class to decrypt data.
 public class DecryptionStream {
-    static func getHeaderLen() -> Int {
+    public static func getHeaderLen() -> Int {
         return SecretStream.XChaCha20Poly1305.HeaderBytes
     }
 
-    static func getEncryptExtraSize() -> Int {
+    public static func getEncryptExtraSize() -> Int {
         return SecretStream.XChaCha20Poly1305.ABytes
     }
 
-    func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
+    public func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not implemented.")
     }
 
-    func isComplete() throws -> Bool {
+    public func isComplete() throws -> Bool {
         throw DIDError.UncheckedError.UnsupportedOperationError.UnsupportedError("Not implemented.")
     }
 }
 
-class DIDSSEncrypt: EncryptionStream {
+public class DIDSSEncrypt: EncryptionStream {
     
     private var state: crypto_secretstream_xchacha20poly1305_state
     private var _header: [UInt8]
@@ -127,11 +127,11 @@ class DIDSSEncrypt: EncryptionStream {
         }
     }
 
-    override func header() -> [UInt8] {
+    public override func header() -> [UInt8] {
         return self._header
     }
 
-    override func pushAny(_ clearText: [UInt8], _ isFinal: Bool) throws -> [UInt8] {
+    public override func pushAny(_ clearText: [UInt8], _ isFinal: Bool) throws -> [UInt8] {
 
         let tag: SecretStream.XChaCha20Poly1305.Tag = isFinal ? .FINAL : .MESSAGE;
 
@@ -156,7 +156,7 @@ class DIDSSEncrypt: EncryptionStream {
     }
 }
 
-class DIDSSDecrypt: DecryptionStream {
+public class DIDSSDecrypt: DecryptionStream {
     
     private var state: crypto_secretstream_xchacha20poly1305_state
     private var complete: Bool
@@ -178,7 +178,7 @@ class DIDSSDecrypt: DecryptionStream {
         self.complete = false
     }
 
-    override func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
+    public override func pull(_ cipherText: [UInt8]) throws -> [UInt8] {
         
         let ABytes = Int(crypto_secretstream_xchacha20poly1305_abytes())
         var message = [UInt8](repeating: 0, count: cipherText.count - ABytes)
@@ -208,7 +208,7 @@ class DIDSSDecrypt: DecryptionStream {
         return message
     }
 
-    override func isComplete() -> Bool {
+    public override func isComplete() -> Bool {
         return self.complete
     }
 }
